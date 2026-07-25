@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: isc-fes
+      POSTGRES_PASSWORD: devpassword
+      POSTGRES_DB: isc-fes
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U isc-fes"]
+      interval: 5s
+      retries: 5
+
+volumes:
+  pgdata:
