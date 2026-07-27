@@ -1,5 +1,6 @@
-include ./backend/.env.example
-export
+-include ./backend/.env
+
+export DATABASE_URL
 
 .PHONY: db-up db-down dev-api migrate sqlc gen-api db-reset
 db-up:

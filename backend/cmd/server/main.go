@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/isc-makeit/isc-fes/backend/internal/api"
+	"github.com/isc-makeit/isc-fes/backend/internal/auth"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
@@ -25,10 +27,35 @@ func main() {
 	}
 	log.Println("db connected")
 
+	secure := os.Getenv("SESSION_COOKIE_SECURE") == "true"
+	sessions, stopSessionCleanup := auth.NewSessions(pool, secure)
+	defer stopSessionCleanup()
+
+	googleAuthenticator, err := auth.NewGoogleAuthenticator(
+		context.Background(),
+		auth.GoogleConfig{
+			ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
+			ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+			RedirectURL:  os.Getenv("GOOGLE_REDIRECT_URL"),
+		},
+	)
+	if err != nil {
+		log.Fatalf("initialize Google authentication: %v", err)
+	}
+
 	r := gin.Default()
 
-	srv := api.NewServer(pool)
-	api.RegisterHandlers(r, srv)
+	srv := api.NewServer(pool, sessions, googleAuthenticator)
 
-	log.Fatal(r.Run(":8080"))
+	api.RegisterHandlers(r, srv)
+	api.RegisterAuthRoutes(r, srv)
+
+	handler := sessions.LoadAndSave(r)
+
+	httpServer := &http.Server{
+		Addr:    ":8080",
+		Handler: handler,
+	}
+
+	log.Fatal(httpServer.ListenAndServe())
 }
