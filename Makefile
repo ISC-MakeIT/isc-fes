@@ -9,7 +9,7 @@ db-down:
 dev-api:
 	cd backend && go tool air
 migrate:
-	cd backend && migrate -path db/migrations -database "$(DATABASE_URL)" up
+	cd backend && migrate -path internal/db/migrations -database "$(DATABASE_URL)" up
 sqlc:
 	cd backend && go tool sqlc generate
 db-reset:
