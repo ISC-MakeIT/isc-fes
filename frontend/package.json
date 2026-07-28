@@ -23,6 +23,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
+    "openapi-typescript": "^7.13.0",
     "oxfmt": "^0.60.0",
     "oxlint": "^1.75.0",
     "tailwindcss": "^4",
