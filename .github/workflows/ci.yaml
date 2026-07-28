@@ -28,3 +28,28 @@ jobs:
         run: go vet ./...
       - name: Test
         run: go test -race -shuffle=on ./...
+
+  web-code-quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@4
+        with:
+          version: 10
+      - uses: actions/setup-node@v6
+        with:
+          node-version: frontend/.nvmrc
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: Format check
+        run: pnpm run fmt:check
+      - name: Lint
+        run: pnpm run lint
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+      - name: Build
+        run: pnpm run build
