@@ -41,7 +41,7 @@ jobs:
           version: 10
       - uses: actions/setup-node@v6
         with:
-          node-version: frontend/.nvmrc
+          node-version-file: frontend/.nvmrc
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
