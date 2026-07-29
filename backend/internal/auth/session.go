@@ -30,6 +30,8 @@ const (
 var (
 	ErrOAuthFlowMissing = errors.New("OAuth flow is missing")
 	ErrOAuthFlowExpired = errors.New("OAuth flow has expired")
+
+	ErrNotAuthenticated = errors.New("not authenticated")
 )
 
 type OAuthFlow struct {
@@ -155,6 +157,31 @@ func (s *Sessions) SignIn(
 
 	// UUIDもGobの独自型として保存せず、文字列にする。
 	s.manager.Put(ctx, accountIDKey, accountID.String())
+
+	return nil
+}
+
+func (s *Sessions) GetAccountID(ctx context.Context) (uuid.UUID, error) {
+	value := s.manager.GetString(ctx, accountIDKey)
+	if value == "" {
+		return uuid.Nil, ErrNotAuthenticated
+	}
+
+	accountID, err := uuid.Parse(value)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf(
+			"%w: invalid account ID in session",
+			ErrNotAuthenticated,
+		)
+	}
+
+	return accountID, nil
+}
+
+func (s *Sessions) SignOut(ctx context.Context) error {
+	if err := s.manager.Destroy(ctx); err != nil {
+		return fmt.Errorf("destroy session: %w", err)
+	}
 
 	return nil
 }
