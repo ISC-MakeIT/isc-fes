@@ -13,7 +13,7 @@ import (
 func (s *Server) GetMe(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	accountID, err := s.sessions.GetAccountID(ctx)
+	accountID, err := s.sessions.AccountID(ctx)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, ErrorResponse{
 			Message: "authentication required",

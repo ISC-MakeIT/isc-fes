@@ -161,7 +161,7 @@ func (s *Sessions) SignIn(
 	return nil
 }
 
-func (s *Sessions) GetAccountID(ctx context.Context) (uuid.UUID, error) {
+func (s *Sessions) AccountID(ctx context.Context) (uuid.UUID, error) {
 	value := s.manager.GetString(ctx, accountIDKey)
 	if value == "" {
 		return uuid.Nil, ErrNotAuthenticated
