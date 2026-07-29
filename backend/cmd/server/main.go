@@ -88,8 +88,12 @@ func main() {
 	handler := sessions.LoadAndSave(r)
 
 	httpServer := &http.Server{
-		Addr:    ":8080",
-		Handler: handler,
+		Addr:              ":8080",
+		Handler:           handler,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 
 	log.Fatal(httpServer.ListenAndServe())
