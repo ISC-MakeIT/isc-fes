@@ -5,7 +5,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/isc-makeit/isc-fes/backend/internal/api"
 	"github.com/isc-makeit/isc-fes/backend/internal/auth"
@@ -51,7 +53,32 @@ func main() {
 		log.Fatal("FRONTEND_URL is required")
 	}
 
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+		SkipQueryString: true, // URL の Query がログに出ないようになる。/callback などで code, state などが出ないように
+	}))
+
+	r.Use(gin.Recovery())
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{
+			frontendURL,
+		},
+		AllowMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPatch,
+			http.MethodDelete,
+			http.MethodOptions,
+		},
+		AllowHeaders: []string{
+			"Origin",
+			"Content-Type",
+			"Accept",
+		},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	srv := api.NewServer(queries, sessions, googleAuthenticator, frontendURL)
 
