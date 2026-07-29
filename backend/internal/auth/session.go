@@ -11,11 +11,14 @@ import (
 
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/oauth2"
 )
 
 const (
+	accountIDKey = "account_id"
+
 	oauthStateKey        = "oauth_state"
 	oauthNonceKey        = "oauth_nonce"
 	oauthPKCEVerifierKey = "oauth_pkce_verifier"
@@ -108,18 +111,28 @@ func (s *Sessions) BeginOAuth(ctx context.Context) (OAuthFlow, error) {
 }
 
 func (s *Sessions) PopOAuth(ctx context.Context) (OAuthFlow, error) {
-	flow := OAuthFlow{
-		State:        s.manager.PopString(ctx, oauthStateKey),
-		Nonce:        s.manager.PopString(ctx, oauthNonceKey),
-		PKCEVerifier: s.manager.PopString(ctx, oauthPKCEVerifierKey),
-		StartedAt:    s.manager.PopTime(ctx, oauthStartedAtKey),
+	state := s.manager.PopString(ctx, oauthStateKey)
+	nonce := s.manager.PopString(ctx, oauthNonceKey)
+	pkceVerifier := s.manager.PopString(ctx, oauthPKCEVerifierKey)
+	startedAtText := s.manager.PopString(ctx, oauthStartedAtKey)
+
+	if state == "" ||
+		nonce == "" ||
+		pkceVerifier == "" ||
+		startedAtText == "" {
+		return OAuthFlow{}, ErrOAuthFlowMissing
 	}
 
-	if flow.State == "" ||
-		flow.Nonce == "" ||
-		flow.PKCEVerifier == "" ||
-		flow.StartedAt.IsZero() {
-		return OAuthFlow{}, ErrOAuthFlowMissing
+	startedAt, err := time.Parse(time.RFC3339Nano, startedAtText)
+	if err != nil {
+		return OAuthFlow{}, fmt.Errorf("parse OAuth flow start time: %w", err)
+	}
+
+	flow := OAuthFlow{
+		State:        state,
+		Nonce:        nonce,
+		PKCEVerifier: pkceVerifier,
+		StartedAt:    startedAt,
 	}
 
 	age := time.Since(flow.StartedAt)
@@ -128,4 +141,20 @@ func (s *Sessions) PopOAuth(ctx context.Context) (OAuthFlow, error) {
 	}
 
 	return flow, nil
+}
+
+func (s *Sessions) SignIn(
+	ctx context.Context,
+	accountID uuid.UUID,
+) error {
+	// Googleログイン前のセッショントークンを破棄して再発行する。
+	// session fixation対策。
+	if err := s.manager.RenewToken(ctx); err != nil {
+		return fmt.Errorf("renew session token: %w", err)
+	}
+
+	// UUIDもGobの独自型として保存せず、文字列にする。
+	s.manager.Put(ctx, accountIDKey, accountID.String())
+
+	return nil
 }

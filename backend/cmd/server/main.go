@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/isc-makeit/isc-fes/backend/internal/api"
 	"github.com/isc-makeit/isc-fes/backend/internal/auth"
+	db "github.com/isc-makeit/isc-fes/backend/internal/db/sqlc"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
@@ -27,6 +28,8 @@ func main() {
 	}
 	log.Println("db connected")
 
+	queries := db.New(pool)
+
 	secure := os.Getenv("SESSION_COOKIE_SECURE") == "true"
 	sessions, stopSessionCleanup := auth.NewSessions(pool, secure)
 	defer stopSessionCleanup()
@@ -43,9 +46,14 @@ func main() {
 		log.Fatalf("initialize Google authentication: %v", err)
 	}
 
+	frontendURL := os.Getenv("FRONTEND_URL")
+	if frontendURL == "" {
+		log.Fatal("FRONTEND_URL is required")
+	}
+
 	r := gin.Default()
 
-	srv := api.NewServer(pool, sessions, googleAuthenticator)
+	srv := api.NewServer(queries, sessions, googleAuthenticator, frontendURL)
 
 	api.RegisterHandlers(r, srv)
 	api.RegisterAuthRoutes(r, srv)
