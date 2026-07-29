@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -28,8 +29,9 @@ const (
 )
 
 var (
-	ErrOAuthFlowMissing = errors.New("OAuth flow is missing")
-	ErrOAuthFlowExpired = errors.New("OAuth flow has expired")
+	ErrInvalidOAuthState = errors.New("invalid OAuth state")
+	ErrOAuthFlowMissing  = errors.New("OAuth flow is missing")
+	ErrOAuthFlowExpired  = errors.New("OAuth flow has expired")
 
 	ErrNotAuthenticated = errors.New("not authenticated")
 )
@@ -112,11 +114,14 @@ func (s *Sessions) BeginOAuth(ctx context.Context) (OAuthFlow, error) {
 	return flow, nil
 }
 
-func (s *Sessions) PopOAuth(ctx context.Context) (OAuthFlow, error) {
-	state := s.manager.PopString(ctx, oauthStateKey)
-	nonce := s.manager.PopString(ctx, oauthNonceKey)
-	pkceVerifier := s.manager.PopString(ctx, oauthPKCEVerifierKey)
-	startedAtText := s.manager.PopString(ctx, oauthStartedAtKey)
+func (s *Sessions) ConsumeOAuth(
+	ctx context.Context,
+	receivedState string,
+) (OAuthFlow, error) {
+	state := s.manager.GetString(ctx, oauthStateKey)
+	nonce := s.manager.GetString(ctx, oauthNonceKey)
+	pkceVerifier := s.manager.GetString(ctx, oauthPKCEVerifierKey)
+	startedAtText := s.manager.GetString(ctx, oauthStartedAtKey)
 
 	if state == "" ||
 		nonce == "" ||
@@ -124,6 +129,16 @@ func (s *Sessions) PopOAuth(ctx context.Context) (OAuthFlow, error) {
 		startedAtText == "" {
 		return OAuthFlow{}, ErrOAuthFlowMissing
 	}
+
+	if subtle.ConstantTimeCompare(
+		[]byte(receivedState),
+		[]byte(state),
+	) != 1 {
+		return OAuthFlow{}, ErrInvalidOAuthState
+	}
+
+	// 正しいstateを提示した場合だけ、OAuthフローを単回使用として削除する。
+	s.removeOAuth(ctx)
 
 	startedAt, err := time.Parse(time.RFC3339Nano, startedAtText)
 	if err != nil {
@@ -143,6 +158,13 @@ func (s *Sessions) PopOAuth(ctx context.Context) (OAuthFlow, error) {
 	}
 
 	return flow, nil
+}
+
+func (s *Sessions) removeOAuth(ctx context.Context) {
+	s.manager.Remove(ctx, oauthStateKey)
+	s.manager.Remove(ctx, oauthNonceKey)
+	s.manager.Remove(ctx, oauthPKCEVerifierKey)
+	s.manager.Remove(ctx, oauthStartedAtKey)
 }
 
 func (s *Sessions) SignIn(

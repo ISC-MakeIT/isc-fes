@@ -1,7 +1,6 @@
 package api
 
 import (
-	"crypto/subtle"
 	"log"
 	"net/http"
 
@@ -34,24 +33,15 @@ func (s *Server) googleLogin(c *gin.Context) {
 func (s *Server) googleCallback(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	// OAuthFlowは成功・失敗にかかわらず単回使用にする。
-	flow, err := s.sessions.PopOAuth(ctx)
+	flow, err := s.sessions.ConsumeOAuth(
+		ctx,
+		c.Query("state"),
+	)
 	if err != nil {
-		log.Printf("pop Google OAuth flow: %v", err)
+		log.Printf("consume Google OAuth flow: %v", err)
 
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"message": "invalid or expired login flow",
-		})
-		return
-	}
-
-	receivedState := c.Query("state")
-	if subtle.ConstantTimeCompare(
-		[]byte(receivedState),
-		[]byte(flow.State),
-	) != 1 {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": "invalid OAuth state",
 		})
 		return
 	}
