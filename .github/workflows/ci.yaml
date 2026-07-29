@@ -26,6 +26,17 @@ jobs:
           if [ -n "$fmt_out" ]; then echo "$fmt_out"; exit 1; fi
       - name: Vet
         run: go vet ./...
+
+  go-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
       - name: Test
         run: go test -race -shuffle=on ./...
 
