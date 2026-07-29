@@ -1,11 +1,27 @@
 package api
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import (
+	"github.com/isc-makeit/isc-fes/backend/internal/auth"
+	db "github.com/isc-makeit/isc-fes/backend/internal/db/sqlc"
+)
 
 type Server struct {
-	pool *pgxpool.Pool
+	queries             *db.Queries
+	sessions            *auth.Sessions
+	googleAuthenticator *auth.GoogleAuthenticator
+	frontendURL         string
 }
 
-func NewServer(pool *pgxpool.Pool) *Server {
-	return &Server{pool: pool}
+func NewServer(
+	queries *db.Queries,
+	sessions *auth.Sessions,
+	googleAuthenticator *auth.GoogleAuthenticator,
+	frontendURL string,
+) *Server {
+	return &Server{
+		queries:             queries,
+		sessions:            sessions,
+		googleAuthenticator: googleAuthenticator,
+		frontendURL:         frontendURL,
+	}
 }

@@ -13,7 +13,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
+  /me:
+    get:
+      operationId: getMe
+      summary: ログイン中のアカウントを取得する
+      security:
+        - AccountSession: []
+      responses:
+        '200':
+          description: ログイン中のアカウント
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+        '401':
+          description: 未ログインまたはセッションが無効
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
+  securitySchemes:
+    AccountSession:
+      type: apiKey
+      in: cookie
+      name: isc_fes_account_session
   schemas:
     HealthResponse:
       type: object
@@ -22,3 +52,35 @@ components:
         status:
           type: string
           example: ok
+    MeResponse:
+      type: object
+      required:
+        - id
+        - email
+        - displayName
+        - pictureUrl
+        - role
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        pictureUrl:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum:
+            - member
+            - admin
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string

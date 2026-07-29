@@ -14,7 +14,31 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
+
+// Defines values for MeResponseRole.
+const (
+	Admin  MeResponseRole = "admin"
+	Member MeResponseRole = "member"
+)
+
+// Valid indicates whether the value is a known member of the MeResponseRole enum.
+func (e MeResponseRole) Valid() bool {
+	switch e {
+	case Admin:
+		return true
+	case Member:
+		return true
+	default:
+		return false
+	}
+}
+
+// ErrorResponse defines model for ErrorResponse.
+type ErrorResponse struct {
+	Message string `json:"message"`
+}
 
 // HealthResponse defines model for HealthResponse.
 type HealthResponse struct {
@@ -22,11 +46,26 @@ type HealthResponse struct {
 	Status string `json:"status"`
 }
 
+// MeResponse defines model for MeResponse.
+type MeResponse struct {
+	DisplayName string              `json:"displayName"`
+	Email       openapi_types.Email `json:"email"`
+	Id          openapi_types.UUID  `json:"id"`
+	PictureUrl  *string             `json:"pictureUrl"`
+	Role        MeResponseRole      `json:"role"`
+}
+
+// MeResponseRole defines model for MeResponse.Role.
+type MeResponseRole string
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
 	// (GET /health)
 	GetHealth(c *gin.Context)
+	// GetMe ログイン中のアカウントを取得する
+	// (GET /me)
+	GetMe(c *gin.Context)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -49,6 +88,19 @@ func (siw *ServerInterfaceWrapper) GetHealth(c *gin.Context) {
 	}
 
 	siw.Handler.GetHealth(c)
+}
+
+// GetMe operation middleware
+func (siw *ServerInterfaceWrapper) GetMe(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMe(c)
 }
 
 // GinServerOptions provides options for the Gin server.
@@ -79,6 +131,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.GET(options.BaseURL+"/health", wrapper.GetHealth)
+	router.GET(options.BaseURL+"/me", wrapper.GetMe)
 }
 
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
@@ -86,11 +139,16 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"XJAxT8QwDIX/CnowlrZwWzYmODGAWBFDSN1rjjYxiQ+BTvnvyCkHEpOfLD/rfe8IFxeOgYJkmCOym2ix",
-	"Vd6RnWV6oswxZNINp8iUxNN6KlYOVdGnXXgmGMQ3NJAvVp0l+bBDKQ0SvR98ogHm+WR7+b2Lr3tygqKH",
-	"PoxRP4qX+s9ndzlSPrt53KLBB6XsY4BB3161PUqDyBQsexhs2r7doAFbmWqqbqoAKnckOjS9FR/DdoDB",
-	"LcmKCA24Ulbjdd/rcDEIhWq0zLN31drtsyY4NaXqItEIg/Pur8rup8fuX4kVcqDskmdZUR7udVtK+Q4A",
-	"AP//",
+	"tFTNahRBEH4VKT2Ouxujl7nlIBpCVAyeQgidmdpsJ9M/dveIS5jDzngQFRQPiiCIIv4SFYKoGPIyZfQ1",
+	"pHsmcdfdJR7iZaeorurvp6t2CxIltJIonYV4C2zSQ8FCeN4YZa6i1Upa9AltlEbjOIZjgday9XDg+hoh",
+	"BusMl+tQFBEYvJ5zgynEy4eFK9FBoVrbwMRBEcFFZJnrTQexjrk8RHiTCZ2F7k2IjoBs2iYhLuJ0tJRb",
+	"nbH+JSYmyYoABeOZP+kqI5iDuMlE46U8HanLc55OKtM8cbnBayZcK/MsY2tepDM5Tig3KgvMUOaitlas",
+	"oYEIWCq4HNI7xZdA4oDzsNoRJg3OuHtFBBaT3HDXX/JzUrs2lyQql24JreVK+gyXEEOi1Cb3N8tgJ3Cb",
+	"rHbRrrK6fNU29YcoTPMF7EPhYbjsqvAE3GVN8+ku2hNzV+YhghtoaijotGZaHe+M0iiZ5hDDbKvTmvWC",
+	"mOsFfu1eGDIfrqPzH//mzHEl51OI4QK6egy98GY2QuOZTsd/EiUdytDItM54ElrbG7YWW2+Mj04Z7EIM",
+	"J9t/Vqrd7FP7r0EPIlO0ieHa1VIuL/hsEUG7nr5pXBfxf/IcWo8JHKnapvITlS+p2vnxdZsGH6h8QeV7",
+	"Kl9RtUPVbf8UZzszx0Zn9D9oAqOfT98Nk6LBHg2e0eAjld+pqqj8QtXrkL/369bz/TvfPMFzx+jXkQSp",
+	"/EzVLlUP/G/5hqq3VO2OrBLEy+NLtLxSrERgcyGY6f+L81Q+3L//aH/vMQ2eUHk3zNLvAAAA//8=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
