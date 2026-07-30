@@ -1,0 +1,29 @@
+# CodeRabbit 設定ファイル
+# https://docs.coderabbit.ai/guides/configure-coderabbit
+
+language: ja-JP
+
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+
+  path_filters:
+    - "!**/.next/**"
+    - "!**/node_modules/**"
+    - "!**/*.min.js"
+    - "!**/dist/**"
+
+  path_instructions:
+    - path: ".github/workflows/**"
+      instructions: |
+        GitHub Actions ワークフローを確認してください:
+        - Secrets が適切にマスクされているか（直接埋め込みは禁止）
+        - `permissions` が最小権限になっているか
+        - シェルスクリプトのインジェクション対策がされているか
+
+chat:
+  auto_reply: true
