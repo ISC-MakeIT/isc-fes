@@ -24,5 +24,20 @@ func (r *AccountRepository) GetAccountByID(ctx context.Context, accountID uuid.U
 		return entities.Account{}, err
 	}
 
-	return entities.Account{}.New(dbAccount), nil
+	return ToAccount(dbAccount), nil
+}
+
+// ToAccount converts a sqlc.Account to an Account entity.
+func ToAccount(dbAccount sqlc.Account) entities.Account {
+	return entities.Account{
+		ID:          dbAccount.ID,
+		GoogleSub:   dbAccount.GoogleSub,
+		Email:       dbAccount.Email,
+		DisplayName: dbAccount.DisplayName,
+		PictureURL:  dbAccount.PictureUrl,
+		Role:        entities.Role(dbAccount.Role),
+		LastLoginAt: dbAccount.LastLoginAt.Time,
+		CreatedAt:   dbAccount.CreatedAt.Time,
+		UpdatedAt:   dbAccount.UpdatedAt.Time,
+	}
 }

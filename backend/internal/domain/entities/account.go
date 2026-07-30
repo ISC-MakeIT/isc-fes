@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/isc-makeit/isc-fes/backend/internal/db/sqlc"
 )
 
 type Role string
@@ -35,18 +34,4 @@ type Account struct {
 	LastLoginAt time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-}
-
-func (a Account) New(dbAccount sqlc.Account) Account {
-	return Account{
-		ID:          dbAccount.ID,
-		GoogleSub:   dbAccount.GoogleSub,
-		Email:       dbAccount.Email,
-		DisplayName: dbAccount.DisplayName,
-		PictureURL:  dbAccount.PictureUrl,
-		Role:        Role(dbAccount.Role),
-		LastLoginAt: dbAccount.LastLoginAt.Time,
-		CreatedAt:   dbAccount.CreatedAt.Time,
-		UpdatedAt:   dbAccount.UpdatedAt.Time,
-	}
 }
