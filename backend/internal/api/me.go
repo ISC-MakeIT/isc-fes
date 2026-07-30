@@ -21,7 +21,7 @@ func (s *Server) GetMe(c *gin.Context) {
 		return
 	}
 
-	account, err := s.queries.GetAccountByID(ctx, accountID)
+	account, err := s.accountService.GetAccountByID(ctx, accountID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		// アカウントは存在しないので、残っているセッションも破棄する。
 		if destroyErr := s.sessions.SignOut(ctx); destroyErr != nil {
@@ -47,7 +47,7 @@ func (s *Server) GetMe(c *gin.Context) {
 		Id:          openapi_types.UUID(account.ID),
 		Email:       openapi_types.Email(account.Email),
 		DisplayName: account.DisplayName,
-		PictureUrl:  account.PictureUrl,
+		PictureUrl:  account.PictureURL,
 		Role:        MeResponseRole(account.Role),
 	})
 }
