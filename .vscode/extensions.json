@@ -1,3 +1,9 @@
 {
-  "recommendations": ["oxc.oxc-vscode"]
+  "recommendations": [
+    "golang.go",
+    "oxc.oxc-vscode",
+    "bradlc.vscode-tailwindcss",
+    "ms-azuretools.vscode-docker",
+    "yoavbls.pretty-ts-errors"
+  ]
 }
