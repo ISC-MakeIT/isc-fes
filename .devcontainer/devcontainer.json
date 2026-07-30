@@ -25,7 +25,9 @@
 			"npmVersion": "lts",
 			"pnpmVersion": "latest",
 			"nvmVersion": "latest"
-		}
+		},
+		"ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+
 	}
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
