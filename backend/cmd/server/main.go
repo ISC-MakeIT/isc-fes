@@ -12,6 +12,8 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/internal/api"
 	"github.com/isc-makeit/isc-fes/backend/internal/auth"
 	db "github.com/isc-makeit/isc-fes/backend/internal/db/sqlc"
+	"github.com/isc-makeit/isc-fes/backend/internal/repository"
+	"github.com/isc-makeit/isc-fes/backend/internal/service"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
@@ -80,7 +82,13 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	srv := api.NewServer(queries, sessions, googleAuthenticator, frontendURL)
+	// Initialize repositories
+	accountRepository := repository.NewAccountRepository(queries)
+
+	// Initialize services
+	accountService := service.NewAccountService(accountRepository)
+
+	srv := api.NewServer(queries, sessions, googleAuthenticator, frontendURL, accountService)
 
 	api.RegisterHandlers(r, srv)
 	api.RegisterAuthRoutes(r, srv)
