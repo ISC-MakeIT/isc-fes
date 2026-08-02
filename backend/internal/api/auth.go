@@ -59,8 +59,7 @@ func (s *Server) googleCallback(c *gin.Context) {
 	identity, err := s.googleAuthenticator.ExchangeAndVerify(
 		ctx,
 		c.Query("code"),
-		flow.PKCEVerifier,
-		flow.Nonce,
+		flow,
 	)
 	if err != nil {
 		log.Printf("verify Google callback: %v", err)

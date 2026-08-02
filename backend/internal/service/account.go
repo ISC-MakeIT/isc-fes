@@ -5,14 +5,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/internal/domain/entities"
-	"github.com/isc-makeit/isc-fes/backend/internal/repository"
+	service_interface "github.com/isc-makeit/isc-fes/backend/internal/service/interface"
 )
 
 type AccountService struct {
-	accountRepository *repository.AccountRepository
+	accountRepository service_interface.AccountRepository
 }
 
-func NewAccountService(accountRepository *repository.AccountRepository) *AccountService {
+func NewAccountService(accountRepository service_interface.AccountRepository) *AccountService {
 	return &AccountService{
 		accountRepository: accountRepository,
 	}

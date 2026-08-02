@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/internal/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/internal/domain/entities"
+	service_interface "github.com/isc-makeit/isc-fes/backend/internal/service/interface"
 )
 
 type AccountRepository struct {
@@ -41,3 +42,5 @@ func ToAccount(dbAccount sqlc.Account) entities.Account {
 		UpdatedAt:   dbAccount.UpdatedAt.Time,
 	}
 }
+
+var _ service_interface.AccountRepository = (*AccountRepository)(nil)
