@@ -1,59 +1,58 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/go-postgres
 {
-	"name": "Go & PostgreSQL",
-	"dockerComposeFile": "docker-compose.yml",
-	"service": "app",
-	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-	"containerEnv": {
-		"GOTOOLCHAIN": "auto"
-	},
-	"features": {
-		"ghcr.io/devcontainers/features/docker-in-docker:4": {
-			"moby": false,
-			"azureDnsAutoDetection": true,
-			"installDockerBuildx": true,
-			"iptablesSwitchAtRuntime": true,
-			"version": "latest",
-			"dockerDashComposeVersion": "latest"
-		},
-		"ghcr.io/devcontainers/features/github-cli:1": {
-			"installDirectlyFromGitHubRelease": true,
-			"version": "latest"
-		},
-		"ghcr.io/devcontainers/features/node:2": {
-			"nodeGypDependencies": true,
-			"version": "lts",
-			"npmVersion": "lts",
-			"pnpmVersion": "latest",
-			"nvmVersion": "latest"
-		},
-		"ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+  "name": "Go & PostgreSQL",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "containerEnv": {
+    "GOTOOLCHAIN": "auto"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {
+      "moby": false,
+      "azureDnsAutoDetection": true,
+      "installDockerBuildx": true,
+      "iptablesSwitchAtRuntime": true,
+      "version": "latest",
+      "dockerDashComposeVersion": "latest"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "installDirectlyFromGitHubRelease": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/node:2": {
+      "nodeGypDependencies": true,
+      "version": "lts",
+      "npmVersion": "lts",
+      "pnpmVersion": "latest",
+      "nvmVersion": "latest"
+    },
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+  },
 
-	},
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  // "features": {},
 
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "oxc.oxc-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-azuretools.vscode-docker",
+        "yoavbls.pretty-ts-errors"
+      ]
+    }
+  }
 
-	// Configure tool-specific properties.
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"golang.go",
-				"oxc.oxc-vscode",
-				"bradlc.vscode-tailwindcss",
-				"ms-azuretools.vscode-docker",
-				"yoavbls.pretty-ts-errors"
-			]
-		}
-	},
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // "forwardPorts": [5432],
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [5432],
+  // Use 'postCreateCommand' to run commands after the container is created.
+  // "postCreateCommand": "go version",
 
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "go version",
-
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // "remoteUser": "root"
 }
