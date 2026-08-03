@@ -17,6 +17,9 @@ db-reset:
 	docker compose down -v && docker compose up -d
 gen-api:
 	cd backend && go tool oapi-codegen -config oapi.yaml ../openapi.yaml > internal/api/gen.go
+	cd frontend && \
+		pnpx openapi-typescript ../openapi.yaml -o ./src/shared/api/schema.d.ts && \
+		pnpm run fmt ./src/shared/api/schema.d.ts
 
 install-web:
 	cd frontend && pnpm i
