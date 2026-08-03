@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/isc-makeit/isc-fes/backend/internal/service"
 	"golang.org/x/oauth2"
 )
 
@@ -28,15 +29,6 @@ type GoogleConfig struct {
 	ClientID     string
 	ClientSecret string
 	RedirectURL  string
-}
-
-// 検証済みのGoogleユーザー情報。
-// この型が返された時点で、署名・aud・nonce・hdなどの確認は完了している。
-type GoogleIdentity struct {
-	Subject     string
-	Email       string
-	DisplayName string
-	PictureURL  string
 }
 
 type GoogleAuthenticator struct {
@@ -87,7 +79,7 @@ func NewGoogleAuthenticator(
 	}, nil
 }
 
-func (a *GoogleAuthenticator) LoginURL(flow OAuthFlow) string {
+func (a *GoogleAuthenticator) LoginURL(flow service.OAuthFlow) string {
 	return a.oauth2Config.AuthCodeURL(
 		flow.State,
 
@@ -107,29 +99,28 @@ func (a *GoogleAuthenticator) LoginURL(flow OAuthFlow) string {
 func (a *GoogleAuthenticator) ExchangeAndVerify(
 	ctx context.Context,
 	code string,
-	pkceVerifier string,
-	expectedNonce string,
-) (GoogleIdentity, error) {
+	flow service.OAuthFlow,
+) (service.GoogleIdentity, error) {
 	if code == "" {
-		return GoogleIdentity{}, errors.New("authorization code is missing")
+		return service.GoogleIdentity{}, errors.New("authorization code is missing")
 	}
 
-	if pkceVerifier == "" {
-		return GoogleIdentity{}, errors.New("PKCE verifier is missing")
+	if flow.PKCEVerifier == "" {
+		return service.GoogleIdentity{}, errors.New("PKCE verifier is missing")
 	}
 
-	if expectedNonce == "" {
-		return GoogleIdentity{}, ErrInvalidNonce
+	if flow.Nonce == "" {
+		return service.GoogleIdentity{}, ErrInvalidNonce
 	}
 
 	// Googleから受け取ったauthorization codeをOAuth tokenへ交換する。
 	oauth2Token, err := a.oauth2Config.Exchange(
 		ctx,
 		code,
-		oauth2.VerifierOption(pkceVerifier),
+		oauth2.VerifierOption(flow.PKCEVerifier),
 	)
 	if err != nil {
-		return GoogleIdentity{}, fmt.Errorf(
+		return service.GoogleIdentity{}, fmt.Errorf(
 			"exchange Google authorization code: %w",
 			err,
 		)
@@ -138,13 +129,13 @@ func (a *GoogleAuthenticator) ExchangeAndVerify(
 	// OIDCではOAuth tokenレスポンスの中にID Tokenが入っている。
 	rawIDToken, ok := oauth2Token.Extra("id_token").(string)
 	if !ok || rawIDToken == "" {
-		return GoogleIdentity{}, ErrMissingIDToken
+		return service.GoogleIdentity{}, ErrMissingIDToken
 	}
 
 	// 署名、issuer、audience、期限などを検証する。
 	idToken, err := a.verifier.Verify(ctx, rawIDToken)
 	if err != nil {
-		return GoogleIdentity{}, fmt.Errorf(
+		return service.GoogleIdentity{}, fmt.Errorf(
 			"verify Google ID token: %w",
 			err,
 		)
@@ -153,9 +144,9 @@ func (a *GoogleAuthenticator) ExchangeAndVerify(
 	// go-oidcはnonceを自動検証しないため、自分で比較する。
 	if subtle.ConstantTimeCompare(
 		[]byte(idToken.Nonce),
-		[]byte(expectedNonce),
+		[]byte(flow.Nonce),
 	) != 1 {
-		return GoogleIdentity{}, ErrInvalidNonce
+		return service.GoogleIdentity{}, ErrInvalidNonce
 	}
 
 	var claims struct {
@@ -167,28 +158,30 @@ func (a *GoogleAuthenticator) ExchangeAndVerify(
 	}
 
 	if err := idToken.Claims(&claims); err != nil {
-		return GoogleIdentity{}, fmt.Errorf(
+		return service.GoogleIdentity{}, fmt.Errorf(
 			"decode Google ID token claims: %w",
 			err,
 		)
 	}
 
 	if idToken.Subject == "" {
-		return GoogleIdentity{}, ErrMissingSubject
+		return service.GoogleIdentity{}, ErrMissingSubject
 	}
 
 	if claims.Email == "" {
-		return GoogleIdentity{}, ErrMissingEmail
+		return service.GoogleIdentity{}, ErrMissingEmail
 	}
 
 	if !claims.EmailVerified {
-		return GoogleIdentity{}, ErrEmailNotVerified
+		return service.GoogleIdentity{}, ErrEmailNotVerified
 	}
 
-	return GoogleIdentity{
+	return service.GoogleIdentity{
 		Subject:     idToken.Subject,
 		Email:       claims.Email,
 		DisplayName: claims.Name,
 		PictureURL:  claims.Picture,
 	}, nil
 }
+
+var _ service.OAuthProvider = (*GoogleAuthenticator)(nil)

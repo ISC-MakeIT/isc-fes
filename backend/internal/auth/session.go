@@ -13,6 +13,7 @@ import (
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/google/uuid"
+	"github.com/isc-makeit/isc-fes/backend/internal/service"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/oauth2"
 )
@@ -35,13 +36,6 @@ var (
 
 	ErrNotAuthenticated = errors.New("not authenticated")
 )
-
-type OAuthFlow struct {
-	State        string
-	Nonce        string
-	PKCEVerifier string
-	StartedAt    time.Time
-}
 
 type Sessions struct {
 	manager *scs.SessionManager
@@ -88,18 +82,18 @@ func randomURLSafeToken() (string, error) {
 	return base64.RawURLEncoding.EncodeToString(data), nil
 }
 
-func (s *Sessions) BeginOAuth(ctx context.Context) (OAuthFlow, error) {
+func (s *Sessions) BeginOAuth(ctx context.Context) (service.OAuthFlow, error) {
 	state, err := randomURLSafeToken()
 	if err != nil {
-		return OAuthFlow{}, err
+		return service.OAuthFlow{}, err
 	}
 
 	nonce, err := randomURLSafeToken()
 	if err != nil {
-		return OAuthFlow{}, err
+		return service.OAuthFlow{}, err
 	}
 
-	flow := OAuthFlow{
+	flow := service.OAuthFlow{
 		State:        state,
 		Nonce:        nonce,
 		PKCEVerifier: oauth2.GenerateVerifier(),
@@ -117,7 +111,7 @@ func (s *Sessions) BeginOAuth(ctx context.Context) (OAuthFlow, error) {
 func (s *Sessions) ConsumeOAuth(
 	ctx context.Context,
 	receivedState string,
-) (OAuthFlow, error) {
+) (service.OAuthFlow, error) {
 	state := s.manager.GetString(ctx, oauthStateKey)
 	nonce := s.manager.GetString(ctx, oauthNonceKey)
 	pkceVerifier := s.manager.GetString(ctx, oauthPKCEVerifierKey)
@@ -127,14 +121,14 @@ func (s *Sessions) ConsumeOAuth(
 		nonce == "" ||
 		pkceVerifier == "" ||
 		startedAtText == "" {
-		return OAuthFlow{}, ErrOAuthFlowMissing
+		return service.OAuthFlow{}, ErrOAuthFlowMissing
 	}
 
 	if subtle.ConstantTimeCompare(
 		[]byte(receivedState),
 		[]byte(state),
 	) != 1 {
-		return OAuthFlow{}, ErrInvalidOAuthState
+		return service.OAuthFlow{}, ErrInvalidOAuthState
 	}
 
 	// 正しいstateを提示した場合だけ、OAuthフローを単回使用として削除する。
@@ -142,10 +136,10 @@ func (s *Sessions) ConsumeOAuth(
 
 	startedAt, err := time.Parse(time.RFC3339Nano, startedAtText)
 	if err != nil {
-		return OAuthFlow{}, fmt.Errorf("parse OAuth flow start time: %w", err)
+		return service.OAuthFlow{}, fmt.Errorf("parse OAuth flow start time: %w", err)
 	}
 
-	flow := OAuthFlow{
+	flow := service.OAuthFlow{
 		State:        state,
 		Nonce:        nonce,
 		PKCEVerifier: pkceVerifier,
@@ -154,7 +148,7 @@ func (s *Sessions) ConsumeOAuth(
 
 	age := time.Since(flow.StartedAt)
 	if age < 0 || age > oauthFlowLifetime {
-		return OAuthFlow{}, ErrOAuthFlowExpired
+		return service.OAuthFlow{}, ErrOAuthFlowExpired
 	}
 
 	return flow, nil
@@ -207,3 +201,7 @@ func (s *Sessions) SignOut(ctx context.Context) error {
 
 	return nil
 }
+
+var (
+	_ service.SessionManager = (*Sessions)(nil)
+)
