@@ -203,6 +203,5 @@ func (s *Sessions) SignOut(ctx context.Context) error {
 }
 
 var (
-	_ service.OAuthFlowStore = (*Sessions)(nil)
 	_ service.SessionManager = (*Sessions)(nil)
 )

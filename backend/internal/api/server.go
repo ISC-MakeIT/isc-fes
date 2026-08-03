@@ -12,6 +12,7 @@ type Server struct {
 	googleAuthenticator *auth.GoogleAuthenticator
 	frontendURL         string
 	accountService      *service.AccountService
+	auth                *service.AuthService
 }
 
 func NewServer(
@@ -20,6 +21,7 @@ func NewServer(
 	googleAuthenticator *auth.GoogleAuthenticator,
 	frontendURL string,
 	accountService *service.AccountService,
+	authService *service.AuthService,
 ) *Server {
 	return &Server{
 		queries:             queries,
@@ -27,5 +29,6 @@ func NewServer(
 		googleAuthenticator: googleAuthenticator,
 		frontendURL:         frontendURL,
 		accountService:      accountService,
+		auth:                authService,
 	}
 }

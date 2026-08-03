@@ -86,9 +86,10 @@ func main() {
 	accountRepository := repository.NewAccountRepository(queries)
 
 	// Initialize services
-	accountService := service.NewAccountService(accountRepository)
+	accountService := service.NewAccountService(accountRepository, sessions)
+	authService := service.NewAuthService(googleAuthenticator, sessions, accountRepository)
 
-	srv := api.NewServer(queries, sessions, googleAuthenticator, frontendURL, accountService)
+	srv := api.NewServer(queries, sessions, googleAuthenticator, frontendURL, accountService, authService)
 
 	api.RegisterHandlers(r, srv)
 	api.RegisterAuthRoutes(r, srv)

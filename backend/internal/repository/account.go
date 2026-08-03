@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/internal/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/internal/domain/entities"
-	service_interface "github.com/isc-makeit/isc-fes/backend/internal/service/interface"
+	"github.com/isc-makeit/isc-fes/backend/internal/service"
 )
 
 type AccountRepository struct {
@@ -28,6 +28,23 @@ func (r *AccountRepository) GetAccountByID(ctx context.Context, accountID uuid.U
 	return ToAccount(dbAccount), nil
 }
 
+func (r *AccountRepository) UpsertGoogleAccount(ctx context.Context, identity service.GoogleIdentity) (entities.Account, error) {
+	var pictureURL *string
+
+	if identity.PictureURL != "" {
+		pictureURL = &identity.PictureURL
+	}
+
+	acc, err := r.queries.UpsertAccount(ctx, sqlc.UpsertAccountParams{
+		GoogleSub:   identity.Subject,
+		Email:       identity.Email,
+		DisplayName: identity.DisplayName,
+		PictureUrl:  pictureURL,
+	})
+
+	return ToAccount(acc), err
+}
+
 // ToAccount converts a sqlc.Account to an Account entity.
 func ToAccount(dbAccount sqlc.Account) entities.Account {
 	return entities.Account{
@@ -43,4 +60,4 @@ func ToAccount(dbAccount sqlc.Account) entities.Account {
 	}
 }
 
-var _ service_interface.AccountRepository = (*AccountRepository)(nil)
+var _ service.AccountRepository = (*AccountRepository)(nil)
