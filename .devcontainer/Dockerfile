@@ -9,5 +9,8 @@ FROM mcr.microsoft.com/devcontainers/go:2-1.26-trixie
 # RUN go get -x <your-dependency-or-tool>
 # USER root
 
+USER vscode
+RUN go install -tags "postgres" github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
 # [Optional] Uncomment this line to install global node packages.
 # RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
