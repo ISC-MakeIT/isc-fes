@@ -1,4 +1,4 @@
-import { LoginButton } from "@/entities/user/ui/login-button";
+import { LoginButton } from "@/entities/account/ui/login-button";
 import { client } from "@/shared/api/client";
 import { cookies } from "next/headers";
 
