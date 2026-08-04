@@ -37,6 +37,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/store-applications": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 店舗の作成申請を作成する */
+    post: operations["createStoreApplication"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -55,6 +72,8 @@ export interface components {
       /** @enum {string} */
       role: "member" | "admin";
     };
+    /** @enum {string} */
+    StoreReviewStatus: "pending" | "approved" | "rejected";
     ErrorResponse: {
       message: string;
     };
@@ -116,6 +135,124 @@ export interface operations {
       };
       /** @description サーバーエラー */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  createStoreApplication: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": {
+          /** @example たこ焼き屋 */
+          name: string;
+          /** @example 605 */
+          room: string;
+          /** @example 外はカリカリ、中はトロトロのたこ焼きです。 */
+          description: string;
+          /**
+           * Format: binary
+           * @description 店舗画像。JPEG、PNG、WebPに対応する。
+           *     最大ファイルサイズは10MB。
+           */
+          image: string;
+        };
+      };
+    };
+    responses: {
+      /** @description 店舗申請を作成した */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * Format: uuid
+             * @description 店舗申請のID。内部的にはstores.idと同一。
+             */
+            id: string;
+            reviewStatus: components["schemas"]["StoreReviewStatus"];
+            /** Format: date-time */
+            submittedAt: string;
+          };
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description アカウントがすでに店舗へ所属している */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description アップロードされた画像が大きすぎる */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 対応していない画像形式 */
+      415: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 入力値または画像の内容が不正 */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 画像ストレージが一時的に利用できない */
+      503: {
         headers: {
           [name: string]: unknown;
         };

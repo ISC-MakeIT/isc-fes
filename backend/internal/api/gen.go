@@ -35,6 +35,27 @@ func (e MeResponseRole) Valid() bool {
 	}
 }
 
+// Defines values for StoreReviewStatus.
+const (
+	Approved StoreReviewStatus = "approved"
+	Pending  StoreReviewStatus = "pending"
+	Rejected StoreReviewStatus = "rejected"
+)
+
+// Valid indicates whether the value is a known member of the StoreReviewStatus enum.
+func (e StoreReviewStatus) Valid() bool {
+	switch e {
+	case Approved:
+		return true
+	case Pending:
+		return true
+	case Rejected:
+		return true
+	default:
+		return false
+	}
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Message string `json:"message"`
@@ -58,6 +79,28 @@ type MeResponse struct {
 // MeResponseRole defines model for MeResponse.Role.
 type MeResponseRole string
 
+// StoreReviewStatus defines model for StoreReviewStatus.
+type StoreReviewStatus string
+
+// CreateStoreApplicationMultipartBody defines parameters for CreateStoreApplication.
+type CreateStoreApplicationMultipartBody struct {
+	// Description Example: 外はカリカリ、中はトロトロのたこ焼きです。
+	Description string `json:"description"`
+
+	// Image 店舗画像。JPEG、PNG、WebPに対応する。
+	// 最大ファイルサイズは10MB。
+	Image openapi_types.File `json:"image"`
+
+	// Name Example: たこ焼き屋
+	Name string `json:"name"`
+
+	// Room Example: 605
+	Room string `json:"room"`
+}
+
+// CreateStoreApplicationMultipartRequestBody defines body for CreateStoreApplication for multipart/form-data ContentType.
+type CreateStoreApplicationMultipartRequestBody CreateStoreApplicationMultipartBody
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
@@ -66,6 +109,9 @@ type ServerInterface interface {
 	// GetMe ログイン中のアカウントを取得する
 	// (GET /me)
 	GetMe(c *gin.Context)
+	// CreateStoreApplication 店舗の作成申請を作成する
+	// (POST /store-applications)
+	CreateStoreApplication(c *gin.Context)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -103,6 +149,19 @@ func (siw *ServerInterfaceWrapper) GetMe(c *gin.Context) {
 	siw.Handler.GetMe(c)
 }
 
+// CreateStoreApplication operation middleware
+func (siw *ServerInterfaceWrapper) CreateStoreApplication(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateStoreApplication(c)
+}
+
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -132,6 +191,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 
 	router.GET(options.BaseURL+"/health", wrapper.GetHealth)
 	router.GET(options.BaseURL+"/me", wrapper.GetMe)
+	router.POST(options.BaseURL+"/store-applications", wrapper.CreateStoreApplication)
 }
 
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
@@ -139,16 +199,27 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"jC9TpdK/AQAA//8=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
