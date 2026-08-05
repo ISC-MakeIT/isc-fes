@@ -1,5 +1,3 @@
-import { HomeView } from "@/_pages/home/home-view";
-
-export default function Home() {
-  return <HomeView />;
+export default function Page() {
+  return <></>;
 }
