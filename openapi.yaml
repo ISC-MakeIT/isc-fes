@@ -86,24 +86,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - id
-                  - reviewStatus
-                  - submittedAt
-                properties:
-                  id:
-                    type: string
-                    format: uuid
-                    description: |
-                      店舗申請のID。内部的にはstores.idと同一。
-
-                  reviewStatus:
-                    $ref: "#/components/schemas/StoreReviewStatus"
-
-                  submittedAt:
-                    type: string
-                    format: date-time
+                $ref: "#/components/schemas/CreateStoreApplicationResponse"
 
         "400":
           description: リクエスト形式が不正
@@ -206,6 +189,25 @@ components:
         - pending
         - approved
         - rejected
+    CreateStoreApplicationResponse:
+      type: object
+      required:
+        - id
+        - reviewStatus
+        - submittedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: |
+            店舗申請のID。内部的にはstores.idと同一。
+
+        reviewStatus:
+          $ref: "#/components/schemas/StoreReviewStatus"
+
+        submittedAt:
+          type: string
+          format: date-time
     ErrorResponse:
       type: object
       required:

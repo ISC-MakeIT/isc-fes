@@ -74,6 +74,16 @@ export interface components {
     };
     /** @enum {string} */
     StoreReviewStatus: "pending" | "approved" | "rejected";
+    CreateStoreApplicationResponse: {
+      /**
+       * Format: uuid
+       * @description 店舗申請のID。内部的にはstores.idと同一。
+       */
+      id: string;
+      reviewStatus: components["schemas"]["StoreReviewStatus"];
+      /** Format: date-time */
+      submittedAt: string;
+    };
     ErrorResponse: {
       message: string;
     };
@@ -176,16 +186,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            /**
-             * Format: uuid
-             * @description 店舗申請のID。内部的にはstores.idと同一。
-             */
-            id: string;
-            reviewStatus: components["schemas"]["StoreReviewStatus"];
-            /** Format: date-time */
-            submittedAt: string;
-          };
+          "application/json": components["schemas"]["CreateStoreApplicationResponse"];
         };
       };
       /** @description リクエスト形式が不正 */

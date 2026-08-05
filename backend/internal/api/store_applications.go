@@ -2,19 +2,93 @@ package api
 
 import (
 	"errors"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/isc-makeit/isc-fes/backend/internal/service"
 )
 
+// TODO: リクエスト上限、画像サイズ、サービスエラーの HTTP 変換をハンドラーテストで網羅する。
 func (s *Server) CreateStoreApplication(c *gin.Context) {
+	ctx := c.Request.Context()
 
+	const (
+		maxImageSize       = 10 << 20 // 10 MiB
+		maxMultipartMargin = 1 << 20  // 1 MiB
+		maxRequestBodySize = maxImageSize + maxMultipartMargin
+	)
+
+	// TODO: 認証ミドルウェアでアカウントを確定してから multipart body を解析し、未認証リクエストの解析コストを避ける。
+	c.Request.Body = http.MaxBytesReader(
+		c.Writer,
+		c.Request.Body,
+		maxRequestBodySize,
+	)
+
+	var form createStoreApplicationForm
+	if err := c.ShouldBind(&form); err != nil {
+		// TODO: *http.MaxBytesError を errors.As で判定し、リクエスト上限超過時は 400 ではなく 413 を返す。
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "リクエスト形式が不正です。",
+		})
+		return
+	}
+
+	if form.Image.Size > maxImageSize {
+		c.JSON(http.StatusRequestEntityTooLarge, ErrorResponse{
+			Message: "画像が大きすぎます。10 MiB 以下にしてください",
+		})
+		return
+	}
+
+	if form.Image.Size == 0 {
+		c.JSON(http.StatusUnprocessableEntity, ErrorResponse{
+			Message: "画像ファイルが空です。",
+		})
+		return
+	}
+
+	image, err := form.Image.Open()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "画像を読み込めませんでした。",
+		})
+		return
+	}
+	defer image.Close()
+
+	storeApplication, err := s.store.CreateStoreApplication(ctx, service.CreateStoreApplicationServiceInput{
+		Name:        form.Name,
+		Description: form.Description,
+		Room:        form.Room,
+		ImageReader: image,
+	})
+	if err != nil {
+		writeAPIErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, CreateStoreApplicationResponse{
+		Id:           storeApplication.ID,
+		ReviewStatus: StoreReviewStatus(storeApplication.ReviewStatus),
+		SubmittedAt:  storeApplication.SubmittedAt,
+	})
 }
 
 func writeAPIErrorResponse(c *gin.Context, err error) {
+	// TODO: 未認証は 401、非対応画像は 415、画像不正は 422、S3 障害は 503 へ個別にマッピングする。
 	switch {
 	case errors.Is(err, service.ErrAccountAlreadyHasStore):
 		c.JSON(http.StatusConflict, ErrorResponse{Message: "アカウントはすでに店舗に所属しています。"})
+	default:
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "サーバーエラーが発生しました。"})
 	}
+}
+
+type createStoreApplicationForm struct {
+	Name        string                `form:"name" binding:"required,max=100"`
+	Room        string                `form:"room" binding:"required,max=50"`
+	Description string                `form:"description" binding:"required,max=1000"`
+	Image       *multipart.FileHeader `form:"image" binding:"required"`
 }

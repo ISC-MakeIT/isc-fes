@@ -15,9 +15,10 @@ type StoreRepository struct {
 	pool    *pgxpool.Pool
 }
 
-func NewStoreRepository(queries *sqlc.Queries) *StoreRepository {
+func NewStoreRepository(queries *sqlc.Queries, pool *pgxpool.Pool) *StoreRepository {
 	return &StoreRepository{
 		queries: queries,
+		pool:    pool,
 	}
 }
 
@@ -50,11 +51,13 @@ func (r *StoreRepository) CreateStoreApplication(ctx context.Context, input serv
 		Name:           input.Name,
 		Room:           input.Room,
 		Description:    input.Description,
-		ImageObjectKey: input.ImageObjectKey,
+		ImageObjectKey: input.ImageObjectKey.String(),
 	})
 	if err != nil {
 		return entities.Store{}, err
 	}
+
+	// TODO: 状態変更履歴の要件が有効なら、初期 pending イベントを store_status_events へ同じトランザクション内で記録する。
 
 	// アカウントに店舗IDを紐付ける
 	err = qtx.AssignStoreToAccount(ctx, sqlc.AssignStoreToAccountParams{

@@ -5,8 +5,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/isc-makeit/isc-fes/backend/internal/api"
@@ -82,14 +86,51 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	awsRegion := os.Getenv("AWS_REGION")
+	if awsRegion == "" {
+		log.Fatal("AWS_REGION is required")
+	}
+
+	s3Bucket := os.Getenv("S3_BUCKET")
+	if s3Bucket == "" {
+		log.Fatal("S3_BUCKET is required")
+	}
+
+	s3UsePathStyle := false
+	if raw := os.Getenv("S3_USE_PATH_STYLE"); raw != "" {
+		s3UsePathStyle, err = strconv.ParseBool(raw)
+		if err != nil {
+			log.Fatalf("parse S3_USE_PATH_STYLE: %v", err)
+		}
+	}
+
+	awsConfig, err := awsconfig.LoadDefaultConfig(
+		context.Background(),
+		awsconfig.WithRegion(awsRegion),
+	)
+	if err != nil {
+		log.Fatalf("load AWS config: %v", err)
+	}
+
+	s3Endpoint := os.Getenv("S3_ENDPOINT")
+	s3Client := s3.NewFromConfig(awsConfig, func(options *s3.Options) {
+		options.UsePathStyle = s3UsePathStyle
+		if s3Endpoint != "" {
+			options.BaseEndpoint = aws.String(s3Endpoint)
+		}
+	})
+
 	// Initialize repositories
 	accountRepository := repository.NewAccountRepository(queries)
+	imageRepository := repository.NewS3Repository(s3Client, s3Bucket)
+	storeRepository := repository.NewStoreRepository(queries, pool)
 
 	// Initialize services
 	accountService := service.NewAccountService(accountRepository, sessions)
 	authService := service.NewAuthService(googleAuthenticator, sessions, accountRepository)
+	storeService := service.NewStoreService(imageRepository, storeRepository, sessions)
 
-	srv := api.NewServer(queries, sessions, googleAuthenticator, frontendURL, accountService, authService)
+	srv := api.NewServer(queries, sessions, googleAuthenticator, frontendURL, accountService, authService, storeService)
 
 	api.RegisterHandlers(r, srv)
 	api.RegisterAuthRoutes(r, srv)
