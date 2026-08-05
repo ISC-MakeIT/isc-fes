@@ -60,7 +60,7 @@ func Load() Config {
 			Endpoint:     os.Getenv("S3_ENDPOINT"),
 		},
 		Auth: AuthConfig{
-			SessionCookieSecure: optionalBoolEnv("SESSION_COOKIE_SECURE", false),
+			SessionCookieSecure: optionalBoolEnv("SESSION_COOKIE_SECURE", true),
 			GoogleClientID:      requireEnv("GOOGLE_CLIENT_ID"),
 			GoogleClientSecret:  requireEnv("GOOGLE_CLIENT_SECRET"),
 			GoogleRedirectURL:   requireEnv("GOOGLE_REDIRECT_URL"),
