@@ -3,8 +3,7 @@ import { client } from "@/shared/api/client";
 import { cookies } from "next/headers";
 import { Account } from "../model/types";
 import { v } from "@/shared/lib/valibot";
-
-const SESSION_COOKIE_NAME = "isc_fes_account_session";
+import { SESSION_COOKIE_NAME } from "@/shared/config/cookies";
 
 export async function getAccount(): Promise<Account | null> {
   const session = (await cookies()).get(SESSION_COOKIE_NAME);
@@ -12,12 +11,11 @@ export async function getAccount(): Promise<Account | null> {
 
   const { data, error } = await client.GET("/me", {
     headers: {
-      Cookie: session.toString(),
+      Cookie: `${session.name}=${session.value}`,
     },
   });
-  if (!data) return null;
-
   if (error) throw new Error(`アカウントが取得できませんでした: ${error}`);
+  if (!data) return null;
 
   const parsedAccount = v.parse(Account, data);
 
