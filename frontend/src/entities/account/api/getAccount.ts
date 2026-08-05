@@ -9,14 +9,19 @@ export async function getAccount(): Promise<Account | null> {
   const session = (await cookies()).get(SESSION_COOKIE_NAME);
   if (!session) return null;
 
-  const { data, error } = await client.GET("/me", {
+  const { data, error, response } = await client.GET("/me", {
     headers: {
       Cookie: `${session.name}=${session.value}`,
     },
   });
-  if (error) throw new Error(`アカウントが取得できませんでした: ${error}`);
-  if (!data) return null;
+  if (error) {
+    // 未ログイン or セッションが無効の場合
+    if (response.status === 401) return null;
 
+    throw new Error(`アカウントが取得できませんでした: ${error.message}`);
+  }
+
+  // data / errorは排他的なunion型なので、ここに到達した地点でdataがあることは保証されてる
   const parsedAccount = v.parse(Account, data);
 
   return parsedAccount;
