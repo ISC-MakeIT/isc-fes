@@ -92,3 +92,40 @@ func (q *Queries) GetAccountForStoreApplication(ctx context.Context, id uuid.UUI
 	err := row.Scan(&i.ID, &i.StoreID)
 	return i, err
 }
+
+const getApprovedStores = `-- name: GetApprovedStores :many
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
+FROM stores
+WHERE review_status = 'approved'
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetApprovedStores(ctx context.Context) ([]Store, error) {
+	rows, err := q.db.Query(ctx, getApprovedStores)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Store{}
+	for rows.Next() {
+		var i Store
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Room,
+			&i.Description,
+			&i.ImageObjectKey,
+			&i.ReviewStatus,
+			&i.SubmittedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

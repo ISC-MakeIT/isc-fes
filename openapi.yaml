@@ -144,6 +144,24 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /stores:
+    get:
+      operationId: getApprovedStores
+      summary: 承認済みの店舗一覧を取得する
+      responses:
+        "200":
+          description: 承認済みの店舗一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetApprovedStoresResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     AccountSession:
@@ -208,6 +226,39 @@ components:
         submittedAt:
           type: string
           format: date-time
+    GetApprovedStoresResponse:
+      type: object
+      required:
+        - data
+        - total
+      properties:
+        total:
+          type: integer
+          description: 承認済みの店舗の総数
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Store"
+    Store:
+      type: object
+      required:
+        - id
+        - name
+        - room
+        - description
+        - imageUrl
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        room:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
     ErrorResponse:
       type: object
       required:

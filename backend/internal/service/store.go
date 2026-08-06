@@ -16,10 +16,13 @@ type StoreImageRepository interface {
 	PutObject(ctx context.Context, reader io.ReadSeeker, objectKey entities.StoreImageObjectKey, contentType string) error
 
 	DeleteObject(ctx context.Context, objectKey entities.StoreImageObjectKey) error
+
+	GetPublicURL(ctx context.Context, objectKey entities.StoreImageObjectKey) (string, error)
 }
 
 type StoreRepository interface {
 	CreateStoreApplication(ctx context.Context, input CreateStoreApplicationInput) (entities.Store, error)
+	GetApprovedStores(ctx context.Context) ([]entities.Store, error)
 }
 
 type CreateStoreApplicationInput struct {
@@ -116,6 +119,53 @@ func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateS
 	}
 
 	return store, nil
+}
+
+func (s *StoreService) GetApprovedStores(ctx context.Context) ([]entities.StoreOutput, error) {
+	rawStores, err := s.storeRepository.GetApprovedStores(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get approved stores: %w", err)
+	}
+
+	stores, err := s.toStoreOutputs(ctx, rawStores)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert stores to outputs: %w", err)
+	}
+
+	return stores, nil
+}
+
+func (s *StoreService) toStoreOutput(ctx context.Context, store entities.Store) (entities.StoreOutput, error) {
+	publicImageURL, err := s.imageRepository.GetPublicURL(ctx, store.ImageObjectKey)
+	if err != nil {
+		return entities.StoreOutput{}, fmt.Errorf("failed to get store image URL: %w", err)
+	}
+
+	return entities.StoreOutput{
+		ID:             store.ID,
+		Name:           store.Name,
+		Room:           store.Room,
+		Description:    store.Description,
+		ImageObjectKey: store.ImageObjectKey,
+		ImageURL:       publicImageURL,
+		ReviewStatus:   store.ReviewStatus,
+		SubmittedAt:    store.SubmittedAt,
+		UpdatedAt:      store.UpdatedAt,
+		CreatedAt:      store.CreatedAt,
+	}, nil
+}
+
+func (s *StoreService) toStoreOutputs(ctx context.Context, stores []entities.Store) ([]entities.StoreOutput, error) {
+	outputs := make([]entities.StoreOutput, len(stores))
+	for i, store := range stores {
+		output, err := s.toStoreOutput(ctx, store)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert store to output: %w", err)
+		}
+		outputs[i] = output
+	}
+
+	return outputs, nil
 }
 
 var (

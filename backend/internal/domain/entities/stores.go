@@ -30,7 +30,20 @@ type Store struct {
 	Name           string
 	Room           string
 	Description    string
-	ImageObjectKey string
+	ImageObjectKey StoreImageObjectKey
+	ReviewStatus   StoreReviewStatus
+	SubmittedAt    time.Time
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+type StoreOutput struct {
+	ID             uuid.UUID
+	Name           string
+	Room           string
+	Description    string
+	ImageObjectKey StoreImageObjectKey
+	ImageURL       string
 	ReviewStatus   StoreReviewStatus
 	SubmittedAt    time.Time
 	CreatedAt      time.Time
