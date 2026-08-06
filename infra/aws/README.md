@@ -10,6 +10,7 @@ APIサーバーを動かすAWSリソースを段階的に追加するTerraform�
 - APIサーバーへの通信を制御するSecurity Group
 - APIサーバーがSSMとECRを利用するためのIAM RoleとInstance Profile
 - APIサーバーを動かすEC2と固定Public IPv4 Address
+- EC2へDocker実行環境を設定するSystems Manager Association
 
 APIの起動設定、画像用S3、CloudFrontなどはまだ作成しない。
 
@@ -62,6 +63,20 @@ Instance Metadata ServiceはIMDSv2を必須にする。
 
 現段階ではUser DataやAPI Containerの起動処理を設定しない。
 EC2作成後はSession Managerで接続できることを確認する。
+
+## Docker runtime bootstrap
+
+Systems Manager State ManagerのAssociationを使用し、対象EC2へ次の設定を適用する。
+
+- Amazon Linux RepositoryからDockerをインストール
+- Docker Serviceを起動し、OS起動時の自動起動を有効化
+- Application配置先として`/opt/isc-fes`を作成
+
+Associationは対象EC2の作成後に実行され、成功するまでTerraformが待機する。
+EC2が置換された場合は新しいInstance IDがTargetになり、同じ設定が新しいEC2へ適用される。
+
+実行するShell ScriptにSecretは含めない。
+API、Database、CaddyのContainerと環境変数は後続Stepで設定する。
 
 ## Remote State
 
