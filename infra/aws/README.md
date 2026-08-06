@@ -38,3 +38,19 @@ terraform output -raw backend_repository_url
 ```
 
 `terraform apply`前に、ECR関連だけが追加対象になっていることを確認する。
+
+## Push a Backend image
+
+ECRを作成し、変更をCommitした後に実行する。
+
+```shell
+make push-backend-image
+```
+
+現在のGit Commit SHAを使った一意なTagで、ARM64イメージをbuildしてpushする。
+
+```text
+<repository URL>:sha-<full Git Commit SHA>
+```
+
+Tagとソースコードの対応を保証するため、未コミットの変更がある場合は実行しない。

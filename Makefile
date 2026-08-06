@@ -2,7 +2,7 @@
 
 export DATABASE_URL
 
-.PHONY: db-up db-down dev-api migrate sqlc gen-api db-reset install-web dev-web
+.PHONY: db-up db-down dev-api migrate sqlc gen-api db-reset install-web dev-web push-backend-image
 db-up:
 	docker compose up -d
 db-down:
@@ -25,3 +25,6 @@ install-web:
 	cd frontend && pnpm i
 dev-web:
 	cd frontend && pnpm run dev
+
+push-backend-image:
+	bash scripts/push-backend-image.sh
