@@ -2,8 +2,24 @@
 
 APIサーバーを動かすAWSリソースを段階的に追加するTerraform構成。
 
-現在この構成が管理するのは、BackendのDocker imageを保存する非公開ECRリポジトリだけ。
-EC2、VPC、S3、CloudFrontなどはまだ作成しない。
+現在この構成が管理するのは次のリソース。
+
+- BackendのDocker imageを保存する非公開ECRリポジトリ
+- APIサーバーを配置するVPCとPublic Subnet
+- Public Subnetをインターネットへ接続するInternet GatewayとRoute Table
+
+EC2、画像用S3、CloudFrontなどはまだ作成しない。
+
+## Network
+
+```text
+VPC:           10.10.0.0/16
+Public Subnet: 10.10.1.0/24
+Route:         0.0.0.0/0 -> Internet Gateway
+```
+
+Public Subnetは東京リージョンで利用可能な最初のAvailability Zoneへ作成する。
+現段階ではEC2やNAT Gatewayを作らないため、このネットワーク基盤に時間単位の料金は発生しない。
 
 ## Remote State
 
