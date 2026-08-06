@@ -1,5 +1,4 @@
-import { HomeView } from "@/_pages/home/home-view";
-
-export default function Home() {
-  return <HomeView />;
+//TODO: welcomeページ実装予定
+export default function Page() {
+  return <></>;
 }
