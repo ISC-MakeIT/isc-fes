@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
@@ -33,6 +34,35 @@ func (e MeResponseRole) Valid() bool {
 	default:
 		return false
 	}
+}
+
+// Defines values for StoreReviewStatus.
+const (
+	Approved StoreReviewStatus = "approved"
+	Pending  StoreReviewStatus = "pending"
+	Rejected StoreReviewStatus = "rejected"
+)
+
+// Valid indicates whether the value is a known member of the StoreReviewStatus enum.
+func (e StoreReviewStatus) Valid() bool {
+	switch e {
+	case Approved:
+		return true
+	case Pending:
+		return true
+	case Rejected:
+		return true
+	default:
+		return false
+	}
+}
+
+// CreateStoreApplicationResponse defines model for CreateStoreApplicationResponse.
+type CreateStoreApplicationResponse struct {
+	// Id 店舗申請のID。内部的にはstores.idと同一。
+	Id           openapi_types.UUID `json:"id"`
+	ReviewStatus StoreReviewStatus  `json:"reviewStatus"`
+	SubmittedAt  time.Time          `json:"submittedAt"`
 }
 
 // ErrorResponse defines model for ErrorResponse.
@@ -58,6 +88,28 @@ type MeResponse struct {
 // MeResponseRole defines model for MeResponse.Role.
 type MeResponseRole string
 
+// StoreReviewStatus defines model for StoreReviewStatus.
+type StoreReviewStatus string
+
+// CreateStoreApplicationMultipartBody defines parameters for CreateStoreApplication.
+type CreateStoreApplicationMultipartBody struct {
+	// Description Example: 外はカリカリ、中はトロトロのたこ焼きです。
+	Description string `json:"description"`
+
+	// Image 店舗画像。JPEG、PNG、WebPに対応する。
+	// 最大ファイルサイズは10MB。
+	Image openapi_types.File `json:"image"`
+
+	// Name Example: たこ焼き屋
+	Name string `json:"name"`
+
+	// Room Example: 605
+	Room string `json:"room"`
+}
+
+// CreateStoreApplicationMultipartRequestBody defines body for CreateStoreApplication for multipart/form-data ContentType.
+type CreateStoreApplicationMultipartRequestBody CreateStoreApplicationMultipartBody
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
@@ -66,6 +118,9 @@ type ServerInterface interface {
 	// GetMe ログイン中のアカウントを取得する
 	// (GET /me)
 	GetMe(c *gin.Context)
+	// CreateStoreApplication 店舗の作成申請を作成する
+	// (POST /store-applications)
+	CreateStoreApplication(c *gin.Context)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -103,6 +158,19 @@ func (siw *ServerInterfaceWrapper) GetMe(c *gin.Context) {
 	siw.Handler.GetMe(c)
 }
 
+// CreateStoreApplication operation middleware
+func (siw *ServerInterfaceWrapper) CreateStoreApplication(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateStoreApplication(c)
+}
+
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -132,6 +200,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 
 	router.GET(options.BaseURL+"/health", wrapper.GetHealth)
 	router.GET(options.BaseURL+"/me", wrapper.GetMe)
+	router.POST(options.BaseURL+"/store-applications", wrapper.CreateStoreApplication)
 }
 
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
@@ -139,16 +208,27 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"asr6OpwwflOUSn8GAAD//w==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

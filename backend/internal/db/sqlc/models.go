@@ -54,6 +54,49 @@ func (ns NullRole) Value() (driver.Value, error) {
 	return string(ns.Role), nil
 }
 
+type StoreReviewStatus string
+
+const (
+	StoreReviewStatusPending  StoreReviewStatus = "pending"
+	StoreReviewStatusApproved StoreReviewStatus = "approved"
+	StoreReviewStatusRejected StoreReviewStatus = "rejected"
+)
+
+func (e *StoreReviewStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = StoreReviewStatus(s)
+	case string:
+		*e = StoreReviewStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for StoreReviewStatus: %T", src)
+	}
+	return nil
+}
+
+type NullStoreReviewStatus struct {
+	StoreReviewStatus StoreReviewStatus `json:"store_review_status"`
+	Valid             bool              `json:"valid"` // Valid is true if StoreReviewStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullStoreReviewStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.StoreReviewStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.StoreReviewStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullStoreReviewStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.StoreReviewStatus), nil
+}
+
 type Account struct {
 	ID          uuid.UUID          `json:"id"`
 	GoogleSub   string             `json:"google_sub"`
@@ -64,4 +107,23 @@ type Account struct {
 	LastLoginAt pgtype.Timestamptz `json:"last_login_at"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	StoreID     uuid.UUID          `json:"store_id"`
+}
+
+type Session struct {
+	Token  string             `json:"token"`
+	Data   []byte             `json:"data"`
+	Expiry pgtype.Timestamptz `json:"expiry"`
+}
+
+type Store struct {
+	ID             uuid.UUID          `json:"id"`
+	Name           string             `json:"name"`
+	Room           string             `json:"room"`
+	Description    string             `json:"description"`
+	ImageObjectKey string             `json:"image_object_key"`
+	ReviewStatus   StoreReviewStatus  `json:"review_status"`
+	SubmittedAt    pgtype.Timestamptz `json:"submitted_at"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }

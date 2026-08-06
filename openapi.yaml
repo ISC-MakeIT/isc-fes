@@ -7,12 +7,12 @@ paths:
     get:
       operationId: getHealth
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthResponse'
+                $ref: "#/components/schemas/HealthResponse"
   /me:
     get:
       operationId: getMe
@@ -20,24 +20,130 @@ paths:
       security:
         - AccountSession: []
       responses:
-        '200':
+        "200":
           description: ログイン中のアカウント
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MeResponse'
-        '401':
+                $ref: "#/components/schemas/MeResponse"
+        "401":
           description: 未ログインまたはセッションが無効
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
           description: サーバーエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
+  /store-applications:
+    post:
+      operationId: createStoreApplication
+      summary: 店舗の作成申請を作成する
+      security:
+        - AccountSession: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - room
+                - description
+                - image
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  example: たこ焼き屋
+
+                room:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                  example: 605
+
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                  example: 外はカリカリ、中はトロトロのたこ焼きです。
+
+                image:
+                  type: string
+                  format: binary
+                  description: |
+                    店舗画像。JPEG、PNG、WebPに対応する。
+                    最大ファイルサイズは10MB。
+      responses:
+        "201":
+          description: 店舗申請を作成した
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateStoreApplicationResponse"
+
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "401":
+          description: 未ログイン
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "409":
+          description: アカウントがすでに店舗へ所属している
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "413":
+          description: アップロードされた画像が大きすぎる
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "415":
+          description: 対応していない画像形式
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "422":
+          description: 入力値または画像の内容が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "503":
+          description: 画像ストレージが一時的に利用できない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     AccountSession:
@@ -77,6 +183,31 @@ components:
           enum:
             - member
             - admin
+    StoreReviewStatus:
+      type: string
+      enum:
+        - pending
+        - approved
+        - rejected
+    CreateStoreApplicationResponse:
+      type: object
+      required:
+        - id
+        - reviewStatus
+        - submittedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: |
+            店舗申請のID。内部的にはstores.idと同一。
+
+        reviewStatus:
+          $ref: "#/components/schemas/StoreReviewStatus"
+
+        submittedAt:
+          type: string
+          format: date-time
     ErrorResponse:
       type: object
       required:

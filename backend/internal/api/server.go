@@ -13,6 +13,7 @@ type Server struct {
 	frontendURL         string
 	accountService      *service.AccountService
 	auth                *service.AuthService
+	store               *service.StoreService
 }
 
 func NewServer(
@@ -22,6 +23,7 @@ func NewServer(
 	frontendURL string,
 	accountService *service.AccountService,
 	authService *service.AuthService,
+	storeService *service.StoreService,
 ) *Server {
 	return &Server{
 		queries:             queries,
@@ -30,5 +32,6 @@ func NewServer(
 		frontendURL:         frontendURL,
 		accountService:      accountService,
 		auth:                authService,
+		store:               storeService,
 	}
 }
