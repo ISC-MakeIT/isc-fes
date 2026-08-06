@@ -18,6 +18,7 @@ export function createApiClient() {
 function createClient() {
   return createOpenApiClient<paths>({
     baseUrl,
+    credentials: "include",
   });
 }
 
