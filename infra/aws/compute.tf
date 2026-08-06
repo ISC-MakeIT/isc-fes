@@ -3,12 +3,11 @@ data "aws_ssm_parameter" "amazon_linux_2023_arm64_ami" {
 }
 
 resource "aws_instance" "api_server" {
-  ami                         = data.aws_ssm_parameter.amazon_linux_2023_arm64_ami.value
-  instance_type               = "t4g.micro"
-  subnet_id                   = aws_subnet.public.id
-  vpc_security_group_ids      = [aws_security_group.api_server.id]
-  iam_instance_profile        = aws_iam_instance_profile.api_server.name
-  associate_public_ip_address = false
+  ami                    = data.aws_ssm_parameter.amazon_linux_2023_arm64_ami.value
+  instance_type          = "t4g.micro"
+  subnet_id              = aws_subnet.public.id
+  vpc_security_group_ids = [aws_security_group.api_server.id]
+  iam_instance_profile   = aws_iam_instance_profile.api_server.name
 
   credit_specification {
     cpu_credits = "standard"
