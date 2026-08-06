@@ -11,8 +11,9 @@ APIサーバーを動かすAWSリソースを段階的に追加するTerraform�
 - APIサーバーがSSMとECRを利用するためのIAM RoleとInstance Profile
 - APIサーバーを動かすEC2と固定Public IPv4 Address
 - EC2へDocker実行環境を設定するSystems Manager Association
+- 店舗画像を保存する非公開S3 BucketとEC2からのアクセス権限
 
-APIの起動設定、画像用S3、CloudFrontなどはまだ作成しない。
+APIの起動設定、CloudFrontなどはまだ作成しない。
 
 ## Network
 
@@ -77,6 +78,27 @@ EC2が置換された場合は新しいInstance IDがTargetになり、同じ設
 
 実行するShell ScriptにSecretは含めない。
 API、Database、CaddyのContainerと環境変数は後続Stepで設定する。
+
+## Store images
+
+店舗画像は次の非公開S3 Bucketへ保存する。
+
+```text
+isc-fes-images-<AWS Account ID>
+```
+
+- Public AccessをすべてBlock
+- Object Ownershipは`BucketOwnerEnforced`
+- SSE-S3（AES256）で暗号化
+- Versioningを有効化
+- 非Current Versionは30日後に削除
+- 未完了のMultipart Uploadは7日後に削除
+- TLSを使わないS3通信をBucket Policyで拒否
+- TerraformによるBucket削除を防止
+
+APIサーバーのIAM Roleには`stores/*`配下のObjectに対する`PutObject`、`GetObject`、`DeleteObject`だけを許可する。
+Bucketは直接公開せず、現段階ではBackendが発行するPresigned URLで画像を取得する。
+`images.fes.iwasaki.ac.jp`とCloudFrontは後続Stepで追加する。
 
 ## Remote State
 
