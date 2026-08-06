@@ -1,5 +1,5 @@
 import "server-only";
-import { client } from "@/shared/api/client";
+import { createApiClient } from "@/shared/api/openapi-fetch/client";
 import { cookies } from "next/headers";
 import { Account } from "../model/types";
 import { v } from "@/shared/lib/valibot";
@@ -9,11 +9,8 @@ export async function getAccount(): Promise<Account | null> {
   const session = (await cookies()).get(SESSION_COOKIE_NAME);
   if (!session) return null;
 
-  const { data, error, response } = await client.GET("/me", {
-    headers: {
-      Cookie: `${session.name}=${session.value}`,
-    },
-  });
+  const client = await createApiClient();
+  const { data, error, response } = await client.GET("/me");
   if (error) {
     // 未ログイン or セッションが無効の場合
     if (response.status === 401) return null;
