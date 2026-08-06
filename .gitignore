@@ -9,4 +9,5 @@
 **/*.tfstate
 **/*.tfstate.*
 **/*.tfplan
+**/tfplan
 crash.log
