@@ -1,9 +1,9 @@
 import "server-only";
-import { createApiClient } from "@/shared/api/openapi-fetch/client";
 import { cookies } from "next/headers";
 import { Account } from "../model/types";
 import { v } from "@/shared/lib/valibot";
 import { SESSION_COOKIE_NAME } from "@/shared/config/cookies";
+import { createApiClient } from "@/shared/api/openapi-fetch/client";
 
 export async function getAccount(): Promise<Account | null> {
   const session = (await cookies()).get(SESSION_COOKIE_NAME);

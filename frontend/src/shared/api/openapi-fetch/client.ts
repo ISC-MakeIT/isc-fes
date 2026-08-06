@@ -1,12 +1,9 @@
 import createOpenApiClient from "openapi-fetch";
 import type { paths } from "../schema";
-import { API_BASE_URL } from "../../config/env";
-import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME } from "@/shared/config/cookies";
+import { API_BASE_URL } from "@/shared/config/env";
 
-const baseUrl = API_BASE_URL;
-
-export function createApiClient() {
+export async function createApiClient() {
   const isServer = typeof window === "undefined";
   return isServer ? createServerClient() : createClient();
 }
@@ -17,7 +14,7 @@ export function createApiClient() {
  */
 function createClient() {
   return createOpenApiClient<paths>({
-    baseUrl,
+    baseUrl: API_BASE_URL,
     credentials: "include",
   });
 }
@@ -28,9 +25,13 @@ function createClient() {
  * @returns
  */
 async function createServerClient() {
+  // createApiClient()でブラウザ、サーバーどちらからも呼べるようにしてるので、
+  // server用のimportはdynamicにしないとクライアントで実行時エラーが起きる
+  const { cookies } = await import("next/headers");
   const session = (await cookies()).get(SESSION_COOKIE_NAME);
+
   return createOpenApiClient<paths>({
-    baseUrl,
+    baseUrl: API_BASE_URL,
     credentials: "include",
     headers: session
       ? { Cookie: `${session.name}=${session.value}` }
