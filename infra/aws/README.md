@@ -9,8 +9,9 @@ APIサーバーを動かすAWSリソースを段階的に追加するTerraform�
 - Public Subnetをインターネットへ接続するInternet GatewayとRoute Table
 - APIサーバーへの通信を制御するSecurity Group
 - APIサーバーがSSMとECRを利用するためのIAM RoleとInstance Profile
+- APIサーバーを動かすEC2と固定Public IPv4 Address
 
-EC2、画像用S3、CloudFrontなどはまだ作成しない。
+APIの起動設定、画像用S3、CloudFrontなどはまだ作成しない。
 
 ## Network
 
@@ -40,6 +41,27 @@ EC2用IAM Roleには次の権限だけを付与する。
 - このTerraformで管理するBackend用ECR RepositoryからImageをpullする権限
 
 画像用S3へのアクセス権限は、画像用Bucketを作成する段階で追加する。
+
+## API server instance
+
+| Setting | Value |
+| --- | --- |
+| AMI | 最新のAmazon Linux 2023 ARM64 |
+| Instance type | `t4g.micro`（2 vCPU、1 GiB Memory） |
+| CPU credits | `standard` |
+| Root volume | 20 GiB gp3、暗号化あり |
+| Public IP | Elastic IPを明示的に関連付け |
+| SSH key pair | なし |
+
+ECRへpushするBackend ImageがARM64なので、EC2にもARM64のGraviton Instanceを使用する。
+Public IPv4 Addressの自動割り当ては無効化し、学校側のDNSへ設定するElastic IPだけを使用する。
+AMIの更新だけでは既存EC2を自動置換せず、OS更新は別の明示的な作業として実施する。
+
+Instance Metadata ServiceはIMDSv2を必須にする。
+将来Docker Container内のAPIがIAM Roleを使ってS3へアクセスできるよう、Metadataのhop limitは2にする。
+
+現段階ではUser DataやAPI Containerの起動処理を設定しない。
+EC2作成後はSession Managerで接続できることを確認する。
 
 ## Remote State
 
@@ -71,6 +93,7 @@ terraform init
 terraform plan
 terraform apply
 terraform output -raw backend_repository_url
+terraform output -raw api_server_public_ip
 ```
 
 `terraform apply`前に、意図したリソースだけが追加対象であり、既存リソースの変更・削除がないことを確認する。
