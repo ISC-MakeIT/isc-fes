@@ -3,3 +3,10 @@
 **/.env
 **/.env.local
 !.env.example
+
+# Terraform local artifacts
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfplan
+crash.log
