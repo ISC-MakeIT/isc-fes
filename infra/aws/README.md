@@ -7,6 +7,8 @@ APIサーバーを動かすAWSリソースを段階的に追加するTerraform�
 - BackendのDocker imageを保存する非公開ECRリポジトリ
 - APIサーバーを配置するVPCとPublic Subnet
 - Public Subnetをインターネットへ接続するInternet GatewayとRoute Table
+- APIサーバーへの通信を制御するSecurity Group
+- APIサーバーがSSMとECRを利用するためのIAM RoleとInstance Profile
 
 EC2、画像用S3、CloudFrontなどはまだ作成しない。
 
@@ -20,6 +22,24 @@ Route:         0.0.0.0/0 -> Internet Gateway
 
 Public Subnetは東京リージョンで利用可能な最初のAvailability Zoneへ作成する。
 現段階ではEC2やNAT Gatewayを作らないため、このネットワーク基盤に時間単位の料金は発生しない。
+
+## API server access
+
+Security Groupの受信ルールは次の通信だけを許可する。
+
+| Port | Protocol | Source | Purpose |
+| --- | --- | --- | --- |
+| 443 | TCP | `0.0.0.0/0` | HTTPS |
+
+SSH、APIの内部Port、DatabaseのPortはインターネットへ公開しない。
+EC2の管理にはAWS Systems Manager Session Managerを使用する。
+
+EC2用IAM Roleには次の権限だけを付与する。
+
+- Systems ManagerでEC2を管理するための`AmazonSSMManagedInstanceCore`
+- このTerraformで管理するBackend用ECR RepositoryからImageをpullする権限
+
+画像用S3へのアクセス権限は、画像用Bucketを作成する段階で追加する。
 
 ## Remote State
 
@@ -53,7 +73,7 @@ terraform apply
 terraform output -raw backend_repository_url
 ```
 
-`terraform apply`前に、ECR関連だけが追加対象になっていることを確認する。
+`terraform apply`前に、意図したリソースだけが追加対象であり、既存リソースの変更・削除がないことを確認する。
 
 ## Push a Backend image
 
