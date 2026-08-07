@@ -27,7 +27,7 @@ Route:         0.0.0.0/0 -> Internet Gateway
 ```
 
 Public Subnetは東京リージョンで利用可能な最初のAvailability Zoneへ作成する。
-現段階ではEC2やNAT Gatewayを作らないため、このネットワーク基盤に時間単位の料金は発生しない。
+NAT Gatewayは使用せず、EC2に関連付けたElastic IPから直接Internetへ接続する。
 
 ## API server access
 
@@ -67,8 +67,8 @@ AMIの更新だけでは既存EC2を自動置換せず、OS更新は別の明示
 Instance Metadata ServiceはIMDSv2を必須にする。
 将来Docker Container内のAPIがIAM Roleを使ってS3へアクセスできるよう、Metadataのhop limitは2にする。
 
-現段階ではUser DataやAPI Containerの起動処理を設定しない。
-EC2作成後はSession Managerで接続できることを確認する。
+ContainerはUser Dataでは起動せず、後述の設定AssociationとSSM Run Commandを組み合わせてデプロイする。
+EC2への管理接続にはSession Managerを使用する。
 
 ## Docker runtime bootstrap
 
@@ -82,7 +82,7 @@ Associationは対象EC2の作成後に実行され、成功するまでTerraform
 EC2が置換された場合は新しいInstance IDがTargetになり、同じ設定が新しいEC2へ適用される。
 
 実行するShell ScriptにSecretは含めない。
-API、Database、CaddyのContainerと環境変数は後続Stepで設定する。
+API、Database、CaddyのContainerは別のCompose定義とデプロイスクリプトで管理する。
 
 ## Docker Compose Plugin
 
@@ -108,7 +108,7 @@ APIサーバーのIAM Roleには、次のParameterだけに対する`ssm:GetPara
 
 Parameter本体とSecret値はTerraformで作成しない。
 これによりSecretがGitやTerraform Stateへ保存されることを防ぐ。
-Parameterは後続Stepで`SecureString`として作成し、EC2上のデプロイ処理から復号して取得する。
+Parameterは`SecureString`として作成し、EC2上のデプロイ処理から復号して取得する。
 
 ## Runtime configuration installation
 
@@ -117,16 +117,29 @@ Docker Composeの設定完了後、別のSystems Manager Associationで次のフ
 ```text
 /opt/isc-fes/.env         mode 0600
 /opt/isc-fes/compose.yaml mode 0644
+/opt/isc-fes/Caddyfile    mode 0644
 ```
 
 - `/isc-fes/prod/runtime-env`はEC2上で直接復号し、標準出力へ書き出さない
-- Compose定義はRepositoryの`deploy/compose.yaml`をBase64で転送する
-- Compose定義のSHA-256を配置前に検証する
+- Compose定義とCaddyfileはRepositoryの`deploy`配下からBase64で転送する
+- 両方のSHA-256を配置前に検証する
 - 一時ファイルに対して`docker compose config --quiet`を実行する
 - 検証成功後にだけ既存ファイルを置き換える
 - `/opt/isc-fes`はrootだけが参照できるmode `0700`にする
 
 このAssociationは設定ファイルの配置だけを行い、ECR Login、Imageのpull、Containerの起動は行わない。
+
+## HTTPS reverse proxy
+
+Caddy `2.11.4-alpine`をBackend APIと同じCompose projectで起動する。
+
+- `api.fes.iwasaki.ac.jp`の443/TCPを受け付け、内部Networkの`api:8080`へ転送する
+- APIの8080番とPostgreSQLの5432番はHostへ公開しない
+- 80番は開放せず、証明書取得にはTLS-ALPN-01 Challengeを使用する
+- 証明書とCaddyの実行状態はDocker volumeへ永続化する
+- Caddyfileはデプロイ前に公式Caddy imageで検証する
+
+学校側のDNSには`api_server_public_ip` outputをA Recordとして設定する。
 
 ## Store images
 

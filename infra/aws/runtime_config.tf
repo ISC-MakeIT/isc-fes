@@ -1,7 +1,10 @@
 locals {
-  api_server_compose_path   = "${path.module}/../../deploy/compose.yaml"
-  api_server_compose_base64 = filebase64(local.api_server_compose_path)
-  api_server_compose_sha256 = filesha256(local.api_server_compose_path)
+  api_server_compose_path     = "${path.module}/../../deploy/compose.yaml"
+  api_server_compose_base64   = filebase64(local.api_server_compose_path)
+  api_server_compose_sha256   = filesha256(local.api_server_compose_path)
+  api_server_caddyfile_path   = "${path.module}/../../deploy/Caddyfile"
+  api_server_caddyfile_base64 = filebase64(local.api_server_caddyfile_path)
+  api_server_caddyfile_sha256 = filesha256(local.api_server_caddyfile_path)
 }
 
 resource "aws_ssm_association" "api_server_runtime_config" {
@@ -16,14 +19,18 @@ resource "aws_ssm_association" "api_server_runtime_config" {
       "install -d -o root -g root -m 0700 /opt/isc-fes",
       "env_tmp=\"$(mktemp /opt/isc-fes/.env.XXXXXX)\"",
       "compose_tmp=\"$(mktemp /opt/isc-fes/compose.yaml.XXXXXX)\"",
-      "trap 'rm -f \"$env_tmp\" \"$compose_tmp\"' EXIT",
+      "caddyfile_tmp=\"$(mktemp /opt/isc-fes/Caddyfile.XXXXXX)\"",
+      "trap 'rm -f \"$env_tmp\" \"$compose_tmp\" \"$caddyfile_tmp\"' EXIT",
       "aws ssm get-parameter --region ap-northeast-1 --name /isc-fes/prod/runtime-env --with-decryption --query Parameter.Value --output text > \"$env_tmp\"",
       "test -s \"$env_tmp\"",
       "printf '%s' '${local.api_server_compose_base64}' | base64 --decode > \"$compose_tmp\"",
       "echo \"${local.api_server_compose_sha256}  $compose_tmp\" | sha256sum --check --status",
+      "printf '%s' '${local.api_server_caddyfile_base64}' | base64 --decode > \"$caddyfile_tmp\"",
+      "echo \"${local.api_server_caddyfile_sha256}  $caddyfile_tmp\" | sha256sum --check --status",
       "BACKEND_IMAGE=example.invalid/isc-fes/backend:validation docker compose --env-file \"$env_tmp\" -f \"$compose_tmp\" config --quiet",
       "install -o root -g root -m 0600 \"$env_tmp\" /opt/isc-fes/.env",
       "install -o root -g root -m 0644 \"$compose_tmp\" /opt/isc-fes/compose.yaml",
+      "install -o root -g root -m 0644 \"$caddyfile_tmp\" /opt/isc-fes/Caddyfile",
       "echo 'Runtime configuration installed.'",
     ])
     executionTimeout = "600"

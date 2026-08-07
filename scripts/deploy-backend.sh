@@ -71,7 +71,9 @@ remote_commands=(
   "BACKEND_IMAGE=\"$image_uri\" docker compose --env-file /opt/isc-fes/.env.next -f /opt/isc-fes/compose.yaml config --quiet"
   'install -o root -g root -m 0600 /opt/isc-fes/.env.next /opt/isc-fes/.env'
   "BACKEND_IMAGE=\"$image_uri\" docker compose --env-file /opt/isc-fes/.env -f /opt/isc-fes/compose.yaml pull"
+  "BACKEND_IMAGE=\"$image_uri\" docker compose --env-file /opt/isc-fes/.env -f /opt/isc-fes/compose.yaml run --rm --no-deps caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile"
   "BACKEND_IMAGE=\"$image_uri\" docker compose --env-file /opt/isc-fes/.env -f /opt/isc-fes/compose.yaml up -d --wait --wait-timeout 300 --remove-orphans"
+  "BACKEND_IMAGE=\"$image_uri\" docker compose --env-file /opt/isc-fes/.env -f /opt/isc-fes/compose.yaml exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile"
   "BACKEND_IMAGE=\"$image_uri\" docker compose --env-file /opt/isc-fes/.env -f /opt/isc-fes/compose.yaml ps"
 )
 

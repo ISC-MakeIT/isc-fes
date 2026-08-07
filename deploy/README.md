@@ -1,19 +1,21 @@
 # Production containers
 
-EC2上でPostgreSQL、Database migration、Backend APIを動かすDocker Compose定義。
+EC2上でPostgreSQL、Database migration、Backend API、Caddyを動かすDocker Compose定義。
 
 ## Services
 
 - `db`: PostgreSQL 17。Dataは`postgres-data` volumeへ永続化する
 - `migrate`: `db`の起動後にmigrationを適用し、正常終了する
 - `api`: migrationの正常終了後に起動する
+- `caddy`: APIの起動後に443/TCPでHTTPSを終端し、`api:8080`へ転送する
 
 `postgres-data`はContainerを再作成しても維持されるが、現状はEC2のRoot EBS上にある。
 EC2の置換やVolume障害からは復旧できないため、Database backupは本番公開前に別途追加する。
 
 DatabaseとAPI間の通信には`backend`内部Networkを使用する。
 APIだけを`outbound` Networkにも接続し、S3、Google OAuth、EC2 Instance Metadataへ外向きに通信できるようにする。
-この段階ではAPIのPortをHostやInternetへ公開しない。HTTPSを終端するReverse Proxyは後続Stepで同じNetworkへ追加する。
+APIの8080番はHostへ公開せず、Caddyだけが443番をInternetへ公開する。
+Caddyの証明書と設定状態は`caddy-data`、`caddy-config` volumeへ永続化する。
 
 ## Configuration
 
@@ -63,9 +65,26 @@ make deploy-backend
 - ECRに対象のCommit SHA Tagが存在することを確認
 - EC2上でRuntime環境変数をParameter Storeから再取得
 - ECRへ一時的にLoginしてImageをpull
+- Caddyfileの構文を検証
 - 同時デプロイをFile lockで防止
 - Database migrationを含むCompose projectを起動
 - APIのhealthcheckが成功するまで最大5分待機
+- 起動済みCaddyへ設定をreload
 - SSM Run Commandの標準出力とエラーをローカルへ表示
 
-APIとDatabaseのPortはまだInternetへ公開しない。
+## HTTPS
+
+学校側のDNSへ次のA Recordを設定してもらう。
+
+```text
+api.fes.iwasaki.ac.jp -> Terraform outputのapi_server_public_ip
+```
+
+Caddyは80番を使用せず、443番のTLS-ALPN-01 Challengeで証明書を自動取得・更新する。
+DNS反映前にContainerを起動した場合も、Caddyは証明書取得を再試行する。
+
+DNS反映とデプロイの完了後、次のコマンドで確認する。
+
+```shell
+curl https://api.fes.iwasaki.ac.jp/health
+```
