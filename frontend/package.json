@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "oxlint",
+    "lint": "oxlint && steiger ./src",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check"
@@ -27,6 +27,7 @@
     "valibot": "^1.4.2"
   },
   "devDependencies": {
+    "@feature-sliced/steiger-plugin": "^0.7.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -35,6 +36,7 @@
     "openapi-typescript": "^7.13.0",
     "oxfmt": "^0.60.0",
     "oxlint": "^1.75.0",
+    "steiger": "^0.6.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

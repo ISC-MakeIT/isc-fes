@@ -1,7 +1,7 @@
 import createOpenApiClient from "openapi-fetch";
 import type { paths } from "../schema";
-import { SESSION_COOKIE_NAME } from "@/shared/config/cookies";
-import { API_BASE_URL } from "@/shared/config/env";
+import { SESSION_COOKIE_NAME } from "@/shared/config";
+import { API_BASE_URL } from "@/shared/config";
 
 export async function createApiClient() {
   const isServer = typeof window === "undefined";

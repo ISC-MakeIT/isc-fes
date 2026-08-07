@@ -1,5 +1,5 @@
-import { SESSION_COOKIE_NAME } from "@/shared/config/cookies";
-import { LOGIN_URL } from "@/shared/config/urls";
+import { SESSION_COOKIE_NAME } from "@/shared/config";
+import { LOGIN_URL } from "@/shared/config";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 

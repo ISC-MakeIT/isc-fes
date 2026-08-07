@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "@/shared/config/env";
+import { API_BASE_URL } from "@/shared/config";
 import { cn } from "@/shared/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
 import { DotText } from "@/shared/ui/dot-text";
