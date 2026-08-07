@@ -69,6 +69,7 @@ func buildDependencies(
 	imageRepository := repository.NewS3Repository(
 		s3Client,
 		cfg.S3.Bucket,
+		cfg.S3.UrlExpiresIn,
 	)
 	storeRepository := repository.NewStoreRepository(queries, pool)
 

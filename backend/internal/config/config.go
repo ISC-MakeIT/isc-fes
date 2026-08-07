@@ -39,6 +39,7 @@ type S3Config struct {
 	Bucket       string
 	UsePathStyle bool
 	Endpoint     string
+	UrlExpiresIn time.Duration
 }
 
 func Load() Config {
@@ -58,6 +59,7 @@ func Load() Config {
 			Bucket:       requireEnv("S3_BUCKET"),
 			UsePathStyle: optionalBoolEnv("S3_USE_PATH_STYLE", false),
 			Endpoint:     os.Getenv("S3_ENDPOINT"),
+			UrlExpiresIn: 15 * time.Minute,
 		},
 		Auth: AuthConfig{
 			SessionCookieSecure: optionalBoolEnv("SESSION_COOKIE_SECURE", true),

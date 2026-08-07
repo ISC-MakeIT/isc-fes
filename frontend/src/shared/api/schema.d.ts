@@ -54,6 +54,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/stores": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 承認済みの店舗一覧を取得する */
+    get: operations["getApprovedStores"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -83,6 +100,19 @@ export interface components {
       reviewStatus: components["schemas"]["StoreReviewStatus"];
       /** Format: date-time */
       submittedAt: string;
+    };
+    GetApprovedStoresResponse: {
+      /** @description 承認済みの店舗の総数 */
+      total: number;
+      data: components["schemas"]["Store"][];
+    };
+    Store: {
+      /** Format: uuid */
+      id: string;
+      name: string;
+      room: string;
+      description: string;
+      imageUrl: string;
     };
     ErrorResponse: {
       message: string;
@@ -254,6 +284,35 @@ export interface operations {
       };
       /** @description 画像ストレージが一時的に利用できない */
       503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getApprovedStores: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 承認済みの店舗一覧 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetApprovedStoresResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
         headers: {
           [name: string]: unknown;
         };
