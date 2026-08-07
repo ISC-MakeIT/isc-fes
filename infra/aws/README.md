@@ -11,6 +11,7 @@ APIサーバーを動かすAWSリソースを段階的に追加するTerraform�
 - APIサーバーがSSMとECRを利用するためのIAM RoleとInstance Profile
 - APIサーバーを動かすEC2と固定Public IPv4 Address
 - EC2へDocker実行環境を設定するSystems Manager Association
+- EC2へDocker Compose Pluginを設定するSystems Manager Association
 - 店舗画像を保存する非公開S3 BucketとEC2からのアクセス権限
 - EC2が実行時設定をParameter Storeから取得するためのアクセス権限
 
@@ -81,6 +82,20 @@ EC2が置換された場合は新しいInstance IDがTargetになり、同じ設
 
 実行するShell ScriptにSecretは含めない。
 API、Database、CaddyのContainerと環境変数は後続Stepで設定する。
+
+## Docker Compose Plugin
+
+Docker本体の設定完了後、別のSystems Manager AssociationでDocker Compose Pluginを導入する。
+
+- Versionは`v5.4.0`に固定
+- EC2のCPU Architectureに合わせて公式Linux ARM64 Binaryを使用
+- DownloadしたBinaryのSHA-256を固定値と照合
+- System-wide CLI Pluginとして`/usr/local/lib/docker/cli-plugins/docker-compose`へ配置
+- `docker compose version`が成功するまでTerraformが待機
+- Docker Composeがすでに利用可能な場合はDownloadを省略
+
+VersionとChecksumはDocker Composeの公式GitHub Releaseを参照して明示的に更新する。
+Secret取得やApplication Containerの起動はこのAssociationでは行わない。
 
 ## Runtime configuration access
 
