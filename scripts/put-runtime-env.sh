@@ -2,13 +2,19 @@
 set -euo pipefail
 
 readonly aws_region="ap-northeast-1"
-readonly aws_account_id="970835573274"
 readonly parameter_name="/isc-fes/prod/runtime-env"
 readonly max_standard_parameter_bytes=4096
 readonly validation_backend_image="example.invalid/isc-fes/backend:validation"
 
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
+
+for required_command in aws docker git terraform; do
+  if ! command -v "$required_command" >/dev/null; then
+    echo "必要なコマンドがありません: ${required_command}" >&2
+    exit 1
+  fi
+done
 
 env_file="${1:-deploy/.env}"
 
@@ -80,6 +86,13 @@ BACKEND_IMAGE="$validation_backend_image" docker compose \
   --env-file "$env_file" \
   -f deploy/compose.yaml \
   config --quiet
+
+aws_account_id="$(terraform -chdir=infra/aws output -raw aws_account_id)"
+
+if [[ ! "$aws_account_id" =~ ^[0-9]{12}$ ]]; then
+  echo "Terraformから取得したAWS Account IDが不正です: ${aws_account_id}" >&2
+  exit 1
+fi
 
 caller_account_id="$(
   aws sts get-caller-identity \

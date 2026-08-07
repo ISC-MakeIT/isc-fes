@@ -28,6 +28,11 @@ provider "aws" {
   }
 }
 
+output "aws_account_id" {
+  description = "Terraformで管理するAWS Account ID"
+  value       = data.aws_caller_identity.current.account_id
+}
+
 resource "aws_ecr_repository" "backend" {
   name                 = "isc-fes/backend"
   image_tag_mutability = "IMMUTABLE"
