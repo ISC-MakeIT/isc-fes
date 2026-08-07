@@ -140,7 +140,10 @@ func (s *StoreService) UpdateStoreApplicationReviewStatus(ctx context.Context, s
 
 	account, err := s.accountRepository.GetAccountByID(ctx, accID)
 	if err != nil {
-		return fmt.Errorf("failed to get account by account id from session: %w", ErrUnauthenticated)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("account not found by account id from session: %w", ErrUnauthenticated)
+		}
+		return fmt.Errorf("failed to get account: %w", err)
 	}
 
 	if !account.CanUpdateStoreReviewStatus() {
