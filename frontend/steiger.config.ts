@@ -14,4 +14,10 @@ export default defineConfig([
       "fsd/typo-in-layer-name": "off",
     },
   },
+  {
+    files: ["./src/entities/**"],
+    rules: {
+      "fsd/insignificant-slice": "warn",
+    },
+  },
 ]);
