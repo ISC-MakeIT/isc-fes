@@ -1,0 +1,9 @@
+api.fes.iwasaki.ac.jp {
+	tls {
+		issuer acme {
+			disable_http_challenge
+		}
+	}
+
+	reverse_proxy api:8080
+}
