@@ -1,5 +1,5 @@
 locals {
-  github_actions_repository = "ISC-MakeIT/isc-fes"
+  github_actions_repository_subject = "ISC-MakeIT@40373318/isc-fes@1308638739"
 }
 
 resource "aws_iam_openid_connect_provider" "github_actions" {
@@ -26,7 +26,7 @@ data "aws_iam_policy_document" "github_actions_ecr_push_assume_role" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${local.github_actions_repository}:ref:refs/heads/main"]
+      values   = ["repo:${local.github_actions_repository_subject}:ref:refs/heads/main"]
     }
   }
 }

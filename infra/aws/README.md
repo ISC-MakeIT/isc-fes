@@ -218,6 +218,8 @@ Tagとソースコードの対応を保証するため、未コミットの変�
 
 GitHub Actionsは長期Access Keyを保存せず、GitHub OIDCで一時的なAWS認証情報を取得する。
 IAM Roleの信頼Policyは`ISC-MakeIT/isc-fes`の`main` Branchだけに制限する。
+OIDCのsubjectには、Repository名に加えてGitHubのOrganization IDとRepository IDを使用する。
+名称変更や同名Repositoryの再作成があっても、別のRepositoryからRoleを引き受けられない。
 
 Terraform適用後、次のTerraform OutputをGitHub Repository Variableへ設定する。
 
