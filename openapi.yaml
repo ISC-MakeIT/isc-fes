@@ -143,7 +143,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-
   /stores:
     get:
       operationId: getApprovedStores
