@@ -39,6 +39,15 @@ services:
       db:
         condition: service_healthy
 
+  swagger-editor:
+    image: docker.swagger.io/swaggerapi/swagger-editor:v4-latest
+    ports:
+      - "127.0.0.1:8082:8080"
+    environment:
+      SWAGGER_FILE: /spec/openapi.yaml
+    volumes:
+      - ./openapi.yaml:/spec/openapi.yaml:ro
+
 volumes:
   pgdata:
   localstack-data:

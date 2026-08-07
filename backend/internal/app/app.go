@@ -21,7 +21,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 
 	router := api.NewRouter(
 		deps.apiServer,
-		cfg.FrontendURL,
+		cfg.HTTP.CORSAllowedOrigins,
 	)
 
 	handler := deps.sessions.LoadAndSave(router)

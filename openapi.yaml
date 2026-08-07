@@ -2,6 +2,11 @@ openapi: 3.0.3
 info:
   title: isc-fes API
   version: 0.1.0
+servers:
+  - url: http://localhost:8080
+    description: ローカル開発環境
+  - url: https://api.fes.iwasaki.ac.jp
+    description: 本番環境
 paths:
   /health:
     get:
