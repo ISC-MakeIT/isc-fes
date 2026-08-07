@@ -14,11 +14,6 @@ resource "aws_iam_role" "api_server" {
   assume_role_policy = data.aws_iam_policy_document.api_server_assume_role.json
 }
 
-resource "aws_iam_role_policy_attachment" "api_server_ssm" {
-  role       = aws_iam_role.api_server.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
 data "aws_iam_policy_document" "api_server_ssm_core" {
   statement {
     sid = "ManageInstance"

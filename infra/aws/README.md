@@ -40,14 +40,12 @@ EC2の管理にはAWS Systems Manager Session Managerを使用する。
 
 EC2用IAM Roleには次の権限を付与する。
 
-- Systems ManagerでEC2を管理するための`AmazonSSMManagedInstanceCore`（Custom Policyへの移行中のみ）
 - SSM管理機能と対象Parameterの読取だけを許可するCustom Policy
 - このTerraformで管理するBackend用ECR RepositoryからImageをpullする権限
 - Parameter Storeの`/isc-fes/prod/runtime-env`を読み取る権限
 
-AWS管理Policyの`AmazonSSMManagedInstanceCore`は、全Parameterに対する`ssm:GetParameter`を含む。
-最小権限へ移行するため、同等のSSM管理機能と対象Parameterだけの読取権限を持つCustom Policyを追加する。
-このStepでは安全な移行のためAWS管理Policyも残し、Custom Policyの適用とSession Manager接続を確認した次のStepで取り外す。
+AWS管理Policyの`AmazonSSMManagedInstanceCore`は、全Parameterに対する`ssm:GetParameter`を含むため使用しない。
+同等のSSM管理機能と対象Parameterだけの読取権限を持つCustom Policyを使用する。
 
 ## API server instance
 
@@ -95,8 +93,6 @@ APIサーバーのIAM Roleには、次のParameterだけに対する`ssm:GetPara
 Parameter本体とSecret値はTerraformで作成しない。
 これによりSecretがGitやTerraform Stateへ保存されることを防ぐ。
 Parameterは後続Stepで`SecureString`として作成し、EC2上のデプロイ処理から復号して取得する。
-
-Custom Policyへの移行完了までは、既存のAWS管理Policyによる全Parameterへの読取権限も有効になっている。
 
 ## Store images
 

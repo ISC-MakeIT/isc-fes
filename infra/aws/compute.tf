@@ -40,7 +40,7 @@ resource "aws_instance" "api_server" {
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.api_server_ssm,
+    aws_iam_role_policy.api_server_ssm_core,
     aws_iam_role_policy.api_server_ecr_pull,
   ]
 }
