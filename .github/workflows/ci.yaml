@@ -8,7 +8,6 @@ on:
 permissions:
   contents: read
 
-
 jobs:
   go-code-quality:
     runs-on: ubuntu-latest
@@ -39,6 +38,55 @@ jobs:
           go-version: stable
       - name: Test
         run: go test -race -shuffle=on ./...
+
+  generated-code-is-up-to-date:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: Generate OpenAPI code
+        run: make gen-api
+      - name: Generate sqlc code
+        run: make sqlc
+      - name: Check generated code is up to date
+        run: |
+          generated_changes="$(git status --porcelain -- \
+            backend/internal/api/gen.go \
+            backend/internal/db/sqlc \
+            frontend/src/shared/api/schema.d.ts)"
+
+          if [ -n "$generated_changes" ]; then
+            echo "生成コードが最新ではありません。make gen-api と make sqlc を実行してください。"
+            echo "$generated_changes"
+            git diff -- \
+              backend/internal/api/gen.go \
+              backend/internal/db/sqlc \
+              frontend/src/shared/api/schema.d.ts
+
+            while IFS= read -r -d '' file; do
+              git diff --no-index -- /dev/null "$file" || true
+            done < <(git ls-files --others --exclude-standard -z -- \
+              backend/internal/api/gen.go \
+              backend/internal/db/sqlc \
+              frontend/src/shared/api/schema.d.ts)
+
+            exit 1
+          fi
 
   web-code-quality:
     runs-on: ubuntu-latest
