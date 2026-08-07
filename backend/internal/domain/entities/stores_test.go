@@ -32,3 +32,29 @@ func TestStoreImageObjectKey(t *testing.T) {
 		}
 	}
 }
+
+func TestStoreReviewStatusCanUpdateTo(t *testing.T) {
+	var validTransitions = [][2]StoreReviewStatus{
+		{StoreReviewStatusPending, StoreReviewStatusApproved},
+		{StoreReviewStatusPending, StoreReviewStatusRejected},
+	}
+	var invalidTransitions = [][2]StoreReviewStatus{
+		{StoreReviewStatusPending, StoreReviewStatusPending},
+		{StoreReviewStatusApproved, StoreReviewStatusPending},
+		{StoreReviewStatusApproved, StoreReviewStatusRejected},
+		{StoreReviewStatusRejected, StoreReviewStatusPending},
+		{StoreReviewStatusRejected, StoreReviewStatusApproved},
+	}
+
+	for _, transition := range validTransitions {
+		if !transition[0].CanUpdateTo(transition[1]) {
+			t.Errorf("有効なはずの遷移が無効と検出された: %s -> %s", transition[0], transition[1])
+		}
+	}
+
+	for _, transition := range invalidTransitions {
+		if transition[0].CanUpdateTo(transition[1]) {
+			t.Errorf("無効なはずの遷移が有効と検出された: %s -> %s", transition[0], transition[1])
+		}
+	}
+}
