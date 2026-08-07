@@ -43,6 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@v6
         with:
           go-version: stable
@@ -75,6 +77,14 @@ jobs:
               backend/internal/api/gen.go \
               backend/internal/db/sqlc \
               frontend/src/shared/api/schema.d.ts
+
+            while IFS= read -r -d '' file; do
+              git diff --no-index -- /dev/null "$file" || true
+            done < <(git ls-files --others --exclude-standard -z -- \
+              backend/internal/api/gen.go \
+              backend/internal/db/sqlc \
+              frontend/src/shared/api/schema.d.ts)
+
             exit 1
           fi
 
