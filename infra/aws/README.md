@@ -15,6 +15,7 @@ APIサーバーを動かすAWSリソースを段階的に追加するTerraform�
 - EC2へRuntime環境変数とCompose定義を配置するSystems Manager Association
 - 店舗画像を保存する非公開S3 BucketとEC2からのアクセス権限
 - EC2が実行時設定をParameter Storeから取得するためのアクセス権限
+- GitHub ActionsがOIDCで認証し、Backend ImageをECRへpushするためのIAM Role
 
 APIの起動設定、CloudFrontなどはまだ作成しない。
 
@@ -212,3 +213,42 @@ make push-backend-image
 ```
 
 Tagとソースコードの対応を保証するため、未コミットの変更がある場合は実行しない。
+
+## Push a Backend image from GitHub Actions
+
+GitHub Actionsは長期Access Keyを保存せず、GitHub OIDCで一時的なAWS認証情報を取得する。
+IAM Roleの信頼Policyは`ISC-MakeIT/isc-fes`の`main` Branchだけに制限する。
+
+Terraform適用後、次のTerraform OutputをGitHub Repository Variableへ設定する。
+
+初回導入時は、このWorkflow変更を`main`へmergeする前にTerraformを適用し、
+Repository Variableを設定する。先にmergeすると、最初のWorkflowはAWS認証情報を
+取得できず失敗する。
+
+| Repository Variable | Terraform Output |
+| --- | --- |
+| `AWS_ECR_PUSH_ROLE_ARN` | `github_actions_ecr_push_role_arn` |
+| `AWS_ACCOUNT_ID` | `aws_account_id` |
+
+```shell
+terraform -chdir=infra/aws output -raw github_actions_ecr_push_role_arn
+```
+
+GitHub CLIを使う場合は次のCommandで設定できる。
+
+```shell
+gh variable set AWS_ECR_PUSH_ROLE_ARN \
+  --body "$(terraform -chdir=infra/aws output -raw github_actions_ecr_push_role_arn)"
+
+gh variable set AWS_ACCOUNT_ID \
+  --body "$(terraform -chdir=infra/aws output -raw aws_account_id)"
+```
+
+`main`へのpush時は既存CIがすべて成功した後、次のImageをECRへpushする。
+
+```text
+<repository URL>:sha-<full Git Commit SHA>
+```
+
+同じCommit SHAのImageが既に存在する場合はbuildとpushを省略する。
+このWorkflowはEC2、SSM、Docker Compose、Caddyを操作せず、ECRへのImage pushだけを行う。
