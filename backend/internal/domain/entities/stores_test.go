@@ -41,8 +41,10 @@ func TestStoreReviewStatusCanUpdateTo(t *testing.T) {
 	var invalidTransitions = [][2]StoreReviewStatus{
 		{StoreReviewStatusPending, StoreReviewStatusPending},
 		{StoreReviewStatusApproved, StoreReviewStatusPending},
+		{StoreReviewStatusApproved, StoreReviewStatusApproved},
 		{StoreReviewStatusApproved, StoreReviewStatusRejected},
 		{StoreReviewStatusRejected, StoreReviewStatusPending},
+		{StoreReviewStatusRejected, StoreReviewStatusRejected},
 		{StoreReviewStatusRejected, StoreReviewStatusApproved},
 	}
 
