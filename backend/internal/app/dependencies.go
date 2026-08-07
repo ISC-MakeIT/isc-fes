@@ -86,6 +86,7 @@ func buildDependencies(
 		imageRepository,
 		storeRepository,
 		sessions,
+		accountRepository,
 	)
 
 	apiServer := api.NewServer(

@@ -16,6 +16,23 @@ const (
 	StoreReviewStatusRejected StoreReviewStatus = "rejected"
 )
 
+// 店舗申請ステータスがある値に更新可能かどうかを判定する
+// 例: pending -> approved は可能だが、approved -> pending は不可
+func (s *StoreReviewStatus) CanUpdateTo(newStatus StoreReviewStatus) bool {
+	switch *s {
+	case StoreReviewStatusPending:
+		return newStatus == StoreReviewStatusApproved || newStatus == StoreReviewStatusRejected
+	case StoreReviewStatusApproved, StoreReviewStatusRejected:
+		return false
+	default:
+		return false
+	}
+}
+
+func (s StoreReviewStatus) String() string {
+	return string(s)
+}
+
 func (r StoreReviewStatus) IsValid() bool {
 	switch r {
 	case StoreReviewStatusPending, StoreReviewStatusApproved, StoreReviewStatusRejected:

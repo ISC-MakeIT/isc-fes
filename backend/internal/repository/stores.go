@@ -90,6 +90,22 @@ func (r *StoreRepository) GetApprovedStores(ctx context.Context) ([]entities.Sto
 	return stores, nil
 }
 
+func (r *StoreRepository) GetStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error) {
+	dbStore, err := r.queries.GetStoreByID(ctx, storeID)
+	if err != nil {
+		return entities.Store{}, err
+	}
+
+	return r.toStore(dbStore), nil
+}
+
+func (r *StoreRepository) UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error {
+	return r.queries.UpdateStoreReviewStatusById(ctx, sqlc.UpdateStoreReviewStatusByIdParams{
+		ID:           storeID,
+		ReviewStatus: sqlc.StoreReviewStatus(newStatus),
+	})
+}
+
 // Converts sqlc.Store to entities.Store
 func (r *StoreRepository) toStore(dbStore sqlc.Store) entities.Store {
 	return entities.Store{

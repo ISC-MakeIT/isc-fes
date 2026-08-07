@@ -54,6 +54,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/store-applications/review-status/{store_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** 店舗申請の審査ステータスを更新する */
+    put: operations["updateStoreApplicationReviewStatus"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/stores": {
     parameters: {
       query?: never;
@@ -100,6 +117,14 @@ export interface components {
       reviewStatus: components["schemas"]["StoreReviewStatus"];
       /** Format: date-time */
       submittedAt: string;
+    };
+    UpdateStoreApplicationReviewStatusResponse: {
+      /**
+       * Format: uuid
+       * @description 店舗申請のID。内部的にはstores.idと同一。
+       */
+      id: string;
+      reviewStatus: components["schemas"]["StoreReviewStatus"];
     };
     GetApprovedStoresResponse: {
       /** @description 承認済みの店舗の総数 */
@@ -284,6 +309,88 @@ export interface operations {
       };
       /** @description 画像ストレージが一時的に利用できない */
       503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  updateStoreApplicationReviewStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          reviewStatus: components["schemas"]["StoreReviewStatus"];
+        };
+      };
+    };
+    responses: {
+      /** @description 店舗申請の審査ステータスを更新した */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UpdateStoreApplicationReviewStatusResponse"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 管理者権限がない */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗申請が存在しない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 更新できない審査ステータスへの変更 approved -> approved など */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
         headers: {
           [name: string]: unknown;
         };

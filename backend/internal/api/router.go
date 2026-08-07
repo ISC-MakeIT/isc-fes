@@ -21,6 +21,7 @@ func NewRouter(s *Server, corsAllowedOrigins []string) *gin.Engine {
 		AllowMethods: []string{
 			http.MethodGet,
 			http.MethodPost,
+			http.MethodPut,
 			http.MethodPatch,
 			http.MethodDelete,
 			http.MethodOptions,

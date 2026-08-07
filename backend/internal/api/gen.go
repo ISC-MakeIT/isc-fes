@@ -8,6 +8,7 @@ import (
 	"compress/flate"
 	"encoding/base64"
 	"fmt"
+	"net/http"
 	"net/url"
 	"path"
 	"strings"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
+	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -108,6 +110,13 @@ type Store struct {
 // StoreReviewStatus defines model for StoreReviewStatus.
 type StoreReviewStatus string
 
+// UpdateStoreApplicationReviewStatusResponse defines model for UpdateStoreApplicationReviewStatusResponse.
+type UpdateStoreApplicationReviewStatusResponse struct {
+	// Id 店舗申請のID。内部的にはstores.idと同一。
+	Id           openapi_types.UUID `json:"id"`
+	ReviewStatus StoreReviewStatus  `json:"reviewStatus"`
+}
+
 // CreateStoreApplicationMultipartBody defines parameters for CreateStoreApplication.
 type CreateStoreApplicationMultipartBody struct {
 	// Description Example: 外はカリカリ、中はトロトロのたこ焼きです。
@@ -124,8 +133,16 @@ type CreateStoreApplicationMultipartBody struct {
 	Room string `json:"room"`
 }
 
+// UpdateStoreApplicationReviewStatusJSONBody defines parameters for UpdateStoreApplicationReviewStatus.
+type UpdateStoreApplicationReviewStatusJSONBody struct {
+	ReviewStatus StoreReviewStatus `json:"reviewStatus"`
+}
+
 // CreateStoreApplicationMultipartRequestBody defines body for CreateStoreApplication for multipart/form-data ContentType.
 type CreateStoreApplicationMultipartRequestBody CreateStoreApplicationMultipartBody
+
+// UpdateStoreApplicationReviewStatusJSONRequestBody defines body for UpdateStoreApplicationReviewStatus for application/json ContentType.
+type UpdateStoreApplicationReviewStatusJSONRequestBody UpdateStoreApplicationReviewStatusJSONBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -138,6 +155,9 @@ type ServerInterface interface {
 	// CreateStoreApplication 店舗の作成申請を作成する
 	// (POST /store-applications)
 	CreateStoreApplication(c *gin.Context)
+	// UpdateStoreApplicationReviewStatus 店舗申請の審査ステータスを更新する
+	// (PUT /store-applications/review-status/{store_id})
+	UpdateStoreApplicationReviewStatus(c *gin.Context, storeId openapi_types.UUID)
 	// GetApprovedStores 承認済みの店舗一覧を取得する
 	// (GET /stores)
 	GetApprovedStores(c *gin.Context)
@@ -191,6 +211,31 @@ func (siw *ServerInterfaceWrapper) CreateStoreApplication(c *gin.Context) {
 	siw.Handler.CreateStoreApplication(c)
 }
 
+// UpdateStoreApplicationReviewStatus operation middleware
+func (siw *ServerInterfaceWrapper) UpdateStoreApplicationReviewStatus(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "store_id" -------------
+	var storeId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "store_id", c.Param("store_id"), &storeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter store_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateStoreApplicationReviewStatus(c, storeId)
+}
+
 // GetApprovedStores operation middleware
 func (siw *ServerInterfaceWrapper) GetApprovedStores(c *gin.Context) {
 
@@ -234,6 +279,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/health", wrapper.GetHealth)
 	router.GET(options.BaseURL+"/me", wrapper.GetMe)
 	router.POST(options.BaseURL+"/store-applications", wrapper.CreateStoreApplication)
+	router.PUT(options.BaseURL+"/store-applications/review-status/:store_id", wrapper.UpdateStoreApplicationReviewStatus)
 	router.GET(options.BaseURL+"/stores", wrapper.GetApprovedStores)
 }
 
@@ -242,30 +288,34 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

@@ -127,7 +127,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-
         "422":
           description: 入力値または画像の内容が不正
           content:
@@ -144,6 +143,74 @@ paths:
 
         "503":
           description: 画像ストレージが一時的に利用できない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /store-applications/review-status/{store_id}:
+    put:
+      operationId: updateStoreApplicationReviewStatus
+      summary: 店舗申請の審査ステータスを更新する
+      security:
+        - AccountSession: []
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reviewStatus
+              properties:
+                reviewStatus:
+                  $ref: "#/components/schemas/StoreReviewStatus"
+      responses:
+        "200":
+          description: 店舗申請の審査ステータスを更新した
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateStoreApplicationReviewStatusResponse"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 未ログイン
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 管理者権限がない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗申請が存在しない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: 更新できない審査ステータスへの変更 approved -> approved など
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
           content:
             application/json:
               schema:
@@ -230,6 +297,20 @@ components:
         submittedAt:
           type: string
           format: date-time
+    UpdateStoreApplicationReviewStatusResponse:
+      type: object
+      required:
+        - id
+        - reviewStatus
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: |
+            店舗申請のID。内部的にはstores.idと同一。
+
+        reviewStatus:
+          $ref: "#/components/schemas/StoreReviewStatus"
     GetApprovedStoresResponse:
       type: object
       required:

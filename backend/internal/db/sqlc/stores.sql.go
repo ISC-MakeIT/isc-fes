@@ -129,3 +129,45 @@ func (q *Queries) GetApprovedStores(ctx context.Context) ([]Store, error) {
 	}
 	return items, nil
 }
+
+const getStoreByID = `-- name: GetStoreByID :one
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
+FROM stores
+WHERE id = $1
+`
+
+func (q *Queries) GetStoreByID(ctx context.Context, id uuid.UUID) (Store, error) {
+	row := q.db.QueryRow(ctx, getStoreByID, id)
+	var i Store
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Room,
+		&i.Description,
+		&i.ImageObjectKey,
+		&i.ReviewStatus,
+		&i.SubmittedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateStoreReviewStatusById = `-- name: UpdateStoreReviewStatusById :exec
+UPDATE stores
+SET
+    review_status = $2,
+    updated_at = now()
+WHERE id = $1
+    AND review_status = 'pending'
+`
+
+type UpdateStoreReviewStatusByIdParams struct {
+	ID           uuid.UUID         `json:"id"`
+	ReviewStatus StoreReviewStatus `json:"review_status"`
+}
+
+func (q *Queries) UpdateStoreReviewStatusById(ctx context.Context, arg UpdateStoreReviewStatusByIdParams) error {
+	_, err := q.db.Exec(ctx, updateStoreReviewStatusById, arg.ID, arg.ReviewStatus)
+	return err
+}
