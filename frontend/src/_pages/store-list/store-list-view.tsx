@@ -1,4 +1,4 @@
-import { REGISTER_STORE_URL } from "@/shared/config/urls";
+import { REGISTER_STORE_URL } from "@/shared/config";
 import { buttonVariants } from "@/shared/ui/button";
 import Link from "next/link";
 
