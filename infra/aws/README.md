@@ -12,6 +12,7 @@ APIサーバーを動かすAWSリソースを段階的に追加するTerraform�
 - APIサーバーを動かすEC2と固定Public IPv4 Address
 - EC2へDocker実行環境を設定するSystems Manager Association
 - EC2へDocker Compose Pluginを設定するSystems Manager Association
+- EC2へRuntime環境変数とCompose定義を配置するSystems Manager Association
 - 店舗画像を保存する非公開S3 BucketとEC2からのアクセス権限
 - EC2が実行時設定をParameter Storeから取得するためのアクセス権限
 
@@ -108,6 +109,24 @@ APIサーバーのIAM Roleには、次のParameterだけに対する`ssm:GetPara
 Parameter本体とSecret値はTerraformで作成しない。
 これによりSecretがGitやTerraform Stateへ保存されることを防ぐ。
 Parameterは後続Stepで`SecureString`として作成し、EC2上のデプロイ処理から復号して取得する。
+
+## Runtime configuration installation
+
+Docker Composeの設定完了後、別のSystems Manager Associationで次のファイルを配置する。
+
+```text
+/opt/isc-fes/.env         mode 0600
+/opt/isc-fes/compose.yaml mode 0644
+```
+
+- `/isc-fes/prod/runtime-env`はEC2上で直接復号し、標準出力へ書き出さない
+- Compose定義はRepositoryの`deploy/compose.yaml`をBase64で転送する
+- Compose定義のSHA-256を配置前に検証する
+- 一時ファイルに対して`docker compose config --quiet`を実行する
+- 検証成功後にだけ既存ファイルを置き換える
+- `/opt/isc-fes`はrootだけが参照できるmode `0700`にする
+
+このAssociationは設定ファイルの配置だけを行い、ECR Login、Imageのpull、Containerの起動は行わない。
 
 ## Store images
 
