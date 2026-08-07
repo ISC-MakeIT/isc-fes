@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "oxlint && steiger ./src",
-    "lint:fix": "oxlint --fix && steiger ./src --fix",
+    "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check"
   },
