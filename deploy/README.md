@@ -20,15 +20,29 @@ APIだけを`outbound` Networkにも接続し、S3、Google OAuth、EC2 Instance
 `.env.example`をもとに、EC2の`/opt/isc-fes/.env`へ実際の値を配置する。
 `.env`はGit管理せず、TerraformのStateにもSecretを保存しない。
 
-`BACKEND_IMAGE`には`make push-backend-image`でECRへpushした、不変なCommit SHA Tagを指定する。
+`BACKEND_IMAGE`はSecretへ含めず、後続のデプロイ処理から`make push-backend-image`でECRへpushした不変なCommit SHA Tagを渡す。
 Container内ではEC2のIAM Roleを使うため、AWS Access Keyは設定しない。
 
-現在は構成ファイルだけを定義している。EC2へのDocker Compose Pluginの導入、`.env`の安全な配布、ECR Login、起動処理は後続Stepで追加する。
+実際の値を設定した後、次のコマンドで`/isc-fes/prod/runtime-env`へ`SecureString`として保存する。
+
+```shell
+cp deploy/.env.example deploy/.env
+chmod 600 deploy/.env
+# deploy/.envのプレースホルダーをすべて実際の値へ置換する
+make put-runtime-env
+```
+
+登録スクリプトは、必須項目、未置換のプレースホルダー、4KBのStandard Parameter上限、Compose構文、AWS Accountを検証する。
+Secret値はコマンドラインへ展開せず、TerraformでもParameter本体を管理しない。
+Parameter Store Standardを使用するため追加料金は発生しない。
+
+現在はParameter Storeへの登録処理までを定義している。EC2へのDocker Compose Pluginの導入、`.env`の取得、ECR Login、起動処理は後続Stepで追加する。
 
 ## Validate locally
 
 値を設定した`.env`を用意した後、Imageをpull・起動せずにCompose定義を検証できる。
 
 ```shell
-docker compose --env-file deploy/.env -f deploy/compose.yaml config --quiet
+BACKEND_IMAGE=<ECR-image-URI> \
+  docker compose --env-file deploy/.env -f deploy/compose.yaml config --quiet
 ```
