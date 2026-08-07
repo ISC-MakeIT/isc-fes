@@ -12,6 +12,7 @@ APIサーバーを動かすAWSリソースを段階的に追加するTerraform�
 - APIサーバーを動かすEC2と固定Public IPv4 Address
 - EC2へDocker実行環境を設定するSystems Manager Association
 - 店舗画像を保存する非公開S3 BucketとEC2からのアクセス権限
+- EC2が実行時設定をParameter Storeから取得するためのアクセス権限
 
 APIの起動設定、CloudFrontなどはまだ作成しない。
 
@@ -37,12 +38,16 @@ Security Groupの受信ルールは次の通信だけを許可する。
 SSH、APIの内部Port、DatabaseのPortはインターネットへ公開しない。
 EC2の管理にはAWS Systems Manager Session Managerを使用する。
 
-EC2用IAM Roleには次の権限だけを付与する。
+EC2用IAM Roleには次の権限を付与する。
 
-- Systems ManagerでEC2を管理するための`AmazonSSMManagedInstanceCore`
+- Systems ManagerでEC2を管理するための`AmazonSSMManagedInstanceCore`（Custom Policyへの移行中のみ）
+- SSM管理機能と対象Parameterの読取だけを許可するCustom Policy
 - このTerraformで管理するBackend用ECR RepositoryからImageをpullする権限
+- Parameter Storeの`/isc-fes/prod/runtime-env`を読み取る権限
 
-画像用S3へのアクセス権限は、画像用Bucketを作成する段階で追加する。
+AWS管理Policyの`AmazonSSMManagedInstanceCore`は、全Parameterに対する`ssm:GetParameter`を含む。
+最小権限へ移行するため、同等のSSM管理機能と対象Parameterだけの読取権限を持つCustom Policyを追加する。
+このStepでは安全な移行のためAWS管理Policyも残し、Custom Policyの適用とSession Manager接続を確認した次のStepで取り外す。
 
 ## API server instance
 
@@ -78,6 +83,20 @@ EC2が置換された場合は新しいInstance IDがTargetになり、同じ設
 
 実行するShell ScriptにSecretは含めない。
 API、Database、CaddyのContainerと環境変数は後続Stepで設定する。
+
+## Runtime configuration access
+
+APIサーバーのIAM Roleには、次のParameterだけに対する`ssm:GetParameter`を許可する。
+
+```text
+/isc-fes/prod/runtime-env
+```
+
+Parameter本体とSecret値はTerraformで作成しない。
+これによりSecretがGitやTerraform Stateへ保存されることを防ぐ。
+Parameterは後続Stepで`SecureString`として作成し、EC2上のデプロイ処理から復号して取得する。
+
+Custom Policyへの移行完了までは、既存のAWS管理Policyによる全Parameterへの読取権限も有効になっている。
 
 ## Store images
 
