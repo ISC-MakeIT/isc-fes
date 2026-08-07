@@ -118,6 +118,9 @@ jobs:
     if: >-
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    concurrency:
+      group: push-backend-image-${{ github.sha }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     permissions:
       contents: read
