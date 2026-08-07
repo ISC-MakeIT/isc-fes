@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 	"time"
 )
 
@@ -15,11 +16,12 @@ type Config struct {
 }
 
 type HTTPConfig struct {
-	Addr              string
-	ReadHeaderTimeout time.Duration
-	ReadTimeout       time.Duration
-	WriteTimeout      time.Duration
-	IdleTimeout       time.Duration
+	Addr               string
+	ReadHeaderTimeout  time.Duration
+	ReadTimeout        time.Duration
+	WriteTimeout       time.Duration
+	IdleTimeout        time.Duration
+	CORSAllowedOrigins []string
 }
 
 type DatabaseConfig struct {
@@ -45,11 +47,12 @@ type S3Config struct {
 func Load() Config {
 	return Config{
 		HTTP: HTTPConfig{
-			Addr:              ":8080",
-			ReadHeaderTimeout: 5 * time.Second,
-			ReadTimeout:       15 * time.Second,
-			WriteTimeout:      30 * time.Second,
-			IdleTimeout:       60 * time.Second,
+			Addr:               ":8080",
+			ReadHeaderTimeout:  5 * time.Second,
+			ReadTimeout:        15 * time.Second,
+			WriteTimeout:       30 * time.Second,
+			IdleTimeout:        60 * time.Second,
+			CORSAllowedOrigins: requireCSVEnv("CORS_ALLOWED_ORIGINS"),
 		},
 		Database: DatabaseConfig{
 			Url: requireEnv("DATABASE_URL"),
@@ -69,6 +72,20 @@ func Load() Config {
 		},
 		FrontendURL: requireEnv("FRONTEND_URL"),
 	}
+}
+
+// 必須のカンマ区切り環境変数を取り出す
+func requireCSVEnv(key string) []string {
+	values := strings.Split(requireEnv(key), ",")
+
+	for i, value := range values {
+		values[i] = strings.TrimSpace(value)
+		if values[i] == "" {
+			panic("environment variable " + key + " must not contain empty values")
+		}
+	}
+
+	return values
 }
 
 // 必須の環境変数を取り出す

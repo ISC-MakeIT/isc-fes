@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewRouter(s *Server, frontendURL string) *gin.Engine {
+func NewRouter(s *Server, corsAllowedOrigins []string) *gin.Engine {
 	router := gin.New()
 
 	// URL の Query がログに出ないようになる。/callback などで code, state などが出ないように
@@ -17,9 +17,7 @@ func NewRouter(s *Server, frontendURL string) *gin.Engine {
 	router.Use(gin.Recovery())
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{
-			frontendURL,
-		},
+		AllowOrigins: corsAllowedOrigins,
 		AllowMethods: []string{
 			http.MethodGet,
 			http.MethodPost,
