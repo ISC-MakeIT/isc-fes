@@ -3,6 +3,13 @@ set -euo pipefail
 
 readonly aws_region="ap-northeast-1"
 
+for required_command in aws docker git terraform; do
+  if ! command -v "$required_command" >/dev/null; then
+    echo "必要なコマンドがありません: ${required_command}" >&2
+    exit 1
+  fi
+done
+
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 

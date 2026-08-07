@@ -94,6 +94,7 @@ echo "Backendのデプロイを開始しました: ${image_uri}"
 echo "SSM Command ID: ${command_id}"
 
 status="Pending"
+terminal_status_observed=false
 for ((poll_attempt = 1; poll_attempt <= max_poll_attempts; poll_attempt++)); do
   status="$(
     aws ssm get-command-invocation \
@@ -106,12 +107,15 @@ for ((poll_attempt = 1; poll_attempt <= max_poll_attempts; poll_attempt++)); do
   )"
 
   case "$status" in
-    Success | Cancelled | TimedOut | Failed | Cancelling)
+    Success | Cancelled | TimedOut | Failed)
+      terminal_status_observed=true
       break
       ;;
   esac
 
-  sleep 5
+  if ((poll_attempt < max_poll_attempts)); then
+    sleep 5
+  fi
 done
 
 standard_output="$(
@@ -138,6 +142,12 @@ if [[ -n "$standard_output" && "$standard_output" != "None" ]]; then
 fi
 if [[ -n "$standard_error" && "$standard_error" != "None" ]]; then
   printf '%s\n' "$standard_error" >&2
+fi
+
+if [[ "$terminal_status_observed" != "true" ]]; then
+  echo "ポーリング上限に達しました。SSM Commandは実行中の可能性があります。Status: ${status:-Unknown}" >&2
+  echo "確認: aws ssm get-command-invocation --region ${aws_region} --command-id ${command_id} --instance-id ${instance_id}" >&2
+  exit 1
 fi
 
 if [[ "$status" != "Success" ]]; then

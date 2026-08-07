@@ -36,7 +36,9 @@ make put-runtime-env
 
 登録スクリプトは、必須項目、未置換のプレースホルダー、4KBのStandard Parameter上限、Compose構文、AWS Accountを検証する。
 Secret値はコマンドラインへ展開せず、TerraformでもParameter本体を管理しない。
-Parameter Store Standardを使用するため追加料金は発生しない。
+Parameter Store StandardのParameter保存料金は発生しない。
+ただし、`SecureString`の暗号化・復号ではAWS KMSのAPIリクエスト料金が発生する場合がある。
+Customer Managed Keyを使用する場合は、別途Keyの利用料金も発生する。
 
 EC2へのDocker Compose Pluginと初期設定ファイルはTerraformで導入する。
 通常のデプロイでは後述のスクリプトがParameter Storeから`.env`を更新し、ECR LoginとContainerの起動を行う。
