@@ -29,3 +29,15 @@ SELECT *
 FROM stores
 WHERE review_status = 'approved'
 ORDER BY created_at DESC;
+
+-- name: GetStoreByID :one
+SELECT *
+FROM stores
+WHERE id = $1;
+
+-- name: UpdateStoreReviewStatusById :exec
+UPDATE stores
+SET
+    review_status = $2,
+    updated_at = now()
+WHERE id = $1;

@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/internal/domain/entities"
 	"github.com/isc-makeit/isc-fes/backend/internal/media"
+	"github.com/jackc/pgx/v5"
 )
 
 type StoreImageRepository interface {
@@ -23,6 +24,8 @@ type StoreImageRepository interface {
 type StoreRepository interface {
 	CreateStoreApplication(ctx context.Context, input CreateStoreApplicationInput) (entities.Store, error)
 	GetApprovedStores(ctx context.Context) ([]entities.Store, error)
+	GetStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error)
+	UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error
 }
 
 type CreateStoreApplicationInput struct {
@@ -42,16 +45,18 @@ type CreateStoreApplicationServiceInput struct {
 }
 
 type StoreService struct {
-	imageRepository StoreImageRepository
-	storeRepository StoreRepository
-	sessions        SessionManager
+	imageRepository   StoreImageRepository
+	storeRepository   StoreRepository
+	accountRepository AccountRepository
+	sessions          SessionManager
 }
 
-func NewStoreService(imageRepository StoreImageRepository, storeRepository StoreRepository, sessions SessionManager) *StoreService {
+func NewStoreService(imageRepository StoreImageRepository, storeRepository StoreRepository, sessions SessionManager, accountRepository AccountRepository) *StoreService {
 	return &StoreService{
-		imageRepository: imageRepository,
-		storeRepository: storeRepository,
-		sessions:        sessions,
+		imageRepository:   imageRepository,
+		storeRepository:   storeRepository,
+		accountRepository: accountRepository,
+		sessions:          sessions,
 	}
 }
 
@@ -119,6 +124,42 @@ func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateS
 	}
 
 	return store, nil
+}
+
+var (
+	ErrForbidden                          = errors.New("forbidden")
+	ErrNotFound                           = errors.New("not found")
+	ErrInvalidStoreReviewStatusTransition = errors.New("invalid store review status transition")
+)
+
+func (s *StoreService) UpdateStoreApplicationReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error {
+	accID, err := s.sessions.AccountID(ctx)
+	if err != nil {
+		return errors.Join(err, ErrUnauthenticated)
+	}
+
+	account, err := s.accountRepository.GetAccountByID(ctx, accID)
+	if err != nil {
+		return fmt.Errorf("failed to get account by account id from session: %w", ErrUnauthenticated)
+	}
+
+	if !account.CanUpdateStoreReviewStatus() {
+		return ErrForbidden
+	}
+
+	store, err := s.storeRepository.GetStoreByID(ctx, storeID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ErrNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("failed to get store by store id: %w", err)
+	}
+
+	if !store.ReviewStatus.CanUpdateTo(newStatus) {
+		return ErrInvalidStoreReviewStatusTransition
+	}
+
+	return s.storeRepository.UpdateStoreReviewStatus(ctx, storeID, newStatus)
 }
 
 func (s *StoreService) GetApprovedStores(ctx context.Context) ([]entities.StoreOutput, error) {

@@ -35,3 +35,8 @@ type Account struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
+
+// 店舗申請のレビュー権限を持つかどうかを判定する
+func (a *Account) CanUpdateStoreReviewStatus() bool {
+	return a.Role == RoleAdmin
+}

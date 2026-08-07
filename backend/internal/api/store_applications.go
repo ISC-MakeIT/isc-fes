@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/isc-makeit/isc-fes/backend/internal/domain/entities"
 	"github.com/isc-makeit/isc-fes/backend/internal/service"
 )
 
@@ -91,4 +93,58 @@ type createStoreApplicationForm struct {
 	Room        string                `form:"room" binding:"required,max=50"`
 	Description string                `form:"description" binding:"required,max=1000"`
 	Image       *multipart.FileHeader `form:"image" binding:"required"`
+}
+
+func (s *Server) UpdateStoreApplicationReviewStatus(c *gin.Context, storeID uuid.UUID) {
+	ctx := c.Request.Context()
+
+	var body UpdateStoreApplicationReviewStatusJSONBody
+	if err := c.ShouldBind(&body); err != nil || !body.ReviewStatus.Valid() {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "不正なリクエストです",
+		})
+		return
+	}
+
+	err := s.store.UpdateStoreApplicationReviewStatus(ctx, storeID, entities.StoreReviewStatus(body.ReviewStatus))
+
+	if errors.Is(err, service.ErrUnauthenticated) {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{
+			Message: "未ログインです",
+		})
+		return
+	}
+
+	if errors.Is(err, service.ErrForbidden) {
+		c.JSON(http.StatusForbidden, ErrorResponse{
+			Message: "権限がありません",
+		})
+		return
+	}
+
+	if errors.Is(err, service.ErrNotFound) {
+		c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "店舗が見つかりません",
+		})
+		return
+	}
+
+	if errors.Is(err, service.ErrInvalidStoreReviewStatusTransition) {
+		c.JSON(http.StatusConflict, ErrorResponse{
+			Message: "不正なレビュー状態の遷移です",
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: "サーバーエラーが発生しました",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, UpdateStoreApplicationReviewStatusResponse{
+		Id:           storeID,
+		ReviewStatus: body.ReviewStatus,
+	})
 }
