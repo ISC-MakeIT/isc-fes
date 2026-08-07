@@ -36,7 +36,8 @@ make put-runtime-env
 Secret値はコマンドラインへ展開せず、TerraformでもParameter本体を管理しない。
 Parameter Store Standardを使用するため追加料金は発生しない。
 
-現在はParameter Storeへの登録処理までを定義している。EC2へのDocker Compose Pluginの導入、`.env`の取得、ECR Login、起動処理は後続Stepで追加する。
+EC2へのDocker Compose Pluginと初期設定ファイルはTerraformで導入する。
+通常のデプロイでは後述のスクリプトがParameter Storeから`.env`を更新し、ECR LoginとContainerの起動を行う。
 
 ## Validate locally
 
@@ -46,3 +47,25 @@ Parameter Store Standardを使用するため追加料金は発生しない。
 BACKEND_IMAGE=<ECR-image-URI> \
   docker compose --env-file deploy/.env -f deploy/compose.yaml config --quiet
 ```
+
+## Deploy the Backend
+
+作業ツリーがCleanな状態で、現在のGit Commit SHAをTagにしたBackend imageをECRへpushする。
+その後、同じImageをSystems Manager経由でEC2へデプロイする。
+
+```shell
+make push-backend-image
+make deploy-backend
+```
+
+デプロイスクリプトは次の処理を行う。
+
+- ECRに対象のCommit SHA Tagが存在することを確認
+- EC2上でRuntime環境変数をParameter Storeから再取得
+- ECRへ一時的にLoginしてImageをpull
+- 同時デプロイをFile lockで防止
+- Database migrationを含むCompose projectを起動
+- APIのhealthcheckが成功するまで最大5分待機
+- SSM Run Commandの標準出力とエラーをローカルへ表示
+
+APIとDatabaseのPortはまだInternetへ公開しない。
