@@ -12,7 +12,8 @@ type Config struct {
 	S3       S3Config
 	Auth     AuthConfig
 
-	FrontendURL string
+	FrontendURL       string
+	StoreImageBaseURL string
 }
 
 type HTTPConfig struct {
@@ -70,7 +71,8 @@ func Load() Config {
 			GoogleClientSecret:  requireEnv("GOOGLE_CLIENT_SECRET"),
 			GoogleRedirectURL:   requireEnv("GOOGLE_REDIRECT_URL"),
 		},
-		FrontendURL: requireEnv("FRONTEND_URL"),
+		FrontendURL:       requireEnv("FRONTEND_URL"),
+		StoreImageBaseURL: os.Getenv("STORE_IMAGE_BASE_URL"),
 	}
 }
 

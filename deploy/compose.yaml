@@ -50,6 +50,7 @@ services:
       AWS_REGION: ${AWS_REGION:-ap-northeast-1}
       S3_BUCKET: ${S3_BUCKET:?S3_BUCKET is required}
       S3_USE_PATH_STYLE: "false"
+      STORE_IMAGE_BASE_URL: ${STORE_IMAGE_BASE_URL:-}
     expose:
       - "8080"
     healthcheck:
