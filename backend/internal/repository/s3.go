@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -13,17 +12,15 @@ import (
 )
 
 type S3Repository struct {
-	client       *s3.Client
-	bucket       string
-	urlExpiresIn time.Duration
+	client *s3.Client
+	bucket string
 }
 
 // TODO: S3 クライアントを必要最小限のインターフェースとして注入し、Put/Delete の入力とエラー処理を単体テストする。
-func NewS3Repository(client *s3.Client, bucket string, urlExpiresIn time.Duration) *S3Repository {
+func NewS3Repository(client *s3.Client, bucket string) *S3Repository {
 	return &S3Repository{
-		client:       client,
-		bucket:       bucket,
-		urlExpiresIn: urlExpiresIn,
+		client: client,
+		bucket: bucket,
 	}
 }
 
@@ -62,28 +59,6 @@ func (r *S3Repository) DeleteObject(ctx context.Context, objectKey entities.Stor
 	}
 
 	return nil
-}
-
-func (r *S3Repository) GetPublicURL(ctx context.Context, objectKey entities.StoreImageObjectKey) (string, error) {
-	presignClient := s3.NewPresignClient(r.client)
-
-	presignedReq, err := presignClient.PresignGetObject(
-		ctx,
-		&s3.GetObjectInput{
-			Bucket: aws.String(r.bucket),
-			Key:    aws.String(objectKey.String()),
-		},
-		s3.WithPresignExpires(r.urlExpiresIn),
-	)
-	if err != nil {
-		return "", fmt.Errorf(
-			"presign S3 object %q: %w",
-			objectKey,
-			err,
-		)
-	}
-
-	return presignedReq.URL, nil
 }
 
 var _ service.StoreImageRepository = (*S3Repository)(nil)
