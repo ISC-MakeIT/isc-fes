@@ -49,6 +49,5 @@ func (s *Server) GetMe(c *gin.Context) {
 		DisplayName: account.DisplayName,
 		PictureUrl:  account.PictureURL,
 		Role:        MeResponseRole(account.Role),
-		StoreId:     account.StoreID,
 	})
 }

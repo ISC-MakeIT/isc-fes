@@ -45,13 +45,6 @@ func (r *AccountRepository) UpsertGoogleAccount(ctx context.Context, identity se
 	return ToAccount(acc), err
 }
 
-func uuidPtrOrNil(id uuid.UUID) *uuid.UUID {
-	if id == uuid.Nil {
-		return nil
-	}
-	return &id
-}
-
 // ToAccount converts a sqlc.Account to an Account entity.
 func ToAccount(dbAccount sqlc.Account) entities.Account {
 	return entities.Account{
@@ -61,7 +54,6 @@ func ToAccount(dbAccount sqlc.Account) entities.Account {
 		DisplayName: dbAccount.DisplayName,
 		PictureURL:  dbAccount.PictureUrl,
 		Role:        entities.Role(dbAccount.Role),
-		StoreID:     uuidPtrOrNil(dbAccount.StoreID),
 		LastLoginAt: dbAccount.LastLoginAt.Time,
 		CreatedAt:   dbAccount.CreatedAt.Time,
 		UpdatedAt:   dbAccount.UpdatedAt.Time,

@@ -31,7 +31,6 @@ type Account struct {
 	DisplayName string
 	PictureURL  *string
 	Role        Role
-	StoreID     *uuid.UUID
 	LastLoginAt time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time

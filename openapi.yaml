@@ -255,7 +255,6 @@ components:
         - displayName
         - pictureUrl
         - role
-        - storeId
       properties:
         id:
           type: string
@@ -273,10 +272,6 @@ components:
           enum:
             - member
             - admin
-        storeId:
-          type: string
-          format: uuid
-          nullable: true
     StoreReviewStatus:
       type: string
       enum:
