@@ -105,6 +105,8 @@ export interface components {
       pictureUrl: string | null;
       /** @enum {string} */
       role: "member" | "admin";
+      /** Format: uuid */
+      storeId: string | null;
     };
     /** @enum {string} */
     StoreReviewStatus: "pending" | "approved" | "rejected";
