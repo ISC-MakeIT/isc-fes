@@ -262,15 +262,6 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description アカウントがすでに店舗へ所属している */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
       /** @description アップロードされた画像が大きすぎる */
       413: {
         headers: {

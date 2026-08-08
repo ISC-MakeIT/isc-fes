@@ -11,24 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const assignStoreToAccount = `-- name: AssignStoreToAccount :exec
-UPDATE accounts
-SET
-    store_id = $2,
-    updated_at = now()
-WHERE id = $1
-`
-
-type AssignStoreToAccountParams struct {
-	ID      uuid.UUID `json:"id"`
-	StoreID uuid.UUID `json:"store_id"`
-}
-
-func (q *Queries) AssignStoreToAccount(ctx context.Context, arg AssignStoreToAccountParams) error {
-	_, err := q.db.Exec(ctx, assignStoreToAccount, arg.ID, arg.StoreID)
-	return err
-}
-
 const createStore = `-- name: CreateStore :one
 INSERT INTO stores (
     id,
@@ -74,22 +56,32 @@ func (q *Queries) CreateStore(ctx context.Context, arg CreateStoreParams) (Store
 	return i, err
 }
 
-const getAccountForStoreApplication = `-- name: GetAccountForStoreApplication :one
-SELECT id, store_id
-FROM accounts
-WHERE id = $1
-FOR UPDATE
+const createStoreMember = `-- name: CreateStoreMember :one
+INSERT INTO store_members (
+    store_id,
+    account_id,
+    role
+) VALUES (
+    $1, $2, $3
+)
+RETURNING store_id, account_id, role, joined_at
 `
 
-type GetAccountForStoreApplicationRow struct {
-	ID      uuid.UUID `json:"id"`
-	StoreID uuid.UUID `json:"store_id"`
+type CreateStoreMemberParams struct {
+	StoreID   uuid.UUID       `json:"store_id"`
+	AccountID uuid.UUID       `json:"account_id"`
+	Role      StoreMemberRole `json:"role"`
 }
 
-func (q *Queries) GetAccountForStoreApplication(ctx context.Context, id uuid.UUID) (GetAccountForStoreApplicationRow, error) {
-	row := q.db.QueryRow(ctx, getAccountForStoreApplication, id)
-	var i GetAccountForStoreApplicationRow
-	err := row.Scan(&i.ID, &i.StoreID)
+func (q *Queries) CreateStoreMember(ctx context.Context, arg CreateStoreMemberParams) (StoreMember, error) {
+	row := q.db.QueryRow(ctx, createStoreMember, arg.StoreID, arg.AccountID, arg.Role)
+	var i StoreMember
+	err := row.Scan(
+		&i.StoreID,
+		&i.AccountID,
+		&i.Role,
+		&i.JoinedAt,
+	)
 	return i, err
 }
 

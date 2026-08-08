@@ -12,7 +12,7 @@ import (
 )
 
 const getAccountByID = `-- name: GetAccountByID :one
-SELECT id, google_sub, email, display_name, picture_url, role, last_login_at, created_at, updated_at, store_id
+SELECT id, google_sub, email, display_name, picture_url, role, last_login_at, created_at, updated_at
 FROM accounts
 WHERE id = $1
 `
@@ -30,7 +30,6 @@ func (q *Queries) GetAccountByID(ctx context.Context, id uuid.UUID) (Account, er
 		&i.LastLoginAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.StoreID,
 	)
 	return i, err
 }
@@ -55,7 +54,7 @@ DO UPDATE SET
     picture_url = EXCLUDED.picture_url,
     last_login_at = now(),
     updated_at = now()
-RETURNING id, google_sub, email, display_name, picture_url, role, last_login_at, created_at, updated_at, store_id
+RETURNING id, google_sub, email, display_name, picture_url, role, last_login_at, created_at, updated_at
 `
 
 type UpsertAccountParams struct {
@@ -83,7 +82,6 @@ func (q *Queries) UpsertAccount(ctx context.Context, arg UpsertAccountParams) (A
 		&i.LastLoginAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.StoreID,
 	)
 	return i, err
 }

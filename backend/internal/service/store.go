@@ -102,7 +102,6 @@ func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateS
 
 	// TODO: 画像全体をデコードして破損・形式偽装を検証し、必要に応じてリサイズや WebP 変換を行う。
 
-	// TODO: ロック付きの最終確認は残したまま、アップロード前に店舗所属済みかを事前確認して不要な S3 Put/Delete を避ける。
 	err = s.imageRepository.PutObject(ctx, input.ImageReader, objectKey, contentType)
 	if err != nil {
 		// TODO: S3 の元エラーを %w で保持し、503 判定や障害調査に利用できるようにする。
@@ -211,8 +210,3 @@ func (s *StoreService) toStoreOutputs(ctx context.Context, stores []entities.Sto
 
 	return outputs, nil
 }
-
-var (
-	// 店舗申請の際に、アカウントがすでに店舗を持っている場合のエラー
-	ErrAccountAlreadyHasStore = errors.New("account already has a store")
-)
