@@ -75,6 +75,25 @@ resource "aws_s3_bucket_lifecycle_configuration" "store_images" {
 
 data "aws_iam_policy_document" "store_images_bucket" {
   statement {
+    sid    = "AllowCloudFrontReadStoreImages"
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.store_images.arn}/stores/*"]
+
+    condition {
+      test     = "ArnEquals"
+      variable = "AWS:SourceArn"
+      values   = [aws_cloudfront_distribution.store_images.arn]
+    }
+  }
+
+  statement {
     sid    = "DenyInsecureTransport"
     effect = "Deny"
 
