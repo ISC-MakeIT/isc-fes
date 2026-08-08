@@ -12,6 +12,7 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/internal/config"
 	db "github.com/isc-makeit/isc-fes/backend/internal/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/internal/repository"
+	"github.com/isc-makeit/isc-fes/backend/internal/repository/imageurl"
 	"github.com/isc-makeit/isc-fes/backend/internal/service"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -69,8 +70,8 @@ func buildDependencies(
 	imageRepository := repository.NewS3Repository(
 		s3Client,
 		cfg.S3.Bucket,
-		cfg.S3.UrlExpiresIn,
 	)
+	imgGenerator := imageurl.NewS3ImageURLGenerator(s3Client, cfg.S3.Bucket, cfg.S3.UrlExpiresIn)
 	storeRepository := repository.NewStoreRepository(queries, pool)
 
 	accountService := service.NewAccountService(
@@ -87,6 +88,7 @@ func buildDependencies(
 		storeRepository,
 		sessions,
 		accountRepository,
+		imgGenerator,
 	)
 
 	apiServer := api.NewServer(

@@ -17,8 +17,6 @@ type StoreImageRepository interface {
 	PutObject(ctx context.Context, reader io.ReadSeeker, objectKey entities.StoreImageObjectKey, contentType string) error
 
 	DeleteObject(ctx context.Context, objectKey entities.StoreImageObjectKey) error
-
-	GetPublicURL(ctx context.Context, objectKey entities.StoreImageObjectKey) (string, error)
 }
 
 type StoreRepository interface {
@@ -48,14 +46,16 @@ type StoreService struct {
 	imageRepository   StoreImageRepository
 	storeRepository   StoreRepository
 	accountRepository AccountRepository
+	imgGenerator      ImageURLGenerator
 	sessions          SessionManager
 }
 
-func NewStoreService(imageRepository StoreImageRepository, storeRepository StoreRepository, sessions SessionManager, accountRepository AccountRepository) *StoreService {
+func NewStoreService(imageRepository StoreImageRepository, storeRepository StoreRepository, sessions SessionManager, accountRepository AccountRepository, imgGenerator ImageURLGenerator) *StoreService {
 	return &StoreService{
 		imageRepository:   imageRepository,
 		storeRepository:   storeRepository,
 		accountRepository: accountRepository,
+		imgGenerator:      imgGenerator,
 		sessions:          sessions,
 	}
 }
@@ -180,7 +180,7 @@ func (s *StoreService) GetApprovedStores(ctx context.Context) ([]entities.StoreO
 }
 
 func (s *StoreService) toStoreOutput(ctx context.Context, store entities.Store) (entities.StoreOutput, error) {
-	publicImageURL, err := s.imageRepository.GetPublicURL(ctx, store.ImageObjectKey)
+	publicImageURL, err := s.imgGenerator.GenerateStoreImageURL(ctx, store.ImageObjectKey)
 	if err != nil {
 		return entities.StoreOutput{}, fmt.Errorf("failed to get store image URL: %w", err)
 	}
