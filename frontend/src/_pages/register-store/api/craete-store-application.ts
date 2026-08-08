@@ -1,13 +1,9 @@
 import { createApiClient } from "@/shared/api";
 import { components } from "@/shared/api/";
-import { operations } from "@/shared/api/schema";
 import { CreateStoreForm } from "../model/types";
 
 type CreateStoreApplicationResponse =
   components["schemas"]["CreateStoreApplicationResponse"];
-
-type CreateStoreApplicationRequest =
-  operations["createStoreApplication"]["requestBody"]["content"]["multipart/form-data"];
 
 export type CreateStoreApplicationresult =
   | { data: CreateStoreApplicationResponse; error?: never; response?: never }
@@ -27,19 +23,14 @@ export async function createStoreApplication(
     bodySerializer(body) {
       const fd = new FormData();
 
-      fd.append("name", body.name);
-      fd.append("room", body.room);
-      fd.append("description", body.description);
-      fd.append("image", body.image);
-      console.log(formData);
+      for (const [key, value] of Object.entries(body)) {
+        fd.append(key, value);
+      }
       return fd;
     },
   });
 
   if (error) {
-    if (response.status >= 500) {
-      throw new Error(`店舗を作成できませんでした：${error.message}`);
-    }
     return { error: error.message, response };
   }
 
