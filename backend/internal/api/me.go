@@ -22,6 +22,7 @@ func (s *Server) GetMe(c *gin.Context) {
 	}
 
 	account, err := s.accountService.GetAccountByID(ctx, accountID)
+	log.Printf("Retrieved account: %+v", account)
 	if errors.Is(err, pgx.ErrNoRows) {
 		// アカウントは存在しないので、残っているセッションも破棄する。
 		if destroyErr := s.sessions.SignOut(ctx); destroyErr != nil {
@@ -49,5 +50,6 @@ func (s *Server) GetMe(c *gin.Context) {
 		DisplayName: account.DisplayName,
 		PictureUrl:  account.PictureURL,
 		Role:        MeResponseRole(account.Role),
+		StoreId:     account.StoreID,
 	})
 }
