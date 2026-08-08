@@ -28,6 +28,19 @@ provider "aws" {
   }
 }
 
+# CloudFrontに設定するACM Certificateはus-east-1で発行する必要がある。
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+
+  default_tags {
+    tags = {
+      Project   = "isc-fes"
+      ManagedBy = "Terraform"
+    }
+  }
+}
+
 output "aws_account_id" {
   description = "Terraformで管理するAWS Account ID"
   value       = data.aws_caller_identity.current.account_id

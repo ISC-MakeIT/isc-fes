@@ -14,10 +14,12 @@ APIサーバーを動かすAWSリソースを段階的に追加するTerraform�
 - EC2へDocker Compose Pluginを設定するSystems Manager Association
 - EC2へRuntime環境変数とCompose定義を配置するSystems Manager Association
 - 店舗画像を保存する非公開S3 BucketとEC2からのアクセス権限
+- 非公開S3 Bucketの店舗画像を配信するCloudFront DistributionとOAC
+- `img.fes.iwasaki.ac.jp`用のACM Certificate申請
 - EC2が実行時設定をParameter Storeから取得するためのアクセス権限
 - GitHub ActionsがOIDCで認証し、Backend ImageをECRへpushするためのIAM Role
 
-APIの起動設定、CloudFrontなどはまだ作成しない。
+APIの起動設定は別のデプロイスクリプトで管理する。
 
 ## Network
 
@@ -160,8 +162,42 @@ isc-fes-images-<AWS Account ID>
 - TerraformによるBucket削除を防止
 
 APIサーバーのIAM Roleには`stores/*`配下のObjectに対する`PutObject`、`GetObject`、`DeleteObject`だけを許可する。
-Bucketは直接公開せず、現段階ではBackendが発行するPresigned URLで画像を取得する。
-`images.fes.iwasaki.ac.jp`とCloudFrontは後続Stepで追加する。
+Bucketは直接公開せず、CloudFront Origin Access Controlからの`GetObject`だけをBucket Policyで追加許可する。
+CloudFrontからS3へのRequestはSigV4で常に署名し、ViewerからはHTTPSだけを使用する。
+
+学校側のDNS設定が完了するまでは、次のOutputを`STORE_IMAGE_BASE_URL`へ設定する。
+
+```shell
+terraform output -raw store_images_cloudfront_base_url
+```
+
+現行APIのPresigned URLから段階的に切り替えられるよう、EC2の`GetObject`権限はこの時点では残す。
+CloudFront経由の画像取得とAPIの切り替えを確認した後、別の変更で削除する。
+
+## Store image domain certificate
+
+CloudFrontの独自ドメインに使用するACM Certificateは、CloudFrontの要件に合わせて
+Virginia北部Region（`us-east-1`）へ申請する。
+
+DNS設定が完了していない段階では、TerraformはCertificateの申請だけを行い、
+DNS検証の完了待ちやCloudFrontへの`img.fes.iwasaki.ac.jp`設定は行わない。
+これにより、学校側の対応時期にかかわらず`terraform apply`を完了できる。
+
+適用後、学校側へ依頼する検証用CNAMEを次のOutputで取得する。
+
+```shell
+terraform output -json store_images_acm_dns_validation_records
+```
+
+ACMの検証がタイムアウトした後にDNSが設定された場合は、CNAMEが解決できることを確認してから再申請する。
+
+```shell
+dig +short CNAME <outputのname>
+terraform apply -replace=aws_acm_certificate.store_images
+```
+
+Certificateが`ISSUED`になった後、CloudFrontへCertificateと独自ドメインを設定し、
+学校側へ`img.fes.iwasaki.ac.jp`からCloudFront標準ドメインへの配信用CNAMEを別途依頼する。
 
 ## Remote State
 

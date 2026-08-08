@@ -52,6 +52,7 @@ readonly required_keys=(
   CORS_ALLOWED_ORIGINS
   AWS_REGION
   S3_BUCKET
+  STORE_IMAGE_BASE_URL
 )
 
 for key in "${required_keys[@]}"; do

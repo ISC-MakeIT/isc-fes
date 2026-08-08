@@ -25,6 +25,10 @@ Caddyの証明書と設定状態は`caddy-data`、`caddy-config` volumeへ永続
 `BACKEND_IMAGE`はSecretへ含めず、後続のデプロイ処理から`make push-backend-image`でECRへpushした不変なCommit SHA Tagを渡す。
 Container内ではEC2のIAM Roleを使うため、AWS Access Keyは設定しない。
 
+`STORE_IMAGE_BASE_URL`には店舗画像用CloudFront DistributionのURLを指定する。
+DNS設定前はTerraformの`store_images_cloudfront_base_url` outputを使用し、
+独自ドメインの設定完了後に`https://img.fes.iwasaki.ac.jp`へ変更する。
+
 実際の値を設定した後、次のコマンドで`/isc-fes/prod/runtime-env`へ`SecureString`として保存する。
 
 ```shell

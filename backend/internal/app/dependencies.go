@@ -71,7 +71,17 @@ func buildDependencies(
 		s3Client,
 		cfg.S3.Bucket,
 	)
-	imgGenerator := imageurl.NewS3ImageURLGenerator(s3Client, cfg.S3.Bucket, cfg.S3.UrlExpiresIn)
+	var imgGenerator service.ImageURLGenerator
+	if cfg.StoreImageBaseURL == "" {
+		imgGenerator = imageurl.NewS3ImageURLGenerator(s3Client, cfg.S3.Bucket, cfg.S3.UrlExpiresIn)
+	} else {
+		imgGenerator, err = imageurl.NewCloudFrontImageURLGenerator(cfg.StoreImageBaseURL)
+		if err != nil {
+			stopSessionCleanup()
+			pool.Close()
+			return nil, fmt.Errorf("initialize store image URL generator: %w", err)
+		}
+	}
 	storeRepository := repository.NewStoreRepository(queries, pool)
 
 	accountService := service.NewAccountService(
