@@ -5,7 +5,7 @@ import { CreateStoreForm } from "../model/types";
 type CreateStoreApplicationResponse =
   components["schemas"]["CreateStoreApplicationResponse"];
 
-export type CreateStoreApplicationresult =
+export type CreateStoreApplicationResult =
   | { data: CreateStoreApplicationResponse; error?: never; response?: never }
   | { data?: never; error: string; response: Response };
 
@@ -15,11 +15,12 @@ export type CreateStoreApplicationresult =
  * @returns data
  */
 export async function createStoreApplication(
-  formData: CreateStoreForm,
-): Promise<CreateStoreApplicationresult> {
+  formValues: CreateStoreForm,
+): Promise<CreateStoreApplicationResult> {
   const client = await createApiClient();
   const { data, error, response } = await client.POST("/store-applications", {
-    body: formData as never,
+    // openapi-fetchの方定義がmultipart/form-dataに対応していないための回避
+    body: formValues as never,
     bodySerializer(body) {
       const fd = new FormData();
 
