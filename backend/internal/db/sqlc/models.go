@@ -54,6 +54,48 @@ func (ns NullRole) Value() (driver.Value, error) {
 	return string(ns.Role), nil
 }
 
+type StoreMemberRole string
+
+const (
+	StoreMemberRoleManager StoreMemberRole = "manager"
+	StoreMemberRoleMember  StoreMemberRole = "member"
+)
+
+func (e *StoreMemberRole) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = StoreMemberRole(s)
+	case string:
+		*e = StoreMemberRole(s)
+	default:
+		return fmt.Errorf("unsupported scan type for StoreMemberRole: %T", src)
+	}
+	return nil
+}
+
+type NullStoreMemberRole struct {
+	StoreMemberRole StoreMemberRole `json:"store_member_role"`
+	Valid           bool            `json:"valid"` // Valid is true if StoreMemberRole is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullStoreMemberRole) Scan(value interface{}) error {
+	if value == nil {
+		ns.StoreMemberRole, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.StoreMemberRole.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullStoreMemberRole) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.StoreMemberRole), nil
+}
+
 type StoreReviewStatus string
 
 const (
@@ -107,7 +149,6 @@ type Account struct {
 	LastLoginAt pgtype.Timestamptz `json:"last_login_at"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
-	StoreID     uuid.UUID          `json:"store_id"`
 }
 
 type Session struct {
@@ -126,4 +167,11 @@ type Store struct {
 	SubmittedAt    pgtype.Timestamptz `json:"submitted_at"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+type StoreMember struct {
+	StoreID   uuid.UUID          `json:"store_id"`
+	AccountID uuid.UUID          `json:"account_id"`
+	Role      StoreMemberRole    `json:"role"`
+	JoinedAt  pgtype.Timestamptz `json:"joined_at"`
 }

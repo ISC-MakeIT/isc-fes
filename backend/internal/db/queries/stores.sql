@@ -1,9 +1,3 @@
--- name: GetAccountForStoreApplication :one
-SELECT id, store_id
-FROM accounts
-WHERE id = $1
-FOR UPDATE;
-
 -- name: CreateStore :one
 INSERT INTO stores (
     id,
@@ -17,12 +11,15 @@ INSERT INTO stores (
 )
 RETURNING *;
 
--- name: AssignStoreToAccount :exec
-UPDATE accounts
-SET
-    store_id = $2,
-    updated_at = now()
-WHERE id = $1;
+-- name: CreateStoreMember :one
+INSERT INTO store_members (
+    store_id,
+    account_id,
+    role
+) VALUES (
+    $1, $2, $3
+)
+RETURNING *;
 
 -- name: GetApprovedStores :many
 SELECT *

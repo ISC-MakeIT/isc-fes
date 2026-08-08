@@ -81,8 +81,6 @@ func (s *Server) CreateStoreApplication(c *gin.Context) {
 func writeAPIErrorResponse(c *gin.Context, err error) {
 	// TODO: 未認証は 401、非対応画像は 415、画像不正は 422、S3 障害は 503 へ個別にマッピングする。
 	switch {
-	case errors.Is(err, service.ErrAccountAlreadyHasStore):
-		c.JSON(http.StatusConflict, ErrorResponse{Message: "アカウントはすでに店舗に所属しています。"})
 	default:
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "サーバーエラーが発生しました。"})
 	}
