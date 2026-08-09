@@ -9,9 +9,7 @@ import (
 func (s *Server) GetApprovedStores(c *gin.Context) {
 	stores, err := s.store.GetApprovedStores(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: "店舗の取得に失敗しました",
-		})
+		handleCommonServiceErrors(c, err)
 		return
 	}
 
