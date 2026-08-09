@@ -5,13 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"slices"
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/internal/domain/entities"
-	"github.com/isc-makeit/isc-fes/backend/internal/media"
 	"github.com/jackc/pgx/v5"
 )
+
+// ImageProcessorは、利用者がアップロードした画像を店舗画像として配信可能な形式へ変換する。
+type ImageProcessor interface {
+	// ProcessForStoreImageは、入力画像を検証および変換し、処理後の画像とContent-Typeを返す。
+	ProcessForStoreImage(ctx context.Context, reader io.ReadSeeker) (io.ReadSeeker, string, error)
+}
 
 type StoreImageRepository interface {
 	PutObject(ctx context.Context, reader io.ReadSeeker, objectKey entities.StoreImageObjectKey, contentType string) error
@@ -45,6 +49,7 @@ type CreateStoreApplicationServiceInput struct {
 }
 
 type StoreService struct {
+	imageProcessor    ImageProcessor
 	imageRepository   StoreImageRepository
 	storeRepository   StoreRepository
 	accountRepository AccountRepository
@@ -52,8 +57,16 @@ type StoreService struct {
 	sessions          SessionManager
 }
 
-func NewStoreService(imageRepository StoreImageRepository, storeRepository StoreRepository, sessions SessionManager, accountRepository AccountRepository, imgGenerator ImageURLGenerator) *StoreService {
+func NewStoreService(
+	imageProcessor ImageProcessor,
+	imageRepository StoreImageRepository,
+	storeRepository StoreRepository,
+	sessions SessionManager,
+	accountRepository AccountRepository,
+	imgGenerator ImageURLGenerator,
+) *StoreService {
 	return &StoreService{
+		imageProcessor:    imageProcessor,
 		imageRepository:   imageRepository,
 		storeRepository:   storeRepository,
 		accountRepository: accountRepository,
@@ -94,18 +107,24 @@ func (s *StoreService) GetStoreApplications(ctx context.Context) ([]entities.Sto
 }
 
 var (
-	ErrFailedToDetectContentType = errors.New("failed to detect content type")
-	ErrFailedToStoreImage        = errors.New("failed to store image")
+	// ErrEmptyImageは、入力された画像が空であることを示す。
+	ErrEmptyImage = errors.New("empty image")
+	// ErrImageTooLargeは、入力画像のファイルサイズが上限を超えていることを示す。
+	ErrImageTooLarge = errors.New("image too large")
+	// ErrUnsupportedImageFormatは、入力画像が対応していない形式であることを示す。
+	ErrUnsupportedImageFormat = errors.New("unsupported image format")
+	// ErrInvalidImageは、入力画像が破損しているか、画像として解釈できないことを示す。
+	ErrInvalidImage = errors.New("invalid image")
+	// ErrImageDimensionsExceededは、入力画像の幅、高さ、または総画素数が上限を超えていることを示す。
+	ErrImageDimensionsExceeded = errors.New("image dimensions exceeded")
+	// ErrProcessedImageTooLargeは、変換後の画像サイズが上限を超えていることを示す。
+	ErrProcessedImageTooLarge = errors.New("processed image too large")
+	// ErrFailedToStoreImageは、画像をオブジェクトストレージへ保存できなかったことを示す。
+	ErrFailedToStoreImage = errors.New("failed to store image")
 )
 
 // TODO: 正常系、非対応形式、S3 Put 失敗、DB 失敗、補償 Delete 失敗を StoreService の単体テストで網羅する。
 func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateStoreApplicationServiceInput) (entities.Store, error) {
-	allowedContentTypes := [3]string{
-		"image/jpeg",
-		"image/png",
-		"image/webp",
-	}
-
 	accountID, err := s.sessions.AccountID(ctx)
 	if err != nil {
 		return entities.Store{}, ErrUnauthenticated
@@ -117,25 +136,15 @@ func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateS
 	}
 	objectKey := entities.NewStoreImageObjectKey(storeID)
 
-	contentType, err := media.DetectContentType(input.ImageReader)
+	processedImage, contentType, err := s.imageProcessor.ProcessForStoreImage(
+		ctx,
+		input.ImageReader,
+	)
 	if err != nil {
-		// TODO: 原因となった I/O エラーを %w で保持し、ログや errors.Is/As で追跡できるようにする。
-		return entities.Store{}, ErrFailedToDetectContentType
-	}
-	if !slices.Contains(allowedContentTypes[:], contentType) {
-		// TODO: ErrUnsupportedImageType を定義して返し、API 層で 415 に変換できるようにする。
-		return entities.Store{}, fmt.Errorf("content type %q is not allowed", contentType)
+		return entities.Store{}, fmt.Errorf("process store image: %w", err)
 	}
 
-	// TODO: DetectContentType が先頭へ戻す契約を維持するなら、この重複した Seek を削除する。
-	_, err = input.ImageReader.Seek(0, io.SeekStart)
-	if err != nil {
-		return entities.Store{}, fmt.Errorf("failed to seek image reader: %w", err)
-	}
-
-	// TODO: 画像全体をデコードして破損・形式偽装を検証し、必要に応じてリサイズや WebP 変換を行う。
-
-	err = s.imageRepository.PutObject(ctx, input.ImageReader, objectKey, contentType)
+	err = s.imageRepository.PutObject(ctx, processedImage, objectKey, contentType)
 	if err != nil {
 		// TODO: S3 の元エラーを %w で保持し、503 判定や障害調査に利用できるようにする。
 		return entities.Store{}, ErrFailedToStoreImage
@@ -197,7 +206,7 @@ func (s *StoreService) UpdateStoreApplicationReviewStatus(ctx context.Context, s
 	return s.storeRepository.UpdateStoreReviewStatus(ctx, storeID, newStatus)
 }
 
-// TODO: Service 側のエラーに変換して返す。全てエラーが internal error になってしまっている
+// TODO: Service側のエラーに変換して返す。現在は全て内部エラーになってしまっている。
 func (s *StoreService) GetApprovedStores(ctx context.Context) ([]entities.StoreOutput, error) {
 	rawStores, err := s.storeRepository.GetApprovedStores(ctx)
 	if err != nil {

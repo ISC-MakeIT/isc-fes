@@ -42,8 +42,8 @@ func (s *Server) CreateStoreApplication(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	const (
-		maxImageSize       = 10 << 20 // 10 MiB
-		maxMultipartMargin = 1 << 20  // 1 MiB
+		maxImageSize       = 10 << 20 // 画像本体の上限
+		maxMultipartMargin = 1 << 20  // マルチパート形式の付加情報に許容する余白
 		maxRequestBodySize = maxImageSize + maxMultipartMargin
 	)
 
@@ -56,7 +56,14 @@ func (s *Server) CreateStoreApplication(c *gin.Context) {
 
 	var form createStoreApplicationForm
 	if err := c.ShouldBind(&form); err != nil {
-		// TODO: *http.MaxBytesError を errors.As で判定し、リクエスト上限超過時は 400 ではなく 413 を返す。
+		var maxBytesError *http.MaxBytesError
+		if errors.As(err, &maxBytesError) {
+			c.JSON(http.StatusRequestEntityTooLarge, ErrorResponse{
+				Message: "リクエストが大きすぎます。",
+			})
+			return
+		}
+
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: "リクエスト形式が不正です。",
 		})
@@ -93,7 +100,32 @@ func (s *Server) CreateStoreApplication(c *gin.Context) {
 		ImageReader: image,
 	})
 	if err != nil {
-		// TODO: 未認証は 401、非対応画像は 415、画像不正は 422、S3 障害は 503 へ個別にマッピングする。
+		switch {
+		case errors.Is(err, service.ErrImageTooLarge):
+			c.JSON(http.StatusRequestEntityTooLarge, ErrorResponse{
+				Message: "画像が大きすぎます。",
+			})
+			return
+		case errors.Is(err, service.ErrUnsupportedImageFormat):
+			c.JSON(http.StatusUnsupportedMediaType, ErrorResponse{
+				Message: "対応していない画像形式です。JPEG、PNG、WebPを使用してください。",
+			})
+			return
+		case errors.Is(err, service.ErrEmptyImage),
+			errors.Is(err, service.ErrInvalidImage),
+			errors.Is(err, service.ErrImageDimensionsExceeded),
+			errors.Is(err, service.ErrProcessedImageTooLarge):
+			c.JSON(http.StatusUnprocessableEntity, ErrorResponse{
+				Message: "画像の内容が不正です。",
+			})
+			return
+		case errors.Is(err, service.ErrFailedToStoreImage):
+			c.JSON(http.StatusServiceUnavailable, ErrorResponse{
+				Message: "画像ストレージが一時的に利用できません。",
+			})
+			return
+		}
+
 		handleCommonServiceErrors(c, err)
 		return
 	}
