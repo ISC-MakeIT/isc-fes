@@ -11,6 +11,7 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/internal/auth"
 	"github.com/isc-makeit/isc-fes/backend/internal/config"
 	db "github.com/isc-makeit/isc-fes/backend/internal/db/sqlc"
+	"github.com/isc-makeit/isc-fes/backend/internal/media"
 	"github.com/isc-makeit/isc-fes/backend/internal/repository"
 	"github.com/isc-makeit/isc-fes/backend/internal/repository/imageurl"
 	"github.com/isc-makeit/isc-fes/backend/internal/service"
@@ -97,6 +98,7 @@ func buildDependencies(
 		accountRepository,
 	)
 	storeService := service.NewStoreService(
+		media.NewImageProcessor(),
 		imageRepository,
 		storeRepository,
 		sessions,
