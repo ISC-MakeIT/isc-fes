@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/internal/domain/entities"
 	"github.com/isc-makeit/isc-fes/backend/internal/service"
+	"github.com/isc-makeit/isc-fes/backend/internal/utils"
 )
 
 func (s *Server) GetStoreApplications(c *gin.Context) {
@@ -20,22 +21,19 @@ func (s *Server) GetStoreApplications(c *gin.Context) {
 		return
 	}
 
-	resApplications := make([]StoreApplication, 0, len(applications))
-	for _, application := range applications {
-		resApplications = append(resApplications, StoreApplication{
-			Id:           application.ID,
-			Name:         application.Name,
-			Description:  application.Description,
-			Room:         application.Room,
-			ImageUrl:     application.ImageURL,
-			ReviewStatus: StoreReviewStatus(application.ReviewStatus),
-			SubmittedAt:  application.SubmittedAt,
-		})
-	}
-
 	c.JSON(http.StatusOK, GetStoreApplicationsResponse{
 		Total: len(applications),
-		Data:  resApplications,
+		Data: utils.Map(applications, func(a entities.StoreOutput) StoreApplication {
+			return StoreApplication{
+				Id:           a.ID,
+				Name:         a.Name,
+				Description:  a.Description,
+				Room:         a.Room,
+				ImageUrl:     a.ImageURL,
+				ReviewStatus: StoreReviewStatus(a.ReviewStatus),
+				SubmittedAt:  a.SubmittedAt,
+			}
+		}),
 	})
 }
 

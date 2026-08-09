@@ -7,6 +7,7 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/internal/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/internal/domain/entities"
 	"github.com/isc-makeit/isc-fes/backend/internal/service"
+	"github.com/isc-makeit/isc-fes/backend/internal/utils"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -71,12 +72,7 @@ func (r *StoreRepository) GetStoreApplications(ctx context.Context) ([]entities.
 		return nil, err
 	}
 
-	stores := make([]entities.Store, len(dbStores))
-	for i, dbStore := range dbStores {
-		stores[i] = r.toStore(dbStore)
-	}
-
-	return stores, nil
+	return utils.Map(dbStores, r.toStore), nil
 }
 
 // 承認済みの店舗を返す
@@ -86,12 +82,7 @@ func (r *StoreRepository) GetApprovedStores(ctx context.Context) ([]entities.Sto
 		return nil, err
 	}
 
-	stores := make([]entities.Store, len(dbStores))
-	for i, dbStore := range dbStores {
-		stores[i] = r.toStore(dbStore)
-	}
-
-	return stores, nil
+	return utils.Map(dbStores, r.toStore), nil
 }
 
 func (r *StoreRepository) GetStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error) {
@@ -116,11 +107,7 @@ func (r *StoreRepository) GetStoreMembershipsByAccountID(ctx context.Context, ac
 		return nil, err
 	}
 
-	storeMembers := make([]entities.StoreMember, len(dbStoreMembers))
-	for i, dbStoreMember := range dbStoreMembers {
-		storeMembers[i] = toStoreMember(dbStoreMember)
-	}
-	return storeMembers, nil
+	return utils.Map(dbStoreMembers, toStoreMember), nil
 }
 
 // Converts sqlc.Store to entities.Store
