@@ -55,6 +55,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/store-membership-applications": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 自分がメンバー申請した店舗一覧を返す */
+    get: operations["getMyStoreMembershipApplications"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/store-applications/review-status/{store_id}": {
     parameters: {
       query?: never;
@@ -153,6 +170,11 @@ export interface components {
       /** @description 店舗申請の総数 */
       total: number;
       data: components["schemas"]["StoreApplication"][];
+    };
+    GetMyStoreMembershipApplicationsResponse: {
+      /** @description 自分がメンバー申請した店舗の総数 */
+      total: number;
+      data: components["schemas"]["StoreMembershipApplication"][];
     };
     GetStoreMembershipApplicationsResponse: {
       /** @description 店舗のメンバー申請の総数 */
@@ -404,6 +426,44 @@ export interface operations {
       };
       /** @description 画像ストレージが一時的に利用できない */
       503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getMyStoreMembershipApplications: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 自分がメンバー申請した店舗一覧 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetMyStoreMembershipApplicationsResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
         headers: {
           [name: string]: unknown;
         };

@@ -171,6 +171,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /store-membership-applications:
+    get:
+      operationId: getMyStoreMembershipApplications
+      summary: 自分がメンバー申請した店舗一覧を返す
+      security:
+        - AccountSession: []
+      responses:
+        "200":
+          description: 自分がメンバー申請した店舗一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMyStoreMembershipApplicationsResponse"
+        "401":
+          description: 未ログイン
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /store-applications/review-status/{store_id}:
     put:
       operationId: updateStoreApplicationReviewStatus
@@ -405,6 +431,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/StoreApplication"
+    GetMyStoreMembershipApplicationsResponse:
+      type: object
+      required:
+        - data
+        - total
+      properties:
+        total:
+          type: integer
+          description: 自分がメンバー申請した店舗の総数
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoreMembershipApplication"
     GetStoreMembershipApplicationsResponse:
       type: object
       required:
