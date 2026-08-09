@@ -64,7 +64,7 @@ func handleCommonServiceErrors(c *gin.Context, err error, options ...CommonError
 		})
 		return
 	default:
-		log.Fatalf("%s", err.Error())
+		log.Printf("%s", err.Error())
 		// TODO: 致命的なエラーは discord に通知するようにする
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: messages.Internal,
