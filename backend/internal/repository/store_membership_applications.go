@@ -8,6 +8,7 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/internal/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/internal/domain/entities"
 	"github.com/isc-makeit/isc-fes/backend/internal/service"
+	"github.com/isc-makeit/isc-fes/backend/internal/utils"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -27,11 +28,7 @@ func (r *StoreMembershipApplicationsRepository) GetStoreMembershipApplicationsBy
 		return nil, err
 	}
 
-	storeMembershipApplications := make([]entities.StoreMembershipApplication, len(dbStoreMembershipApplications))
-	for i, dbStoreMembershipApplication := range dbStoreMembershipApplications {
-		storeMembershipApplications[i] = toStoreMembershipApplication(dbStoreMembershipApplication)
-	}
-	return storeMembershipApplications, nil
+	return utils.Map(dbStoreMembershipApplications, toStoreMembershipApplication), nil
 }
 
 func toStoreMembershipApplication(dbStoreMembershipApplication sqlc.StoreMembershipApplication) entities.StoreMembershipApplication {
