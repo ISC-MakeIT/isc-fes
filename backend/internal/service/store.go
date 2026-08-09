@@ -25,6 +25,7 @@ type StoreRepository interface {
 	GetStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error)
 	UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error
 	GetStoreMembershipsByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.StoreMember, error)
+	GetStoreApplications(ctx context.Context) ([]entities.Store, error)
 }
 
 type CreateStoreApplicationInput struct {
@@ -59,6 +60,37 @@ func NewStoreService(imageRepository StoreImageRepository, storeRepository Store
 		imgGenerator:      imgGenerator,
 		sessions:          sessions,
 	}
+}
+
+func (s *StoreService) GetStoreApplications(ctx context.Context) ([]entities.StoreOutput, error) {
+	accountID, err := s.sessions.AccountID(ctx)
+	if err != nil {
+		return []entities.StoreOutput{}, ErrUnauthenticated
+	}
+
+	account, err := s.accountRepository.GetAccountByID(ctx, accountID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return []entities.StoreOutput{}, ErrUnauthenticated
+		}
+		return []entities.StoreOutput{}, fmt.Errorf("failed to get account: %w", err)
+	}
+
+	if !entities.CanSeeStoreApplications(account) {
+		return []entities.StoreOutput{}, ErrForbidden
+	}
+
+	rawStoreApplications, err := s.storeRepository.GetStoreApplications(ctx)
+	if err != nil {
+		return []entities.StoreOutput{}, fmt.Errorf("failed to get store applications: %w", err)
+	}
+
+	storeApplications, err := s.toStoreOutputs(ctx, rawStoreApplications)
+	if err != nil {
+		return []entities.StoreOutput{}, fmt.Errorf("failed to convert stores to outputs: %w", err)
+	}
+
+	return storeApplications, nil
 }
 
 var (

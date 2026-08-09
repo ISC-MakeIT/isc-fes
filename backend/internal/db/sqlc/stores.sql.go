@@ -122,6 +122,42 @@ func (q *Queries) GetApprovedStores(ctx context.Context) ([]Store, error) {
 	return items, nil
 }
 
+const getStoreApplications = `-- name: GetStoreApplications :many
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
+FROM stores
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetStoreApplications(ctx context.Context) ([]Store, error) {
+	rows, err := q.db.Query(ctx, getStoreApplications)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Store{}
+	for rows.Next() {
+		var i Store
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Room,
+			&i.Description,
+			&i.ImageObjectKey,
+			&i.ReviewStatus,
+			&i.SubmittedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getStoreByID = `-- name: GetStoreByID :one
 SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
 FROM stores

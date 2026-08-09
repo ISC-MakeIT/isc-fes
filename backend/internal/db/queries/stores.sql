@@ -27,6 +27,11 @@ FROM stores
 WHERE review_status = 'approved'
 ORDER BY created_at DESC;
 
+-- name: GetStoreApplications :many
+SELECT *
+FROM stores
+ORDER BY created_at DESC;
+
 -- name: GetStoreByID :one
 SELECT *
 FROM stores

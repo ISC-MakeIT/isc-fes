@@ -11,6 +11,34 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/internal/service"
 )
 
+func (s *Server) GetStoreApplications(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	applications, err := s.store.GetStoreApplications(ctx)
+	if err != nil {
+		handleCommonServiceErrors(c, err)
+		return
+	}
+
+	resApplications := make([]StoreApplication, 0, len(applications))
+	for _, application := range applications {
+		resApplications = append(resApplications, StoreApplication{
+			Id:           application.ID,
+			Name:         application.Name,
+			Description:  application.Description,
+			Room:         application.Room,
+			ImageUrl:     application.ImageURL,
+			ReviewStatus: StoreReviewStatus(application.ReviewStatus),
+			SubmittedAt:  application.SubmittedAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, GetStoreApplicationsResponse{
+		Total: len(applications),
+		Data:  resApplications,
+	})
+}
+
 // TODO: リクエスト上限、画像サイズ、サービスエラーの HTTP 変換をハンドラーテストで網羅する。
 func (s *Server) CreateStoreApplication(c *gin.Context) {
 	ctx := c.Request.Context()
