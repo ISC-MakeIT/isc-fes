@@ -31,6 +31,15 @@ func (r *StoreMembershipApplicationsRepository) GetStoreMembershipApplicationsBy
 	return utils.Map(dbStoreMembershipApplications, toStoreMembershipApplication), nil
 }
 
+func (r *StoreMembershipApplicationsRepository) GetStoreMembershipApplicationsByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.StoreMembershipApplication, error) {
+	dbStoreMembershipApplications, err := r.queries.GetStoreMembershipApplicationsByAccountID(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	return utils.Map(dbStoreMembershipApplications, toStoreMembershipApplication), nil
+}
+
 func toStoreMembershipApplication(dbStoreMembershipApplication sqlc.StoreMembershipApplication) entities.StoreMembershipApplication {
 	return entities.StoreMembershipApplication{
 		ID:              dbStoreMembershipApplication.ID,

@@ -10,6 +10,7 @@ import (
 
 type StoreMembershipApplicationsRepository interface {
 	GetStoreMembershipApplicationsByStoreID(ctx context.Context, storeID uuid.UUID) ([]entities.StoreMembershipApplication, error)
+	GetStoreMembershipApplicationsByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.StoreMembershipApplication, error)
 }
 
 type StoreMembershipApplicationsService struct {
@@ -17,6 +18,20 @@ type StoreMembershipApplicationsService struct {
 	storeMembershipApplicationsRepository StoreMembershipApplicationsRepository
 	accountRepository                     AccountRepository
 	sessionManager                        SessionManager
+}
+
+func (s *StoreMembershipApplicationsService) GetMyStoreMembershipApplications(ctx context.Context) ([]entities.StoreMembershipApplication, error) {
+	accountID, err := s.sessionManager.AccountID(ctx)
+	if err != nil {
+		return []entities.StoreMembershipApplication{}, ErrUnauthenticated
+	}
+
+	myStoreMembershipApplications, err := s.storeMembershipApplicationsRepository.GetStoreMembershipApplicationsByAccountID(ctx, accountID)
+	if err != nil {
+		return []entities.StoreMembershipApplication{}, err
+	}
+
+	return myStoreMembershipApplications, nil
 }
 
 func (s *StoreMembershipApplicationsService) GetStoreMembershipApplicationsByStoreID(ctx context.Context, storeID uuid.UUID) ([]entities.StoreMembershipApplication, error) {
