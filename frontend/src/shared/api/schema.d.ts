@@ -88,6 +88,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/stores/{store_id}/membership-applications": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 店舗のメンバー申請一覧を取得する */
+    get: operations["getStoreMembershipApplicationsByStoreID"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -131,6 +148,29 @@ export interface components {
       total: number;
       data: components["schemas"]["Store"][];
     };
+    GetStoreMembershipApplicationsResponse: {
+      /** @description 店舗のメンバー申請の総数 */
+      total: number;
+      data: components["schemas"]["StoreMembershipApplication"][];
+    };
+    StoreMembershipApplication: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      storeId: string;
+      /** Format: uuid */
+      accountId: string;
+      status: components["schemas"]["StoreMembershipApplicationStatus"];
+      /** Format: uuid */
+      reviewedBy: string | null;
+      /** Format: date-time */
+      reviewedAt: string | null;
+      rejectionReason: string | null;
+      /** Format: date-time */
+      submittedAt: string;
+    };
+    /** @enum {string} */
+    StoreMembershipApplicationStatus: "pending" | "approved" | "rejected";
     Store: {
       /** Format: uuid */
       id: string;
@@ -407,6 +447,64 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["GetApprovedStoresResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getStoreMembershipApplicationsByStoreID: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 店舗のメンバー申請一覧 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetStoreMembershipApplicationsResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 権限不足（店舗マネージャー、管理者でない） */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
       /** @description サーバーエラー */

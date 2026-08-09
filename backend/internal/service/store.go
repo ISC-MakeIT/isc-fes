@@ -24,6 +24,7 @@ type StoreRepository interface {
 	GetApprovedStores(ctx context.Context) ([]entities.Store, error)
 	GetStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error)
 	UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error
+	GetStoreMembershipsByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.StoreMember, error)
 }
 
 type CreateStoreApplicationInput struct {

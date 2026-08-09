@@ -96,6 +96,19 @@ func (r *StoreRepository) UpdateStoreReviewStatus(ctx context.Context, storeID u
 	})
 }
 
+func (r *StoreRepository) GetStoreMembershipsByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.StoreMember, error) {
+	dbStoreMembers, err := r.queries.GetStoreMembershipsByAccountID(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	storeMembers := make([]entities.StoreMember, len(dbStoreMembers))
+	for i, dbStoreMember := range dbStoreMembers {
+		storeMembers[i] = toStoreMember(dbStoreMember)
+	}
+	return storeMembers, nil
+}
+
 // Converts sqlc.Store to entities.Store
 func (r *StoreRepository) toStore(dbStore sqlc.Store) entities.Store {
 	return entities.Store{
@@ -108,6 +121,15 @@ func (r *StoreRepository) toStore(dbStore sqlc.Store) entities.Store {
 		SubmittedAt:    dbStore.SubmittedAt.Time,
 		CreatedAt:      dbStore.CreatedAt.Time,
 		UpdatedAt:      dbStore.UpdatedAt.Time,
+	}
+}
+
+func toStoreMember(dbStoreMember sqlc.StoreMember) entities.StoreMember {
+	return entities.StoreMember{
+		StoreID:   dbStoreMember.StoreID,
+		AccountID: dbStoreMember.AccountID,
+		Role:      entities.StoreMemberRole(dbStoreMember.Role),
+		JoinedAt:  dbStoreMember.JoinedAt.Time,
 	}
 }
 
