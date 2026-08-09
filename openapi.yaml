@@ -44,6 +44,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
   /store-applications:
+    get:
+      operationId: getStoreApplications
+      summary: 店舗申請一覧を取得する
+      security:
+        - AccountSession: []
+      responses:
+        "200":
+          description: 店舗申請一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetStoreApplicationsResponse"
+        "401":
+          description: 未ログイン
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 管理者権限がない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
       operationId: createStoreApplication
       summary: 店舗の作成申請を作成する
@@ -362,6 +392,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Store"
+    GetStoreApplicationsResponse:
+      type: object
+      required:
+        - data
+        - total
+      properties:
+        total:
+          type: integer
+          description: 店舗申請の総数
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoreApplication"
     GetStoreMembershipApplicationsResponse:
       type: object
       required:
@@ -438,6 +481,33 @@ components:
           type: string
         imageUrl:
           type: string
+    StoreApplication:
+      type: object
+      required:
+        - id
+        - name
+        - room
+        - description
+        - imageUrl
+        - reviewStatus
+        - submittedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        room:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        reviewStatus:
+          $ref: "#/components/schemas/StoreReviewStatus"
+        submittedAt:
+          type: string
+          format: date-time
     ErrorResponse:
       type: object
       required:

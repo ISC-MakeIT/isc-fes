@@ -117,3 +117,7 @@ func (k StoreImageObjectKey) IsValid() bool {
 	}
 	return true
 }
+
+func CanSeeStoreApplications(account Account) bool {
+	return account.Role == RoleAdmin
+}

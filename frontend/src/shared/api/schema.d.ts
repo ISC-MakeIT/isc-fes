@@ -44,7 +44,8 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get?: never;
+    /** 店舗申請一覧を取得する */
+    get: operations["getStoreApplications"];
     put?: never;
     /** 店舗の作成申請を作成する */
     post: operations["createStoreApplication"];
@@ -148,6 +149,11 @@ export interface components {
       total: number;
       data: components["schemas"]["Store"][];
     };
+    GetStoreApplicationsResponse: {
+      /** @description 店舗申請の総数 */
+      total: number;
+      data: components["schemas"]["StoreApplication"][];
+    };
     GetStoreMembershipApplicationsResponse: {
       /** @description 店舗のメンバー申請の総数 */
       total: number;
@@ -178,6 +184,17 @@ export interface components {
       room: string;
       description: string;
       imageUrl: string;
+    };
+    StoreApplication: {
+      /** Format: uuid */
+      id: string;
+      name: string;
+      room: string;
+      description: string;
+      imageUrl: string;
+      reviewStatus: components["schemas"]["StoreReviewStatus"];
+      /** Format: date-time */
+      submittedAt: string;
     };
     ErrorResponse: {
       message: string;
@@ -231,6 +248,53 @@ export interface operations {
       };
       /** @description 未ログインまたはセッションが無効 */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getStoreApplications: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 店舗申請一覧 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetStoreApplicationsResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 管理者権限がない */
+      403: {
         headers: {
           [name: string]: unknown;
         };

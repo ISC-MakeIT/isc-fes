@@ -65,6 +65,20 @@ func (r *StoreRepository) CreateStoreApplication(ctx context.Context, input serv
 	return r.toStore(store), nil
 }
 
+func (r *StoreRepository) GetStoreApplications(ctx context.Context) ([]entities.Store, error) {
+	dbStores, err := r.queries.GetStoreApplications(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	stores := make([]entities.Store, len(dbStores))
+	for i, dbStore := range dbStores {
+		stores[i] = r.toStore(dbStore)
+	}
+
+	return stores, nil
+}
+
 // 承認済みの店舗を返す
 func (r *StoreRepository) GetApprovedStores(ctx context.Context) ([]entities.Store, error) {
 	dbStores, err := r.queries.GetApprovedStores(ctx)
