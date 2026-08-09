@@ -19,4 +19,11 @@ CREATE TABLE store_membership_applications (
 
     submitted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     reviewed_at TIMESTAMPTZ
+);
+
+CREATE UNIQUE INDEX store_membership_applications_one_pending_idx
+ON store_membership_applications (
+    store_id,
+    account_id
 )
+WHERE status = 'pending';

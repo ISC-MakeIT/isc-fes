@@ -226,6 +226,51 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /stores/{store_id}/membership-applications:
+    get:
+      operationId: getStoreMembershipApplicationsByStoreID
+      summary: 店舗のメンバー申請一覧を取得する
+      security:
+        - AccountSession: []
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 店舗のメンバー申請一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetStoreMembershipApplicationsResponse"
+        "401":
+          description: 未ログイン
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 権限不足（店舗マネージャー、管理者でない）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     AccountSession:
@@ -317,6 +362,62 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Store"
+    GetStoreMembershipApplicationsResponse:
+      type: object
+      required:
+        - data
+        - total
+      properties:
+        total:
+          type: integer
+          description: 店舗のメンバー申請の総数
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoreMembershipApplication"
+    StoreMembershipApplication:
+      type: object
+      required:
+        - id
+        - storeId
+        - accountId
+        - status
+        - reviewedBy
+        - reviewedAt
+        - rejectionReason
+        - submittedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        storeId:
+          type: string
+          format: uuid
+        accountId:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/StoreMembershipApplicationStatus"
+        reviewedBy:
+          type: string
+          format: uuid
+          nullable: true
+        reviewedAt:
+          type: string
+          format: date-time
+          nullable: true
+        rejectionReason:
+          type: string
+          nullable: true
+        submittedAt:
+          type: string
+          format: date-time
+    StoreMembershipApplicationStatus:
+      type: string
+      enum:
+        - pending
+        - approved
+        - rejected
     Store:
       type: object
       required:

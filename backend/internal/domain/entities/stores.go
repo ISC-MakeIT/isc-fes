@@ -67,6 +67,24 @@ type StoreOutput struct {
 	UpdatedAt      time.Time
 }
 
+type StoreMemberRole string
+
+const (
+	StoreMemberRoleManager StoreMemberRole = "manager"
+	StoreMemberRoleMember  StoreMemberRole = "member"
+)
+
+func (r *StoreMemberRole) String() string {
+	return string(*r)
+}
+
+type StoreMember struct {
+	StoreID   uuid.UUID
+	AccountID uuid.UUID
+	Role      StoreMemberRole
+	JoinedAt  time.Time
+}
+
 type StoreImageObjectKey string
 
 const (

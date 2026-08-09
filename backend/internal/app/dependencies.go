@@ -83,6 +83,9 @@ func buildDependencies(
 		}
 	}
 	storeRepository := repository.NewStoreRepository(queries, pool)
+	storeMembershipApplicationsRepository := repository.NewStoreMembershipApplicationsRepository(
+		queries,
+	)
 
 	accountService := service.NewAccountService(
 		accountRepository,
@@ -100,6 +103,12 @@ func buildDependencies(
 		accountRepository,
 		imgGenerator,
 	)
+	storeMembershipApplicationsService := service.NewStoreMembershipApplicationsService(
+		storeRepository,
+		storeMembershipApplicationsRepository,
+		accountRepository,
+		sessions,
+	)
 
 	apiServer := api.NewServer(
 		queries,
@@ -109,6 +118,7 @@ func buildDependencies(
 		accountService,
 		authService,
 		storeService,
+		storeMembershipApplicationsService,
 	)
 
 	return &dependencies{
