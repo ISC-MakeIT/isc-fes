@@ -3,7 +3,6 @@ package media
 import (
 	"image"
 	"io"
-	"time"
 
 	"github.com/bep/imagemeta"
 )
@@ -12,7 +11,7 @@ import (
 // 値は通常方向を1として、回転と反転の組み合わせを8までで表現する。
 type storeImageOrientation uint16
 
-// EXIFで定義されている8種類の画像方向と、メタデータ解析の制限時間。
+// EXIFで定義されている8種類の画像方向。
 const (
 	storeImageOrientationNormal      storeImageOrientation = 1
 	storeImageOrientationFlipH       storeImageOrientation = 2
@@ -22,7 +21,6 @@ const (
 	storeImageOrientationRotate90CW  storeImageOrientation = 6
 	storeImageOrientationTransverse  storeImageOrientation = 7
 	storeImageOrientationRotate270CW storeImageOrientation = 8
-	storeImageMetadataDecodeTimeout                        = 250 * time.Millisecond
 )
 
 // extractStoreImageOrientationは、画像のEXIFから表示方向を取得する。
@@ -54,7 +52,6 @@ func extractStoreImageOrientation(
 			return imagemeta.ErrStopWalking
 		},
 		Warnf:        func(string, ...any) {},
-		Timeout:      storeImageMetadataDecodeTimeout,
 		LimitNumTags: 64,
 		LimitTagSize: 64,
 	})

@@ -206,7 +206,6 @@ func (s *StoreService) UpdateStoreApplicationReviewStatus(ctx context.Context, s
 	return s.storeRepository.UpdateStoreReviewStatus(ctx, storeID, newStatus)
 }
 
-// TODO: Service側のエラーに変換して返す。現在は全て内部エラーになってしまっている。
 func (s *StoreService) GetApprovedStores(ctx context.Context) ([]entities.StoreOutput, error) {
 	rawStores, err := s.storeRepository.GetApprovedStores(ctx)
 	if err != nil {
