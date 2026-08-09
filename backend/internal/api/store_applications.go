@@ -67,7 +67,8 @@ func (s *Server) CreateStoreApplication(c *gin.Context) {
 		ImageReader: image,
 	})
 	if err != nil {
-		writeAPIErrorResponse(c, err)
+		// TODO: 未認証は 401、非対応画像は 415、画像不正は 422、S3 障害は 503 へ個別にマッピングする。
+		handleCommonServiceErrors(c, err)
 		return
 	}
 
@@ -76,14 +77,6 @@ func (s *Server) CreateStoreApplication(c *gin.Context) {
 		ReviewStatus: StoreReviewStatus(storeApplication.ReviewStatus),
 		SubmittedAt:  storeApplication.SubmittedAt,
 	})
-}
-
-func writeAPIErrorResponse(c *gin.Context, err error) {
-	// TODO: 未認証は 401、非対応画像は 415、画像不正は 422、S3 障害は 503 へ個別にマッピングする。
-	switch {
-	default:
-		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "サーバーエラーが発生しました。"})
-	}
 }
 
 type createStoreApplicationForm struct {
@@ -105,38 +98,16 @@ func (s *Server) UpdateStoreApplicationReviewStatus(c *gin.Context, storeID uuid
 	}
 
 	err := s.store.UpdateStoreApplicationReviewStatus(ctx, storeID, entities.StoreReviewStatus(body.ReviewStatus))
-
-	if errors.Is(err, service.ErrUnauthenticated) {
-		c.JSON(http.StatusUnauthorized, ErrorResponse{
-			Message: "未ログインです",
-		})
-		return
-	}
-
-	if errors.Is(err, service.ErrForbidden) {
-		c.JSON(http.StatusForbidden, ErrorResponse{
-			Message: "権限がありません",
-		})
-		return
-	}
-
-	if errors.Is(err, service.ErrNotFound) {
-		c.JSON(http.StatusNotFound, ErrorResponse{
-			Message: "店舗が見つかりません",
-		})
-		return
-	}
-
-	if errors.Is(err, service.ErrInvalidStoreReviewStatusTransition) {
-		c.JSON(http.StatusConflict, ErrorResponse{
-			Message: "不正なレビュー状態の遷移です",
-		})
-		return
-	}
-
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: "サーバーエラーが発生しました",
+		if errors.Is(err, service.ErrInvalidStoreReviewStatusTransition) {
+			c.JSON(http.StatusConflict, ErrorResponse{
+				Message: "不正なレビュー状態の遷移です",
+			})
+			return
+		}
+
+		handleCommonServiceErrors(c, err, CommonErrorMessages{
+			NotFound: "店舗が見つかりません",
 		})
 		return
 	}
