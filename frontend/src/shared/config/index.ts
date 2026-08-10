@@ -5,3 +5,9 @@ export {
   REGISTER_STORE_URL,
   STORE_LIST_URL,
 } from "./constants/urls";
+
+export {
+  STATUS_CODES,
+  GENERIC_ERROR_MESSAGE,
+  isClientError,
+} from "./constants/status-codes";

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Button } from "@/shared/ui/button";
 import { Field, FieldError, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
+import { GENERIC_ERROR_MESSAGE, isClientError } from "@/shared/config";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -20,9 +21,17 @@ export function RegisterStoreForm() {
   const form = useForm({
     defaultValues: defaultFormValue,
     onSubmit: async ({ value }) => {
-      const { error } = await createStoreApplication(value);
+      const { data, error, response } = await createStoreApplication(value);
+
       // TODO: 新規作成が成功したら完了ページにリダイレクト
-      setServerError(error ? error : null);
+      if (data) return;
+
+      // 何も言わずに遷移するのは入力した値を捨ててしまい不親切そうなので、基本エラーメッセージを表示する対応にしている
+      // 未ログインなら基本proxy, layoutの段階でredirectされるはず
+      if (isClientError(response.status)) setServerError(error);
+
+      // クライアント以外のエラーは汎用的なエラーメッセージにする
+      setServerError(GENERIC_ERROR_MESSAGE);
     },
   });
 
@@ -124,11 +133,19 @@ export function RegisterStoreForm() {
             state.canSubmit,
             state.isPristine,
             state.isSubmitting,
+            state.isSubmitSuccessful,
           ]}
-          children={([canSubmit, isPristine, isSubmitting]) => (
+          children={([
+            canSubmit,
+            isPristine,
+            isSubmitting,
+            isSubmitSuccessful,
+          ]) => (
             <Button
               type="submit"
-              disabled={!canSubmit || isPristine || isSubmitting}
+              disabled={
+                !canSubmit || isPristine || isSubmitting || isSubmitSuccessful
+              }
             >
               この内容で送信
             </Button>
