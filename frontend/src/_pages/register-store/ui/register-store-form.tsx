@@ -1,13 +1,14 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { CreateStoreForm } from "../model/types";
+import { CreateStoreForm, ImageSchema } from "../model/types";
 import { createStoreApplication } from "../api/create-store-application";
 import { useState } from "react";
 import { Button } from "@/shared/ui/button";
 import { Field, FieldError, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { GENERIC_ERROR_MESSAGE, isClientError } from "@/shared/config";
+import { v } from "@/shared/lib/valibot";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -20,7 +21,11 @@ export function RegisterStoreForm() {
   const [serverError, setServerError] = useState<string | null>(null);
   const form = useForm({
     defaultValues: defaultFormValue,
+    validators: {
+      onMount: CreateStoreForm,
+    },
     onSubmit: async ({ value }) => {
+      if (!value.image) return { message: "店舗写真を選択してください" };
       const { data, error, response } = await createStoreApplication(value);
 
       // TODO: 新規作成が成功したら完了ページにリダイレクト
@@ -50,7 +55,11 @@ export function RegisterStoreForm() {
           name="name"
           validators={{ onChange: CreateStoreForm.entries.name }}
           children={(field) => (
-            <Field data-invalid={!field.state.meta.isValid}>
+            <Field
+              data-invalid={
+                field.state.meta.isTouched && !field.state.meta.isValid
+              }
+            >
               <FieldLabel htmlFor={field.name}>店舗名</FieldLabel>
               <Input
                 id={field.name}
@@ -59,7 +68,11 @@ export function RegisterStoreForm() {
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
               />
-              <FieldError errors={field.state.meta.errors} />
+              <FieldError
+                errors={
+                  field.state.meta.isTouched ? field.state.meta.errors : []
+                }
+              />
             </Field>
           )}
         />
@@ -67,19 +80,26 @@ export function RegisterStoreForm() {
           name="room"
           validators={{ onChange: CreateStoreForm.entries.room }}
           children={(field) => (
-            <Field data-invalid={!field.state.meta.isValid}>
+            <Field
+              data-invalid={
+                field.state.meta.isTouched && !field.state.meta.isValid
+              }
+            >
               <FieldLabel htmlFor={field.name}>教室</FieldLabel>
               <Input
                 id={field.name}
                 name={field.name}
                 value={field.state.value}
                 onChange={(e) => {
-                  if (!e.target.value) return;
                   field.handleChange(e.target.value);
                 }}
                 onBlur={field.handleBlur}
               />
-              <FieldError errors={field.state.meta.errors} />
+              <FieldError
+                errors={
+                  field.state.meta.isTouched ? field.state.meta.errors : []
+                }
+              />
             </Field>
           )}
         />
@@ -95,7 +115,11 @@ export function RegisterStoreForm() {
                 : undefined,
           }}
           children={(field) => (
-            <Field data-invalid={!field.state.meta.isValid}>
+            <Field
+              data-invalid={
+                field.state.meta.isTouched && !field.state.meta.isValid
+              }
+            >
               <FieldLabel htmlFor={field.name}>店舗説明</FieldLabel>
               <Input
                 id={field.name}
@@ -104,16 +128,28 @@ export function RegisterStoreForm() {
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
               />
-              <FieldError errors={field.state.meta.errors} />
+              <FieldError
+                errors={
+                  field.state.meta.isTouched ? field.state.meta.errors : []
+                }
+              />
             </Field>
           )}
         />
 
         <form.Field
           name="image"
-          validators={{ onChange: CreateStoreForm.entries.image }}
+          validators={{
+            onChange: ({ value }) =>
+              v.safeParse(ImageSchema, value).issues?.[0],
+            onMount: ({ value }) => v.safeParse(ImageSchema, value).issues?.[0],
+          }}
           children={(field) => (
-            <Field data-invalid={!field.state.meta.isValid}>
+            <Field
+              data-invalid={
+                field.state.meta.isTouched && !field.state.meta.isValid
+              }
+            >
               <FieldLabel htmlFor={field.name}>店舗写真</FieldLabel>
               <Input
                 type="file"
@@ -123,7 +159,11 @@ export function RegisterStoreForm() {
                 onChange={(e) => field.handleChange(e.target.files?.[0])}
                 onBlur={field.handleBlur}
               />
-              <FieldError errors={field.state.meta.errors} />
+              <FieldError
+                errors={
+                  field.state.meta.isTouched ? field.state.meta.errors : []
+                }
+              />
             </Field>
           )}
         />
@@ -147,7 +187,7 @@ export function RegisterStoreForm() {
                 !canSubmit || isPristine || isSubmitting || isSubmitSuccessful
               }
             >
-              この内容で送信
+              {isSubmitSuccessful ? "送信完了" : "この内容で送信"}
             </Button>
           )}
         />

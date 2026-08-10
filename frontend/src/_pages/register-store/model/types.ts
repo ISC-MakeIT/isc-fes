@@ -1,5 +1,14 @@
 import { v } from "@/shared/lib/valibot";
 
+export const ImageSchema = v.pipe(
+  v.file("画像を選択してください"),
+  v.mimeType(
+    ["image/jpeg", "image/png", "image/webp"],
+    "対応していない画像形式です",
+  ),
+  v.maxSize(10 * 1024 * 1024, "10MB以内の画像を選択してください"),
+);
+
 export const CreateStoreForm = v.object({
   name: v.pipe(
     v.string(),
@@ -17,16 +26,7 @@ export const CreateStoreForm = v.object({
     v.maxLength(1000, "1000文字以内で入力してください"),
   ),
   // Inputの初期値用にundefinedを許容する
-  image: v.optional(
-    v.pipe(
-      v.file(),
-      v.mimeType(
-        ["image/jpeg", "image/png", "image/webp"],
-        "対応していない画像形式です",
-      ),
-      v.maxSize(10 * 1024 * 1024, "10MB以内の画像を選択してください"),
-    ),
-  ),
+  image: v.optional(ImageSchema),
 });
 
 export type CreateStoreForm = v.InferOutput<typeof CreateStoreForm>;
