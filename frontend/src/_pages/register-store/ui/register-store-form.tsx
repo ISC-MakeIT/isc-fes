@@ -33,10 +33,12 @@ export function RegisterStoreForm() {
 
       // 何も言わずに遷移するのは入力した値を捨ててしまい不親切そうなので、基本エラーメッセージを表示する対応にしている
       // 未ログインなら基本proxy, layoutの段階でredirectされるはず
-      if (isClientError(response.status)) setServerError(error);
-
-      // クライアント以外のエラーは汎用的なエラーメッセージにする
-      else setServerError(GENERIC_ERROR_MESSAGE);
+      if (isClientError(response.status)) {
+        setServerError(error);
+      } else {
+        // クライアント以外のエラーは汎用的なエラーメッセージにする
+        setServerError(GENERIC_ERROR_MESSAGE);
+      }
     },
   });
 
