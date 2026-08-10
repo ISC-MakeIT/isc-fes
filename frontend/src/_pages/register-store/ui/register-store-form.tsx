@@ -78,10 +78,12 @@ export function RegisterStoreForm() {
           name="description"
           validators={{
             onChange: CreateStoreForm.entries.description,
-            onSubmit: (value) =>
+            onSubmit: ({ value }) =>
               // Input Fileはundefinedを許容しないと使えないので、ここでフォーム送信前のundefinedチェックを挟む
               // もしくはここまではundefined許容したForm用のSchemaを使って、ここで店舗のSchemaでparseするべきかも
-              value === undefined ? "店舗写真を選択してください" : undefined,
+              value === undefined
+                ? { message: "店舗写真を選択してください" }
+                : undefined,
           }}
           children={(field) => (
             <Field data-invalid={!field.state.meta.isValid}>
