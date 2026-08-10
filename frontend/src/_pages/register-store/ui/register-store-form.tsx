@@ -182,6 +182,7 @@ export function RegisterStoreForm() {
             isSubmitSuccessful,
           ]) => (
             <Button
+              className="hover:cursor-pointer"
               type="submit"
               disabled={
                 !canSubmit || isPristine || isSubmitting || isSubmitSuccessful
