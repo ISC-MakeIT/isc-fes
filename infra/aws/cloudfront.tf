@@ -19,6 +19,7 @@ resource "aws_cloudfront_distribution" "store_images" {
   enabled         = true
   is_ipv6_enabled = true
   http_version    = "http2and3"
+  aliases         = [local.store_images_custom_domain]
 
   origin {
     domain_name              = aws_s3_bucket.store_images.bucket_regional_domain_name
@@ -46,7 +47,9 @@ resource "aws_cloudfront_distribution" "store_images" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    acm_certificate_arn      = aws_acm_certificate_validation.store_images.certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
   }
 
   tags = {
@@ -60,6 +63,6 @@ output "store_images_cloudfront_distribution_id" {
 }
 
 output "store_images_cloudfront_base_url" {
-  description = "DNS設定前に店舗画像URLとして使用するCloudFront標準URL"
-  value       = "https://${aws_cloudfront_distribution.store_images.domain_name}"
+  description = "CloudFrontから店舗画像を配信する独自ドメインのURL"
+  value       = "https://${local.store_images_custom_domain}"
 }

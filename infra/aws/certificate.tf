@@ -16,8 +16,17 @@ resource "aws_acm_certificate" "store_images" {
   }
 }
 
+resource "aws_acm_certificate_validation" "store_images" {
+  provider        = aws.us_east_1
+  certificate_arn = aws_acm_certificate.store_images.arn
+  validation_record_fqdns = [
+    for option in aws_acm_certificate.store_images.domain_validation_options :
+    option.resource_record_name
+  ]
+}
+
 output "store_images_acm_certificate_arn" {
-  description = "CloudFrontへ後から設定する店舗画像ドメインのACM Certificate ARN"
+  description = "CloudFrontに設定する店舗画像ドメインのACM Certificate ARN"
   value       = aws_acm_certificate.store_images.arn
 }
 
