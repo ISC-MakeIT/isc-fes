@@ -85,6 +85,15 @@ func (r *StoreRepository) GetApprovedStores(ctx context.Context) ([]entities.Sto
 	return utils.Map(dbStores, r.toStore), nil
 }
 
+func (r *StoreRepository) GetVisibleStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error) {
+	dbStores, err := r.queries.GetVisibleStoresByAccountID(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	return utils.Map(dbStores, r.toStore), nil
+}
+
 func (r *StoreRepository) GetStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error) {
 	dbStore, err := r.queries.GetStoreByID(ctx, storeID)
 	if err != nil {

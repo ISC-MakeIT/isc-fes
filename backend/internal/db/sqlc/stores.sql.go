@@ -215,6 +215,49 @@ func (q *Queries) GetStoreMembershipsByAccountID(ctx context.Context, accountID 
 	return items, nil
 }
 
+const getVisibleStoresByAccountID = `-- name: GetVisibleStoresByAccountID :many
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
+FROM stores
+WHERE review_status = 'approved'
+   OR id IN (
+       SELECT store_id
+       FROM store_members
+       WHERE account_id = $1
+         AND role = 'manager'
+   )
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetVisibleStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]Store, error) {
+	rows, err := q.db.Query(ctx, getVisibleStoresByAccountID, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Store{}
+	for rows.Next() {
+		var i Store
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Room,
+			&i.Description,
+			&i.ImageObjectKey,
+			&i.ReviewStatus,
+			&i.SubmittedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateStoreReviewStatusById = `-- name: UpdateStoreReviewStatusById :exec
 UPDATE stores
 SET

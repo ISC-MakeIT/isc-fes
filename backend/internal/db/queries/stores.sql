@@ -27,6 +27,18 @@ FROM stores
 WHERE review_status = 'approved'
 ORDER BY created_at DESC;
 
+-- name: GetVisibleStoresByAccountID :many
+SELECT *
+FROM stores
+WHERE review_status = 'approved'
+   OR id IN (
+       SELECT store_id
+       FROM store_members
+       WHERE account_id = $1
+         AND role = 'manager'
+   )
+ORDER BY created_at DESC;
+
 -- name: GetStoreApplications :many
 SELECT *
 FROM stores

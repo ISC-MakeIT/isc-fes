@@ -266,15 +266,15 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
   /stores:
     get:
-      operationId: getApprovedStores
-      summary: 承認済みの店舗一覧を取得する
+      operationId: getVisibleStores
+      summary: 全ての承認済みの店舗と、自分が申請した店舗一覧を取得する
       responses:
         "200":
-          description: 承認済みの店舗一覧
+          description: 承認済みの店舗と、自分が申請した店舗一覧
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GetApprovedStoresResponse"
+                $ref: "#/components/schemas/GetVisibleStoresResponse"
         "500":
           description: サーバーエラー
           content:
@@ -405,7 +405,7 @@ components:
 
         reviewStatus:
           $ref: "#/components/schemas/StoreReviewStatus"
-    GetApprovedStoresResponse:
+    GetVisibleStoresResponse:
       type: object
       required:
         - data
@@ -413,7 +413,7 @@ components:
       properties:
         total:
           type: integer
-          description: 承認済みの店舗の総数
+          description: 閲覧可能な店舗の総数
         data:
           type: array
           items:
@@ -508,6 +508,7 @@ components:
         - room
         - description
         - imageUrl
+        - reviewStatus
       properties:
         id:
           type: string
@@ -520,6 +521,8 @@ components:
           type: string
         imageUrl:
           type: string
+        reviewStatus:
+          $ref: "#/components/schemas/StoreReviewStatus"
     StoreApplication:
       type: object
       required:
