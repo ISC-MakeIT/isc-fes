@@ -20,7 +20,7 @@ export async function createStoreApplication(
 ): Promise<CreateStoreApplicationResult> {
   const client = await createApiClient();
   const { data, error, response } = await client.POST("/store-applications", {
-    // openapi-fetchの方定義がmultipart/form-dataに対応していないための回避
+    // openapi-fetchの型定義がmultipart/form-dataに対応していないための回避
     body: formValues as never,
     bodySerializer: (body) => buildFormDataBody(body),
   });
