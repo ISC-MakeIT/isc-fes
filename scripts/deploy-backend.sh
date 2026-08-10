@@ -2,7 +2,17 @@
 set -euo pipefail
 
 readonly aws_region="${DEPLOY_AWS_REGION:-ap-northeast-1}"
+if [[ ! "$aws_region" =~ ^[a-z0-9]+(-[a-z0-9]+)*-[0-9]+$ ]]; then
+  echo "AWS Regionが不正です: ${aws_region}" >&2
+  exit 1
+fi
+
 readonly runtime_env_parameter_name="${DEPLOY_RUNTIME_ENV_PARAMETER_NAME:-/isc-fes/prod/runtime-env}"
+if [[ ! "$runtime_env_parameter_name" =~ ^/?[a-zA-Z0-9_.-]+(/[a-zA-Z0-9_.-]+)*$ ]]; then
+  echo "Runtime環境変数のParameter名が不正です: ${runtime_env_parameter_name}" >&2
+  exit 1
+fi
+
 readonly max_poll_attempts=120
 readonly max_invocation_lookup_failures=5
 
