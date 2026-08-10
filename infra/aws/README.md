@@ -165,7 +165,7 @@ APIサーバーのIAM Roleには`stores/*`配下のObjectに対する`PutObject`
 Bucketは直接公開せず、CloudFront Origin Access Controlからの`GetObject`だけをBucket Policyで追加許可する。
 CloudFrontからS3へのRequestはSigV4で常に署名し、ViewerからはHTTPSだけを使用する。
 
-学校側のDNS設定が完了するまでは、次のOutputを`STORE_IMAGE_BASE_URL`へ設定する。
+店舗画像のURLには、CloudFrontに設定した独自ドメインを使用する。
 
 ```shell
 terraform output -raw store_images_cloudfront_base_url
@@ -179,9 +179,8 @@ CloudFront経由の画像取得とAPIの切り替えを確認した後、別の�
 CloudFrontの独自ドメインに使用するACM Certificateは、CloudFrontの要件に合わせて
 Virginia北部Region（`us-east-1`）へ申請する。
 
-DNS設定が完了していない段階では、TerraformはCertificateの申請だけを行い、
-DNS検証の完了待ちやCloudFrontへの`img.fes.iwasaki.ac.jp`設定は行わない。
-これにより、学校側の対応時期にかかわらず`terraform apply`を完了できる。
+Terraformは学校側DNSの検証用CNAMEを使ってCertificateが`ISSUED`になるまで待機し、
+CloudFrontに`img.fes.iwasaki.ac.jp`とCertificateを設定する。
 
 適用後、学校側へ依頼する検証用CNAMEを次のOutputで取得する。
 
@@ -196,8 +195,7 @@ dig +short CNAME <outputのname>
 terraform apply -replace=aws_acm_certificate.store_images
 ```
 
-Certificateが`ISSUED`になった後、CloudFrontへCertificateと独自ドメインを設定し、
-学校側へ`img.fes.iwasaki.ac.jp`からCloudFront標準ドメインへの配信用CNAMEを別途依頼する。
+`img.fes.iwasaki.ac.jp`の配信用CNAMEは、CloudFront標準ドメインを参照する。
 
 ## Remote State
 
