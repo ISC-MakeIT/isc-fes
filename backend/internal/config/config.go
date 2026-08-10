@@ -31,6 +31,7 @@ type DatabaseConfig struct {
 
 type AuthConfig struct {
 	SessionCookieSecure bool
+	SessionCookieDomain string
 
 	GoogleClientID     string
 	GoogleClientSecret string
@@ -67,6 +68,7 @@ func Load() Config {
 		},
 		Auth: AuthConfig{
 			SessionCookieSecure: optionalBoolEnv("SESSION_COOKIE_SECURE", true),
+			SessionCookieDomain: os.Getenv("SESSION_COOKIE_DOMAIN"),
 			GoogleClientID:      requireEnv("GOOGLE_CLIENT_ID"),
 			GoogleClientSecret:  requireEnv("GOOGLE_CLIENT_SECRET"),
 			GoogleRedirectURL:   requireEnv("GOOGLE_REDIRECT_URL"),
