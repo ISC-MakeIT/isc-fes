@@ -108,6 +108,8 @@ jobs:
         run: pnpm run fmt:check
       - name: Lint
         run: pnpm run lint
+      - name: Unit Test
+        run: pnpm run test
 
   push-backend-image:
     needs:
