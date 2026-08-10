@@ -26,6 +26,7 @@ type StoreImageRepository interface {
 type StoreRepository interface {
 	CreateStoreApplication(ctx context.Context, input CreateStoreApplicationInput) (entities.Store, error)
 	GetApprovedStores(ctx context.Context) ([]entities.Store, error)
+	GetVisibleStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error)
 	GetStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error)
 	UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error
 	GetStoreMembershipsByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.StoreMember, error)
@@ -210,6 +211,37 @@ func (s *StoreService) GetApprovedStores(ctx context.Context) ([]entities.StoreO
 	rawStores, err := s.storeRepository.GetApprovedStores(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get approved stores: %w", err)
+	}
+
+	stores, err := s.toStoreOutputs(ctx, rawStores)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert stores to outputs: %w", err)
+	}
+
+	return stores, nil
+}
+
+// GetVisibleStores は、ユーザーが閲覧可能な店舗一覧を取得する。
+// 承認済みの店舗はすべて返し、申請中・却下済みの店舗は、ユーザーがその店舗の管理者である場合のみ返す。
+func (s *StoreService) GetVisibleStores(ctx context.Context) ([]entities.StoreOutput, error) {
+	accountID, err := s.sessions.AccountID(ctx)
+	if err != nil {
+		rawStores, err := s.storeRepository.GetApprovedStores(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get approved stores: %w", err)
+		}
+
+		stores, err := s.toStoreOutputs(ctx, rawStores)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert stores to outputs: %w", err)
+		}
+
+		return stores, nil
+	}
+
+	rawStores, err := s.storeRepository.GetVisibleStoresByAccountID(ctx, accountID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get visible stores by account id: %w", err)
 	}
 
 	stores, err := s.toStoreOutputs(ctx, rawStores)

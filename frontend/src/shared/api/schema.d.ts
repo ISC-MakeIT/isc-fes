@@ -96,8 +96,8 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** 承認済みの店舗一覧を取得する */
-    get: operations["getApprovedStores"];
+    /** 全ての承認済みの店舗と、自分が申請した店舗一覧を取得する */
+    get: operations["getVisibleStores"];
     put?: never;
     post?: never;
     delete?: never;
@@ -161,8 +161,8 @@ export interface components {
       id: string;
       reviewStatus: components["schemas"]["StoreReviewStatus"];
     };
-    GetApprovedStoresResponse: {
-      /** @description 承認済みの店舗の総数 */
+    GetVisibleStoresResponse: {
+      /** @description 閲覧可能な店舗の総数 */
       total: number;
       data: components["schemas"]["Store"][];
     };
@@ -206,6 +206,7 @@ export interface components {
       room: string;
       description: string;
       imageUrl: string;
+      reviewStatus: components["schemas"]["StoreReviewStatus"];
     };
     StoreApplication: {
       /** Format: uuid */
@@ -555,7 +556,7 @@ export interface operations {
       };
     };
   };
-  getApprovedStores: {
+  getVisibleStores: {
     parameters: {
       query?: never;
       header?: never;
@@ -564,13 +565,13 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description 承認済みの店舗一覧 */
+      /** @description 承認済みの店舗と、自分が申請した店舗一覧 */
       200: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["GetApprovedStoresResponse"];
+          "application/json": components["schemas"]["GetVisibleStoresResponse"];
         };
       };
       /** @description サーバーエラー */
