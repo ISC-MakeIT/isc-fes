@@ -44,6 +44,7 @@ type Sessions struct {
 func NewSessions(
 	pool *pgxpool.Pool,
 	secure bool,
+	domain string,
 ) (*Sessions, func()) {
 
 	store := pgxstore.New(pool)
@@ -53,19 +54,30 @@ func NewSessions(
 	manager.HashTokenInStore = true
 	manager.Lifetime = 24 * time.Hour
 
-	manager.Cookie.Name = "isc_fes_account_session"
-	manager.Cookie.Path = "/"
-	manager.Cookie.Domain = ""
-	manager.Cookie.HttpOnly = true
-	manager.Cookie.SameSite = http.SameSiteLaxMode
-	manager.Cookie.Secure = secure
-	manager.Cookie.Persist = true
+	configureSessionCookie(manager, secure, domain)
 
 	sessions := &Sessions{
 		manager: manager,
 	}
 
 	return sessions, store.StopCleanup
+}
+
+// configureSessionCookieは、セッションCookieの共通属性を設定する。
+// domainが空のローカル環境ではhost-only Cookieとし、
+// 本番環境ではフロントエンドとAPIの共通ドメインへCookieを送信できるようにする。
+func configureSessionCookie(
+	manager *scs.SessionManager,
+	secure bool,
+	domain string,
+) {
+	manager.Cookie.Name = "isc_fes_account_session"
+	manager.Cookie.Path = "/"
+	manager.Cookie.Domain = domain
+	manager.Cookie.HttpOnly = true
+	manager.Cookie.SameSite = http.SameSiteLaxMode
+	manager.Cookie.Secure = secure
+	manager.Cookie.Persist = true
 }
 
 func (s *Sessions) LoadAndSave(next http.Handler) http.Handler {

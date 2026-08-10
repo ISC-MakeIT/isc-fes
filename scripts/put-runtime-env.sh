@@ -48,6 +48,7 @@ readonly required_keys=(
   GOOGLE_CLIENT_SECRET
   GOOGLE_REDIRECT_URL
   SESSION_COOKIE_SECURE
+  SESSION_COOKIE_DOMAIN
   FRONTEND_URL
   CORS_ALLOWED_ORIGINS
   AWS_REGION
@@ -75,6 +76,11 @@ fi
 
 if ! grep -Fxq "SESSION_COOKIE_SECURE=true" "$env_file"; then
   echo "SESSION_COOKIE_SECUREには本番用のtrueを設定してください。" >&2
+  exit 1
+fi
+
+if ! grep -Fxq "SESSION_COOKIE_DOMAIN=fes.iwasaki.ac.jp" "$env_file"; then
+  echo "SESSION_COOKIE_DOMAINにはfes.iwasaki.ac.jpを設定してください。" >&2
   exit 1
 fi
 

@@ -42,6 +42,7 @@ func buildDependencies(
 	sessions, stopSessionCleanup := auth.NewSessions(
 		pool,
 		cfg.Auth.SessionCookieSecure,
+		cfg.Auth.SessionCookieDomain,
 	)
 
 	googleAuthenticator, err := auth.NewGoogleAuthenticator(

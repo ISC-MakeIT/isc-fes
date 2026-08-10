@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"net/http"
 	"testing"
 	"time"
 
@@ -160,6 +161,52 @@ func TestAccountIDWithoutSignIn(t *testing.T) {
 			err,
 			ErrNotAuthenticated,
 		)
+	}
+}
+
+// 本番で指定した共通ドメインと、ローカルのhost-only Cookieの両方を設定できることを確認する。
+func TestConfigureSessionCookieDomain(t *testing.T) {
+	tests := []struct {
+		name   string
+		domain string
+	}{
+		{
+			name:   "本番で共通ドメインを設定する",
+			domain: "fes.iwasaki.ac.jp",
+		},
+		{
+			name:   "ローカルでhost-only Cookieにする",
+			domain: "",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			manager := scs.New()
+
+			configureSessionCookie(manager, true, test.domain)
+
+			if manager.Cookie.Domain != test.domain {
+				t.Errorf(
+					"Cookie.Domain = %q, want %q",
+					manager.Cookie.Domain,
+					test.domain,
+				)
+			}
+			if !manager.Cookie.Secure {
+				t.Error("Cookie.Secure = false, want true")
+			}
+			if !manager.Cookie.HttpOnly {
+				t.Error("Cookie.HttpOnly = false, want true")
+			}
+			if manager.Cookie.SameSite != http.SameSiteLaxMode {
+				t.Errorf(
+					"Cookie.SameSite = %v, want %v",
+					manager.Cookie.SameSite,
+					http.SameSiteLaxMode,
+				)
+			}
+		})
 	}
 }
 
