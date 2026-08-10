@@ -31,7 +31,7 @@ export function RegisterStoreForm() {
       if (isClientError(response.status)) setServerError(error);
 
       // クライアント以外のエラーは汎用的なエラーメッセージにする
-      setServerError(GENERIC_ERROR_MESSAGE);
+      else setServerError(GENERIC_ERROR_MESSAGE);
     },
   });
 
