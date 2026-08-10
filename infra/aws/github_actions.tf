@@ -8,7 +8,7 @@ resource "aws_iam_openid_connect_provider" "github_actions" {
   client_id_list = ["sts.amazonaws.com"]
 }
 
-data "aws_iam_policy_document" "github_actions_ecr_push_assume_role" {
+data "aws_iam_policy_document" "github_actions_main_assume_role" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
@@ -33,7 +33,7 @@ data "aws_iam_policy_document" "github_actions_ecr_push_assume_role" {
 
 resource "aws_iam_role" "github_actions_ecr_push" {
   name               = "isc-fes-github-actions-ecr-push"
-  assume_role_policy = data.aws_iam_policy_document.github_actions_ecr_push_assume_role.json
+  assume_role_policy = data.aws_iam_policy_document.github_actions_main_assume_role.json
 }
 
 data "aws_iam_policy_document" "github_actions_ecr_push" {
@@ -67,4 +67,50 @@ resource "aws_iam_role_policy" "github_actions_ecr_push" {
 output "github_actions_ecr_push_role_arn" {
   description = "GitHub ActionsがBackend ImageをECRへpushするために引き受けるIAM Role ARN"
   value       = aws_iam_role.github_actions_ecr_push.arn
+}
+
+resource "aws_iam_role" "github_actions_backend_deploy" {
+  name               = "isc-fes-github-actions-backend-deploy"
+  assume_role_policy = data.aws_iam_policy_document.github_actions_main_assume_role.json
+}
+
+data "aws_iam_policy_document" "github_actions_backend_deploy" {
+  statement {
+    sid       = "DiscoverAPIServer"
+    actions   = ["ec2:DescribeInstances"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid       = "CheckBackendImage"
+    actions   = ["ecr:DescribeImages"]
+    resources = [aws_ecr_repository.backend.arn]
+  }
+
+  statement {
+    sid     = "DeployBackendWithRunCommand"
+    actions = ["ssm:SendCommand"]
+    resources = [
+      aws_instance.api_server.arn,
+      "arn:aws:ssm:ap-northeast-1::document/AWS-RunShellScript",
+    ]
+  }
+
+  # GetCommandInvocationはResourceレベルの権限設定に対応していない。
+  statement {
+    sid       = "ReadBackendDeploymentResult"
+    actions   = ["ssm:GetCommandInvocation"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "github_actions_backend_deploy" {
+  name   = "deploy-backend"
+  role   = aws_iam_role.github_actions_backend_deploy.id
+  policy = data.aws_iam_policy_document.github_actions_backend_deploy.json
+}
+
+output "github_actions_backend_deploy_role_arn" {
+  description = "GitHub ActionsがBackendをEC2へdeployするために引き受けるIAM Role ARN"
+  value       = aws_iam_role.github_actions_backend_deploy.arn
 }

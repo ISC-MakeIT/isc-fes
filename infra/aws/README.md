@@ -264,10 +264,12 @@ Repository Variableを設定する。先にmergeすると、最初のWorkflowは
 | Repository Variable | Terraform Output |
 | --- | --- |
 | `AWS_ECR_PUSH_ROLE_ARN` | `github_actions_ecr_push_role_arn` |
+| `AWS_BACKEND_DEPLOY_ROLE_ARN` | `github_actions_backend_deploy_role_arn` |
 | `AWS_ACCOUNT_ID` | `aws_account_id` |
 
 ```shell
 terraform -chdir=infra/aws output -raw github_actions_ecr_push_role_arn
+terraform -chdir=infra/aws output -raw github_actions_backend_deploy_role_arn
 ```
 
 GitHub CLIを使う場合は次のCommandで設定できる。
@@ -275,6 +277,9 @@ GitHub CLIを使う場合は次のCommandで設定できる。
 ```shell
 gh variable set AWS_ECR_PUSH_ROLE_ARN \
   --body "$(terraform -chdir=infra/aws output -raw github_actions_ecr_push_role_arn)"
+
+gh variable set AWS_BACKEND_DEPLOY_ROLE_ARN \
+  --body "$(terraform -chdir=infra/aws output -raw github_actions_backend_deploy_role_arn)"
 
 gh variable set AWS_ACCOUNT_ID \
   --body "$(terraform -chdir=infra/aws output -raw aws_account_id)"
@@ -287,4 +292,10 @@ gh variable set AWS_ACCOUNT_ID \
 ```
 
 同じCommit SHAのImageが既に存在する場合はbuildとpushを省略する。
-このWorkflowはEC2、SSM、Docker Compose、Caddyを操作せず、ECRへのImage pushだけを行う。
+
+Image pushが成功した後、deploy Jobは`Name=isc-fes-api-server`のTagを持つ稼働中のEC2を1台だけ取得し、
+SSM Run Command経由で`scripts/deploy-backend.sh`を実行する。EC2上で対象Imageと最新のRuntime環境変数を取得し、
+Docker Composeのhealth checkが成功するまで待機する。失敗した場合はdeploy Jobもfailureとなる。
+
+deploy Jobは本番環境単位で直列化する。Image buildの完了順がCommit順と入れ替わっても古いImageへ戻さないよう、
+deploy直前に対象SHAが現在のmainと一致することを確認する。

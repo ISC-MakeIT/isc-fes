@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 on:
   push:
     branches: [main]
@@ -182,3 +182,96 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max,ignore-error=true
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+
+  deploy-backend:
+    needs: push-backend-image
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    concurrency:
+      group: deploy-backend-production
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: ap-northeast-1
+      ECR_REPOSITORY: isc-fes/backend
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Check whether this is the latest main commit
+        id: freshness
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          latest_main_sha="$(
+            gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" \
+              --jq '.object.sha'
+          )"
+
+          if [[ ! "$latest_main_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "mainの最新Commit SHAを取得できませんでした: ${latest_main_sha}" >&2
+            exit 1
+          fi
+
+          if [[ "$latest_main_sha" != "$GITHUB_SHA" ]]; then
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "古いmainのWorkflowなのでdeployを省略します: ${GITHUB_SHA}"
+            echo "現在のmain: ${latest_main_sha}"
+          else
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Configure AWS credentials for deployment
+        if: steps.freshness.outputs.deploy == 'true'
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          role-to-assume: ${{ vars.AWS_BACKEND_DEPLOY_ROLE_ARN }}
+          role-session-name: github-actions-deploy-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}
+      - name: Resolve deployment target
+        if: steps.freshness.outputs.deploy == 'true'
+        id: target
+        env:
+          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+        run: |
+          if [[ ! "$AWS_ACCOUNT_ID" =~ ^[0-9]{12}$ ]]; then
+            echo "AWS_ACCOUNT_IDが不正です。" >&2
+            exit 1
+          fi
+
+          mapfile -t instance_ids < <(
+            aws ec2 describe-instances \
+              --region "$AWS_REGION" \
+              --filters \
+                Name=tag:Name,Values=isc-fes-api-server \
+                Name=instance-state-name,Values=running \
+              --query 'Reservations[].Instances[].InstanceId' \
+              --output text |
+              tr '\t' '\n' |
+              sed '/^$/d'
+          )
+
+          if (( ${#instance_ids[@]} != 1 )); then
+            echo "稼働中のAPI Serverを一意に特定できませんでした。件数: ${#instance_ids[@]}" >&2
+            exit 1
+          fi
+          if [[ ! "${instance_ids[0]}" =~ ^i-[0-9a-f]+$ ]]; then
+            echo "EC2 Instance IDが不正です: ${instance_ids[0]}" >&2
+            exit 1
+          fi
+
+          repository_url="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}"
+          echo "instance_id=${instance_ids[0]}" >> "$GITHUB_OUTPUT"
+          echo "repository_url=${repository_url}" >> "$GITHUB_OUTPUT"
+      - name: Deploy Backend to EC2
+        if: steps.freshness.outputs.deploy == 'true'
+        env:
+          DEPLOY_AWS_REGION: ${{ env.AWS_REGION }}
+          DEPLOY_BACKEND_REPOSITORY_URL: ${{ steps.target.outputs.repository_url }}
+          DEPLOY_API_SERVER_INSTANCE_ID: ${{ steps.target.outputs.instance_id }}
+          DEPLOY_COMMIT_SHA: ${{ github.sha }}
+        run: bash scripts/deploy-backend.sh

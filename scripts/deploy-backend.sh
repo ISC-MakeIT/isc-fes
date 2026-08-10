@@ -1,15 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly aws_region="ap-northeast-1"
-readonly runtime_env_parameter_name="/isc-fes/prod/runtime-env"
+readonly aws_region="${DEPLOY_AWS_REGION:-ap-northeast-1}"
+if [[ ! "$aws_region" =~ ^[a-z0-9]+(-[a-z0-9]+)*-[0-9]+$ ]]; then
+  echo "AWS Regionが不正です: ${aws_region}" >&2
+  exit 1
+fi
+
+readonly runtime_env_parameter_name="${DEPLOY_RUNTIME_ENV_PARAMETER_NAME:-/isc-fes/prod/runtime-env}"
+if [[ ! "$runtime_env_parameter_name" =~ ^/?[a-zA-Z0-9_.-]+(/[a-zA-Z0-9_.-]+)*$ ]]; then
+  echo "Runtime環境変数のParameter名が不正です: ${runtime_env_parameter_name}" >&2
+  exit 1
+fi
+
 readonly max_poll_attempts=120
 readonly max_invocation_lookup_failures=5
 
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
-for required_command in aws git jq terraform; do
+required_commands=(aws git jq)
+if [[ -z "${DEPLOY_BACKEND_REPOSITORY_URL:-}" || -z "${DEPLOY_API_SERVER_INSTANCE_ID:-}" ]]; then
+  required_commands+=(terraform)
+fi
+
+for required_command in "${required_commands[@]}"; do
   if ! command -v "$required_command" >/dev/null; then
     echo "必要なコマンドがありません: ${required_command}" >&2
     exit 1
@@ -25,9 +40,17 @@ if ! git diff --quiet || ! git diff --cached --quiet || [[ -n "$(git ls-files --
   exit 1
 fi
 
-repository_url="$(terraform -chdir=infra/aws output -raw backend_repository_url)"
-instance_id="$(terraform -chdir=infra/aws output -raw api_server_instance_id)"
-commit_sha="$(git rev-parse HEAD)"
+repository_url="${DEPLOY_BACKEND_REPOSITORY_URL:-}"
+if [[ -z "$repository_url" ]]; then
+  repository_url="$(terraform -chdir=infra/aws output -raw backend_repository_url)"
+fi
+
+instance_id="${DEPLOY_API_SERVER_INSTANCE_ID:-}"
+if [[ -z "$instance_id" ]]; then
+  instance_id="$(terraform -chdir=infra/aws output -raw api_server_instance_id)"
+fi
+
+commit_sha="${DEPLOY_COMMIT_SHA:-$(git rev-parse HEAD)}"
 image_tag="sha-${commit_sha}"
 image_uri="${repository_url}:${image_tag}"
 registry="${repository_url%%/*}"
