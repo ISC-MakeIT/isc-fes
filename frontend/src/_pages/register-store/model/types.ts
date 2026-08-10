@@ -16,9 +16,17 @@ export const CreateStoreForm = v.object({
     v.minLength(1, "1文字以上で入力してください"),
     v.maxLength(1000, "1000文字以内で入力してください"),
   ),
-  // 画像はバイナリをそのままバックエンドに渡せばいい感じに登録してくれるので
-  // フロント側ではFileかどうかだけをチェックする
-  image: v.optional(v.instance(File)),
+  // Inputの初期値用にundefinedを許容する
+  image: v.optional(
+    v.pipe(
+      v.file(),
+      v.mimeType(
+        ["image/jpeg", "image/png", "image/webp"],
+        "対応していない画像形式です",
+      ),
+      v.maxSize(10 * 1024 * 1024, "10MB以内の画像を選択してください"),
+    ),
+  ),
 });
 
 export type CreateStoreForm = v.InferOutput<typeof CreateStoreForm>;
