@@ -1,6 +1,7 @@
 import { createApiClient } from "@/shared/api";
 import { components } from "@/shared/api/";
 import { CreateStoreForm } from "../model/types";
+import { buildFormDataBody } from "../lib/build-form-data-body";
 
 type CreateStoreApplicationResponse =
   components["schemas"]["CreateStoreApplicationResponse"];
@@ -21,15 +22,7 @@ export async function createStoreApplication(
   const { data, error, response } = await client.POST("/store-applications", {
     // openapi-fetchの方定義がmultipart/form-dataに対応していないための回避
     body: formValues as never,
-    bodySerializer(body) {
-      const fd = new FormData();
-
-      for (const [key, value] of Object.entries(body)) {
-        if (value === undefined) continue;
-        fd.append(key, value);
-      }
-      return fd;
-    },
+    bodySerializer: (body) => buildFormDataBody(body),
   });
 
   if (error) {
