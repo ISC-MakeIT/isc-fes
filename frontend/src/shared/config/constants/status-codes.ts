@@ -19,5 +19,5 @@ export const GENERIC_ERROR_MESSAGE =
  * @returns
  */
 export function isClientError(status: number): boolean {
-  return status >= 400 && status < 600;
+  return status >= 400 && status < 500;
 }
