@@ -17,7 +17,7 @@ func (s *Server) GetStoreApplications(c *gin.Context) {
 
 	applications, err := s.store.GetStoreApplications(ctx)
 	if err != nil {
-		handleCommonServiceErrors(c, err)
+		s.handleCommonServiceErrors(c, err)
 		return
 	}
 
@@ -126,7 +126,7 @@ func (s *Server) CreateStoreApplication(c *gin.Context) {
 			return
 		}
 
-		handleCommonServiceErrors(c, err)
+		s.handleCommonServiceErrors(c, err)
 		return
 	}
 
@@ -164,7 +164,7 @@ func (s *Server) UpdateStoreApplicationReviewStatus(c *gin.Context, storeID uuid
 			return
 		}
 
-		handleCommonServiceErrors(c, err, CommonErrorMessages{
+		s.handleCommonServiceErrors(c, err, CommonErrorMessages{
 			NotFound: "店舗が見つかりません",
 		})
 		return

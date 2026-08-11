@@ -15,6 +15,7 @@ type Server struct {
 	auth                        *service.AuthService
 	store                       *service.StoreService
 	storeMembershipApplications *service.StoreMembershipApplicationsService
+	errorNotifier               *service.ErrorNotifier
 }
 
 func NewServer(
@@ -26,6 +27,7 @@ func NewServer(
 	authService *service.AuthService,
 	storeService *service.StoreService,
 	storeMembershipApplicationsService *service.StoreMembershipApplicationsService,
+	errorNotifier *service.ErrorNotifier,
 ) *Server {
 	return &Server{
 		queries:                     queries,
@@ -36,5 +38,6 @@ func NewServer(
 		auth:                        authService,
 		store:                       storeService,
 		storeMembershipApplications: storeMembershipApplicationsService,
+		errorNotifier:               errorNotifier,
 	}
 }

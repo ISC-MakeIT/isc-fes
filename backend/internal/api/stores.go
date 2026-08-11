@@ -11,7 +11,7 @@ import (
 func (s *Server) GetVisibleStores(c *gin.Context) {
 	stores, err := s.store.GetVisibleStores(c.Request.Context())
 	if err != nil {
-		handleCommonServiceErrors(c, err)
+		s.handleCommonServiceErrors(c, err)
 		return
 	}
 
