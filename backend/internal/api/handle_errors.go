@@ -40,7 +40,7 @@ func (m CommonErrorMessages) withDefaults() CommonErrorMessages {
 	return m
 }
 
-func handleCommonServiceErrors(c *gin.Context, err error, options ...CommonErrorMessages) {
+func (s *Server) handleCommonServiceErrors(c *gin.Context, err error, options ...CommonErrorMessages) {
 	messages := defaultCommonErrorMessages
 
 	if len(options) > 0 {
@@ -65,6 +65,9 @@ func handleCommonServiceErrors(c *gin.Context, err error, options ...CommonError
 		return
 	default:
 		log.Printf("%s", err.Error())
+		if notifyErr := s.errorNotifier.Critical(c.Request.Context(), err.Error()); notifyErr != nil {
+			log.Printf("failed to notify unexpected error: %v", notifyErr)
+		}
 		// TODO: 致命的なエラーは discord に通知するようにする
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: messages.Internal,

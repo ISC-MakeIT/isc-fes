@@ -14,6 +14,12 @@ type Config struct {
 
 	FrontendURL       string
 	StoreImageBaseURL string
+	DiscordNotifier   DiscordNotifierConfig
+}
+
+type DiscordNotifierConfig struct {
+	WebhookURL     string
+	MentionUserIDs []string
 }
 
 type HTTPConfig struct {
@@ -75,12 +81,34 @@ func Load() Config {
 		},
 		FrontendURL:       requireEnv("FRONTEND_URL"),
 		StoreImageBaseURL: os.Getenv("STORE_IMAGE_BASE_URL"),
+		DiscordNotifier: DiscordNotifierConfig{
+			WebhookURL:     os.Getenv("DISCORD_WEBHOOK_URL"),
+			MentionUserIDs: optionalCSVEnv("DISCORD_MENTION_USER_IDS"),
+		},
 	}
 }
 
 // 必須のカンマ区切り環境変数を取り出す
 func requireCSVEnv(key string) []string {
 	values := strings.Split(requireEnv(key), ",")
+
+	for i, value := range values {
+		values[i] = strings.TrimSpace(value)
+		if values[i] == "" {
+			panic("environment variable " + key + " must not contain empty values")
+		}
+	}
+
+	return values
+}
+
+func optionalCSVEnv(key string) []string {
+	value := os.Getenv(key)
+	if value == "" {
+		return nil
+	}
+
+	values := strings.Split(value, ",")
 
 	for i, value := range values {
 		values[i] = strings.TrimSpace(value)

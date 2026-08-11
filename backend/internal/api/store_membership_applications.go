@@ -14,7 +14,7 @@ func (s *Server) GetStoreMembershipApplicationsByStoreID(c *gin.Context, storeID
 
 	applications, err := s.storeMembershipApplications.GetStoreMembershipApplicationsByStoreID(ctx, storeID)
 	if err != nil {
-		handleCommonServiceErrors(c, err, CommonErrorMessages{
+		s.handleCommonServiceErrors(c, err, CommonErrorMessages{
 			NotFound: "店舗が見つかりません",
 		})
 		return
@@ -42,7 +42,7 @@ func (s *Server) GetMyStoreMembershipApplications(c *gin.Context) {
 
 	applications, err := s.storeMembershipApplications.GetMyStoreMembershipApplications(ctx)
 	if err != nil {
-		handleCommonServiceErrors(c, err)
+		s.handleCommonServiceErrors(c, err)
 		return
 	}
 

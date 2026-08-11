@@ -112,6 +112,10 @@ func buildDependencies(
 		accountRepository,
 		sessions,
 	)
+	errorNotifier := service.NewErrorNotifier(
+		cfg.DiscordNotifier.WebhookURL,
+		cfg.DiscordNotifier.MentionUserIDs,
+	)
 
 	apiServer := api.NewServer(
 		queries,
@@ -122,6 +126,7 @@ func buildDependencies(
 		authService,
 		storeService,
 		storeMembershipApplicationsService,
+		errorNotifier,
 	)
 
 	return &dependencies{
