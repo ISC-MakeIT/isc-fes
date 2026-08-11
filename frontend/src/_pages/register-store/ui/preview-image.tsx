@@ -28,7 +28,7 @@ export function PreviewImage({ image }: PreviewImageProps) {
       ratio={16 / 9}
       className="bg-muted overflow-hidden rounded-md border border-dashed"
     >
-      {previewUrl ? (
+      {previewUrl && (
         <Image
           width={0}
           height={0}
@@ -36,8 +36,6 @@ export function PreviewImage({ image }: PreviewImageProps) {
           src={previewUrl}
           alt="店舗写真プレビュー"
         />
-      ) : (
-        <span>画像を選択してください</span>
       )}
     </AspectRatio>
   );
