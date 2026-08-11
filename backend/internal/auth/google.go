@@ -11,7 +11,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const googleIssuer = "https://accounts.google.com"
+const (
+	googleIssuer       = "https://accounts.google.com"
+	allowedEmailDomain = "gn.iwasaki.ac.jp"
+)
 
 var (
 	ErrMissingIDToken   = errors.New("google response does not contain an ID token")
@@ -85,6 +88,10 @@ func (a *GoogleAuthenticator) LoginURL(flow service.OAuthFlow) string {
 
 		// PKCE verifierからSHA-256 challengeを作ってGoogleへ送る。
 		oauth2.S256ChallengeOption(flow.PKCEVerifier),
+
+		// Googleのアカウント選択画面を学校ドメイン向けにする。
+		// これはUI上のヒントであり、アクセス制御には使えない。
+		oauth2.SetAuthURLParam("hd", allowedEmailDomain),
 	)
 }
 
@@ -145,6 +152,7 @@ func (a *GoogleAuthenticator) ExchangeAndVerify(
 	var claims struct {
 		Email         string `json:"email"`
 		EmailVerified bool   `json:"email_verified"`
+		HostedDomain  string `json:"hd"`
 		Name          string `json:"name"`
 		Picture       string `json:"picture"`
 	}
