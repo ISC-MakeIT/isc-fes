@@ -11,7 +11,7 @@ import { v } from "@/shared/lib/valibot";
 import { Textarea } from "@/shared/ui/textarea";
 import { PreviewImage } from "./preview-image";
 import { SubmitButton } from "@/shared/ui/submit-button";
-import HeadingCard from "@/shared/ui/heading-card";
+import { HeadingCard } from "@/shared/ui/heading-card";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -28,7 +28,6 @@ export function RegisterStoreForm() {
       onMount: CreateStoreForm,
     },
     onSubmit: async ({ value }) => {
-      if (!value.image) return { message: "店舗写真を選択してください" };
       const { data, error, response } = await createStoreApplication(value);
 
       // TODO: 新規作成が成功したら完了ページにリダイレクト
