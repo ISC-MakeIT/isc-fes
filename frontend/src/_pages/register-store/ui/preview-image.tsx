@@ -2,26 +2,34 @@ import { AspectRatio } from "@/shared/ui/aspect-ratio";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-type PreviewImageProps = {
-  image: File | undefined;
-};
+type PreviewImageProps =
+  | {
+      imageFile: File | undefined;
+      imagePath?: never;
+    }
+  | { imageFile?: never; imagePath: string };
 
-export function PreviewImage({ image }: PreviewImageProps) {
+export function PreviewImage({ imageFile, imagePath }: PreviewImageProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!image) {
+    if (!imageFile) {
       setPreviewUrl(null);
       return;
     }
 
-    const url = URL.createObjectURL(image);
+    if (imagePath) {
+      setPreviewUrl(imagePath);
+      return;
+    }
+
+    const url = URL.createObjectURL(imageFile);
     setPreviewUrl(url);
 
     return () => {
       URL.revokeObjectURL(url);
     };
-  }, [image]);
+  }, [imageFile]);
 
   return (
     <AspectRatio
