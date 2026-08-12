@@ -33,3 +33,5 @@ export const Store = v.object({
   description: StoreDescription,
   image: StoreImage,
 });
+
+export type Store = v.InferOutput<typeof Store>;
