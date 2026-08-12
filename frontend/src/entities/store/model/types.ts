@@ -1,5 +1,7 @@
 import { v } from "@/shared/lib/valibot";
 
+const StoreReviewStatus = v.picklist(["pending", "approved", "rejected"]);
+
 export const StoreName = v.pipe(
   v.string(),
   v.minLength(1, "1文字以上で入力してください"),
@@ -18,20 +20,13 @@ export const StoreDescription = v.pipe(
   v.maxLength(1000, "1000文字以内で入力してください"),
 );
 
-export const StoreImage = v.pipe(
-  v.file("画像を選択してください"),
-  v.mimeType(
-    ["image/jpeg", "image/png", "image/webp"],
-    "対応していない画像形式です",
-  ),
-  v.maxSize(10 * 1024 * 1024, "10MB以内の画像を選択してください"),
-);
-
 export const Store = v.object({
+  id: v.string(),
   name: StoreName,
   room: StoreRoom,
   description: StoreDescription,
-  image: StoreImage,
+  imageUrl: v.string(),
+  reviewStatus: StoreReviewStatus,
 });
 
 export type Store = v.InferOutput<typeof Store>;

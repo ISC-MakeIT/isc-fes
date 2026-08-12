@@ -1,1 +1,1 @@
-export { Store, StoreImage } from "./model/types";
+export { Store, StoreName, StoreRoom, StoreDescription } from "./model/types";
