@@ -30,8 +30,7 @@ export function PreviewImage({ image }: PreviewImageProps) {
     >
       {previewUrl && (
         <Image
-          width={0}
-          height={0}
+          fill
           className="absolute inset-0 h-full w-full object-cover"
           src={previewUrl}
           alt="店舗写真プレビュー"
