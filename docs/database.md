@@ -4,5 +4,5 @@
 ## 逆引き
 ### 新しいマイグレーションファイルとを作りたい
 ```shell
-migrate create -ext sql -dir internal/db/migrations -seq ${migration_name}
+migrate create -ext sql -dir backend/db/migrations -seq ${migration_name}
 ```

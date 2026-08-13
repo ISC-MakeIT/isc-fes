@@ -10,13 +10,13 @@ db-down:
 dev-api:
 	cd backend && go tool air
 migrate:
-	cd backend && migrate -path internal/db/migrations -database "$(DATABASE_URL)" up
+	cd backend && migrate -path db/migrations -database "$(DATABASE_URL)" up
 sqlc:
 	cd backend && go tool sqlc generate
 db-reset:
 	docker compose down -v && docker compose up -d
 gen-api:
-	cd backend && go tool oapi-codegen -config oapi.yaml ../openapi.yaml > internal/api/gen.go
+	cd backend && go tool oapi-codegen -config oapi.yaml ../openapi.yaml > api/gen.go
 	cd frontend && \
 		pnpx openapi-typescript ../openapi.yaml -o ./src/shared/api/schema.d.ts && \
 		pnpm run fmt ./src/shared/api/schema.d.ts
