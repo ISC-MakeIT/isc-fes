@@ -24,7 +24,7 @@ RUN apk add --no-cache ca-certificates \
 
 COPY --from=builder /out/server /usr/local/bin/server
 COPY --from=migrate /usr/local/bin/migrate /usr/local/bin/migrate
-COPY internal/db/migrations /app/migrations
+COPY db/migrations /app/migrations
 
 USER app
 EXPOSE 8080

@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/isc-makeit/isc-fes/backend/internal/app"
-	"github.com/isc-makeit/isc-fes/backend/internal/config"
+	"github.com/isc-makeit/isc-fes/backend/app"
+	"github.com/isc-makeit/isc-fes/backend/config"
 	"github.com/joho/godotenv"
 )
 
