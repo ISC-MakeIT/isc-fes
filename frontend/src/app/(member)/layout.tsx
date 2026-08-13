@@ -1,3 +1,4 @@
+import { getAccount } from "@/entities/account";
 import { SESSION_COOKIE_NAME } from "@/shared/config";
 import { LOGIN_URL } from "@/shared/config";
 import { cookies } from "next/headers";
@@ -11,6 +12,9 @@ export default async function MemberLayout(props: LayoutProps<"/">) {
   const sessionCookie = (await cookies()).get(SESSION_COOKIE_NAME);
 
   if (!sessionCookie) redirect(LOGIN_URL);
+  // (member)直下は基本ログイン必須なのでここのlayoutでログインチェックする
+  const user = await getAccount();
+  if (!user) redirect(LOGIN_URL);
 
   return props.children;
 }
