@@ -9,7 +9,7 @@ import { Input } from "@/shared/ui/input";
 import { GENERIC_ERROR_MESSAGE, isClientError } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { Textarea } from "@/shared/ui/textarea";
-import { PreviewImage } from "./preview-image";
+import { PreviewImage } from "@/shared/ui/preview-image";
 import { SubmitButton } from "@/shared/ui/submit-button";
 import { HeadingCard } from "@/shared/ui/heading-card";
 
