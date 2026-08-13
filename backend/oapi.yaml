@@ -1,5 +1,5 @@
-package: api
-output: api/gen.go
+package: routers
+output: routers/gen.go
 generate:
   gin-server: true
   models: true

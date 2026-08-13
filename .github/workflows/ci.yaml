@@ -66,7 +66,7 @@ jobs:
       - name: Check generated code is up to date
         run: |
           generated_changes="$(git status --porcelain -- \
-            backend/api/gen.go \
+            backend/routers/gen.go \
             backend/db/sqlc \
             frontend/src/shared/api/schema.d.ts)"
 
@@ -74,14 +74,14 @@ jobs:
             echo "生成コードが最新ではありません。make gen-api と make sqlc を実行してください。"
             echo "$generated_changes"
             git diff -- \
-              backend/api/gen.go \
+              backend/routers/gen.go \
               backend/db/sqlc \
               frontend/src/shared/api/schema.d.ts
 
             while IFS= read -r -d '' file; do
               git diff --no-index -- /dev/null "$file" || true
             done < <(git ls-files --others --exclude-standard -z -- \
-              backend/api/gen.go \
+              backend/routers/gen.go \
               backend/db/sqlc \
               frontend/src/shared/api/schema.d.ts)
 

@@ -13,6 +13,6 @@ make db-up
 # localhost:8080 で Go の API サーバーを立てる（ホットリロード付き）
 make dev-api
 
-# ./openapi.yaml から Go のコードを ./backend/api/gen.go に生成する
+# ./openapi.yaml から Go のコードを ./backend/routers/gen.go に生成する
 make gen-api
 ```
