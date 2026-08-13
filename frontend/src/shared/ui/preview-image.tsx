@@ -30,7 +30,7 @@ export function PreviewImage({ imageFile, imagePath }: PreviewImageProps) {
     return () => {
       URL.revokeObjectURL(url);
     };
-  }, [imageFile]);
+  }, [imageFile, imagePath]);
 
   return (
     <AspectRatio
