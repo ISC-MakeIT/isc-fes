@@ -13,13 +13,12 @@ export function PreviewImage({ imageFile, imagePath }: PreviewImageProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!imageFile) {
-      setPreviewUrl(null);
-      return;
-    }
-
     if (imagePath) {
       setPreviewUrl(imagePath);
+      return;
+    }
+    if (!imageFile) {
+      setPreviewUrl(null);
       return;
     }
 
