@@ -43,7 +43,7 @@ type StoreCardShellProps = {
 
 function StoreCardShell({ image, title, description }: StoreCardShellProps) {
   return (
-    <Card className="grid-row-2 grid grid-cols-[1fr_1fr] gap-x-3 px-2 py-5">
+    <Card className="grid grid-cols-[1fr_1fr] grid-rows-2 gap-x-3 px-2 py-5">
       <CardHeader className="row-span-2">{image}</CardHeader>
       {/* divじゃなくて見出し、pタグを使いたいけど、pの中にSkeltonを流し込むとハイドレーションエラーになる https://nextjs.org/docs/messages/react-hydration-error */}
       <div className="line-clamp-2 self-start text-lg">{title}</div>
