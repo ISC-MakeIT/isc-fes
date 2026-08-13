@@ -37,19 +37,29 @@ export function StoreCardSkelton() {
 
 type StoreCardShellProps = {
   image: React.ReactNode;
-  title: React.ReactNode;
-  description: React.ReactNode;
+  title: React.ReactNode | string;
+  description: React.ReactNode | string;
 };
 
 function StoreCardShell({ image, title, description }: StoreCardShellProps) {
+  const titleStyle = "line-clamp-2 self-start text-lg";
+  const descriptionStyle =
+    "text-muted-foreground line-clamp-3 self-start text-sm";
+
   return (
     <Card className="grid grid-cols-[1fr_1fr] grid-rows-2 gap-x-3 px-2 py-5">
       <CardHeader className="row-span-2">{image}</CardHeader>
-      {/* divじゃなくて見出し、pタグを使いたいけど、pの中にSkeltonを流し込むとハイドレーションエラーになる https://nextjs.org/docs/messages/react-hydration-error */}
-      <div className="line-clamp-2 self-start text-lg">{title}</div>
-      <div className="text-muted-foreground line-clamp-3 self-start text-sm">
-        {description}
-      </div>
+      {typeof title === "string" ? (
+        <h3 className={titleStyle}>{title}</h3>
+      ) : (
+        <div className={descriptionStyle}>{title}</div>
+      )}
+
+      {typeof description === "string" ? (
+        <p className={descriptionStyle}>{description}</p>
+      ) : (
+        <div className={descriptionStyle}>{description}</div>
+      )}
     </Card>
   );
 }
