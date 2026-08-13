@@ -3,7 +3,7 @@ import { HeadingCard } from "@/shared/ui/heading-card";
 import { LinkButton } from "@/shared/ui/link-button";
 import { StoreList } from "./store-list";
 
-export async function StoreListView() {
+export async function StoresView() {
   return (
     <>
       <HeadingCard>店舗一覧</HeadingCard>
