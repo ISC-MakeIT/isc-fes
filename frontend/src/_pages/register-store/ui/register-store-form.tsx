@@ -7,7 +7,6 @@ import { useState } from "react";
 import { Field, FieldContent, FieldError, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { GENERIC_ERROR_MESSAGE, isClientError } from "@/shared/config";
-import { v } from "@/shared/lib/valibot";
 import { Textarea } from "@/shared/ui/textarea";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { SubmitButton } from "@/shared/ui/submit-button";
@@ -125,10 +124,8 @@ export function RegisterStoreForm() {
           <form.Field
             name="image"
             validators={{
-              onChange: ({ value }) =>
-                v.safeParse(CreateStoreFormImage, value).issues?.[0],
-              onMount: ({ value }) =>
-                v.safeParse(CreateStoreFormImage, value).issues?.[0],
+              onChange: CreateStoreFormImage,
+              onMount: CreateStoreFormImage,
               onSubmit: ({ value }) =>
                 // Input Fileはundefinedを許容しないと使えないので、ここでフォーム送信前のundefinedチェックを挟む
                 // もしくはここまではundefined許容したForm用のSchemaを使って、ここで店舗のSchemaでparseするべきかも
