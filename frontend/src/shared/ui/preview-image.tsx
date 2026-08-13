@@ -12,25 +12,22 @@ type PreviewImageProps =
   | { imageFile?: never; imagePath: string };
 
 export function PreviewImage({ imageFile, imagePath }: PreviewImageProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const previewUrl = imagePath ?? objectUrl;
 
   useEffect(() => {
-    if (imagePath) {
-      setPreviewUrl(imagePath);
-      return;
-    }
     if (!imageFile) {
-      setPreviewUrl(null);
+      setObjectUrl(null);
       return;
     }
 
     const url = URL.createObjectURL(imageFile);
-    setPreviewUrl(url);
+    setObjectUrl(url);
 
     return () => {
       URL.revokeObjectURL(url);
     };
-  }, [imageFile, imagePath]);
+  }, [imageFile]);
 
   return (
     <AspectRatio
