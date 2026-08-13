@@ -7,14 +7,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/isc-makeit/isc-fes/backend/api"
 	"github.com/isc-makeit/isc-fes/backend/auth"
 	"github.com/isc-makeit/isc-fes/backend/config"
 	db "github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/media"
-	"github.com/isc-makeit/isc-fes/backend/repository"
-	"github.com/isc-makeit/isc-fes/backend/repository/imageurl"
-	"github.com/isc-makeit/isc-fes/backend/service"
+	"github.com/isc-makeit/isc-fes/backend/repositories"
+	"github.com/isc-makeit/isc-fes/backend/repositories/imageurl"
+	"github.com/isc-makeit/isc-fes/backend/routers"
+	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -22,7 +22,7 @@ type dependencies struct {
 	pool               *pgxpool.Pool
 	sessions           *auth.Sessions
 	stopSessionCleanup func()
-	apiServer          *api.Server
+	apiServer          *routers.Server
 }
 
 func buildDependencies(
@@ -68,12 +68,12 @@ func buildDependencies(
 
 	queries := db.New(pool)
 
-	accountRepository := repository.NewAccountRepository(queries)
-	imageRepository := repository.NewS3Repository(
+	accountRepository := repositories.NewAccountRepository(queries)
+	imageRepository := repositories.NewS3Repository(
 		s3Client,
 		cfg.S3.Bucket,
 	)
-	var imgGenerator service.ImageURLGenerator
+	var imgGenerator services.ImageURLGenerator
 	if cfg.StoreImageBaseURL == "" {
 		imgGenerator = imageurl.NewS3ImageURLGenerator(s3Client, cfg.S3.Bucket, cfg.S3.UrlExpiresIn)
 	} else {
@@ -84,21 +84,21 @@ func buildDependencies(
 			return nil, fmt.Errorf("initialize store image URL generator: %w", err)
 		}
 	}
-	storeRepository := repository.NewStoreRepository(queries, pool)
-	storeMembershipApplicationsRepository := repository.NewStoreMembershipApplicationsRepository(
+	storeRepository := repositories.NewStoreRepository(queries, pool)
+	storeMembershipApplicationsRepository := repositories.NewStoreMembershipApplicationsRepository(
 		queries,
 	)
 
-	accountService := service.NewAccountService(
+	accountService := services.NewAccountService(
 		accountRepository,
 		sessions,
 	)
-	authService := service.NewAuthService(
+	authService := services.NewAuthService(
 		googleAuthenticator,
 		sessions,
 		accountRepository,
 	)
-	storeService := service.NewStoreService(
+	storeService := services.NewStoreService(
 		media.NewImageProcessor(),
 		imageRepository,
 		storeRepository,
@@ -106,18 +106,18 @@ func buildDependencies(
 		accountRepository,
 		imgGenerator,
 	)
-	storeMembershipApplicationsService := service.NewStoreMembershipApplicationsService(
+	storeMembershipApplicationsService := services.NewStoreMembershipApplicationsService(
 		storeRepository,
 		storeMembershipApplicationsRepository,
 		accountRepository,
 		sessions,
 	)
-	errorNotifier := service.NewErrorNotifier(
+	errorNotifier := services.NewErrorNotifier(
 		cfg.DiscordNotifier.WebhookURL,
 		cfg.DiscordNotifier.MentionUserIDs,
 	)
 
-	apiServer := api.NewServer(
+	apiServer := routers.NewServer(
 		queries,
 		sessions,
 		googleAuthenticator,

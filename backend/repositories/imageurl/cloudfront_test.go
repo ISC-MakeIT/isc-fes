@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/isc-makeit/isc-fes/backend/domain/entities"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 )
 
 func TestCloudFrontImageURLGeneratorGenerateStoreImageURL(t *testing.T) {

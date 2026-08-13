@@ -1,11 +1,11 @@
-package api
+package routers
 
 import (
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/isc-makeit/isc-fes/backend/service"
+	"github.com/isc-makeit/isc-fes/backend/services"
 )
 
 // OpenAPI 定義外の認証系のルートを登録する
@@ -30,7 +30,7 @@ func (s *Server) googleLogin(c *gin.Context) {
 
 func (s *Server) googleCallback(c *gin.Context) {
 	ctx := c.Request.Context()
-	input := service.CompleteLoginInput{
+	input := services.CompleteLoginInput{
 		Code:          c.Query("code"),
 		State:         c.Query("state"),
 		ProviderError: c.Query("error"),

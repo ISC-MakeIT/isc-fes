@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/isc-makeit/isc-fes/backend/api"
 	"github.com/isc-makeit/isc-fes/backend/config"
+	"github.com/isc-makeit/isc-fes/backend/routers"
 )
 
 type App struct {
@@ -19,7 +19,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return nil, err
 	}
 
-	router := api.NewRouter(
+	router := routers.NewRouter(
 		deps.apiServer,
 		cfg.HTTP.CORSAllowedOrigins,
 	)

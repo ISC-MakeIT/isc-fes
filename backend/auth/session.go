@@ -13,7 +13,7 @@ import (
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/google/uuid"
-	"github.com/isc-makeit/isc-fes/backend/service"
+	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/oauth2"
 )
@@ -94,18 +94,18 @@ func randomURLSafeToken() (string, error) {
 	return base64.RawURLEncoding.EncodeToString(data), nil
 }
 
-func (s *Sessions) BeginOAuth(ctx context.Context) (service.OAuthFlow, error) {
+func (s *Sessions) BeginOAuth(ctx context.Context) (services.OAuthFlow, error) {
 	state, err := randomURLSafeToken()
 	if err != nil {
-		return service.OAuthFlow{}, err
+		return services.OAuthFlow{}, err
 	}
 
 	nonce, err := randomURLSafeToken()
 	if err != nil {
-		return service.OAuthFlow{}, err
+		return services.OAuthFlow{}, err
 	}
 
-	flow := service.OAuthFlow{
+	flow := services.OAuthFlow{
 		State:        state,
 		Nonce:        nonce,
 		PKCEVerifier: oauth2.GenerateVerifier(),
@@ -123,7 +123,7 @@ func (s *Sessions) BeginOAuth(ctx context.Context) (service.OAuthFlow, error) {
 func (s *Sessions) ConsumeOAuth(
 	ctx context.Context,
 	receivedState string,
-) (service.OAuthFlow, error) {
+) (services.OAuthFlow, error) {
 	state := s.manager.GetString(ctx, oauthStateKey)
 	nonce := s.manager.GetString(ctx, oauthNonceKey)
 	pkceVerifier := s.manager.GetString(ctx, oauthPKCEVerifierKey)
@@ -133,14 +133,14 @@ func (s *Sessions) ConsumeOAuth(
 		nonce == "" ||
 		pkceVerifier == "" ||
 		startedAtText == "" {
-		return service.OAuthFlow{}, ErrOAuthFlowMissing
+		return services.OAuthFlow{}, ErrOAuthFlowMissing
 	}
 
 	if subtle.ConstantTimeCompare(
 		[]byte(receivedState),
 		[]byte(state),
 	) != 1 {
-		return service.OAuthFlow{}, ErrInvalidOAuthState
+		return services.OAuthFlow{}, ErrInvalidOAuthState
 	}
 
 	// 正しいstateを提示した場合だけ、OAuthフローを単回使用として削除する。
@@ -148,10 +148,10 @@ func (s *Sessions) ConsumeOAuth(
 
 	startedAt, err := time.Parse(time.RFC3339Nano, startedAtText)
 	if err != nil {
-		return service.OAuthFlow{}, fmt.Errorf("parse OAuth flow start time: %w", err)
+		return services.OAuthFlow{}, fmt.Errorf("parse OAuth flow start time: %w", err)
 	}
 
-	flow := service.OAuthFlow{
+	flow := services.OAuthFlow{
 		State:        state,
 		Nonce:        nonce,
 		PKCEVerifier: pkceVerifier,
@@ -160,7 +160,7 @@ func (s *Sessions) ConsumeOAuth(
 
 	age := time.Since(flow.StartedAt)
 	if age < 0 || age > oauthFlowLifetime {
-		return service.OAuthFlow{}, ErrOAuthFlowExpired
+		return services.OAuthFlow{}, ErrOAuthFlowExpired
 	}
 
 	return flow, nil
@@ -215,5 +215,5 @@ func (s *Sessions) SignOut(ctx context.Context) error {
 }
 
 var (
-	_ service.SessionManager = (*Sessions)(nil)
+	_ services.SessionManager = (*Sessions)(nil)
 )

@@ -1,4 +1,4 @@
-package repository
+package repositories
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
-	"github.com/isc-makeit/isc-fes/backend/domain/entities"
-	"github.com/isc-makeit/isc-fes/backend/service"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/utils"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -62,4 +62,4 @@ func timestamptzPtr(value pgtype.Timestamptz) *time.Time {
 	return &t
 }
 
-var _ service.StoreMembershipApplicationsRepository = (*StoreMembershipApplicationsRepository)(nil)
+var _ services.StoreMembershipApplicationsRepository = (*StoreMembershipApplicationsRepository)(nil)

@@ -1,4 +1,4 @@
-package service
+package services
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/isc-makeit/isc-fes/backend/domain/entities"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 )
 
 type AccountRepository interface {

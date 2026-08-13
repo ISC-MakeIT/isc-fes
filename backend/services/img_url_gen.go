@@ -1,9 +1,9 @@
-package service
+package services
 
 import (
 	"context"
 
-	"github.com/isc-makeit/isc-fes/backend/domain/entities"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 )
 
 type ImageURLGenerator interface {

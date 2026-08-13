@@ -1,10 +1,10 @@
-package api
+package routers
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/isc-makeit/isc-fes/backend/domain/entities"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	"github.com/isc-makeit/isc-fes/backend/utils"
 )
 

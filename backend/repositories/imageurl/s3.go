@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/isc-makeit/isc-fes/backend/domain/entities"
-	"github.com/isc-makeit/isc-fes/backend/service"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	"github.com/isc-makeit/isc-fes/backend/services"
 )
 
 // ローカルの S3 画像URL 生成器。S3 の Presigned URL を生成する。
@@ -49,4 +49,4 @@ func (r *S3ImageURLGenerator) GenerateStoreImageURL(ctx context.Context, objectK
 	return presignedReq.URL, nil
 }
 
-var _ service.ImageURLGenerator = (*S3ImageURLGenerator)(nil)
+var _ services.ImageURLGenerator = (*S3ImageURLGenerator)(nil)

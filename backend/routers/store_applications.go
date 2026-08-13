@@ -1,4 +1,4 @@
-package api
+package routers
 
 import (
 	"errors"
@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/isc-makeit/isc-fes/backend/domain/entities"
-	"github.com/isc-makeit/isc-fes/backend/service"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/utils"
 )
 
@@ -93,7 +93,7 @@ func (s *Server) CreateStoreApplication(c *gin.Context) {
 	}
 	defer image.Close()
 
-	storeApplication, err := s.store.CreateStoreApplication(ctx, service.CreateStoreApplicationServiceInput{
+	storeApplication, err := s.store.CreateStoreApplication(ctx, services.CreateStoreApplicationServiceInput{
 		Name:        form.Name,
 		Description: form.Description,
 		Room:        form.Room,
@@ -101,25 +101,25 @@ func (s *Server) CreateStoreApplication(c *gin.Context) {
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, service.ErrImageTooLarge):
+		case errors.Is(err, services.ErrImageTooLarge):
 			c.JSON(http.StatusRequestEntityTooLarge, ErrorResponse{
 				Message: "画像が大きすぎます。",
 			})
 			return
-		case errors.Is(err, service.ErrUnsupportedImageFormat):
+		case errors.Is(err, services.ErrUnsupportedImageFormat):
 			c.JSON(http.StatusUnsupportedMediaType, ErrorResponse{
 				Message: "対応していない画像形式です。JPEG、PNG、WebPを使用してください。",
 			})
 			return
-		case errors.Is(err, service.ErrEmptyImage),
-			errors.Is(err, service.ErrInvalidImage),
-			errors.Is(err, service.ErrImageDimensionsExceeded),
-			errors.Is(err, service.ErrProcessedImageTooLarge):
+		case errors.Is(err, services.ErrEmptyImage),
+			errors.Is(err, services.ErrInvalidImage),
+			errors.Is(err, services.ErrImageDimensionsExceeded),
+			errors.Is(err, services.ErrProcessedImageTooLarge):
 			c.JSON(http.StatusUnprocessableEntity, ErrorResponse{
 				Message: "画像の内容が不正です。",
 			})
 			return
-		case errors.Is(err, service.ErrFailedToStoreImage):
+		case errors.Is(err, services.ErrFailedToStoreImage):
 			c.JSON(http.StatusServiceUnavailable, ErrorResponse{
 				Message: "画像ストレージが一時的に利用できません。",
 			})
@@ -157,7 +157,7 @@ func (s *Server) UpdateStoreApplicationReviewStatus(c *gin.Context, storeID uuid
 
 	err := s.store.UpdateStoreApplicationReviewStatus(ctx, storeID, entities.StoreReviewStatus(body.ReviewStatus))
 	if err != nil {
-		if errors.Is(err, service.ErrInvalidStoreReviewStatusTransition) {
+		if errors.Is(err, services.ErrInvalidStoreReviewStatusTransition) {
 			c.JSON(http.StatusConflict, ErrorResponse{
 				Message: "不正なレビュー状態の遷移です",
 			})

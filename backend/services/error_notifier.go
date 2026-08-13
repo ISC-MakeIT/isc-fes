@@ -1,6 +1,6 @@
 // Discord に Webhook 経由で送信することで、想定外のエラーなどを開発者に通知するためのサービス
 
-package service
+package services
 
 import (
 	"bytes"

@@ -1,9 +1,9 @@
-package api
+package routers
 
 import (
 	"github.com/isc-makeit/isc-fes/backend/auth"
 	db "github.com/isc-makeit/isc-fes/backend/db/sqlc"
-	"github.com/isc-makeit/isc-fes/backend/service"
+	"github.com/isc-makeit/isc-fes/backend/services"
 )
 
 type Server struct {
@@ -11,11 +11,11 @@ type Server struct {
 	sessions                    *auth.Sessions
 	googleAuthenticator         *auth.GoogleAuthenticator
 	frontendURL                 string
-	accountService              *service.AccountService
-	auth                        *service.AuthService
-	store                       *service.StoreService
-	storeMembershipApplications *service.StoreMembershipApplicationsService
-	errorNotifier               *service.ErrorNotifier
+	accountService              *services.AccountService
+	auth                        *services.AuthService
+	store                       *services.StoreService
+	storeMembershipApplications *services.StoreMembershipApplicationsService
+	errorNotifier               *services.ErrorNotifier
 }
 
 func NewServer(
@@ -23,11 +23,11 @@ func NewServer(
 	sessions *auth.Sessions,
 	googleAuthenticator *auth.GoogleAuthenticator,
 	frontendURL string,
-	accountService *service.AccountService,
-	authService *service.AuthService,
-	storeService *service.StoreService,
-	storeMembershipApplicationsService *service.StoreMembershipApplicationsService,
-	errorNotifier *service.ErrorNotifier,
+	accountService *services.AccountService,
+	authService *services.AuthService,
+	storeService *services.StoreService,
+	storeMembershipApplicationsService *services.StoreMembershipApplicationsService,
+	errorNotifier *services.ErrorNotifier,
 ) *Server {
 	return &Server{
 		queries:                     queries,

@@ -1,12 +1,12 @@
-package repository
+package repositories
 
 import (
 	"context"
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
-	"github.com/isc-makeit/isc-fes/backend/domain/entities"
-	"github.com/isc-makeit/isc-fes/backend/service"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/utils"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -26,7 +26,7 @@ func NewStoreRepository(queries *sqlc.Queries, pool *pgxpool.Pool) *StoreReposit
 // 店舗申請を作成する
 // 内部的には店舗申請というテーブルはなく、review_status が pending の店舗を作成する
 // アカウントにも store_id を紐付け、店舗作成とともに一つのトランザクションで行う
-func (r *StoreRepository) CreateStoreApplication(ctx context.Context, input service.CreateStoreApplicationInput) (entities.Store, error) {
+func (r *StoreRepository) CreateStoreApplication(ctx context.Context, input services.CreateStoreApplicationInput) (entities.Store, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return entities.Store{}, err
@@ -143,4 +143,4 @@ func toStoreMember(dbStoreMember sqlc.StoreMember) entities.StoreMember {
 	}
 }
 
-var _ service.StoreRepository = (*StoreRepository)(nil)
+var _ services.StoreRepository = (*StoreRepository)(nil)

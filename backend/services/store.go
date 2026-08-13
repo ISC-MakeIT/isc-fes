@@ -1,4 +1,4 @@
-package service
+package services
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"io"
 
 	"github.com/google/uuid"
-	"github.com/isc-makeit/isc-fes/backend/domain/entities"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	"github.com/jackc/pgx/v5"
 )
 

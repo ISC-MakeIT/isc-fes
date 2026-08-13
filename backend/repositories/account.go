@@ -1,12 +1,12 @@
-package repository
+package repositories
 
 import (
 	"context"
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
-	"github.com/isc-makeit/isc-fes/backend/domain/entities"
-	"github.com/isc-makeit/isc-fes/backend/service"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	"github.com/isc-makeit/isc-fes/backend/services"
 )
 
 type AccountRepository struct {
@@ -28,7 +28,7 @@ func (r *AccountRepository) GetAccountByID(ctx context.Context, accountID uuid.U
 	return ToAccount(dbAccount), nil
 }
 
-func (r *AccountRepository) UpsertGoogleAccount(ctx context.Context, identity service.GoogleIdentity) (entities.Account, error) {
+func (r *AccountRepository) UpsertGoogleAccount(ctx context.Context, identity services.GoogleIdentity) (entities.Account, error) {
 	var pictureURL *string
 
 	if identity.PictureURL != "" {
@@ -60,4 +60,4 @@ func ToAccount(dbAccount sqlc.Account) entities.Account {
 	}
 }
 
-var _ service.AccountRepository = (*AccountRepository)(nil)
+var _ services.AccountRepository = (*AccountRepository)(nil)

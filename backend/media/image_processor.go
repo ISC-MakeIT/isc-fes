@@ -13,7 +13,7 @@ import (
 	_ "image/png"
 	"io"
 
-	"github.com/isc-makeit/isc-fes/backend/service"
+	"github.com/isc-makeit/isc-fes/backend/services"
 	xdraw "golang.org/x/image/draw"
 	_ "golang.org/x/image/webp"
 )
@@ -129,11 +129,11 @@ func validateStoreImageInputSize(reader io.ReadSeeker) error {
 
 	switch {
 	case size == 0:
-		return service.ErrEmptyImage
+		return services.ErrEmptyImage
 	case size > maxStoreImageInputBytes:
 		return fmt.Errorf(
 			"%w: got %d bytes, max %d bytes",
-			service.ErrImageTooLarge,
+			services.ErrImageTooLarge,
 			size,
 			maxStoreImageInputBytes,
 		)
@@ -153,7 +153,7 @@ func decodeStoreImageConfig(reader io.ReadSeeker) (image.Config, string, error) 
 	if err != nil {
 		return image.Config{}, "", fmt.Errorf(
 			"%w: decode store image config: %v",
-			service.ErrInvalidImage,
+			services.ErrInvalidImage,
 			err,
 		)
 	}
@@ -168,19 +168,19 @@ func validateStoreImageConfig(config image.Config, format string) error {
 	default:
 		return fmt.Errorf(
 			"%w: %q",
-			service.ErrUnsupportedImageFormat,
+			services.ErrUnsupportedImageFormat,
 			format,
 		)
 	}
 
 	if config.Width <= 0 || config.Height <= 0 {
-		return service.ErrInvalidImage
+		return services.ErrInvalidImage
 	}
 
 	if config.Width > maxStoreImageWidth || config.Height > maxStoreImageHeight {
 		return fmt.Errorf(
 			"%w: got %dx%d, max %dx%d",
-			service.ErrImageDimensionsExceeded,
+			services.ErrImageDimensionsExceeded,
 			config.Width,
 			config.Height,
 			maxStoreImageWidth,
@@ -192,7 +192,7 @@ func validateStoreImageConfig(config image.Config, format string) error {
 	if int64(config.Width) > maxStoreImagePixels/int64(config.Height) {
 		return fmt.Errorf(
 			"%w: got %dx%d, max %d pixels",
-			service.ErrImageDimensionsExceeded,
+			services.ErrImageDimensionsExceeded,
 			config.Width,
 			config.Height,
 			maxStoreImagePixels,
@@ -213,14 +213,14 @@ func decodeStoreImage(reader io.ReadSeeker, expectedFormat string) (image.Image,
 	if err != nil {
 		return nil, fmt.Errorf(
 			"%w: decode store image: %v",
-			service.ErrInvalidImage,
+			services.ErrInvalidImage,
 			err,
 		)
 	}
 	if format != expectedFormat {
 		return nil, fmt.Errorf(
 			"%w: config format %q differs from decoded format %q",
-			service.ErrInvalidImage,
+			services.ErrInvalidImage,
 			expectedFormat,
 			format,
 		)
@@ -237,12 +237,12 @@ func validateDecodedStoreImage(decoded image.Image, config image.Config) error {
 	height := bounds.Dy()
 
 	if width <= 0 || height <= 0 {
-		return service.ErrInvalidImage
+		return services.ErrInvalidImage
 	}
 	if width != config.Width || height != config.Height {
 		return fmt.Errorf(
 			"%w: config is %dx%d, decoded image is %dx%d",
-			service.ErrInvalidImage,
+			services.ErrInvalidImage,
 			config.Width,
 			config.Height,
 			width,
@@ -250,7 +250,7 @@ func validateDecodedStoreImage(decoded image.Image, config image.Config) error {
 		)
 	}
 	if int64(width) > maxStoreImagePixels/int64(height) {
-		return service.ErrImageDimensionsExceeded
+		return services.ErrImageDimensionsExceeded
 	}
 
 	return nil
@@ -321,7 +321,7 @@ func encodeStoreImageJPEG(source image.Image) ([]byte, error) {
 		source,
 		&jpeg.Options{Quality: storeImageJPEGQuality},
 	); err != nil {
-		if errors.Is(err, service.ErrProcessedImageTooLarge) {
+		if errors.Is(err, services.ErrProcessedImageTooLarge) {
 			return nil, err
 		}
 		return nil, fmt.Errorf("encode store image JPEG: %w", err)
@@ -348,7 +348,7 @@ type cappedBuffer struct {
 // Writeは、追加後のサイズが上限以内の場合だけデータを書き込む。
 func (w *cappedBuffer) Write(data []byte) (int, error) {
 	if w.buffer.Len()+len(data) > w.max {
-		return 0, service.ErrProcessedImageTooLarge
+		return 0, services.ErrProcessedImageTooLarge
 	}
 	return w.buffer.Write(data)
 }
@@ -358,4 +358,4 @@ func (w *cappedBuffer) Bytes() []byte {
 	return w.buffer.Bytes()
 }
 
-var _ service.ImageProcessor = (*ImageProcessor)(nil)
+var _ services.ImageProcessor = (*ImageProcessor)(nil)

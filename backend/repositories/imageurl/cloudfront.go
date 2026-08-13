@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/isc-makeit/isc-fes/backend/domain/entities"
-	"github.com/isc-makeit/isc-fes/backend/service"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	"github.com/isc-makeit/isc-fes/backend/services"
 )
 
 // CloudFrontImageURLGenerator generates public store image URLs served by CloudFront.
@@ -41,4 +41,4 @@ func (g *CloudFrontImageURLGenerator) GenerateStoreImageURL(_ context.Context, o
 	return imageURL, nil
 }
 
-var _ service.ImageURLGenerator = (*CloudFrontImageURLGenerator)(nil)
+var _ services.ImageURLGenerator = (*CloudFrontImageURLGenerator)(nil)

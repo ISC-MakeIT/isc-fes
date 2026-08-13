@@ -1,4 +1,4 @@
-package api
+package routers
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/isc-makeit/isc-fes/backend/service"
+	"github.com/isc-makeit/isc-fes/backend/services"
 )
 
 type CommonErrorMessages struct {
@@ -48,17 +48,17 @@ func (s *Server) handleCommonServiceErrors(c *gin.Context, err error, options ..
 	}
 
 	switch {
-	case errors.Is(err, service.ErrUnauthenticated):
+	case errors.Is(err, services.ErrUnauthenticated):
 		c.JSON(http.StatusUnauthorized, ErrorResponse{
 			Message: messages.Unauthenticated,
 		})
 		return
-	case errors.Is(err, service.ErrForbidden):
+	case errors.Is(err, services.ErrForbidden):
 		c.JSON(http.StatusForbidden, ErrorResponse{
 			Message: messages.Forbidden,
 		})
 		return
-	case errors.Is(err, service.ErrNotFound):
+	case errors.Is(err, services.ErrNotFound):
 		c.JSON(http.StatusNotFound, ErrorResponse{
 			Message: messages.NotFound,
 		})

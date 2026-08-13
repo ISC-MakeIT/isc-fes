@@ -1,4 +1,4 @@
-package repository
+package repositories
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/isc-makeit/isc-fes/backend/domain/entities"
-	"github.com/isc-makeit/isc-fes/backend/service"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	"github.com/isc-makeit/isc-fes/backend/services"
 )
 
 type S3Repository struct {
@@ -61,4 +61,4 @@ func (r *S3Repository) DeleteObject(ctx context.Context, objectKey entities.Stor
 	return nil
 }
 
-var _ service.StoreImageRepository = (*S3Repository)(nil)
+var _ services.StoreImageRepository = (*S3Repository)(nil)
