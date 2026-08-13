@@ -1,9 +1,8 @@
 import { REGISTER_STORE_URL } from "@/shared/config";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { LinkButton } from "@/shared/ui/link-button";
-import { StoreList } from "./store-list";
+import { StoreCardSkelton, StoreList } from "./store-list";
 import { Suspense } from "react";
-import { Skeleton } from "@/shared/ui/skeleton";
 
 export function StoresView() {
   return (
@@ -17,7 +16,7 @@ export function StoresView() {
         をもらうか、<span className="text-red-500">新規店舗申請</span>
         をして新しく店舗を登録してください。
       </p>
-      <Suspense fallback={<Skeleton />}>
+      <Suspense fallback={<StoreCardSkelton />}>
         <StoreList />
       </Suspense>
 
