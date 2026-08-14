@@ -2,13 +2,14 @@ import { createApiClient } from "@/shared/api";
 import { components } from "@/shared/api/";
 import { CreateStoreForm } from "../model/types";
 import { buildFormDataBody } from "../lib/build-form-data-body";
+import { getStatusMessage } from "@/shared/config";
 
 type CreateStoreApplicationResponse =
   components["schemas"]["CreateStoreApplicationResponse"];
 
 export type CreateStoreApplicationResult =
-  | { data: CreateStoreApplicationResponse; error?: never; response?: never }
-  | { data?: never; error: string; response: Response };
+  | { data: CreateStoreApplicationResponse; error?: never }
+  | { data?: never; error: string };
 
 /**
  * 店舗を新規作成するAPI
@@ -26,7 +27,8 @@ export async function createStoreApplication(
   });
 
   if (error) {
-    return { error: error.message, response };
+    const errorMessage = getStatusMessage(response.status);
+    return { error: errorMessage };
   }
 
   return { data };

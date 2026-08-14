@@ -7,9 +7,9 @@ export {
 } from "./constants/urls";
 
 export {
-  STATUS_CODES,
-  GENERIC_ERROR_MESSAGE,
+  STATUS,
   isClientError,
+  getStatusMessage,
 } from "./constants/status-codes";
 
 export { visibleStores } from "./constants/query-keys";
