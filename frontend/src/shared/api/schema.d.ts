@@ -580,7 +580,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description 店舗が存在しない */
+      /** @description 店舗が存在しないか、店舗のメンバーではない */
       404: {
         headers: {
           [name: string]: unknown;

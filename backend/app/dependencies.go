@@ -13,8 +13,11 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/media"
 	"github.com/isc-makeit/isc-fes/backend/repositories"
 	"github.com/isc-makeit/isc-fes/backend/repositories/imageurl"
+	invRepo "github.com/isc-makeit/isc-fes/backend/repositories/stores/invitations"
+	"github.com/isc-makeit/isc-fes/backend/repositories/stores/members"
 	"github.com/isc-makeit/isc-fes/backend/routers"
 	"github.com/isc-makeit/isc-fes/backend/services"
+	"github.com/isc-makeit/isc-fes/backend/services/store/invitations"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -85,6 +88,8 @@ func buildDependencies(
 		}
 	}
 	storeRepository := repositories.NewStoreRepository(queries, pool)
+	storeMemberRepository := members.NewStoreMemberRepository(queries)
+	storeInvitationRepository := invRepo.NewStoreInvitationRepository(queries)
 
 	accountService := services.NewAccountService(
 		accountRepository,
@@ -102,6 +107,7 @@ func buildDependencies(
 		sessions,
 		imgGenerator,
 	)
+	storeInvitationService := invitations.NewStoreInvitationService(storeMemberRepository, storeInvitationRepository)
 	errorNotifier := services.NewErrorNotifier(
 		cfg.DiscordNotifier.WebhookURL,
 		cfg.DiscordNotifier.MentionUserIDs,
@@ -115,6 +121,7 @@ func buildDependencies(
 		accountService,
 		authService,
 		storeService,
+		storeInvitationService,
 		errorNotifier,
 	)
 

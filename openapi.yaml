@@ -313,7 +313,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
-          description: 店舗が存在しない
+          description: 店舗が存在しないか、店舗のメンバーではない
           content:
             application/json:
               schema:
