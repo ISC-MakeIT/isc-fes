@@ -580,6 +580,15 @@ export interface operations {
           "application/json": components["schemas"]["Store"];
         };
       };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
       /** @description 店舗が存在しない、または承認済みではない */
       404: {
         headers: {

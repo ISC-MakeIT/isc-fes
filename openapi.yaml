@@ -274,6 +274,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Store"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: 店舗が存在しない、または承認済みではない
           content:
