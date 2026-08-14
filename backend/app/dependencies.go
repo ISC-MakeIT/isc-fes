@@ -89,7 +89,7 @@ func buildDependencies(
 	}
 	storeRepository := repositories.NewStoreRepository(queries, pool)
 	storeMemberRepository := members.NewStoreMemberRepository(queries)
-	storeInvitationRepository := invRepo.NewStoreInvitationRepository(queries)
+	storeInvitationRepository := invRepo.NewStoreInvitationRepository(queries, pool)
 
 	accountService := services.NewAccountService(
 		accountRepository,

@@ -56,35 +56,6 @@ func (q *Queries) CreateStore(ctx context.Context, arg CreateStoreParams) (Store
 	return i, err
 }
 
-const createStoreMember = `-- name: CreateStoreMember :one
-INSERT INTO store_members (
-    store_id,
-    account_id,
-    role
-) VALUES (
-    $1, $2, $3
-)
-RETURNING store_id, account_id, role, joined_at
-`
-
-type CreateStoreMemberParams struct {
-	StoreID   uuid.UUID       `json:"store_id"`
-	AccountID uuid.UUID       `json:"account_id"`
-	Role      StoreMemberRole `json:"role"`
-}
-
-func (q *Queries) CreateStoreMember(ctx context.Context, arg CreateStoreMemberParams) (StoreMember, error) {
-	row := q.db.QueryRow(ctx, createStoreMember, arg.StoreID, arg.AccountID, arg.Role)
-	var i StoreMember
-	err := row.Scan(
-		&i.StoreID,
-		&i.AccountID,
-		&i.Role,
-		&i.JoinedAt,
-	)
-	return i, err
-}
-
 const getApprovedStores = `-- name: GetApprovedStores :many
 SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
 FROM stores

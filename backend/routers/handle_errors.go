@@ -13,6 +13,7 @@ type CommonErrorMessages struct {
 	Unauthenticated string
 	Forbidden       string
 	NotFound        string
+	Conflict        string
 	Internal        string
 }
 
@@ -20,6 +21,7 @@ var defaultCommonErrorMessages = CommonErrorMessages{
 	Unauthenticated: "未ログインです",
 	Forbidden:       "この操作を行う権限がありません",
 	NotFound:        "対象が見つかりません",
+	Conflict:        "操作が競合しています",
 	Internal:        "サーバー内部でエラーが発生しました",
 }
 
@@ -32,6 +34,9 @@ func (m CommonErrorMessages) withDefaults() CommonErrorMessages {
 	}
 	if m.NotFound == "" {
 		m.NotFound = defaultCommonErrorMessages.NotFound
+	}
+	if m.Conflict == "" {
+		m.Conflict = defaultCommonErrorMessages.Conflict
 	}
 	if m.Internal == "" {
 		m.Internal = defaultCommonErrorMessages.Internal
@@ -61,6 +66,11 @@ func (s *Server) handleCommonServiceErrors(c *gin.Context, err error, options ..
 	case errors.Is(err, services.ErrNotFound):
 		c.JSON(http.StatusNotFound, ErrorResponse{
 			Message: messages.NotFound,
+		})
+		return
+	case errors.Is(err, services.ErrConflict):
+		c.JSON(http.StatusConflict, ErrorResponse{
+			Message: messages.Conflict,
 		})
 		return
 	default:

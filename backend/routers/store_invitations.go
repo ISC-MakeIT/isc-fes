@@ -30,3 +30,16 @@ func (s *Server) CreateStoreInvitation(c *gin.Context, storeID uuid.UUID) {
 		CreatedAt: inv.CreatedAt,
 	})
 }
+
+func (s *Server) AcceptStoreInvitation(c *gin.Context, invitationID uuid.UUID) {
+	inv, err := s.storeInvitation.AcceptStoreInvitation(c.Request.Context(), invitationID)
+	if err != nil {
+		s.handleCommonServiceErrors(c, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, AcceptStoreInvitationResponse{
+		StoreId: inv.StoreID,
+		Role:    StoreMemberRole(inv.Role),
+	})
+}
