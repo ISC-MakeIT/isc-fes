@@ -96,6 +96,7 @@ func (q *Queries) GetApprovedStores(ctx context.Context) ([]Store, error) {
 const getStoreApplications = `-- name: GetStoreApplications :many
 SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
 FROM stores
+WHERE review_status = 'pending'
 ORDER BY created_at DESC
 `
 
