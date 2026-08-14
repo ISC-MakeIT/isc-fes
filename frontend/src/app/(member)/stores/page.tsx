@@ -1,5 +1,5 @@
-import { StoreListView } from "@/_pages/store-list/";
+import { StoresView } from "@/_pages/stores";
 
-export default function StoreListPage() {
-  return <StoreListView />;
+export default function StorePage() {
+  return <StoresView />;
 }
