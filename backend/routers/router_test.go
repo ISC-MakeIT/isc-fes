@@ -1,13 +1,57 @@
 package routers
 
 import (
+	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	"github.com/isc-makeit/isc-fes/backend/services"
 )
+
+type stubCurrentAccountLoader struct {
+	account entities.Account
+	err     error
+	calls   int
+}
+
+func (s *stubCurrentAccountLoader) GetCurrentAccount(context.Context) (entities.Account, error) {
+	s.calls++
+	return s.account, s.err
+}
+
+func mustOpenAPIRequestValidator(
+	t *testing.T,
+	accountLoader currentAccountLoader,
+) gin.HandlerFunc {
+	t.Helper()
+
+	validator, err := newOpenAPIRequestValidator(
+		accountLoader,
+		func(c *gin.Context, err error) {
+			if errors.Is(err, services.ErrUnauthenticated) {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, ErrorResponse{
+					Message: "未ログインです",
+				})
+				return
+			}
+
+			c.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{
+				Message: "サーバー内部でエラーが発生しました",
+			})
+		},
+	)
+	if err != nil {
+		t.Fatalf("newOpenAPIRequestValidator() error = %v", err)
+	}
+
+	return validator
+}
 
 func TestRouterCORSAllowedOrigins(t *testing.T) {
 	allowedOrigins := []string{
@@ -56,10 +100,8 @@ func TestRouterCORSRejectsUnknownOrigin(t *testing.T) {
 }
 
 func TestOpenAPIRequestValidatorAcceptsValidRequest(t *testing.T) {
-	validator, err := newOpenAPIRequestValidator()
-	if err != nil {
-		t.Fatalf("newOpenAPIRequestValidator() error = %v", err)
-	}
+	accountLoader := &stubCurrentAccountLoader{}
+	validator := mustOpenAPIRequestValidator(t, accountLoader)
 
 	router := gin.New()
 	router.GET("/health", validator, func(c *gin.Context) {
@@ -74,16 +116,30 @@ func TestOpenAPIRequestValidatorAcceptsValidRequest(t *testing.T) {
 	if response.Code != http.StatusNoContent {
 		t.Errorf("status = %d, want %d", response.Code, http.StatusNoContent)
 	}
+	if accountLoader.calls != 0 {
+		t.Errorf("GetCurrentAccount() calls = %d, want 0", accountLoader.calls)
+	}
 }
 
-func TestOpenAPIRequestValidatorDelegatesAuthentication(t *testing.T) {
-	validator, err := newOpenAPIRequestValidator()
-	if err != nil {
-		t.Fatalf("newOpenAPIRequestValidator() error = %v", err)
-	}
+func TestOpenAPIRequestValidatorStoresAuthenticatedAccount(t *testing.T) {
+	want := entities.Account{ID: uuid.New()}
+	accountLoader := &stubCurrentAccountLoader{account: want}
+	validator := mustOpenAPIRequestValidator(t, accountLoader)
 
 	router := gin.New()
 	router.GET("/me", validator, func(c *gin.Context) {
+		got, err := services.RequireAuthenticatedAccount(c.Request.Context())
+		if err != nil {
+			t.Error("authenticated account was not stored in request context")
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		if got.ID != want.ID {
+			t.Errorf("account ID = %s, want %s", got.ID, want.ID)
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+
 		c.Status(http.StatusNoContent)
 	})
 
@@ -95,13 +151,61 @@ func TestOpenAPIRequestValidatorDelegatesAuthentication(t *testing.T) {
 	if response.Code != http.StatusNoContent {
 		t.Errorf("status = %d, want %d", response.Code, http.StatusNoContent)
 	}
+	if accountLoader.calls != 1 {
+		t.Errorf("GetCurrentAccount() calls = %d, want 1", accountLoader.calls)
+	}
+}
+
+func TestOpenAPIRequestValidatorRejectsUnauthenticatedRequest(t *testing.T) {
+	accountLoader := &stubCurrentAccountLoader{err: services.ErrUnauthenticated}
+	validator := mustOpenAPIRequestValidator(t, accountLoader)
+
+	router := gin.New()
+	handlerCalled := false
+	router.GET("/me", validator, func(c *gin.Context) {
+		handlerCalled = true
+		c.Status(http.StatusNoContent)
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/me", nil)
+	response := httptest.NewRecorder()
+
+	router.ServeHTTP(response, request)
+
+	if response.Code != http.StatusUnauthorized {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusUnauthorized)
+	}
+	if handlerCalled {
+		t.Error("handler was called for an unauthenticated request")
+	}
+}
+
+func TestOpenAPIRequestValidatorReturnsInternalServerErrorOnAccountLoadFailure(t *testing.T) {
+	accountLoader := &stubCurrentAccountLoader{err: errors.New("database unavailable")}
+	validator := mustOpenAPIRequestValidator(t, accountLoader)
+
+	router := gin.New()
+	handlerCalled := false
+	router.GET("/me", validator, func(c *gin.Context) {
+		handlerCalled = true
+		c.Status(http.StatusNoContent)
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/me", nil)
+	response := httptest.NewRecorder()
+
+	router.ServeHTTP(response, request)
+
+	if response.Code != http.StatusInternalServerError {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusInternalServerError)
+	}
+	if handlerCalled {
+		t.Error("handler was called when loading the account failed")
+	}
 }
 
 func TestOpenAPIRequestValidatorRejectsInvalidRequest(t *testing.T) {
-	validator, err := newOpenAPIRequestValidator()
-	if err != nil {
-		t.Fatalf("newOpenAPIRequestValidator() error = %v", err)
-	}
+	validator := mustOpenAPIRequestValidator(t, &stubCurrentAccountLoader{})
 
 	router := gin.New()
 	handlerCalled := false
