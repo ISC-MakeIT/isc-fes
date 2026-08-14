@@ -58,7 +58,7 @@ function StoreCardShell({ image, title, description }: StoreCardShellProps) {
       {typeof title === "string" ? (
         <h3 className={titleStyle}>{title}</h3>
       ) : (
-        <div className={descriptionStyle}>{title}</div>
+        <div className={titleStyle}>{title}</div>
       )}
 
       {typeof description === "string" ? (
