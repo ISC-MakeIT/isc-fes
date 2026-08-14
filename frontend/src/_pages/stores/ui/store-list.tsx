@@ -3,6 +3,7 @@ import { fetchVisibleStores } from "../api/fetchVisibleStores";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { Store } from "@/entities/store";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { Mask } from "@/shared/ui/mask";
 
 export async function StoreList() {
   const stores = await fetchVisibleStores();
@@ -16,12 +17,17 @@ type StoreCardProps = {
 
 // TODO: 他でも使うようになったらentities/storesに切り出す
 export function StoreCard({ store }: StoreCardProps) {
+  const isPending = store.reviewStatus === "pending";
   return (
-    <StoreCardShell
-      image={<PreviewImage imagePath={store.imageUrl} />}
-      title={store.name}
-      description={store.description}
-    />
+    <div className="border-primary overflow-hidden rounded-xl border-2">
+      <Mask active={isPending} label="申請中">
+        <StoreCardShell
+          image={<PreviewImage imagePath={store.imageUrl} />}
+          title={store.name}
+          description={store.description}
+        />
+      </Mask>
+    </div>
   );
 }
 
