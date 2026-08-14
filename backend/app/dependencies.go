@@ -103,14 +103,11 @@ func buildDependencies(
 		imageRepository,
 		storeRepository,
 		sessions,
-		accountRepository,
 		imgGenerator,
 	)
 	storeMembershipApplicationsService := services.NewStoreMembershipApplicationsService(
 		storeRepository,
 		storeMembershipApplicationsRepository,
-		accountRepository,
-		sessions,
 	)
 	errorNotifier := services.NewErrorNotifier(
 		cfg.DiscordNotifier.WebhookURL,

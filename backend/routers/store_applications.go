@@ -12,6 +12,12 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/utils"
 )
 
+const (
+	maxImageSize       = 10 << 20 // 画像本体の上限
+	maxMultipartMargin = 1 << 20  // マルチパート形式の付加情報に許容する余白
+	maxRequestBodySize = maxImageSize + maxMultipartMargin
+)
+
 func (s *Server) GetStoreApplications(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -40,12 +46,6 @@ func (s *Server) GetStoreApplications(c *gin.Context) {
 // TODO: リクエスト上限、画像サイズ、サービスエラーの HTTP 変換をハンドラーテストで網羅する。
 func (s *Server) CreateStoreApplication(c *gin.Context) {
 	ctx := c.Request.Context()
-
-	const (
-		maxImageSize       = 10 << 20 // 画像本体の上限
-		maxMultipartMargin = 1 << 20  // マルチパート形式の付加情報に許容する余白
-		maxRequestBodySize = maxImageSize + maxMultipartMargin
-	)
 
 	// TODO: 認証ミドルウェアでアカウントを確定してから multipart body を解析し、未認証リクエストの解析コストを避ける。
 	c.Request.Body = http.MaxBytesReader(

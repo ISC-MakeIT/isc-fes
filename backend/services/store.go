@@ -50,12 +50,11 @@ type CreateStoreApplicationServiceInput struct {
 }
 
 type StoreService struct {
-	imageProcessor    ImageProcessor
-	imageRepository   StoreImageRepository
-	storeRepository   StoreRepository
-	accountRepository AccountRepository
-	imgGenerator      ImageURLGenerator
-	sessions          SessionManager
+	imageProcessor  ImageProcessor
+	imageRepository StoreImageRepository
+	storeRepository StoreRepository
+	imgGenerator    ImageURLGenerator
+	sessions        SessionManager
 }
 
 func NewStoreService(
@@ -63,31 +62,21 @@ func NewStoreService(
 	imageRepository StoreImageRepository,
 	storeRepository StoreRepository,
 	sessions SessionManager,
-	accountRepository AccountRepository,
 	imgGenerator ImageURLGenerator,
 ) *StoreService {
 	return &StoreService{
-		imageProcessor:    imageProcessor,
-		imageRepository:   imageRepository,
-		storeRepository:   storeRepository,
-		accountRepository: accountRepository,
-		imgGenerator:      imgGenerator,
-		sessions:          sessions,
+		imageProcessor:  imageProcessor,
+		imageRepository: imageRepository,
+		storeRepository: storeRepository,
+		imgGenerator:    imgGenerator,
+		sessions:        sessions,
 	}
 }
 
 func (s *StoreService) GetStoreApplications(ctx context.Context) ([]entities.StoreOutput, error) {
-	accountID, err := s.sessions.AccountID(ctx)
+	account, err := RequireAuthenticatedAccount(ctx)
 	if err != nil {
-		return []entities.StoreOutput{}, ErrUnauthenticated
-	}
-
-	account, err := s.accountRepository.GetAccountByID(ctx, accountID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return []entities.StoreOutput{}, ErrUnauthenticated
-		}
-		return []entities.StoreOutput{}, fmt.Errorf("failed to get account: %w", err)
+		return []entities.StoreOutput{}, err
 	}
 
 	if !entities.CanSeeStoreApplications(account) {
@@ -126,9 +115,9 @@ var (
 
 // TODO: 正常系、非対応形式、S3 Put 失敗、DB 失敗、補償 Delete 失敗を StoreService の単体テストで網羅する。
 func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateStoreApplicationServiceInput) (entities.Store, error) {
-	accountID, err := s.sessions.AccountID(ctx)
+	account, err := RequireAuthenticatedAccount(ctx)
 	if err != nil {
-		return entities.Store{}, ErrUnauthenticated
+		return entities.Store{}, err
 	}
 
 	storeID, err := uuid.NewRandom()
@@ -153,7 +142,7 @@ func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateS
 
 	store, err := s.storeRepository.CreateStoreApplication(ctx, CreateStoreApplicationInput{
 		ID:             storeID,
-		AccountID:      accountID,
+		AccountID:      account.ID,
 		Name:           input.Name,
 		Room:           input.Room,
 		Description:    input.Description,
@@ -175,17 +164,9 @@ var (
 )
 
 func (s *StoreService) UpdateStoreApplicationReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error {
-	accID, err := s.sessions.AccountID(ctx)
+	account, err := RequireAuthenticatedAccount(ctx)
 	if err != nil {
-		return errors.Join(err, ErrUnauthenticated)
-	}
-
-	account, err := s.accountRepository.GetAccountByID(ctx, accID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return fmt.Errorf("account not found by account id from session: %w", ErrUnauthenticated)
-		}
-		return fmt.Errorf("failed to get account: %w", err)
+		return err
 	}
 
 	if !account.CanUpdateStoreReviewStatus() {

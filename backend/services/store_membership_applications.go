@@ -16,17 +16,15 @@ type StoreMembershipApplicationsRepository interface {
 type StoreMembershipApplicationsService struct {
 	storeRepository                       StoreRepository
 	storeMembershipApplicationsRepository StoreMembershipApplicationsRepository
-	accountRepository                     AccountRepository
-	sessionManager                        SessionManager
 }
 
 func (s *StoreMembershipApplicationsService) GetMyStoreMembershipApplications(ctx context.Context) ([]entities.StoreMembershipApplication, error) {
-	accountID, err := s.sessionManager.AccountID(ctx)
+	account, err := RequireAuthenticatedAccount(ctx)
 	if err != nil {
-		return []entities.StoreMembershipApplication{}, ErrUnauthenticated
+		return []entities.StoreMembershipApplication{}, err
 	}
 
-	myStoreMembershipApplications, err := s.storeMembershipApplicationsRepository.GetStoreMembershipApplicationsByAccountID(ctx, accountID)
+	myStoreMembershipApplications, err := s.storeMembershipApplicationsRepository.GetStoreMembershipApplicationsByAccountID(ctx, account.ID)
 	if err != nil {
 		return []entities.StoreMembershipApplication{}, err
 	}
@@ -35,17 +33,12 @@ func (s *StoreMembershipApplicationsService) GetMyStoreMembershipApplications(ct
 }
 
 func (s *StoreMembershipApplicationsService) GetStoreMembershipApplicationsByStoreID(ctx context.Context, storeID uuid.UUID) ([]entities.StoreMembershipApplication, error) {
-	accountID, err := s.sessionManager.AccountID(ctx)
+	account, err := RequireAuthenticatedAccount(ctx)
 	if err != nil {
-		return []entities.StoreMembershipApplication{}, ErrUnauthenticated
+		return []entities.StoreMembershipApplication{}, err
 	}
 
-	account, err := s.accountRepository.GetAccountByID(ctx, accountID)
-	if err != nil {
-		return []entities.StoreMembershipApplication{}, ErrUnauthenticated
-	}
-
-	accountStoreMemberships, err := s.storeRepository.GetStoreMembershipsByAccountID(ctx, accountID)
+	accountStoreMemberships, err := s.storeRepository.GetStoreMembershipsByAccountID(ctx, account.ID)
 	if err != nil {
 		return []entities.StoreMembershipApplication{}, ErrForbidden
 	}
@@ -65,11 +58,12 @@ func (s *StoreMembershipApplicationsService) GetStoreMembershipApplicationsBySto
 	return s.storeMembershipApplicationsRepository.GetStoreMembershipApplicationsByStoreID(ctx, storeID)
 }
 
-func NewStoreMembershipApplicationsService(storeRepository StoreRepository, storeMembershipApplicationsRepository StoreMembershipApplicationsRepository, accountRepository AccountRepository, sessionManager SessionManager) *StoreMembershipApplicationsService {
+func NewStoreMembershipApplicationsService(
+	storeRepository StoreRepository,
+	storeMembershipApplicationsRepository StoreMembershipApplicationsRepository,
+) *StoreMembershipApplicationsService {
 	return &StoreMembershipApplicationsService{
 		storeRepository:                       storeRepository,
 		storeMembershipApplicationsRepository: storeMembershipApplicationsRepository,
-		accountRepository:                     accountRepository,
-		sessionManager:                        sessionManager,
 	}
 }
