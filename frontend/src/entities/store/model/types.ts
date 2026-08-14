@@ -1,6 +1,11 @@
 import { v } from "@/shared/lib/valibot";
 
-const StoreReviewStatus = v.picklist(["pending", "approved", "rejected"]);
+export enum StoreReviewStatus {
+  Pending = "pending",
+  Approved = "approved",
+  Rejected = "rejected",
+}
+const StoreReviewStatusSchema = v.enum(StoreReviewStatus);
 
 export const StoreName = v.pipe(
   v.string(),
@@ -26,7 +31,7 @@ export const Store = v.object({
   room: StoreRoom,
   description: StoreDescription,
   imageUrl: v.string(),
-  reviewStatus: StoreReviewStatus,
+  reviewStatus: StoreReviewStatusSchema,
 });
 
 export type Store = v.InferOutput<typeof Store>;
