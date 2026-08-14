@@ -32,6 +32,7 @@ ORDER BY created_at DESC;
 -- name: GetStoreApplications :many
 SELECT *
 FROM stores
+WHERE review_status = 'pending'
 ORDER BY created_at DESC;
 
 -- name: GetStoreByID :one
