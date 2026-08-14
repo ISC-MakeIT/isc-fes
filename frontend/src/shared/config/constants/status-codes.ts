@@ -19,7 +19,7 @@ export function getErrorMessage(status: number): string {
     case STATUS_CODES.FORBIDDEN:
       return "この操作を行う権限がありません";
     case STATUS_CODES.NOT_FOUND:
-      return "この操作を行う権限がありません。";
+      return "対象が見つかりません";
     case STATUS_CODES.CONFLICT:
       return "既に登録されている内容と重複しています。内容をご確認ください。";
     case STATUS_CODES.PAYLOAD_TOO_LARGE:
