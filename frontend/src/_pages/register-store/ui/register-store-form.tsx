@@ -14,7 +14,7 @@ import {
 import { Textarea } from "@/shared/ui/textarea";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { SubmitButton } from "@/shared/ui/submit-button";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -24,6 +24,7 @@ const defaultFormValue: CreateStoreForm = {
 };
 
 export function RegisterStoreForm() {
+  const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const form = useForm({
     defaultValues: defaultFormValue,
@@ -34,7 +35,7 @@ export function RegisterStoreForm() {
       const { data, error, response } = await createStoreApplication(value);
 
       if (data) {
-        useRouter().push(STORE_LIST_URL);
+        router.push(STORE_LIST_URL);
         return;
       }
 
