@@ -12,7 +12,7 @@ import (
 func (s *Server) CreateStoreInvitation(c *gin.Context, storeID uuid.UUID) {
 	var body CreateStoreInvitationJSONBody
 	if err := c.ShouldBindJSON(&body); err != nil {
-		s.handleCommonServiceErrors(c, errors.New("Middleware で検証しているはずの値のシリアライズに失敗"))
+		s.handleCommonServiceErrors(c, errors.New("middleware で検証しているはずの値のシリアライズに失敗"))
 		return
 	}
 
