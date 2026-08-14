@@ -1,8 +1,11 @@
 package routers
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -80,6 +83,35 @@ func limitRequestBody(maxBytes int64) gin.HandlerFunc {
 				Message: "リクエストが大きすぎます",
 			})
 			return
+		}
+
+		if c.Request.ContentLength < 0 {
+			limitedBody := http.MaxBytesReader(c.Writer, c.Request.Body, maxBytes)
+			body, err := io.ReadAll(limitedBody)
+			closeErr := limitedBody.Close()
+			if err == nil {
+				err = closeErr
+			}
+
+			var maxBytesError *http.MaxBytesError
+			if errors.As(err, &maxBytesError) {
+				c.AbortWithStatusJSON(http.StatusRequestEntityTooLarge, ErrorResponse{
+					Message: "リクエストが大きすぎます",
+				})
+				return
+			}
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{
+					Message: "リクエスト本文を読み込めません",
+				})
+				return
+			}
+
+			c.Request.ContentLength = int64(len(body))
+			c.Request.GetBody = func() (io.ReadCloser, error) {
+				return io.NopCloser(bytes.NewReader(body)), nil
+			}
+			c.Request.Body, _ = c.Request.GetBody()
 		}
 
 		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxBytes)

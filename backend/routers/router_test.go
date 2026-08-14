@@ -3,6 +3,7 @@ package routers
 import (
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -65,7 +66,7 @@ func TestRouterCORSAllowedOrigins(t *testing.T) {
 
 	for _, origin := range allowedOrigins {
 		t.Run(origin, func(t *testing.T) {
-			request := httptest.NewRequest(http.MethodOptions, "/health", nil)
+			request := httptest.NewRequestWithContext(t.Context(), http.MethodOptions, "/health", nil)
 			request.Header.Set("Origin", origin)
 			request.Header.Set("Access-Control-Request-Method", http.MethodPut)
 			response := httptest.NewRecorder()
@@ -87,7 +88,7 @@ func TestRouterCORSRejectsUnknownOrigin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewRouter() error = %v", err)
 	}
-	request := httptest.NewRequest(http.MethodOptions, "/health", nil)
+	request := httptest.NewRequestWithContext(t.Context(), http.MethodOptions, "/health", nil)
 	request.Header.Set("Origin", "https://example.com")
 	request.Header.Set("Access-Control-Request-Method", http.MethodGet)
 	response := httptest.NewRecorder()
@@ -108,7 +109,7 @@ func TestOpenAPIRequestValidatorAcceptsValidRequest(t *testing.T) {
 		c.Status(http.StatusNoContent)
 	})
 
-	request := httptest.NewRequest(http.MethodGet, "/health", nil)
+	request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/health", nil)
 	response := httptest.NewRecorder()
 
 	router.ServeHTTP(response, request)
@@ -143,7 +144,7 @@ func TestOpenAPIRequestValidatorStoresAuthenticatedAccount(t *testing.T) {
 		c.Status(http.StatusNoContent)
 	})
 
-	request := httptest.NewRequest(http.MethodGet, "/me", nil)
+	request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/me", nil)
 	response := httptest.NewRecorder()
 
 	router.ServeHTTP(response, request)
@@ -167,7 +168,7 @@ func TestOpenAPIRequestValidatorRejectsUnauthenticatedRequest(t *testing.T) {
 		c.Status(http.StatusNoContent)
 	})
 
-	request := httptest.NewRequest(http.MethodGet, "/me", nil)
+	request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/me", nil)
 	response := httptest.NewRecorder()
 
 	router.ServeHTTP(response, request)
@@ -191,7 +192,7 @@ func TestOpenAPIRequestValidatorReturnsInternalServerErrorOnAccountLoadFailure(t
 		c.Status(http.StatusNoContent)
 	})
 
-	request := httptest.NewRequest(http.MethodGet, "/me", nil)
+	request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/me", nil)
 	response := httptest.NewRecorder()
 
 	router.ServeHTTP(response, request)
@@ -214,7 +215,8 @@ func TestOpenAPIRequestValidatorRejectsInvalidRequest(t *testing.T) {
 		c.Status(http.StatusNoContent)
 	})
 
-	request := httptest.NewRequest(
+	request := httptest.NewRequestWithContext(
+		t.Context(),
 		http.MethodPost,
 		"/store-applications",
 		strings.NewReader(`{"name":"test"}`),
@@ -240,7 +242,7 @@ func TestLimitRequestBodyRejectsOversizedBody(t *testing.T) {
 		c.Status(http.StatusNoContent)
 	})
 
-	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("12345"))
+	request := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", strings.NewReader("12345"))
 	response := httptest.NewRecorder()
 
 	router.ServeHTTP(response, request)
@@ -250,5 +252,65 @@ func TestLimitRequestBodyRejectsOversizedBody(t *testing.T) {
 	}
 	if handlerCalled {
 		t.Error("handler was called for an oversized request body")
+	}
+}
+
+func TestLimitRequestBodyRejectsOversizedBodyWithUnknownLength(t *testing.T) {
+	router := gin.New()
+	handlerCalled := false
+	router.POST("/", limitRequestBody(4), func(c *gin.Context) {
+		handlerCalled = true
+		c.Status(http.StatusNoContent)
+	})
+
+	request := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodPost,
+		"/",
+		io.NopCloser(strings.NewReader("12345")),
+	)
+	response := httptest.NewRecorder()
+
+	router.ServeHTTP(response, request)
+
+	if response.Code != http.StatusRequestEntityTooLarge {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusRequestEntityTooLarge)
+	}
+	if handlerCalled {
+		t.Error("handler was called for an oversized request body with unknown length")
+	}
+}
+
+func TestLimitRequestBodyRestoresBodyWithUnknownLength(t *testing.T) {
+	router := gin.New()
+	const wantBody = "1234"
+	router.POST("/", limitRequestBody(4), func(c *gin.Context) {
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			t.Errorf("ReadAll() error = %v", err)
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		if string(body) != wantBody {
+			t.Errorf("body = %q, want %q", body, wantBody)
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+
+		c.Status(http.StatusNoContent)
+	})
+
+	request := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodPost,
+		"/",
+		io.NopCloser(strings.NewReader(wantBody)),
+	)
+	response := httptest.NewRecorder()
+
+	router.ServeHTTP(response, request)
+
+	if response.Code != http.StatusNoContent {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusNoContent)
 	}
 }
