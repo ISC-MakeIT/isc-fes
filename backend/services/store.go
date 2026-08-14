@@ -201,6 +201,22 @@ func (s *StoreService) GetApprovedStores(ctx context.Context) ([]entities.StoreO
 	return stores, nil
 }
 
+func (s *StoreService) GetApprovedStoreByID(ctx context.Context, storeID uuid.UUID) (entities.StoreOutput, error) {
+	store, err := s.storeRepository.GetStoreByID(ctx, storeID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return entities.StoreOutput{}, ErrNotFound
+	}
+	if err != nil {
+		return entities.StoreOutput{}, fmt.Errorf("failed to get store by store id: %w", err)
+	}
+
+	if store.ReviewStatus != entities.StoreReviewStatusApproved {
+		return entities.StoreOutput{}, ErrNotFound
+	}
+
+	return s.toStoreOutput(ctx, store)
+}
+
 // GetVisibleStores は、ユーザーが閲覧可能な店舗一覧を取得する。
 // 承認済みの店舗はすべて返し、申請中・却下済みの店舗は、ユーザーがその店舗の管理者である場合のみ返す。
 func (s *StoreService) GetVisibleStores(ctx context.Context) ([]entities.StoreOutput, error) {
