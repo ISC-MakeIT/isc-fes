@@ -7,15 +7,14 @@ import (
 )
 
 type Server struct {
-	queries                     *db.Queries
-	sessions                    *auth.Sessions
-	googleAuthenticator         *auth.GoogleAuthenticator
-	frontendURL                 string
-	accountService              *services.AccountService
-	auth                        *services.AuthService
-	store                       *services.StoreService
-	storeMembershipApplications *services.StoreMembershipApplicationsService
-	errorNotifier               *services.ErrorNotifier
+	queries             *db.Queries
+	sessions            *auth.Sessions
+	googleAuthenticator *auth.GoogleAuthenticator
+	frontendURL         string
+	accountService      *services.AccountService
+	auth                *services.AuthService
+	store               *services.StoreService
+	errorNotifier       *services.ErrorNotifier
 }
 
 func NewServer(
@@ -26,18 +25,16 @@ func NewServer(
 	accountService *services.AccountService,
 	authService *services.AuthService,
 	storeService *services.StoreService,
-	storeMembershipApplicationsService *services.StoreMembershipApplicationsService,
 	errorNotifier *services.ErrorNotifier,
 ) *Server {
 	return &Server{
-		queries:                     queries,
-		sessions:                    sessions,
-		googleAuthenticator:         googleAuthenticator,
-		frontendURL:                 frontendURL,
-		accountService:              accountService,
-		auth:                        authService,
-		store:                       storeService,
-		storeMembershipApplications: storeMembershipApplicationsService,
-		errorNotifier:               errorNotifier,
+		queries:             queries,
+		sessions:            sessions,
+		googleAuthenticator: googleAuthenticator,
+		frontendURL:         frontendURL,
+		accountService:      accountService,
+		auth:                authService,
+		store:               storeService,
+		errorNotifier:       errorNotifier,
 	}
 }

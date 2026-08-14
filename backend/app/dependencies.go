@@ -85,9 +85,6 @@ func buildDependencies(
 		}
 	}
 	storeRepository := repositories.NewStoreRepository(queries, pool)
-	storeMembershipApplicationsRepository := repositories.NewStoreMembershipApplicationsRepository(
-		queries,
-	)
 
 	accountService := services.NewAccountService(
 		accountRepository,
@@ -105,10 +102,6 @@ func buildDependencies(
 		sessions,
 		imgGenerator,
 	)
-	storeMembershipApplicationsService := services.NewStoreMembershipApplicationsService(
-		storeRepository,
-		storeMembershipApplicationsRepository,
-	)
 	errorNotifier := services.NewErrorNotifier(
 		cfg.DiscordNotifier.WebhookURL,
 		cfg.DiscordNotifier.MentionUserIDs,
@@ -122,7 +115,6 @@ func buildDependencies(
 		accountService,
 		authService,
 		storeService,
-		storeMembershipApplicationsService,
 		errorNotifier,
 	)
 

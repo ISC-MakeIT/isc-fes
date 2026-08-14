@@ -29,7 +29,6 @@ type StoreRepository interface {
 	GetVisibleStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error)
 	GetStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error)
 	UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error
-	GetStoreMembershipsByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.StoreMember, error)
 	GetStoreApplications(ctx context.Context) ([]entities.Store, error)
 }
 
