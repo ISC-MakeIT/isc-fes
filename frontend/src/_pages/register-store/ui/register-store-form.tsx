@@ -6,10 +6,15 @@ import { createStoreApplication } from "../api/create-store-application";
 import { useState } from "react";
 import { Field, FieldContent, FieldError, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
-import { GENERIC_ERROR_MESSAGE, isClientError } from "@/shared/config";
+import {
+  GENERIC_ERROR_MESSAGE,
+  isClientError,
+  STORE_LIST_URL,
+} from "@/shared/config";
 import { Textarea } from "@/shared/ui/textarea";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { SubmitButton } from "@/shared/ui/submit-button";
+import { redirect } from "next/navigation";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -28,8 +33,7 @@ export function RegisterStoreForm() {
     onSubmit: async ({ value }) => {
       const { data, error, response } = await createStoreApplication(value);
 
-      // TODO: 新規作成が成功したら完了ページにリダイレクト
-      if (data) return;
+      if (data) redirect(STORE_LIST_URL);
 
       // 何も言わずに遷移するのは入力した値を捨ててしまい不親切そうなので、基本エラーメッセージを表示する対応にしている
       // 未ログインなら基本proxy, layoutの段階でredirectされるはず
