@@ -6,11 +6,7 @@ import { createStoreApplication } from "../api/create-store-application";
 import { useState } from "react";
 import { Field, FieldContent, FieldError, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
-import {
-  GENERIC_ERROR_MESSAGE,
-  isClientError,
-  STORE_LIST_URL,
-} from "@/shared/config";
+import { STORE_LIST_URL } from "@/shared/config";
 import { Textarea } from "@/shared/ui/textarea";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { SubmitButton } from "@/shared/ui/submit-button";
