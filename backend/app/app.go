@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/isc-makeit/isc-fes/backend/config"
@@ -19,10 +20,15 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return nil, err
 	}
 
-	router := routers.NewRouter(
+	router, err := routers.NewRouter(
 		deps.apiServer,
 		cfg.HTTP.CORSAllowedOrigins,
 	)
+	if err != nil {
+		deps.stopSessionCleanup()
+		deps.pool.Close()
+		return nil, fmt.Errorf("initialize router: %w", err)
+	}
 
 	handler := deps.sessions.LoadAndSave(router)
 
