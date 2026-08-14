@@ -14,7 +14,7 @@ import {
 import { Textarea } from "@/shared/ui/textarea";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { SubmitButton } from "@/shared/ui/submit-button";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/router";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -33,7 +33,10 @@ export function RegisterStoreForm() {
     onSubmit: async ({ value }) => {
       const { data, error, response } = await createStoreApplication(value);
 
-      if (data) redirect(STORE_LIST_URL);
+      if (data) {
+        useRouter().push(STORE_LIST_URL);
+        return;
+      }
 
       // 何も言わずに遷移するのは入力した値を捨ててしまい不親切そうなので、基本エラーメッセージを表示する対応にしている
       // 未ログインなら基本proxy, layoutの段階でredirectされるはず
