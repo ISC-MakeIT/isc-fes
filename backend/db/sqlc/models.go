@@ -169,6 +169,16 @@ type Store struct {
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
 
+type StoreInvitation struct {
+	ID        uuid.UUID          `json:"id"`
+	StoreID   uuid.UUID          `json:"store_id"`
+	Role      StoreMemberRole    `json:"role"`
+	MaxUses   *int32             `json:"max_uses"`
+	UseCount  int32              `json:"use_count"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 type StoreMember struct {
 	StoreID   uuid.UUID          `json:"store_id"`
 	AccountID uuid.UUID          `json:"account_id"`
