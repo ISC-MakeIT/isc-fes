@@ -2,7 +2,7 @@ import { createApiClient } from "@/shared/api";
 import { components } from "@/shared/api/";
 import { CreateStoreForm } from "../model/types";
 import { buildFormDataBody } from "../lib/build-form-data-body";
-import { getErrorMessage } from "@/shared/config";
+import { getStatusMessage } from "@/shared/config";
 
 type CreateStoreApplicationResponse =
   components["schemas"]["CreateStoreApplicationResponse"];
@@ -27,7 +27,7 @@ export async function createStoreApplication(
   });
 
   if (error) {
-    const errorMessage = getErrorMessage(response.status);
+    const errorMessage = getStatusMessage(response.status);
     return { error: errorMessage };
   }
 
