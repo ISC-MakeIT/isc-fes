@@ -44,3 +44,20 @@ func (s *StoreInvitationService) CreateStoreInvitation(ctx context.Context, stor
 
 	return s.storeInvitationsRepository.CreateStoreInvitation(ctx, storeID, role, maxUses)
 }
+
+func (s *StoreInvitationService) AcceptStoreInvitation(ctx context.Context, invitationID uuid.UUID) (entities.StoreInvitation, error) {
+	account, err := services.RequireAuthenticatedAccount(ctx)
+	if err != nil {
+		return entities.StoreInvitation{}, err
+	}
+
+	inv, err := s.storeInvitationsRepository.AcceptStoreInvitation(ctx, invitationID, account.ID)
+	if errors.Is(err, repositoryinterfaces.ErrStoreMemberAlreadyExists) {
+		return entities.StoreInvitation{}, services.ErrConflict
+	}
+	if errors.Is(err, pgx.ErrNoRows) {
+		return entities.StoreInvitation{}, services.ErrNotFound
+	}
+
+	return inv, err
+}

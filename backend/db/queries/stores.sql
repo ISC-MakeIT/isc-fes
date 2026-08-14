@@ -11,16 +11,6 @@ INSERT INTO stores (
 )
 RETURNING *;
 
--- name: CreateStoreMember :one
-INSERT INTO store_members (
-    store_id,
-    account_id,
-    role
-) VALUES (
-    $1, $2, $3
-)
-RETURNING *;
-
 -- name: GetApprovedStores :many
 SELECT *
 FROM stores

@@ -11,6 +11,65 @@ import (
 	"github.com/google/uuid"
 )
 
+const createStoreMember = `-- name: CreateStoreMember :one
+INSERT INTO store_members (
+    store_id,
+    account_id,
+    role
+) VALUES (
+    $1, $2, $3
+)
+RETURNING store_id, account_id, role, joined_at
+`
+
+type CreateStoreMemberParams struct {
+	StoreID   uuid.UUID       `json:"store_id"`
+	AccountID uuid.UUID       `json:"account_id"`
+	Role      StoreMemberRole `json:"role"`
+}
+
+func (q *Queries) CreateStoreMember(ctx context.Context, arg CreateStoreMemberParams) (StoreMember, error) {
+	row := q.db.QueryRow(ctx, createStoreMember, arg.StoreID, arg.AccountID, arg.Role)
+	var i StoreMember
+	err := row.Scan(
+		&i.StoreID,
+		&i.AccountID,
+		&i.Role,
+		&i.JoinedAt,
+	)
+	return i, err
+}
+
+const createStoreMemberIfNotExists = `-- name: CreateStoreMemberIfNotExists :one
+INSERT INTO store_members (
+    store_id,
+    account_id,
+    role
+) VALUES (
+    $1, $2, $3
+)
+ON CONFLICT (store_id, account_id) DO NOTHING
+RETURNING store_id, account_id, role, joined_at
+`
+
+type CreateStoreMemberIfNotExistsParams struct {
+	StoreID   uuid.UUID       `json:"store_id"`
+	AccountID uuid.UUID       `json:"account_id"`
+	Role      StoreMemberRole `json:"role"`
+}
+
+func (q *Queries) CreateStoreMemberIfNotExists(ctx context.Context, arg CreateStoreMemberIfNotExistsParams) (StoreMember, error) {
+	row := q.db.QueryRow(ctx, createStoreMemberIfNotExists, arg.StoreID, arg.AccountID, arg.Role)
+	var i StoreMember
+	err := row.Scan(
+		&i.StoreID,
+		&i.AccountID,
+		&i.Role,
+		&i.JoinedAt,
+	)
+	return i, err
+}
+
 const getStoreMemberByAccountIDAndStoreID = `-- name: GetStoreMemberByAccountIDAndStoreID :one
 SELECT store_id, account_id, role, joined_at
 FROM store_members
