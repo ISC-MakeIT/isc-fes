@@ -8,8 +8,8 @@ export {
 
 export {
   STATUS_CODES,
-  GENERIC_ERROR_MESSAGE,
   isClientError,
+  getErrorMessage,
 } from "./constants/status-codes";
 
 export { visibleStores } from "./constants/query-keys";
