@@ -47,8 +47,8 @@ function StoreCardShell({ image, title, description }: StoreCardShellProps) {
     "text-muted-foreground line-clamp-3 self-start text-sm";
 
   return (
-    <Card className="grid grid-cols-[1fr_1fr] grid-rows-2 gap-x-3 px-2 py-5">
-      <CardHeader className="row-span-2">{image}</CardHeader>
+    <Card className="grid grid-cols-[1fr_1fr] grid-rows-2 gap-x-3 gap-y-1 px-2 py-5">
+      <CardHeader className="row-span-2 my-auto">{image}</CardHeader>
       {typeof title === "string" ? (
         <h3 className={titleStyle}>{title}</h3>
       ) : (
