@@ -56,9 +56,3 @@ SET
     updated_at = now()
 WHERE id = $1
     AND review_status = 'pending'; -- pending からしか遷移できないので pending の場合のみ更新する
-
--- name: GetStoreMembershipsByAccountID :many
-SELECT *
-FROM store_members
-WHERE account_id = $1
-ORDER BY joined_at DESC;

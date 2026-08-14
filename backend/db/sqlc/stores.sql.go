@@ -181,40 +181,6 @@ func (q *Queries) GetStoreByID(ctx context.Context, id uuid.UUID) (Store, error)
 	return i, err
 }
 
-const getStoreMembershipsByAccountID = `-- name: GetStoreMembershipsByAccountID :many
-
-SELECT store_id, account_id, role, joined_at
-FROM store_members
-WHERE account_id = $1
-ORDER BY joined_at DESC
-`
-
-// pending からしか遷移できないので pending の場合のみ更新する
-func (q *Queries) GetStoreMembershipsByAccountID(ctx context.Context, accountID uuid.UUID) ([]StoreMember, error) {
-	rows, err := q.db.Query(ctx, getStoreMembershipsByAccountID, accountID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []StoreMember{}
-	for rows.Next() {
-		var i StoreMember
-		if err := rows.Scan(
-			&i.StoreID,
-			&i.AccountID,
-			&i.Role,
-			&i.JoinedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getVisibleStoresByAccountID = `-- name: GetVisibleStoresByAccountID :many
 SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
 FROM stores

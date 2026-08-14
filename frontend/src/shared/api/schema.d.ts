@@ -55,23 +55,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/store-membership-applications": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** 自分がメンバー申請した店舗一覧を返す */
-    get: operations["getMyStoreMembershipApplications"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   "/store-applications/review-status/{store_id}": {
     parameters: {
       query?: never;
@@ -106,17 +89,17 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/stores/{store_id}/membership-applications": {
+  "/stores/{store_id}/invitations": {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    /** 店舗のメンバー申請一覧を取得する */
-    get: operations["getStoreMembershipApplicationsByStoreID"];
+    get?: never;
     put?: never;
-    post?: never;
+    /** 店舗のメンバー招待を作成する */
+    post: operations["createStoreInvitation"];
     delete?: never;
     options?: never;
     head?: never;
@@ -161,6 +144,25 @@ export interface components {
       id: string;
       reviewStatus: components["schemas"]["StoreReviewStatus"];
     };
+    /** @enum {string} */
+    StoreMemberRole: "member" | "manager";
+    CreateStoreInvitationResponse: {
+      /**
+       * Format: uuid
+       * @description 店舗メンバー招待のID。内部的にはstore_invitations.idと同一。
+       */
+      id: string;
+      /** Format: uuid */
+      storeId: string;
+      role: components["schemas"]["StoreMemberRole"];
+      /**
+       * Format: int32
+       * @description 招待リンクの最大使用回数。nullの場合は無制限。
+       */
+      maxUses: number | null;
+      /** Format: date-time */
+      createdAt: string;
+    };
     GetVisibleStoresResponse: {
       /** @description 閲覧可能な店舗の総数 */
       total: number;
@@ -171,34 +173,6 @@ export interface components {
       total: number;
       data: components["schemas"]["StoreApplication"][];
     };
-    GetMyStoreMembershipApplicationsResponse: {
-      /** @description 自分がメンバー申請した店舗の総数 */
-      total: number;
-      data: components["schemas"]["StoreMembershipApplication"][];
-    };
-    GetStoreMembershipApplicationsResponse: {
-      /** @description 店舗のメンバー申請の総数 */
-      total: number;
-      data: components["schemas"]["StoreMembershipApplication"][];
-    };
-    StoreMembershipApplication: {
-      /** Format: uuid */
-      id: string;
-      /** Format: uuid */
-      storeId: string;
-      /** Format: uuid */
-      accountId: string;
-      status: components["schemas"]["StoreMembershipApplicationStatus"];
-      /** Format: uuid */
-      reviewedBy: string | null;
-      /** Format: date-time */
-      reviewedAt: string | null;
-      rejectionReason: string | null;
-      /** Format: date-time */
-      submittedAt: string;
-    };
-    /** @enum {string} */
-    StoreMembershipApplicationStatus: "pending" | "approved" | "rejected";
     Store: {
       /** Format: uuid */
       id: string;
@@ -436,44 +410,6 @@ export interface operations {
       };
     };
   };
-  getMyStoreMembershipApplications: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description 自分がメンバー申請した店舗一覧 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GetMyStoreMembershipApplicationsResponse"];
-        };
-      };
-      /** @description 未ログイン */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description サーバーエラー */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
   updateStoreApplicationReviewStatus: {
     parameters: {
       query?: never;
@@ -585,7 +521,7 @@ export interface operations {
       };
     };
   };
-  getStoreMembershipApplicationsByStoreID: {
+  createStoreInvitation: {
     parameters: {
       query?: never;
       header?: never;
@@ -594,15 +530,36 @@ export interface operations {
       };
       cookie?: never;
     };
-    requestBody?: never;
+    requestBody: {
+      content: {
+        "application/json": {
+          /**
+           * Format: int32
+           * @description 招待リンクの最大使用回数。省略時は無制限。
+           * @default null
+           */
+          maxUses?: number | null;
+          role: components["schemas"]["StoreMemberRole"];
+        };
+      };
+    };
     responses: {
-      /** @description 店舗のメンバー申請一覧 */
-      200: {
+      /** @description 店舗のメンバー招待を作成した */
+      201: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["GetStoreMembershipApplicationsResponse"];
+          "application/json": components["schemas"]["CreateStoreInvitationResponse"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
       /** @description 未ログイン */
@@ -614,7 +571,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description 権限不足（店舗マネージャー、管理者でない） */
+      /** @description 権限不足（店舗マネージャーでない） */
       403: {
         headers: {
           [name: string]: unknown;
@@ -623,7 +580,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description 店舗が存在しない */
+      /** @description 店舗が存在しないか、店舗のメンバーではない */
       404: {
         headers: {
           [name: string]: unknown;

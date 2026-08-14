@@ -1,0 +1,2 @@
+DROP TABLE store_membership_applications;
+DROP TYPE store_membership_application_status;

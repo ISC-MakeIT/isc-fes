@@ -96,49 +96,6 @@ func (ns NullStoreMemberRole) Value() (driver.Value, error) {
 	return string(ns.StoreMemberRole), nil
 }
 
-type StoreMembershipApplicationStatus string
-
-const (
-	StoreMembershipApplicationStatusPending  StoreMembershipApplicationStatus = "pending"
-	StoreMembershipApplicationStatusApproved StoreMembershipApplicationStatus = "approved"
-	StoreMembershipApplicationStatusRejected StoreMembershipApplicationStatus = "rejected"
-)
-
-func (e *StoreMembershipApplicationStatus) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = StoreMembershipApplicationStatus(s)
-	case string:
-		*e = StoreMembershipApplicationStatus(s)
-	default:
-		return fmt.Errorf("unsupported scan type for StoreMembershipApplicationStatus: %T", src)
-	}
-	return nil
-}
-
-type NullStoreMembershipApplicationStatus struct {
-	StoreMembershipApplicationStatus StoreMembershipApplicationStatus `json:"store_membership_application_status"`
-	Valid                            bool                             `json:"valid"` // Valid is true if StoreMembershipApplicationStatus is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullStoreMembershipApplicationStatus) Scan(value interface{}) error {
-	if value == nil {
-		ns.StoreMembershipApplicationStatus, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.StoreMembershipApplicationStatus.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullStoreMembershipApplicationStatus) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.StoreMembershipApplicationStatus), nil
-}
-
 type StoreReviewStatus string
 
 const (
@@ -212,20 +169,19 @@ type Store struct {
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
 
+type StoreInvitation struct {
+	ID        uuid.UUID          `json:"id"`
+	StoreID   uuid.UUID          `json:"store_id"`
+	Role      StoreMemberRole    `json:"role"`
+	MaxUses   *int32             `json:"max_uses"`
+	UseCount  int32              `json:"use_count"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 type StoreMember struct {
 	StoreID   uuid.UUID          `json:"store_id"`
 	AccountID uuid.UUID          `json:"account_id"`
 	Role      StoreMemberRole    `json:"role"`
 	JoinedAt  pgtype.Timestamptz `json:"joined_at"`
-}
-
-type StoreMembershipApplication struct {
-	ID              uuid.UUID                        `json:"id"`
-	StoreID         uuid.UUID                        `json:"store_id"`
-	AccountID       uuid.UUID                        `json:"account_id"`
-	Status          StoreMembershipApplicationStatus `json:"status"`
-	ReviewedBy      *uuid.UUID                       `json:"reviewed_by"`
-	RejectionReason *string                          `json:"rejection_reason"`
-	SubmittedAt     pgtype.Timestamptz               `json:"submitted_at"`
-	ReviewedAt      pgtype.Timestamptz               `json:"reviewed_at"`
 }

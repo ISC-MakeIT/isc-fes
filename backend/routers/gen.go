@@ -22,37 +22,34 @@ import (
 
 // Defines values for MeResponseRole.
 const (
-	Admin  MeResponseRole = "admin"
-	Member MeResponseRole = "member"
+	MeResponseRoleAdmin  MeResponseRole = "admin"
+	MeResponseRoleMember MeResponseRole = "member"
 )
 
 // Valid indicates whether the value is a known member of the MeResponseRole enum.
 func (e MeResponseRole) Valid() bool {
 	switch e {
-	case Admin:
+	case MeResponseRoleAdmin:
 		return true
-	case Member:
+	case MeResponseRoleMember:
 		return true
 	default:
 		return false
 	}
 }
 
-// Defines values for StoreMembershipApplicationStatus.
+// Defines values for StoreMemberRole.
 const (
-	StoreMembershipApplicationStatusApproved StoreMembershipApplicationStatus = "approved"
-	StoreMembershipApplicationStatusPending  StoreMembershipApplicationStatus = "pending"
-	StoreMembershipApplicationStatusRejected StoreMembershipApplicationStatus = "rejected"
+	StoreMemberRoleManager StoreMemberRole = "manager"
+	StoreMemberRoleMember  StoreMemberRole = "member"
 )
 
-// Valid indicates whether the value is a known member of the StoreMembershipApplicationStatus enum.
-func (e StoreMembershipApplicationStatus) Valid() bool {
+// Valid indicates whether the value is a known member of the StoreMemberRole enum.
+func (e StoreMemberRole) Valid() bool {
 	switch e {
-	case StoreMembershipApplicationStatusApproved:
+	case StoreMemberRoleManager:
 		return true
-	case StoreMembershipApplicationStatusPending:
-		return true
-	case StoreMembershipApplicationStatusRejected:
+	case StoreMemberRoleMember:
 		return true
 	default:
 		return false
@@ -61,19 +58,19 @@ func (e StoreMembershipApplicationStatus) Valid() bool {
 
 // Defines values for StoreReviewStatus.
 const (
-	StoreReviewStatusApproved StoreReviewStatus = "approved"
-	StoreReviewStatusPending  StoreReviewStatus = "pending"
-	StoreReviewStatusRejected StoreReviewStatus = "rejected"
+	Approved StoreReviewStatus = "approved"
+	Pending  StoreReviewStatus = "pending"
+	Rejected StoreReviewStatus = "rejected"
 )
 
 // Valid indicates whether the value is a known member of the StoreReviewStatus enum.
 func (e StoreReviewStatus) Valid() bool {
 	switch e {
-	case StoreReviewStatusApproved:
+	case Approved:
 		return true
-	case StoreReviewStatusPending:
+	case Pending:
 		return true
-	case StoreReviewStatusRejected:
+	case Rejected:
 		return true
 	default:
 		return false
@@ -88,17 +85,22 @@ type CreateStoreApplicationResponse struct {
 	SubmittedAt  time.Time          `json:"submittedAt"`
 }
 
+// CreateStoreInvitationResponse defines model for CreateStoreInvitationResponse.
+type CreateStoreInvitationResponse struct {
+	CreatedAt time.Time `json:"createdAt"`
+
+	// Id 店舗メンバー招待のID。内部的にはstore_invitations.idと同一。
+	Id openapi_types.UUID `json:"id"`
+
+	// MaxUses 招待リンクの最大使用回数。nullの場合は無制限。
+	MaxUses *int32             `json:"maxUses"`
+	Role    StoreMemberRole    `json:"role"`
+	StoreId openapi_types.UUID `json:"storeId"`
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Message string `json:"message"`
-}
-
-// GetMyStoreMembershipApplicationsResponse defines model for GetMyStoreMembershipApplicationsResponse.
-type GetMyStoreMembershipApplicationsResponse struct {
-	Data []StoreMembershipApplication `json:"data"`
-
-	// Total 自分がメンバー申請した店舗の総数
-	Total int `json:"total"`
 }
 
 // GetStoreApplicationsResponse defines model for GetStoreApplicationsResponse.
@@ -106,14 +108,6 @@ type GetStoreApplicationsResponse struct {
 	Data []StoreApplication `json:"data"`
 
 	// Total 店舗申請の総数
-	Total int `json:"total"`
-}
-
-// GetStoreMembershipApplicationsResponse defines model for GetStoreMembershipApplicationsResponse.
-type GetStoreMembershipApplicationsResponse struct {
-	Data []StoreMembershipApplication `json:"data"`
-
-	// Total 店舗のメンバー申請の総数
 	Total int `json:"total"`
 }
 
@@ -164,20 +158,8 @@ type StoreApplication struct {
 	SubmittedAt  time.Time          `json:"submittedAt"`
 }
 
-// StoreMembershipApplication defines model for StoreMembershipApplication.
-type StoreMembershipApplication struct {
-	AccountId       openapi_types.UUID               `json:"accountId"`
-	Id              openapi_types.UUID               `json:"id"`
-	RejectionReason *string                          `json:"rejectionReason"`
-	ReviewedAt      *time.Time                       `json:"reviewedAt"`
-	ReviewedBy      *openapi_types.UUID              `json:"reviewedBy"`
-	Status          StoreMembershipApplicationStatus `json:"status"`
-	StoreId         openapi_types.UUID               `json:"storeId"`
-	SubmittedAt     time.Time                        `json:"submittedAt"`
-}
-
-// StoreMembershipApplicationStatus defines model for StoreMembershipApplicationStatus.
-type StoreMembershipApplicationStatus string
+// StoreMemberRole defines model for StoreMemberRole.
+type StoreMemberRole string
 
 // StoreReviewStatus defines model for StoreReviewStatus.
 type StoreReviewStatus string
@@ -210,11 +192,21 @@ type UpdateStoreApplicationReviewStatusJSONBody struct {
 	ReviewStatus StoreReviewStatus `json:"reviewStatus"`
 }
 
+// CreateStoreInvitationJSONBody defines parameters for CreateStoreInvitation.
+type CreateStoreInvitationJSONBody struct {
+	// MaxUses 招待リンクの最大使用回数。省略時は無制限。
+	MaxUses *int32          `json:"maxUses,omitempty"`
+	Role    StoreMemberRole `json:"role"`
+}
+
 // CreateStoreApplicationMultipartRequestBody defines body for CreateStoreApplication for multipart/form-data ContentType.
 type CreateStoreApplicationMultipartRequestBody CreateStoreApplicationMultipartBody
 
 // UpdateStoreApplicationReviewStatusJSONRequestBody defines body for UpdateStoreApplicationReviewStatus for application/json ContentType.
 type UpdateStoreApplicationReviewStatusJSONRequestBody UpdateStoreApplicationReviewStatusJSONBody
+
+// CreateStoreInvitationJSONRequestBody defines body for CreateStoreInvitation for application/json ContentType.
+type CreateStoreInvitationJSONRequestBody CreateStoreInvitationJSONBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -233,15 +225,12 @@ type ServerInterface interface {
 	// UpdateStoreApplicationReviewStatus 店舗申請の審査ステータスを更新する
 	// (PUT /store-applications/review-status/{store_id})
 	UpdateStoreApplicationReviewStatus(c *gin.Context, storeId openapi_types.UUID)
-	// GetMyStoreMembershipApplications 自分がメンバー申請した店舗一覧を返す
-	// (GET /store-membership-applications)
-	GetMyStoreMembershipApplications(c *gin.Context)
 	// GetVisibleStores 全ての承認済みの店舗と、自分が申請した店舗一覧を取得する
 	// (GET /stores)
 	GetVisibleStores(c *gin.Context)
-	// GetStoreMembershipApplicationsByStoreID 店舗のメンバー申請一覧を取得する
-	// (GET /stores/{store_id}/membership-applications)
-	GetStoreMembershipApplicationsByStoreID(c *gin.Context, storeId openapi_types.UUID)
+	// CreateStoreInvitation 店舗のメンバー招待を作成する
+	// (POST /stores/{store_id}/invitations)
+	CreateStoreInvitation(c *gin.Context, storeId openapi_types.UUID)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -330,19 +319,6 @@ func (siw *ServerInterfaceWrapper) UpdateStoreApplicationReviewStatus(c *gin.Con
 	siw.Handler.UpdateStoreApplicationReviewStatus(c, storeId)
 }
 
-// GetMyStoreMembershipApplications operation middleware
-func (siw *ServerInterfaceWrapper) GetMyStoreMembershipApplications(c *gin.Context) {
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.GetMyStoreMembershipApplications(c)
-}
-
 // GetVisibleStores operation middleware
 func (siw *ServerInterfaceWrapper) GetVisibleStores(c *gin.Context) {
 
@@ -356,8 +332,8 @@ func (siw *ServerInterfaceWrapper) GetVisibleStores(c *gin.Context) {
 	siw.Handler.GetVisibleStores(c)
 }
 
-// GetStoreMembershipApplicationsByStoreID operation middleware
-func (siw *ServerInterfaceWrapper) GetStoreMembershipApplicationsByStoreID(c *gin.Context) {
+// CreateStoreInvitation operation middleware
+func (siw *ServerInterfaceWrapper) CreateStoreInvitation(c *gin.Context) {
 
 	var err error
 	_ = err
@@ -378,7 +354,7 @@ func (siw *ServerInterfaceWrapper) GetStoreMembershipApplicationsByStoreID(c *gi
 		}
 	}
 
-	siw.Handler.GetStoreMembershipApplicationsByStoreID(c, storeId)
+	siw.Handler.CreateStoreInvitation(c, storeId)
 }
 
 // GinServerOptions provides options for the Gin server.
@@ -412,10 +388,9 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/me", wrapper.GetMe)
 	router.GET(options.BaseURL+"/store-applications", wrapper.GetStoreApplications)
 	router.POST(options.BaseURL+"/store-applications", wrapper.CreateStoreApplication)
-	router.GET(options.BaseURL+"/store-membership-applications", wrapper.GetMyStoreMembershipApplications)
 	router.PUT(options.BaseURL+"/store-applications/review-status/:store_id", wrapper.UpdateStoreApplicationReviewStatus)
 	router.GET(options.BaseURL+"/stores", wrapper.GetVisibleStores)
-	router.GET(options.BaseURL+"/stores/:store_id/membership-applications", wrapper.GetStoreMembershipApplicationsByStoreID)
+	router.POST(options.BaseURL+"/stores/:store_id/invitations", wrapper.CreateStoreInvitation)
 }
 
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
@@ -423,40 +398,40 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"Klwv/D8AAP//",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
