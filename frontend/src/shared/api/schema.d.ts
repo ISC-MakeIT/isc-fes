@@ -294,10 +294,14 @@ export interface components {
       storeId: string;
       name: string;
       description: string;
-      /** Format: float */
+      /** Format: int32 */
       unitPrice: number;
       imageUrl: string;
       soldOut: boolean;
+      /** Format: date-time */
+      updatedAt: string;
+      /** Format: date-time */
+      createdAt: string;
     };
     ErrorResponse: {
       message: string;

@@ -754,6 +754,8 @@ components:
         - unitPrice
         - imageUrl
         - soldOut
+        - updatedAt
+        - createdAt
       properties:
         id:
           type: string
@@ -766,12 +768,18 @@ components:
         description:
           type: string
         unitPrice:
-          type: number
-          format: float
+          type: integer
+          format: int32
         imageUrl:
           type: string
         soldOut:
           type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
     ErrorResponse:
       type: object
       required:

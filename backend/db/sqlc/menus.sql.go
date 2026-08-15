@@ -77,3 +77,42 @@ func (q *Queries) CreateMenu(ctx context.Context, arg CreateMenuParams) (Menu, e
 	)
 	return i, err
 }
+
+const getMenusByStoreID = `-- name: GetMenusByStoreID :many
+SELECT id, store_id, name, description, unit_price, image_object_key, sold_out, deleted_at, updated_at, created_at
+FROM menus
+WHERE store_id = $1
+    AND deleted_at IS NULL
+ORDER BY created_at ASC, id ASC
+`
+
+func (q *Queries) GetMenusByStoreID(ctx context.Context, storeID uuid.UUID) ([]Menu, error) {
+	rows, err := q.db.Query(ctx, getMenusByStoreID, storeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Menu{}
+	for rows.Next() {
+		var i Menu
+		if err := rows.Scan(
+			&i.ID,
+			&i.StoreID,
+			&i.Name,
+			&i.Description,
+			&i.UnitPrice,
+			&i.ImageObjectKey,
+			&i.SoldOut,
+			&i.DeletedAt,
+			&i.UpdatedAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

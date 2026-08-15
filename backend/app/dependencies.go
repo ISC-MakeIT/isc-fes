@@ -15,10 +15,12 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/repositories/imageurl"
 	invRepo "github.com/isc-makeit/isc-fes/backend/repositories/stores/invitations"
 	membersRepo "github.com/isc-makeit/isc-fes/backend/repositories/stores/members"
+	menuRepo "github.com/isc-makeit/isc-fes/backend/repositories/stores/menus"
 	"github.com/isc-makeit/isc-fes/backend/routers"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/services/store/invitations"
 	"github.com/isc-makeit/isc-fes/backend/services/store/members"
+	"github.com/isc-makeit/isc-fes/backend/services/store/menus"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -91,6 +93,7 @@ func buildDependencies(
 	storeRepository := repositories.NewStoreRepository(queries, pool)
 	storeMemberRepository := membersRepo.NewStoreMemberRepository(queries)
 	storeInvitationRepository := invRepo.NewStoreInvitationRepository(queries, pool)
+	menuRepository := menuRepo.NewMenuRepository(queries)
 
 	accountService := services.NewAccountService(
 		accountRepository,
@@ -114,6 +117,7 @@ func buildDependencies(
 		cfg.DiscordNotifier.WebhookURL,
 		cfg.DiscordNotifier.MentionUserIDs,
 	)
+	menuService := menus.NewMenuService(menuRepository, imgGenerator, storeRepository)
 
 	apiServer := routers.NewServer(
 		queries,
@@ -125,6 +129,7 @@ func buildDependencies(
 		storeService,
 		storeMemberService,
 		storeInvitationService,
+		menuService,
 		errorNotifier,
 	)
 

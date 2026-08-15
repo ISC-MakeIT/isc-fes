@@ -1,3 +1,10 @@
+-- name: GetMenusByStoreID :many
+SELECT *
+FROM menus
+WHERE store_id = $1
+    AND deleted_at IS NULL
+ORDER BY created_at ASC, id ASC;
+
 -- name: CreateMenu :one
 INSERT INTO menus (
     store_id,
