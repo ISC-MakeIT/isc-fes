@@ -194,7 +194,6 @@ export function RegisterStoreForm() {
           state.canSubmit,
           state.isPristine,
           state.isSubmitting,
-          state.isSubmitSuccessful,
         ]}
         children={([canSubmit, isPristine, isSubmitting]) => (
           <SubmitButton
