@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createStoreMember = `-- name: CreateStoreMember :one
@@ -91,4 +92,63 @@ func (q *Queries) GetStoreMemberByAccountIDAndStoreID(ctx context.Context, arg G
 		&i.JoinedAt,
 	)
 	return i, err
+}
+
+const getStoreMembersByStoreID = `-- name: GetStoreMembersByStoreID :many
+SELECT store_id, account_id, store_members.role, joined_at, id, google_sub, email, display_name, picture_url, accounts.role, last_login_at, created_at, updated_at
+FROM store_members
+INNER JOIN accounts
+    ON store_members.account_id = accounts.id
+WHERE store_members.store_id = $1
+ORDER BY store_members.joined_at ASC
+`
+
+type GetStoreMembersByStoreIDRow struct {
+	StoreID     uuid.UUID          `json:"store_id"`
+	AccountID   uuid.UUID          `json:"account_id"`
+	Role        StoreMemberRole    `json:"role"`
+	JoinedAt    pgtype.Timestamptz `json:"joined_at"`
+	ID          uuid.UUID          `json:"id"`
+	GoogleSub   string             `json:"google_sub"`
+	Email       string             `json:"email"`
+	DisplayName string             `json:"display_name"`
+	PictureUrl  *string            `json:"picture_url"`
+	Role_2      Role               `json:"role_2"`
+	LastLoginAt pgtype.Timestamptz `json:"last_login_at"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) GetStoreMembersByStoreID(ctx context.Context, storeID uuid.UUID) ([]GetStoreMembersByStoreIDRow, error) {
+	rows, err := q.db.Query(ctx, getStoreMembersByStoreID, storeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetStoreMembersByStoreIDRow{}
+	for rows.Next() {
+		var i GetStoreMembersByStoreIDRow
+		if err := rows.Scan(
+			&i.StoreID,
+			&i.AccountID,
+			&i.Role,
+			&i.JoinedAt,
+			&i.ID,
+			&i.GoogleSub,
+			&i.Email,
+			&i.DisplayName,
+			&i.PictureUrl,
+			&i.Role_2,
+			&i.LastLoginAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

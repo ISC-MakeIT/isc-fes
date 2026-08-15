@@ -78,11 +78,23 @@ func (r *StoreMemberRole) String() string {
 	return string(*r)
 }
 
+type StoreMembership struct {
+	StoreID   uuid.UUID
+	AccountID uuid.UUID
+	Role      StoreMemberRole
+	JoinedAt  time.Time
+}
+
 type StoreMember struct {
 	StoreID   uuid.UUID
 	AccountID uuid.UUID
 	Role      StoreMemberRole
 	JoinedAt  time.Time
+
+	// accounts から表示に関するデータを JOIN してとる
+	// もっと情報が欲しい場合は AccountID から accounts を参照させる
+	DisplayName string
+	PictureURL  *string
 }
 
 type StoreImageObjectKey string

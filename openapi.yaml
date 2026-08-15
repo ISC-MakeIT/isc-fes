@@ -293,6 +293,51 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /stores/{store_id}/members:
+    get:
+      operationId: getStoreMembers
+      summary: 店舗のメンバー一覧を取得する
+      security:
+        - AccountSession: []
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 店舗のメンバー一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetStoreMembersResponse"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 未ログイン
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない、または店舗のメンバーではない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /stores/{store_id}/invitations:
     post:
       operationId: createStoreInvitation
@@ -477,6 +522,19 @@ components:
         submittedAt:
           type: string
           format: date-time
+    GetStoreMembersResponse:
+      type: object
+      required:
+        - data
+        - total
+      properties:
+        total:
+          type: integer
+          description: 店舗メンバーの総数
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoreMember"
     UpdateStoreApplicationReviewStatusResponse:
       type: object
       required:
@@ -583,6 +641,32 @@ components:
           type: string
         reviewStatus:
           $ref: "#/components/schemas/StoreReviewStatus"
+    StoreMember:
+      type: object
+      required:
+        - storeId
+        - accountId
+        - role
+        - joinedAt
+        - displayName
+        - pictureUrl
+      properties:
+        storeId:
+          type: string
+          format: uuid
+        accountId:
+          type: string
+          format: uuid
+        role:
+          $ref: "#/components/schemas/StoreMemberRole"
+        joinedAt:
+          type: string
+          format: date-time
+        displayName:
+          type: string
+        pictureUrl:
+          type: string
+          nullable: true
     StoreApplication:
       type: object
       required:

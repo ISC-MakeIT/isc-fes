@@ -23,3 +23,11 @@ INSERT INTO store_members (
 )
 ON CONFLICT (store_id, account_id) DO NOTHING
 RETURNING *;
+
+-- name: GetStoreMembersByStoreID :many
+SELECT *
+FROM store_members
+INNER JOIN accounts
+    ON store_members.account_id = accounts.id
+WHERE store_members.store_id = $1
+ORDER BY store_members.joined_at ASC;

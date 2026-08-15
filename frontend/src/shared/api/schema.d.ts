@@ -106,6 +106,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/stores/{store_id}/members": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 店舗のメンバー一覧を取得する */
+    get: operations["getStoreMembers"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/stores/{store_id}/invitations": {
     parameters: {
       query?: never;
@@ -170,6 +187,11 @@ export interface components {
       /** Format: date-time */
       submittedAt: string;
     };
+    GetStoreMembersResponse: {
+      /** @description 店舗メンバーの総数 */
+      total: number;
+      data: components["schemas"]["StoreMember"][];
+    };
     UpdateStoreApplicationReviewStatusResponse: {
       /**
        * Format: uuid
@@ -220,6 +242,17 @@ export interface components {
       description: string;
       imageUrl: string;
       reviewStatus: components["schemas"]["StoreReviewStatus"];
+    };
+    StoreMember: {
+      /** Format: uuid */
+      storeId: string;
+      /** Format: uuid */
+      accountId: string;
+      role: components["schemas"]["StoreMemberRole"];
+      /** Format: date-time */
+      joinedAt: string;
+      displayName: string;
+      pictureUrl: string | null;
     };
     StoreApplication: {
       /** Format: uuid */
@@ -590,6 +623,64 @@ export interface operations {
         };
       };
       /** @description 店舗が存在しない、または承認済みではない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getStoreMembers: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 店舗のメンバー一覧 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetStoreMembersResponse"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない、または店舗のメンバーではない */
       404: {
         headers: {
           [name: string]: unknown;
