@@ -48,24 +48,25 @@ type StoreCardShellProps = {
 };
 
 function StoreCardShell({ image, title, description }: StoreCardShellProps) {
-  const titleStyle = "line-clamp-2 self-start text-lg min-h-12";
-  const descriptionStyle =
-    "text-muted-foreground line-clamp-3 self-start text-sm min-h-16";
+  const titleStyle = "line-clamp-2 text-lg";
+  const descriptionStyle = "text-muted-foreground line-clamp-3 text-sm";
 
   return (
-    <Card className="grid grid-cols-[1fr_1fr] grid-rows-2 gap-x-3 gap-y-1 px-2 py-3">
-      <CardHeader className="row-span-2 my-auto">{image}</CardHeader>
-      {typeof title === "string" ? (
-        <h3 className={titleStyle}>{title}</h3>
-      ) : (
-        <div className={titleStyle}>{title}</div>
-      )}
+    <Card className="flex h-32 flex-row items-center px-2 py-3">
+      <CardHeader className="w-1/2">{image}</CardHeader>
+      <div className="flex w-1/2 flex-col justify-center space-y-1">
+        {typeof title === "string" ? (
+          <h3 className={titleStyle}>{title}</h3>
+        ) : (
+          <div className={titleStyle}>{title}</div>
+        )}
 
-      {typeof description === "string" ? (
-        <p className={descriptionStyle}>{description}</p>
-      ) : (
-        <div className={descriptionStyle}>{description}</div>
-      )}
+        {typeof description === "string" ? (
+          <p className={descriptionStyle}>{description}</p>
+        ) : (
+          <div className={descriptionStyle}>{description}</div>
+        )}
+      </div>
     </Card>
   );
 }
