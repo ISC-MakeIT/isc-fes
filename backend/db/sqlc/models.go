@@ -151,6 +151,29 @@ type Account struct {
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
+type Allergen struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+}
+
+type Menu struct {
+	ID             uuid.UUID          `json:"id"`
+	StoreID        uuid.UUID          `json:"store_id"`
+	Name           string             `json:"name"`
+	Description    string             `json:"description"`
+	UnitPrice      int32              `json:"unit_price"`
+	ImageObjectKey string             `json:"image_object_key"`
+	SoldOut        bool               `json:"sold_out"`
+	DeletedAt      pgtype.Timestamptz `json:"deleted_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+}
+
+type MenuAllergen struct {
+	MenuID     uuid.UUID `json:"menu_id"`
+	AllergenID uuid.UUID `json:"allergen_id"`
+}
+
 type Session struct {
 	Token  string             `json:"token"`
 	Data   []byte             `json:"data"`

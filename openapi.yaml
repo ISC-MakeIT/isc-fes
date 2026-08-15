@@ -338,6 +338,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /stores/{store_id}/menus:
+    get:
+      operationId: getMenusByStoreID
+      summary: 店舗のメニュー一覧を取得する
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 店舗のメニュー一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMenusByStoreIDResponse"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない、または承認済みではない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /stores/{store_id}/invitations:
     post:
       operationId: createStoreInvitation
@@ -549,6 +586,19 @@ components:
 
         reviewStatus:
           $ref: "#/components/schemas/StoreReviewStatus"
+    GetMenusByStoreIDResponse:
+      type: object
+      required:
+        - data
+        - total
+      properties:
+        total:
+          type: integer
+          description: 店舗メニューの総数
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Menu"
     StoreMemberRole:
       type: string
       enum:
@@ -694,6 +744,34 @@ components:
         submittedAt:
           type: string
           format: date-time
+    Menu:
+      type: object
+      required:
+        - id
+        - storeId
+        - name
+        - description
+        - unitPrice
+        - imageUrl
+        - soldOut
+      properties:
+        id:
+          type: string
+          format: uuid
+        storeId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        unitPrice:
+          type: number
+          format: float
+        imageUrl:
+          type: string
+        soldOut:
+          type: boolean
     ErrorResponse:
       type: object
       required:

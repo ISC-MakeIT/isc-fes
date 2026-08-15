@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
 	"github.com/isc-makeit/isc-fes/backend/services"
 )
 
@@ -28,13 +29,21 @@ func NewS3ImageURLGenerator(client *s3.Client, bucket string, urlExpiresIn time.
 }
 
 func (r *S3ImageURLGenerator) GenerateStoreImageURL(ctx context.Context, objectKey entities.StoreImageObjectKey) (string, error) {
+	return r.generatePresignedURL(ctx, objectKey.String())
+}
+
+func (r *S3ImageURLGenerator) GenerateMenuImageURL(ctx context.Context, objectKey menus.MenuImageObjectKey) (string, error) {
+	return r.generatePresignedURL(ctx, objectKey.String())
+}
+
+func (r *S3ImageURLGenerator) generatePresignedURL(ctx context.Context, objectKey string) (string, error) {
 	presignClient := s3.NewPresignClient(r.client)
 
 	presignedReq, err := presignClient.PresignGetObject(
 		ctx,
 		&s3.GetObjectInput{
 			Bucket: aws.String(r.bucket),
-			Key:    aws.String(objectKey.String()),
+			Key:    aws.String(objectKey),
 		},
 		s3.WithPresignExpires(r.urlExpiresIn),
 	)
