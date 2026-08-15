@@ -4,6 +4,7 @@ import { PreviewImage } from "@/shared/ui/preview-image";
 import { Store, StoreReviewStatus } from "@/entities/store";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Mask } from "@/shared/ui/mask";
+import { AspectRatio } from "@/shared/ui/aspect-ratio";
 
 export async function StoreList() {
   const stores = await fetchVisibleStores();
@@ -34,7 +35,11 @@ export function StoreCard({ store }: StoreCardProps) {
 export function StoreCardSkelton() {
   return (
     <StoreCardShell
-      image={<Skeleton className="h-32 w-full" />}
+      image={
+        <AspectRatio ratio={16 / 9}>
+          <Skeleton className="h-full w-full" />
+        </AspectRatio>
+      }
       title={<Skeleton className="h-4 w-full" />}
       description={<Skeleton className="h-4 w-full" />}
     />
