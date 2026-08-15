@@ -3,10 +3,11 @@ import { HeadingCard } from "@/shared/ui/heading-card";
 import { LinkButton } from "@/shared/ui/link-button";
 import { StoreCardSkelton, StoreList } from "./store-list";
 import { Suspense } from "react";
+import { CenterLayout } from "@/shared/ui/center-layout";
 
 export function StoresView() {
   return (
-    <div className="mx-auto my-8 grid w-4/5 place-content-center space-y-8 sm:max-w-lg">
+    <CenterLayout>
       <HeadingCard>店舗一覧</HeadingCard>
       <p>
         店舗を選んでください。
@@ -23,6 +24,6 @@ export function StoresView() {
       <LinkButton className="mx-auto" href={REGISTER_STORE_URL}>
         +新規店舗申請
       </LinkButton>
-    </div>
+    </CenterLayout>
   );
 }
