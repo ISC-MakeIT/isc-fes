@@ -20,10 +20,7 @@ export function StoresView() {
         <StoreList />
       </Suspense>
 
-      <LinkButton
-        className="mx-auto grid w-1/2 place-content-center"
-        href={REGISTER_STORE_URL}
-      >
+      <LinkButton className="mx-auto" href={REGISTER_STORE_URL}>
         +新規店舗申請
       </LinkButton>
     </div>
