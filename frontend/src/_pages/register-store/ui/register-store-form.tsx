@@ -129,7 +129,7 @@ export function RegisterStoreForm() {
             >
               <FieldLabel htmlFor={field.name}>店舗写真</FieldLabel>
               <FieldContent>
-                <label htmlFor={field.name}>
+                <label htmlFor={field.name} className="cursor-pointer">
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
