@@ -13,7 +13,7 @@ export function CenterLayout({
   return (
     <div
       className={cn(
-        "mx-auto my-8 grid max-w-lg place-content-center space-y-8 px-6",
+        "mx-auto my-8 grid max-w-lg place-content-center space-y-8 px-4",
         className,
       )}
       {...props}
