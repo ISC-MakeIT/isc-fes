@@ -4,13 +4,7 @@ import { useForm } from "@tanstack/react-form";
 import { CreateStoreForm, CreateStoreFormImage } from "../model/types";
 import { createStoreApplication } from "../api/create-store-application";
 import { useState } from "react";
-import {
-  Field,
-  FieldContent,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/shared/ui/field";
+import { Field, FieldContent, FieldError, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { STORE_LIST_URL } from "@/shared/config";
 import { Textarea } from "@/shared/ui/textarea";
@@ -53,67 +47,63 @@ export function RegisterStoreForm() {
         form.handleSubmit();
       }}
     >
-      <div className="flex flex-col items-start gap-y-6">
+      <div className="grid grid-cols-[6rem_1fr] items-start gap-x-4 gap-y-6">
         <form.Field
           name="name"
           validators={{ onChange: CreateStoreForm.entries.name }}
           children={(field) => (
-            <FieldGroup>
-              <Field
-                orientation="responsive"
-                data-invalid={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                }
-              >
-                <FieldLabel htmlFor={field.name}>店舗名</FieldLabel>
-                <FieldContent>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                  />
-                  <FieldError
-                    errors={
-                      field.state.meta.isTouched ? field.state.meta.errors : []
-                    }
-                  />
-                </FieldContent>
-              </Field>
-            </FieldGroup>
+            <Field
+              className="contents"
+              data-invalid={
+                field.state.meta.isTouched && !field.state.meta.isValid
+              }
+            >
+              <FieldLabel htmlFor={field.name}>店舗名</FieldLabel>
+              <FieldContent>
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                />
+                <FieldError
+                  errors={
+                    field.state.meta.isTouched ? field.state.meta.errors : []
+                  }
+                />
+              </FieldContent>
+            </Field>
           )}
         />
         <form.Field
           name="room"
           validators={{ onChange: CreateStoreForm.entries.room }}
           children={(field) => (
-            <FieldGroup>
-              <Field
-                orientation="responsive"
-                data-invalid={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                }
-              >
-                <FieldLabel htmlFor={field.name}>教室</FieldLabel>
-                <FieldContent>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onChange={(e) => {
-                      field.handleChange(e.target.value);
-                    }}
-                    onBlur={field.handleBlur}
-                  />
-                  <FieldError
-                    errors={
-                      field.state.meta.isTouched ? field.state.meta.errors : []
-                    }
-                  />
-                </FieldContent>
-              </Field>
-            </FieldGroup>
+            <Field
+              className="contents"
+              data-invalid={
+                field.state.meta.isTouched && !field.state.meta.isValid
+              }
+            >
+              <FieldLabel htmlFor={field.name}>教室</FieldLabel>
+              <FieldContent>
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value);
+                  }}
+                  onBlur={field.handleBlur}
+                />
+                <FieldError
+                  errors={
+                    field.state.meta.isTouched ? field.state.meta.errors : []
+                  }
+                />
+              </FieldContent>
+            </Field>
           )}
         />
 
@@ -130,36 +120,34 @@ export function RegisterStoreForm() {
                 : undefined,
           }}
           children={(field) => (
-            <FieldGroup>
-              <Field
-                orientation="responsive"
-                data-invalid={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                }
-              >
-                <FieldLabel htmlFor={field.name}>店舗写真</FieldLabel>
-                <FieldContent>
-                  <label htmlFor={field.name}>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      id={field.name}
-                      name={field.name}
-                      className="sr-only"
-                      onChange={(e) => field.handleChange(e.target.files?.[0])}
-                      onBlur={field.handleBlur}
-                    />
-                    <PreviewImage imageFile={field.state.value} />
-                  </label>
-
-                  <FieldError
-                    errors={
-                      field.state.meta.isTouched ? field.state.meta.errors : []
-                    }
+            <Field
+              className="contents"
+              data-invalid={
+                field.state.meta.isTouched && !field.state.meta.isValid
+              }
+            >
+              <FieldLabel htmlFor={field.name}>店舗写真</FieldLabel>
+              <FieldContent>
+                <label htmlFor={field.name}>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    id={field.name}
+                    name={field.name}
+                    className="sr-only"
+                    onChange={(e) => field.handleChange(e.target.files?.[0])}
+                    onBlur={field.handleBlur}
                   />
-                </FieldContent>
-              </Field>
-            </FieldGroup>
+                  <PreviewImage imageFile={field.state.value} />
+                </label>
+
+                <FieldError
+                  errors={
+                    field.state.meta.isTouched ? field.state.meta.errors : []
+                  }
+                />
+              </FieldContent>
+            </Field>
           )}
         />
 
@@ -169,30 +157,28 @@ export function RegisterStoreForm() {
             onChange: CreateStoreForm.entries.description,
           }}
           children={(field) => (
-            <FieldGroup>
-              <Field
-                orientation="responsive"
-                data-invalid={
-                  field.state.meta.isTouched && !field.state.meta.isValid
-                }
-              >
-                <FieldLabel htmlFor={field.name}>店舗説明</FieldLabel>
-                <FieldContent>
-                  <Textarea
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                  />
-                  <FieldError
-                    errors={
-                      field.state.meta.isTouched ? field.state.meta.errors : []
-                    }
-                  />
-                </FieldContent>
-              </Field>
-            </FieldGroup>
+            <Field
+              className="contents"
+              data-invalid={
+                field.state.meta.isTouched && !field.state.meta.isValid
+              }
+            >
+              <FieldLabel htmlFor={field.name}>店舗説明</FieldLabel>
+              <FieldContent>
+                <Textarea
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                />
+                <FieldError
+                  errors={
+                    field.state.meta.isTouched ? field.state.meta.errors : []
+                  }
+                />
+              </FieldContent>
+            </Field>
           )}
         />
       </div>
