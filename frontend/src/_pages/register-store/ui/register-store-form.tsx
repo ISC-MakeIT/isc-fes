@@ -41,6 +41,7 @@ export function RegisterStoreForm() {
 
   return (
     <form
+      className="space-y-6"
       onSubmit={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -183,6 +184,11 @@ export function RegisterStoreForm() {
         />
       </div>
 
+      <p className="text-sm">
+        登録内容は変更できません。
+        <br />
+        変更したい場合は管理者に連絡してください。
+      </p>
       <form.Subscribe
         selector={(state) => [
           state.canSubmit,
@@ -191,20 +197,15 @@ export function RegisterStoreForm() {
           state.isSubmitSuccessful,
         ]}
         children={([canSubmit, isPristine, isSubmitting]) => (
-          <div className="mt-7 flex justify-center">
-            <SubmitButton
-              className="min-w-72"
-              type="submit"
-              disabled={!canSubmit || isPristine || isSubmitting}
-            >
-              {isSubmitting ? "送信中" : "この内容で申請する"}
-            </SubmitButton>
-          </div>
+          <SubmitButton
+            type="submit"
+            disabled={!canSubmit || isPristine || isSubmitting}
+          >
+            {isSubmitting ? "送信中" : "この内容で申請する"}
+          </SubmitButton>
         )}
       />
-      {serverError && (
-        <FieldError className="my-4 text-center">{serverError}</FieldError>
-      )}
+      {serverError && <FieldError>{serverError}</FieldError>}
     </form>
   );
 }
