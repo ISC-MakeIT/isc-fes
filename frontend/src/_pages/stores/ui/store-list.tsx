@@ -52,9 +52,9 @@ function StoreCardShell({ image, title, description }: StoreCardShellProps) {
   const descriptionStyle = "text-muted-foreground line-clamp-3 text-sm";
 
   return (
-    <Card className="flex h-32 flex-row items-center px-2 py-3">
-      <CardHeader className="w-1/2">{image}</CardHeader>
-      <div className="flex w-1/2 flex-col justify-center space-y-1">
+    <Card className="flex h-36 flex-row items-center p-6 sm:h-44">
+      <div className="w-32 shrink-0 sm:w-56">{image}</div>
+      <div className="flex min-w-0 flex-1 flex-col justify-center space-y-1">
         {typeof title === "string" ? (
           <h3 className={titleStyle}>{title}</h3>
         ) : (
