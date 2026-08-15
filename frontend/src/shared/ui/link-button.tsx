@@ -12,7 +12,7 @@ export function LinkButton({ className, children, ...props }: LinkButtonProps) {
     <Link
       className={cn(
         buttonVariants(),
-        "max-w-xs px-8 py-7 text-2xl shadow-[3px_3px_0_#9683DC]",
+        "justify-self-center px-8 py-7 text-2xl shadow-[3px_3px_0_#9683DC]",
         className,
       )}
       {...props}

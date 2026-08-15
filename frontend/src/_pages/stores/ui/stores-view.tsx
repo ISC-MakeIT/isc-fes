@@ -21,9 +21,7 @@ export function StoresView() {
         <StoreList />
       </Suspense>
 
-      <LinkButton className="mx-auto" href={REGISTER_STORE_URL}>
-        +新規店舗申請
-      </LinkButton>
+      <LinkButton href={REGISTER_STORE_URL}>+新規店舗申請</LinkButton>
     </CenterLayout>
   );
 }
