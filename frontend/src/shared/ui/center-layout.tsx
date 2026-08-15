@@ -1,7 +1,7 @@
 import { ComponentProps } from "react";
 import { cn } from "../lib/utils";
 
-type CenterlayoutProops = ComponentProps<"div"> & {
+type CenterlayoutProps = ComponentProps<"div"> & {
   className?: string;
 };
 
@@ -9,7 +9,7 @@ export function CenterLayout({
   className,
   children,
   ...props
-}: CenterlayoutProops) {
+}: CenterlayoutProps) {
   return (
     <div
       className={cn(
