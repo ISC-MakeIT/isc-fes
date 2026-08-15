@@ -1,4 +1,4 @@
-import { Card, CardHeader } from "@/shared/ui/card";
+import { Card } from "@/shared/ui/card";
 import { fetchVisibleStores } from "../api/fetchVisibleStores";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { Store, StoreReviewStatus } from "@/entities/store";
