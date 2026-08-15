@@ -53,8 +53,6 @@ export function RegisterStoreForm() {
         form.handleSubmit();
       }}
     >
-      {serverError && <FieldError>{serverError}</FieldError>}
-
       <div className="flex flex-col items-start gap-y-6">
         <form.Field
           name="name"
@@ -206,24 +204,21 @@ export function RegisterStoreForm() {
           state.isSubmitting,
           state.isSubmitSuccessful,
         ]}
-        children={([
-          canSubmit,
-          isPristine,
-          isSubmitting,
-          isSubmitSuccessful,
-        ]) => (
+        children={([canSubmit, isPristine, isSubmitting]) => (
           <div className="mt-7 flex justify-center">
             <SubmitButton
+              className="min-w-72"
               type="submit"
-              disabled={
-                !canSubmit || isPristine || isSubmitting || isSubmitSuccessful
-              }
+              disabled={!canSubmit || isPristine || isSubmitting}
             >
-              {isSubmitSuccessful ? "送信完了" : "この内容で送信"}
+              {isSubmitting ? "送信中" : "この内容で申請する"}
             </SubmitButton>
           </div>
         )}
       />
+      {serverError && (
+        <FieldError className="my-4 text-center">{serverError}</FieldError>
+      )}
     </form>
   );
 }
