@@ -41,14 +41,13 @@ export function RegisterStoreForm() {
 
   return (
     <form
+      className="space-y-6"
       onSubmit={(e) => {
         e.preventDefault();
         e.stopPropagation();
         form.handleSubmit();
       }}
     >
-      {serverError && <FieldError>{serverError}</FieldError>}
-
       <div className="grid grid-cols-[6rem_1fr] items-start gap-x-4 gap-y-6">
         <form.Field
           name="name"
@@ -131,7 +130,7 @@ export function RegisterStoreForm() {
               <FieldLabel htmlFor={field.name}>店舗写真</FieldLabel>
               <FieldContent>
                 <label htmlFor={field.name} className="cursor-pointer">
-                  <Input
+                  <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
                     id={field.name}
@@ -185,31 +184,27 @@ export function RegisterStoreForm() {
         />
       </div>
 
+      <p className="text-sm">
+        登録内容は変更できません。
+        <br />
+        変更したい場合は管理者に連絡してください。
+      </p>
       <form.Subscribe
         selector={(state) => [
           state.canSubmit,
           state.isPristine,
           state.isSubmitting,
-          state.isSubmitSuccessful,
         ]}
-        children={([
-          canSubmit,
-          isPristine,
-          isSubmitting,
-          isSubmitSuccessful,
-        ]) => (
-          <div className="mt-7 flex justify-center">
-            <SubmitButton
-              type="submit"
-              disabled={
-                !canSubmit || isPristine || isSubmitting || isSubmitSuccessful
-              }
-            >
-              {isSubmitSuccessful ? "送信完了" : "この内容で送信"}
-            </SubmitButton>
-          </div>
+        children={([canSubmit, isPristine, isSubmitting]) => (
+          <SubmitButton
+            type="submit"
+            disabled={!canSubmit || isPristine || isSubmitting}
+          >
+            {isSubmitting ? "送信中" : "この内容で申請する"}
+          </SubmitButton>
         )}
       />
+      {serverError && <FieldError>{serverError}</FieldError>}
     </form>
   );
 }
