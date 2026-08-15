@@ -659,7 +659,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["GetStoreMembersResponse"][];
+          "application/json": components["schemas"]["GetStoreMembersResponse"];
         };
       };
       /** @description リクエスト形式が不正 */
@@ -680,16 +680,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description 権限不足（店舗に所属していない） */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 店舗が存在しない */
+      /** @description 店舗が存在しない、または店舗のメンバーではない */
       404: {
         headers: {
           [name: string]: unknown;

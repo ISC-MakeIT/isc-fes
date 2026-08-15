@@ -100,6 +100,7 @@ FROM store_members
 INNER JOIN accounts
     ON store_members.account_id = accounts.id
 WHERE store_members.store_id = $1
+ORDER BY store_members.joined_at ASC
 `
 
 type GetStoreMembersByStoreIDRow struct {
