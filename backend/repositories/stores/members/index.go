@@ -7,6 +7,7 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	repositoryinterfaces "github.com/isc-makeit/isc-fes/backend/services/repository_interfaces"
+	"github.com/isc-makeit/isc-fes/backend/utils"
 )
 
 type StoreMemberRepository struct {
@@ -19,16 +20,34 @@ func NewStoreMemberRepository(queries *sqlc.Queries) *StoreMemberRepository {
 	}
 }
 
-func (r *StoreMemberRepository) GetStoreMemberByAccountIDAndStoreID(c context.Context, accountID uuid.UUID, storeID uuid.UUID) (entities.StoreMember, error) {
+func (r *StoreMemberRepository) GetStoreMemberByAccountIDAndStoreID(c context.Context, accountID uuid.UUID, storeID uuid.UUID) (entities.StoreMembership, error) {
 	dbStoreMember, err := r.queries.GetStoreMemberByAccountIDAndStoreID(c, sqlc.GetStoreMemberByAccountIDAndStoreIDParams{
 		AccountID: accountID,
 		StoreID:   storeID,
 	})
-	return toStoreMember(dbStoreMember), err
+	return toStoreMembership(dbStoreMember), err
 }
 
-func toStoreMember(dbStoreMember sqlc.StoreMember) entities.StoreMember {
-	return entities.StoreMember{
+func (r *StoreMemberRepository) GetStoreMembersByStoreID(c context.Context, storeID uuid.UUID) ([]entities.StoreMember, error) {
+	dbStoreMembers, err := r.queries.GetStoreMembersByStoreID(c, storeID)
+	if err != nil {
+		return nil, err
+	}
+
+	return utils.Map(dbStoreMembers, func(m sqlc.GetStoreMembersByStoreIDRow) entities.StoreMember {
+		return entities.StoreMember{
+			StoreID:     m.StoreID,
+			AccountID:   m.AccountID,
+			Role:        entities.StoreMemberRole(m.Role),
+			JoinedAt:    m.JoinedAt.Time,
+			DisplayName: m.DisplayName,
+			PictureURL:  m.PictureUrl,
+		}
+	}), nil
+}
+
+func toStoreMembership(dbStoreMember sqlc.StoreMember) entities.StoreMembership {
+	return entities.StoreMembership{
 		AccountID: dbStoreMember.AccountID,
 		StoreID:   dbStoreMember.StoreID,
 		Role:      entities.StoreMemberRole(dbStoreMember.Role),

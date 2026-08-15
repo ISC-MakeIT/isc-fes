@@ -5,6 +5,7 @@ import (
 	db "github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/services/store/invitations"
+	"github.com/isc-makeit/isc-fes/backend/services/store/members"
 )
 
 type Server struct {
@@ -15,6 +16,7 @@ type Server struct {
 	accountService      *services.AccountService
 	auth                *services.AuthService
 	store               *services.StoreService
+	storeMember         *members.StoreMemberService
 	storeInvitation     *invitations.StoreInvitationService
 	errorNotifier       *services.ErrorNotifier
 }
@@ -27,6 +29,7 @@ func NewServer(
 	accountService *services.AccountService,
 	authService *services.AuthService,
 	storeService *services.StoreService,
+	storeMemberService *members.StoreMemberService,
 	storeInvitationService *invitations.StoreInvitationService,
 	errorNotifier *services.ErrorNotifier,
 ) *Server {
@@ -38,6 +41,7 @@ func NewServer(
 		accountService:      accountService,
 		auth:                authService,
 		store:               storeService,
+		storeMember:         storeMemberService,
 		storeInvitation:     storeInvitationService,
 		errorNotifier:       errorNotifier,
 	}

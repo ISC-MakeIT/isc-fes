@@ -19,6 +19,6 @@ type StoreInvitation struct {
 
 // 店舗のメンバー招待リンクを発行可能かどうか
 // 店舗マネージャーのみ発行可能
-func CanCreateStoreInvitation(member StoreMember) bool {
+func CanCreateStoreInvitation(member StoreMembership) bool {
 	return member.Role == StoreMemberRoleManager
 }
