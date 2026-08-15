@@ -4,6 +4,7 @@ export {
   LOGIN_URL,
   REGISTER_STORE_URL,
   STORE_LIST_URL,
+  storeDetailUrl,
 } from "./constants/urls";
 
 export {

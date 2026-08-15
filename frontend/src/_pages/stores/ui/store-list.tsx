@@ -5,6 +5,8 @@ import { Store, StoreReviewStatus } from "@/entities/store";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Mask } from "@/shared/ui/mask";
 import { AspectRatio } from "@/shared/ui/aspect-ratio";
+import Link from "next/link";
+import { storeDetailUrl } from "@/shared/config";
 
 export async function StoreList() {
   const stores = await fetchVisibleStores();
@@ -22,11 +24,13 @@ export function StoreCard({ store }: StoreCardProps) {
   return (
     <div className="border-primary overflow-hidden rounded-xl border-2">
       <Mask active={isPending} label="申請中">
-        <StoreCardShell
-          image={<PreviewImage imagePath={store.imageUrl} />}
-          title={store.name}
-          description={store.description}
-        />
+        <Link href={storeDetailUrl(store.id)}>
+          <StoreCardShell
+            image={<PreviewImage imagePath={store.imageUrl} />}
+            title={store.name}
+            description={store.description}
+          />
+        </Link>
       </Mask>
     </div>
   );
