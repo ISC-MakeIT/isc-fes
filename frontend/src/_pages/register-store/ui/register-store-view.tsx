@@ -3,7 +3,7 @@ import { RegisterStoreForm } from "./register-store-form";
 
 export function RegisterStoreView() {
   return (
-    <div className="mx-6 my-8 flex flex-col space-y-8 sm:mx-32">
+    <div className="mx-auto my-8 flex max-w-xl flex-col space-y-8">
       <div className="flex flex-col items-center space-y-4">
         <HeadingCard>店舗登録</HeadingCard>
         <p className="text-sm">

@@ -6,7 +6,7 @@ import { Suspense } from "react";
 
 export function StoresView() {
   return (
-    <div className="mx-auto my-8 grid w-4/5 place-content-center space-y-8 md:w-1/2">
+    <div className="mx-auto my-8 grid w-4/5 place-content-center space-y-8 sm:max-w-lg">
       <HeadingCard>店舗一覧</HeadingCard>
       <p>
         店舗を選んでください。
