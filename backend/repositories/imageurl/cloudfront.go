@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
 	"github.com/isc-makeit/isc-fes/backend/services"
 )
 
@@ -32,10 +33,18 @@ func NewCloudFrontImageURLGenerator(rawBaseURL string) (*CloudFrontImageURLGener
 	return &CloudFrontImageURLGenerator{baseURL: baseURL.String()}, nil
 }
 
-func (g *CloudFrontImageURLGenerator) GenerateStoreImageURL(_ context.Context, objectKey entities.StoreImageObjectKey) (string, error) {
-	imageURL, err := url.JoinPath(g.baseURL, objectKey.String())
+func (g *CloudFrontImageURLGenerator) GenerateStoreImageURL(ctx context.Context, objectKey entities.StoreImageObjectKey) (string, error) {
+	return g.generateImageURL(ctx, objectKey.String())
+}
+
+func (g *CloudFrontImageURLGenerator) GenerateMenuImageURL(ctx context.Context, objectKey menus.MenuImageObjectKey) (string, error) {
+	return g.generateImageURL(ctx, objectKey.String())
+}
+
+func (g *CloudFrontImageURLGenerator) generateImageURL(_ context.Context, objectKey string) (string, error) {
+	imageURL, err := url.JoinPath(g.baseURL, objectKey)
 	if err != nil {
-		return "", fmt.Errorf("join store image URL: %w", err)
+		return "", fmt.Errorf("join image URL: %w", err)
 	}
 
 	return imageURL, nil

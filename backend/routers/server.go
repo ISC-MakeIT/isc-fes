@@ -6,6 +6,7 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/services/store/invitations"
 	"github.com/isc-makeit/isc-fes/backend/services/store/members"
+	"github.com/isc-makeit/isc-fes/backend/services/store/menus"
 )
 
 type Server struct {
@@ -18,6 +19,7 @@ type Server struct {
 	store               *services.StoreService
 	storeMember         *members.StoreMemberService
 	storeInvitation     *invitations.StoreInvitationService
+	menu                *menus.MenuService
 	errorNotifier       *services.ErrorNotifier
 }
 
@@ -31,6 +33,7 @@ func NewServer(
 	storeService *services.StoreService,
 	storeMemberService *members.StoreMemberService,
 	storeInvitationService *invitations.StoreInvitationService,
+	menuService *menus.MenuService,
 	errorNotifier *services.ErrorNotifier,
 ) *Server {
 	return &Server{
@@ -43,6 +46,7 @@ func NewServer(
 		store:               storeService,
 		storeMember:         storeMemberService,
 		storeInvitation:     storeInvitationService,
+		menu:                menuService,
 		errorNotifier:       errorNotifier,
 	}
 }

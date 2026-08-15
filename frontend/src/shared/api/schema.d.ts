@@ -123,6 +123,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/stores/{store_id}/menus": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 店舗のメニュー一覧を取得する */
+    get: operations["getMenusByStoreID"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/stores/{store_id}/invitations": {
     parameters: {
       query?: never;
@@ -200,6 +217,11 @@ export interface components {
       id: string;
       reviewStatus: components["schemas"]["StoreReviewStatus"];
     };
+    GetMenusByStoreIDResponse: {
+      /** @description 店舗メニューの総数 */
+      total: number;
+      data: components["schemas"]["Menu"][];
+    };
     /** @enum {string} */
     StoreMemberRole: "member" | "manager";
     CreateStoreInvitationResponse: {
@@ -264,6 +286,22 @@ export interface components {
       reviewStatus: components["schemas"]["StoreReviewStatus"];
       /** Format: date-time */
       submittedAt: string;
+    };
+    Menu: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      storeId: string;
+      name: string;
+      description: string;
+      /** Format: int32 */
+      unitPrice: number;
+      imageUrl: string;
+      soldOut: boolean;
+      /** Format: date-time */
+      updatedAt: string;
+      /** Format: date-time */
+      createdAt: string;
     };
     ErrorResponse: {
       message: string;
@@ -681,6 +719,55 @@ export interface operations {
         };
       };
       /** @description 店舗が存在しない、または店舗のメンバーではない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getMenusByStoreID: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 店舗のメニュー一覧 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetMenusByStoreIDResponse"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない、または承認済みではない */
       404: {
         headers: {
           [name: string]: unknown;
