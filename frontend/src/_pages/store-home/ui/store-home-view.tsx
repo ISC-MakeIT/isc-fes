@@ -1,9 +1,9 @@
-import { createQueryClient } from "@/shared/api/tanstack-query/get-query-client";
 import { ErrorBoundary } from "react-error-boundary";
 import { storeDetailQueryOptions } from "../api/fetch-store-detail";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { StoreInfo } from "./store-detail";
+import { createQueryClient } from "@/shared/api";
 
 type StoreHomeViewProps = { storeId: string };
 
