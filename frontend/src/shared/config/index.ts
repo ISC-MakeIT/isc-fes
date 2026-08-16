@@ -12,5 +12,3 @@ export {
   isClientError,
   getStatusMessage,
 } from "./constants/status-codes";
-
-export { visibleStores } from "./constants/query-keys";
