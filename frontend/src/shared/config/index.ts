@@ -1,9 +1,9 @@
 export { SESSION_COOKIE_NAME } from "./constants/cookies";
 export { API_BASE_URL } from "./constants/env";
 export {
-  LOGIN_URL,
-  REGISTER_STORE_URL,
-  STORE_LIST_URL,
+  loginUrl,
+  registerStoreUrl,
+  storeListUrl,
   storeDetailUrl,
 } from "./constants/urls";
 
@@ -13,4 +13,8 @@ export {
   getStatusMessage,
 } from "./constants/status-codes";
 
-export { keys } from "./constants/query-keys";
+export {
+  storeDetailKey,
+  storeMemberKey,
+  storeMenusKey,
+} from "./constants/query-keys";

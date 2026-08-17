@@ -1,5 +1,5 @@
 import { SESSION_COOKIE_NAME } from "@/shared/config";
-import { LOGIN_URL } from "@/shared/config";
+import { loginUrl } from "@/shared/config";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -10,7 +10,7 @@ import { redirect } from "next/navigation";
 export default async function MemberLayout(props: LayoutProps<"/">) {
   const sessionCookie = (await cookies()).get(SESSION_COOKIE_NAME);
 
-  if (!sessionCookie) redirect(LOGIN_URL);
+  if (!sessionCookie) redirect(loginUrl());
 
   return props.children;
 }

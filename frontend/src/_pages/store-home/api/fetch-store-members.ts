@@ -1,13 +1,13 @@
-import { Menu } from "@/entities/menu";
+import { StoreMember } from "@/entities/store-member";
 import { createApiClient } from "@/shared/api";
-import { getStatusMessage, storeMenusKey } from "@/shared/config";
+import { getStatusMessage, storeMemberKey } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { queryOptions } from "@tanstack/react-query";
 
-export async function fetchStoreMenus(storeId: string): Promise<Menu[]> {
+export async function fetchStoreMembers(storeId: string) {
   const client = await createApiClient();
   const { data, error, response } = await client.GET(
-    "/stores/{store_id}/menus",
+    "/stores/{store_id}/members",
     {
       params: { path: { store_id: storeId } },
     },
@@ -15,13 +15,13 @@ export async function fetchStoreMenus(storeId: string): Promise<Menu[]> {
 
   if (error) throw new Error(getStatusMessage(response.status));
 
-  return v.parse(v.array(Menu), data.data);
+  return v.parse(v.array(StoreMember), data.data);
 }
 
-export function storeMenusQueryOptions(storeId: string) {
+export function storeMemberQueryOptions(storeId: string) {
   return queryOptions({
-    queryKey: storeMenusKey(storeId),
-    queryFn: () => fetchStoreMenus(storeId),
+    queryKey: storeMemberKey(storeId),
+    queryFn: () => fetchStoreMembers(storeId),
     staleTime: 60 * 1000,
   });
 }

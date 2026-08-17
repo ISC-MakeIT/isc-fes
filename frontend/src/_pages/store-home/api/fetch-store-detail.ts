@@ -1,6 +1,6 @@
 import { Store } from "@/entities/store";
 import { createApiClient } from "@/shared/api";
-import { getStatusMessage, keys } from "@/shared/config";
+import { getStatusMessage, storeDetailKey } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { queryOptions } from "@tanstack/react-query";
 
@@ -17,7 +17,7 @@ export async function fetchStoreDetail(storeId: string): Promise<Store> {
 
 export function storeDetailQueryOptions(storeId: string) {
   return queryOptions({
-    queryKey: keys.storeDetail(storeId),
+    queryKey: storeDetailKey(storeId),
     queryFn: () => fetchStoreDetail(storeId),
     // 店舗情報は基本的に変わることがない
     staleTime: Infinity,

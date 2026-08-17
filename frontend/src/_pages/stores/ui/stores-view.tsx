@@ -1,9 +1,9 @@
-import { REGISTER_STORE_URL } from "@/shared/config";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { LinkButton } from "@/shared/ui/link-button";
 import { StoreCardSkelton, StoreList } from "./store-list";
 import { Suspense } from "react";
 import { CenterLayout } from "@/shared/ui/center-layout";
+import { registerStoreUrl } from "@/shared/config";
 
 export function StoresView() {
   return (
@@ -21,7 +21,7 @@ export function StoresView() {
         <StoreList />
       </Suspense>
 
-      <LinkButton href={REGISTER_STORE_URL}>+新規店舗申請</LinkButton>
+      <LinkButton href={registerStoreUrl()}>+新規店舗申請</LinkButton>
     </CenterLayout>
   );
 }

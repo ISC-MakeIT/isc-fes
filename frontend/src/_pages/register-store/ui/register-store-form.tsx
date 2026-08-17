@@ -6,11 +6,11 @@ import { createStoreApplication } from "../api/create-store-application";
 import { useState } from "react";
 import { Field, FieldContent, FieldError, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
-import { STORE_LIST_URL } from "@/shared/config";
 import { Textarea } from "@/shared/ui/textarea";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { SubmitButton } from "@/shared/ui/submit-button";
 import { useRouter } from "next/navigation";
+import { storeListUrl } from "@/shared/config";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -31,7 +31,7 @@ export function RegisterStoreForm() {
       const { data, error } = await createStoreApplication(value);
 
       if (data) {
-        router.push(STORE_LIST_URL);
+        router.push(storeListUrl());
         return;
       }
 
