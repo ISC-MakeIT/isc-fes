@@ -4,6 +4,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { StoreInfo } from "./store-detail";
 import { createQueryClient } from "@/shared/api";
+import { StoreMenuList } from "./store-menu-list";
 
 type StoreHomeViewProps = { storeId: string };
 
@@ -15,6 +16,7 @@ export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
       <ErrorBoundary fallback={<p>エラーが発生しました</p>}>
         <Suspense fallback={<p>ロード中</p>}>
           <StoreInfo storeId={storeId} />
+          <StoreMenuList storeId={storeId} />
         </Suspense>
       </ErrorBoundary>
     </HydrationBoundary>
