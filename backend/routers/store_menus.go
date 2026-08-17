@@ -29,7 +29,7 @@ func (s *Server) GetMenusByStoreID(c *gin.Context, storeID uuid.UUID) {
 type CreateMenuForm struct {
 	Name        string                `form:"name" binding:"required"`
 	Description string                `form:"description" binding:"required"`
-	UnitPrice   int32                 `form:"unit_price" binding:"required"`
+	UnitPrice   *int32                `form:"unitPrice" binding:"required,gte=0"`
 	Image       *multipart.FileHeader `form:"image" binding:"required"`
 }
 
@@ -85,7 +85,7 @@ func (s *Server) CreateMenu(c *gin.Context, storeID uuid.UUID) {
 	menu, err := s.menu.CreateMenu(ctx, storeID, menu_service.CreateMenuInput{
 		Name:        form.Name,
 		Description: form.Description,
-		UnitPrice:   form.UnitPrice,
+		UnitPrice:   *form.UnitPrice,
 		ImageReader: image,
 	})
 	if err != nil {
