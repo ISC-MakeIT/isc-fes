@@ -71,15 +71,24 @@ func (s *MenuService) CreateMenu(c context.Context, storeID uuid.UUID, input Cre
 
 	store, err := s.storeRepository.GetStoreByID(c, storeID)
 	// 未承認の店舗はメニューを登録できない
-	if errors.Is(err, pgx.ErrNoRows) || !store.IsVisibleInPublic() {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return menus.MenuDisplay{}, services.ErrNotFound
 	}
 	if err != nil {
 		return menus.MenuDisplay{}, err
 	}
+	if !store.IsVisibleInPublic() {
+		return menus.MenuDisplay{}, services.ErrNotFound
+	}
 
 	member, err := s.storeMemberRepository.GetStoreMemberByAccountIDAndStoreID(c, account.ID, store.ID)
-	if errors.Is(err, pgx.ErrNoRows) || !member.IsMenuManagementAllowed() {
+	if errors.Is(err, pgx.ErrNoRows) {
+		return menus.MenuDisplay{}, services.ErrForbidden
+	}
+	if err != nil {
+		return menus.MenuDisplay{}, err
+	}
+	if !member.IsMenuManagementAllowed() {
 		return menus.MenuDisplay{}, services.ErrForbidden
 	}
 
