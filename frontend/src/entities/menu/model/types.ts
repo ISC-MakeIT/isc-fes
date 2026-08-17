@@ -8,8 +8,8 @@ export const Menu = v.object({
   unitPrice: v.pipe(v.number()),
   imageUrl: v.pipe(v.string()),
   soldOut: v.pipe(v.boolean()),
-  updatedAt: v.pipe(v.string()),
-  createdAt: v.pipe(v.string()),
+  updatedAt: v.pipe(v.string(), v.toDate()),
+  createdAt: v.pipe(v.string(), v.toDate()),
 });
 
 export type Menu = v.InferOutput<typeof Menu>;
