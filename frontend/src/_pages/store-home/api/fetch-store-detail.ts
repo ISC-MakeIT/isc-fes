@@ -19,5 +19,7 @@ export function storeDetailQueryOptions(storeId: string) {
   return queryOptions({
     queryKey: keys.storeDetail(storeId),
     queryFn: () => fetchStoreDetail(storeId),
+    // 店舗情報は基本的に変わることがない
+    staleTime: Infinity,
   });
 }

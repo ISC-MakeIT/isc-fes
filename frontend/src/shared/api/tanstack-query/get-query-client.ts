@@ -8,5 +8,9 @@ export function createQueryClient(): QueryClient {
 }
 
 export function createClient() {
-  return new QueryClient();
+  return new QueryClient({
+    defaultOptions: {
+      queries: { staleTime: 60 * 1000 },
+    },
+  });
 }
