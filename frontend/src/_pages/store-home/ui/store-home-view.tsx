@@ -12,10 +12,11 @@ export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
   await queryClient.prefetchQuery(storeDetailQueryOptions(storeId));
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <ErrorBoundary fallback={<p>エラーが発生しました</p>}></ErrorBoundary>
-      <Suspense fallback={<p>ロード中</p>}>
-        <StoreInfo storeId={storeId} />
-      </Suspense>
+      <ErrorBoundary fallback={<p>エラーが発生しました</p>}>
+        <Suspense fallback={<p>ロード中</p>}>
+          <StoreInfo storeId={storeId} />
+        </Suspense>
+      </ErrorBoundary>
     </HydrationBoundary>
   );
 }
