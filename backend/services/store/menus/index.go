@@ -100,6 +100,12 @@ func (s *MenuService) CreateMenu(c context.Context, storeID uuid.UUID, input Cre
 		return menus.MenuDisplay{}, services.ErrFailedToStoreImage
 	}
 
+	imageURL, err := s.imageURLGenerator.GenerateMenuImageURL(c, imageObjectKey)
+	if err != nil {
+		s.imageRepository.DeleteObject(c, entities.StoreImageObjectKey(imageObjectKey))
+		return menus.MenuDisplay{}, err
+	}
+
 	menu, err := s.menuRepository.CreateMenu(c, CreateMenuRepositoryInput{
 		ID:             menuID,
 		StoreID:        storeID,
@@ -113,5 +119,5 @@ func (s *MenuService) CreateMenu(c context.Context, storeID uuid.UUID, input Cre
 		return menus.MenuDisplay{}, err
 	}
 
-	return entity2display.ToMenuDisplay(c, menu, s.imageURLGenerator)
+	return entity2display.ToMenuDisplayWithImageURL(menu, imageURL), nil
 }
