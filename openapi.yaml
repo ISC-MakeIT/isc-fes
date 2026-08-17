@@ -447,6 +447,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: 画像ストレージが一時的に利用できない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /stores/{store_id}/invitations:
     post:
       operationId: createStoreInvitation
