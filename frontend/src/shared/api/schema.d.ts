@@ -133,7 +133,8 @@ export interface paths {
     /** 店舗のメニュー一覧を取得する */
     get: operations["getMenusByStoreID"];
     put?: never;
-    post?: never;
+    /** 店舗のメニューを作成する */
+    post: operations["createMenu"];
     delete?: never;
     options?: never;
     head?: never;
@@ -302,6 +303,23 @@ export interface components {
       updatedAt: string;
       /** Format: date-time */
       createdAt: string;
+    };
+    CreateMenuInput: {
+      /** @example たこ焼き */
+      name: string;
+      /** @example 外はカリカリ、中はトロトロのたこ焼きです。 */
+      description: string;
+      /**
+       * Format: int32
+       * @example 500
+       */
+      unitPrice: number;
+      /**
+       * Format: binary
+       * @description メニュー画像。JPEG、PNG、WebPに対応する。
+       *     最大ファイルサイズは10MB。
+       */
+      image: string;
     };
     ErrorResponse: {
       message: string;
@@ -769,6 +787,104 @@ export interface operations {
       };
       /** @description 店舗が存在しない、または承認済みではない */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  createMenu: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["CreateMenuInput"];
+      };
+    };
+    responses: {
+      /** @description 店舗のメニューを作成した */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Menu"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 権限不足（店舗のメンバーでない、または店舗マネージャーでない） */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない（未承認の店舗はメニューを登録できない） */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description アップロードされた画像が大きすぎる */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 対応していない画像形式 */
+      415: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 入力値または画像の内容が不正 */
+      422: {
         headers: {
           [name: string]: unknown;
         };
