@@ -26,4 +26,17 @@ func (r *MenuRepository) GetMenusByStoreID(c context.Context, storeID uuid.UUID)
 	return db2entities.ToMenus(dbMenus), err
 }
 
+func (r *MenuRepository) CreateMenu(c context.Context, input menuService.CreateMenuRepositoryInput) (menus.Menu, error) {
+	m, err := r.queries.CreateMenu(c, sqlc.CreateMenuParams{
+		ID:             input.ID,
+		StoreID:        input.StoreID,
+		Name:           input.Name,
+		Description:    input.Description,
+		UnitPrice:      input.UnitPrice,
+		ImageObjectKey: input.ImageObjectKey.String(),
+	})
+
+	return db2entities.ToMenu(m), err
+}
+
 var _ menuService.MenuRepository = (*MenuRepository)(nil)

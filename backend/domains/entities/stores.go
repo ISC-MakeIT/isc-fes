@@ -133,3 +133,15 @@ func (k StoreImageObjectKey) IsValid() bool {
 func CanSeeStoreApplications(account Account) bool {
 	return account.Role == RoleAdmin
 }
+
+// IsVisibleInPublic は、店舗がすべてのユーザー（未ログイン含む）から閲覧可能かどうかを判定する。
+// 店舗が承認済みの場合は、すべてのユーザーから閲覧可能
+func (s *Store) IsVisibleInPublic() bool {
+	return s.ReviewStatus == StoreReviewStatusApproved
+}
+
+// IsMenuManagementAllowed は、店舗メンバーがメニュー管理を行えるかどうかを判定する。
+// 店舗メンバーのロールが manager の場合のみ、メニュー管理を行える
+func (m *StoreMembership) IsMenuManagementAllowed() bool {
+	return m.Role == StoreMemberRoleManager
+}

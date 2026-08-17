@@ -35,18 +35,20 @@ func (q *Queries) AddAllergensToMenu(ctx context.Context, arg AddAllergensToMenu
 
 const createMenu = `-- name: CreateMenu :one
 INSERT INTO menus (
+    id,
     store_id,
     name,
     description,
     unit_price,
     image_object_key
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5, $6
 )
 RETURNING id, store_id, name, description, unit_price, image_object_key, sold_out, deleted_at, updated_at, created_at
 `
 
 type CreateMenuParams struct {
+	ID             uuid.UUID `json:"id"`
 	StoreID        uuid.UUID `json:"store_id"`
 	Name           string    `json:"name"`
 	Description    string    `json:"description"`
@@ -56,6 +58,7 @@ type CreateMenuParams struct {
 
 func (q *Queries) CreateMenu(ctx context.Context, arg CreateMenuParams) (Menu, error) {
 	row := q.db.QueryRow(ctx, createMenu,
+		arg.ID,
 		arg.StoreID,
 		arg.Name,
 		arg.Description,

@@ -17,7 +17,7 @@ type ImageProcessor interface {
 	ProcessForStoreImage(ctx context.Context, reader io.ReadSeeker) (io.ReadSeeker, string, error)
 }
 
-type StoreImageRepository interface {
+type ImageRepository interface {
 	PutObject(ctx context.Context, reader io.ReadSeeker, objectKey entities.StoreImageObjectKey, contentType string) error
 
 	DeleteObject(ctx context.Context, objectKey entities.StoreImageObjectKey) error
@@ -50,7 +50,7 @@ type CreateStoreApplicationServiceInput struct {
 
 type StoreService struct {
 	imageProcessor  ImageProcessor
-	imageRepository StoreImageRepository
+	imageRepository ImageRepository
 	storeRepository StoreRepository
 	imgGenerator    ImageURLGenerator
 	sessions        SessionManager
@@ -58,7 +58,7 @@ type StoreService struct {
 
 func NewStoreService(
 	imageProcessor ImageProcessor,
-	imageRepository StoreImageRepository,
+	imageRepository ImageRepository,
 	storeRepository StoreRepository,
 	sessions SessionManager,
 	imgGenerator ImageURLGenerator,
@@ -108,8 +108,6 @@ var (
 	ErrImageDimensionsExceeded = errors.New("image dimensions exceeded")
 	// ErrProcessedImageTooLargeは、変換後の画像サイズが上限を超えていることを示す。
 	ErrProcessedImageTooLarge = errors.New("processed image too large")
-	// ErrFailedToStoreImageは、画像をオブジェクトストレージへ保存できなかったことを示す。
-	ErrFailedToStoreImage = errors.New("failed to store image")
 )
 
 // TODO: 正常系、非対応形式、S3 Put 失敗、DB 失敗、補償 Delete 失敗を StoreService の単体テストで網羅する。

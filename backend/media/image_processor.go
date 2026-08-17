@@ -14,6 +14,7 @@ import (
 	"io"
 
 	"github.com/isc-makeit/isc-fes/backend/services"
+	"github.com/isc-makeit/isc-fes/backend/services/store/menus"
 	xdraw "golang.org/x/image/draw"
 	_ "golang.org/x/image/webp"
 )
@@ -97,6 +98,14 @@ func (p *ImageProcessor) ProcessForStoreImage(
 	}
 
 	return bytes.NewReader(encoded), storeImageContentType, nil
+}
+
+func (p *ImageProcessor) ProcessForMenuImage(
+	ctx context.Context,
+	reader io.ReadSeeker,
+) (io.ReadSeeker, string, error) {
+	// 一旦、店舗画像と同じ処理を行う。将来的にメニュー画像専用の制限値を設ける場合は、ここで分岐する。
+	return p.ProcessForStoreImage(ctx, reader)
 }
 
 // acquireは、画像処理の実行枠が空くまで待機する。
@@ -359,3 +368,4 @@ func (w *cappedBuffer) Bytes() []byte {
 }
 
 var _ services.ImageProcessor = (*ImageProcessor)(nil)
+var _ menus.ImageProcessor = (*ImageProcessor)(nil)

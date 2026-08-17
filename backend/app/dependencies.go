@@ -117,7 +117,7 @@ func buildDependencies(
 		cfg.DiscordNotifier.WebhookURL,
 		cfg.DiscordNotifier.MentionUserIDs,
 	)
-	menuService := menus.NewMenuService(menuRepository, imgGenerator, storeRepository)
+	menuService := menus.NewMenuService(menuRepository, imgGenerator, storeRepository, storeMemberRepository, media.NewImageProcessor(), imageRepository)
 
 	apiServer := routers.NewServer(
 		queries,

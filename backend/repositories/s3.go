@@ -61,4 +61,4 @@ func (r *S3Repository) DeleteObject(ctx context.Context, objectKey entities.Stor
 	return nil
 }
 
-var _ services.StoreImageRepository = (*S3Repository)(nil)
+var _ services.ImageRepository = (*S3Repository)(nil)
