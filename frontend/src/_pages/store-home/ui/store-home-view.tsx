@@ -8,6 +8,7 @@ import { StoreMenuList } from "./store-menu-list";
 import { StoreMemberList } from "./store-member-list";
 import { storeMenusQueryOptions } from "../api/fetch-store-menus";
 import { storeMemberQueryOptions } from "../api/fetch-store-members";
+import { StoreSidebar } from "./store-sidebar";
 
 type StoreHomeViewProps = { storeId: string };
 
@@ -19,14 +20,17 @@ export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
     queryClient.prefetchQuery(storeMemberQueryOptions(storeId)),
   ]);
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <ErrorBoundary fallback={<p>エラーが発生しました</p>}>
-        <Suspense fallback={<p>ロード中</p>}>
-          <StoreInfo storeId={storeId} />
-          <StoreMenuList storeId={storeId} />
-          <StoreMemberList storeId={storeId} />
-        </Suspense>
-      </ErrorBoundary>
-    </HydrationBoundary>
+    <>
+      <StoreSidebar storeId={storeId} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <ErrorBoundary fallback={<p>エラーが発生しました</p>}>
+          <Suspense fallback={<p>ロード中</p>}>
+            <StoreInfo storeId={storeId} />
+            <StoreMenuList storeId={storeId} />
+            <StoreMemberList storeId={storeId} />
+          </Suspense>
+        </ErrorBoundary>
+      </HydrationBoundary>
+    </>
   );
 }
