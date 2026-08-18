@@ -20,10 +20,7 @@ import {
 } from "@/shared/ui/sidebar";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  PanelLeftOpen as OpenSidebarIcon,
-  PanelLeftClose as CloseSidebarIcon,
-} from "lucide-react";
+import { PanelLeftCloseIcon, PanelRightCloseIcon } from "lucide-react";
 
 type StoreSidebarProps = {
   storeId: string;
@@ -39,38 +36,40 @@ export function StoreSidebar({ storeId }: StoreSidebarProps) {
   ];
 
   const pathName = usePathname();
-  const { open } = useSidebar();
+  const { isMobile } = useSidebar();
 
   return (
     <>
-      {open ? (
-        <Sidebar collapsible="offcanvas">
-          <SidebarHeader className="bg-sidebar-header items-end">
-            <SidebarTrigger icon={<CloseSidebarIcon className="size-6" />} />
-          </SidebarHeader>
-
-          <SidebarContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    size="lg"
-                    className="h-16 rounded-none pl-6"
-                    render={<Link href={item.href} />}
-                    isActive={pathName === item.href}
-                  >
-                    <DotText className="text-lg">{item.label}</DotText>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarContent>
-        </Sidebar>
-      ) : (
-        <SidebarHeader className="bg-primary w-16 items-center">
-          <SidebarTrigger icon={<OpenSidebarIcon className="size-6" />} />
+      <Sidebar side={isMobile ? "right" : "left"}>
+        <SidebarHeader className="bg-sidebar-header items-end">
+          <SidebarTrigger
+            icon={
+              isMobile ? (
+                <PanelRightCloseIcon className="size-6" />
+              ) : (
+                <PanelLeftCloseIcon className="size-6" />
+              )
+            }
+          />
         </SidebarHeader>
-      )}
+
+        <SidebarContent>
+          <SidebarMenu>
+            {navigationItems.map((item) => (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  size="lg"
+                  className="h-16 rounded-none pl-6"
+                  render={<Link href={item.href} />}
+                  isActive={pathName === item.href}
+                >
+                  <DotText className="text-lg">{item.label}</DotText>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarContent>
+      </Sidebar>
     </>
   );
 }
