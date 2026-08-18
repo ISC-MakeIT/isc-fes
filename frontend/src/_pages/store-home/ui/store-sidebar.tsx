@@ -22,20 +22,24 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PanelLeftCloseIcon, PanelRightCloseIcon } from "lucide-react";
 
-type StoreSidebarProps = {
-  storeId: string;
-};
-
-export function StoreSidebar({ storeId }: StoreSidebarProps) {
-  const navigationItems = [
+export function createStoreNavigationItems(storeId: string) {
+  return [
     { label: "ホーム", href: storeHomeUrl(storeId) },
     { label: "作業場画面", href: storeKitchenUrl(storeId) },
     { label: "受け渡し画面", href: storePickupUrl(storeId) },
     { label: "呼び出し画面", href: storeCallUrl(storeId) },
     { label: "商品管理画面", href: storeMenusUrl(storeId) },
   ];
+}
 
-  const pathName = usePathname();
+type StoreSidebarProps = {
+  storeId: string;
+};
+
+export function StoreSidebar({ storeId }: StoreSidebarProps) {
+  const navigationItems = createStoreNavigationItems(storeId);
+
+  const pathname = usePathname();
   const { isMobile } = useSidebar();
 
   return (
@@ -61,7 +65,7 @@ export function StoreSidebar({ storeId }: StoreSidebarProps) {
                   size="lg"
                   className="h-16 rounded-none pl-6"
                   render={<Link href={item.href} />}
-                  isActive={pathName === item.href}
+                  isActive={pathname === item.href}
                 >
                   <DotText className="text-lg">{item.label}</DotText>
                 </SidebarMenuButton>

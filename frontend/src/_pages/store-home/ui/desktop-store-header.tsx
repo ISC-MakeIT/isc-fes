@@ -8,7 +8,7 @@ export function DesktopStoreHeader() {
   return (
     <>
       {state === "collapsed" && (
-        <header className="bg-primary hidden items-center p-4 md:block">
+        <header className="bg-primary hidden p-4 md:block">
           <SidebarTrigger icon={<PanelLeftOpenIcon className="size-6" />} />
         </header>
       )}
