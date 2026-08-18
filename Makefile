@@ -3,28 +3,10 @@
 export DATABASE_URL
 
 .PHONY: db-up db-down dev-api migrate sqlc gen-api db-reset install-web dev-web push-backend-image put-runtime-env deploy-backend
-db-up:
-	docker compose up -d
-db-down:
-	docker compose down
-dev-api:
-	cd backend && go tool air
 migrate:
 	cd backend && migrate -path db/migrations -database "$(DATABASE_URL)" up
-sqlc:
-	cd backend && go tool sqlc generate
 db-reset:
 	docker compose down -v && docker compose up -d
-gen-api:
-	cd backend && go tool oapi-codegen -config oapi.yaml ../openapi.yaml > routers/gen.go
-	cd frontend && \
-		pnpx openapi-typescript ../openapi.yaml -o ./src/shared/api/schema.d.ts && \
-		pnpm run fmt ./src/shared/api/schema.d.ts
-
-install-web:
-	cd frontend && pnpm i
-dev-web:
-	cd frontend && pnpm run dev
 
 push-backend-image:
 	bash scripts/push-backend-image.sh
@@ -34,3 +16,38 @@ put-runtime-env:
 
 deploy-backend:
 	bash scripts/deploy-backend.sh
+
+# 生成系
+.PHONY: gen generate gen-api gen-sqlc
+gen generate: gen-api gen-sqlc
+gen-api:
+	cd backend && go tool oapi-codegen -config oapi.yaml ../openapi.yaml > routers/gen.go
+	cd frontend && \
+		pnpx openapi-typescript ../openapi.yaml -o ./src/shared/api/schema.d.ts && \
+		pnpm run fmt ./src/shared/api/schema.d.ts
+gen-sqlc:
+	cd backend && go tool sqlc generate
+new-migration:
+	migrate create -ext sql -dir backend/db/migrations -seq ${name}	
+
+# Install
+.PHONY: i install install-backend install-frontend
+i install: install-backend install-frontend
+install-backend:
+	cd backend && go mod download
+install-frontend:
+	cd frontend && pnpm i
+
+# ローカル開発環境
+# dd = dev docker
+.PHONY: dd-up dd-down dd-restart dev-api dev-web
+dd-up:
+	docker compose up -d
+dd-down:
+	docker compose down
+dd-restart:
+	docker compose up -d --build --force-recreate
+dev-api:
+	cd backend && go tool air
+dev-web:
+	cd frontend && pnpm run dev
