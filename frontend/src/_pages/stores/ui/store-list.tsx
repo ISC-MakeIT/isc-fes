@@ -6,7 +6,7 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { Mask } from "@/shared/ui/mask";
 import { AspectRatio } from "@/shared/ui/aspect-ratio";
 import Link from "next/link";
-import { storeDetailUrl } from "@/shared/config";
+import { storeHomeUrl } from "@/shared/config";
 
 export async function StoreList() {
   const stores = await fetchVisibleStores();
@@ -24,7 +24,7 @@ export function StoreCard({ store }: StoreCardProps) {
   return (
     <div className="border-primary overflow-hidden rounded-xl border-2">
       <Mask active={isPending} label="申請中">
-        <Link href={storeDetailUrl(store.id)}>
+        <Link href={storeHomeUrl(store.id)}>
           <StoreCardShell
             image={<PreviewImage imagePath={store.imageUrl} />}
             title={store.name}

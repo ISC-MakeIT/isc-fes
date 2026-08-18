@@ -4,7 +4,7 @@ export {
   loginUrl,
   registerStoreUrl,
   storeListUrl,
-  storeDetailUrl,
+  storeHomeUrl,
 } from "./constants/urls";
 
 export {
