@@ -1,3 +1,4 @@
+import { Plus as PlusIcon } from "lucide-react";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { LinkButton } from "@/shared/ui/link-button";
 import { StoreCardSkelton, StoreList } from "./store-list";
@@ -21,7 +22,10 @@ export function StoresView() {
         <StoreList />
       </Suspense>
 
-      <LinkButton href={registerStoreUrl()}>+新規店舗申請</LinkButton>
+      <LinkButton href={registerStoreUrl()}>
+        <PlusIcon />
+        新規店舗申請
+      </LinkButton>
     </CenterLayout>
   );
 }
