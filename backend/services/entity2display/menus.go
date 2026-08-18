@@ -8,23 +8,27 @@ import (
 )
 
 func ToMenuDisplay(ctx context.Context, menu menus.Menu, generator services.ImageURLGenerator) (menus.MenuDisplay, error) {
-	imgUrl, err := generator.GenerateMenuImageURL(ctx, menu.ImageObjectKey)
+	imageURL, err := generator.GenerateMenuImageURL(ctx, menu.ImageObjectKey)
 	if err != nil {
 		return menus.MenuDisplay{}, err
 	}
 
+	return ToMenuDisplayWithImageURL(menu, imageURL), nil
+}
+
+func ToMenuDisplayWithImageURL(menu menus.Menu, imageURL string) menus.MenuDisplay {
 	return menus.MenuDisplay{
 		ID:          menu.ID,
 		StoreID:     menu.StoreID,
 		Name:        menu.Name,
 		Description: menu.Description,
 		UnitPrice:   menu.UnitPrice,
-		ImageURL:    imgUrl,
+		ImageURL:    imageURL,
 		SoldOut:     menu.SoldOut,
 		DeletedAt:   menu.DeletedAt,
 		UpdatedAt:   menu.UpdatedAt,
 		CreatedAt:   menu.CreatedAt,
-	}, nil
+	}
 }
 
 func ToMenuDisplays(ctx context.Context, eMenus []menus.Menu, generator services.ImageURLGenerator) ([]menus.MenuDisplay, error) {

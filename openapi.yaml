@@ -374,7 +374,85 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-
+    post:
+      operationId: createMenu
+      summary: 店舗のメニューを作成する
+      security:
+        - AccountSession: []
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/CreateMenuInput"
+      responses:
+        "201":
+          description: 店舗のメニューを作成した
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Menu"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 未ログイン
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 権限不足（店舗のメンバーでない、または店舗マネージャーでない）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない（未承認の店舗はメニューを登録できない）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "413":
+          description: アップロードされた画像が大きすぎる
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "415":
+          description: 対応していない画像形式
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: 入力値または画像の内容が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: 画像ストレージが一時的に利用できない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /stores/{store_id}/invitations:
     post:
       operationId: createStoreInvitation
@@ -780,6 +858,35 @@ components:
         createdAt:
           type: string
           format: date-time
+    CreateMenuInput:
+      type: object
+      required:
+        - name
+        - description
+        - unitPrice
+        - image
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: たこ焼き
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          example: 外はカリカリ、中はトロトロのたこ焼きです。
+        unitPrice:
+          type: integer
+          format: int32
+          minimum: 0
+          example: 500
+        image:
+          type: string
+          format: binary
+          description: |
+            メニュー画像。JPEG、PNG、WebPに対応する。
+            最大ファイルサイズは10MB。
     ErrorResponse:
       type: object
       required:
