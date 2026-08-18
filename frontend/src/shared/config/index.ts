@@ -15,6 +15,6 @@ export {
 
 export {
   storeDetailKey,
-  storeMemberKey,
+  storeMembersKey,
   storeMenusKey,
 } from "./constants/query-keys";

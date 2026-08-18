@@ -1,6 +1,6 @@
 import { StoreMember } from "@/entities/store-member";
 import { createApiClient } from "@/shared/api";
-import { getStatusMessage, storeMemberKey } from "@/shared/config";
+import { getStatusMessage, storeMembersKey } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { queryOptions } from "@tanstack/react-query";
 
@@ -20,7 +20,7 @@ export async function fetchStoreMembers(storeId: string) {
 
 export function storeMemberQueryOptions(storeId: string) {
   return queryOptions({
-    queryKey: storeMemberKey(storeId),
+    queryKey: storeMembersKey(storeId),
     queryFn: () => fetchStoreMembers(storeId),
     staleTime: 60 * 1000,
   });
