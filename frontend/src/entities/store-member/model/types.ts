@@ -13,7 +13,7 @@ export const StoreMember = v.object({
   role: RoleSchema,
   joinedAt: v.pipe(v.string(), v.toDate()),
   displayName: v.pipe(v.string()),
-  pictureUrl: v.pipe(v.string()),
+  pictureUrl: v.nullable(v.string()),
 });
 
 export type StoreMember = v.InferOutput<typeof StoreMember>;
