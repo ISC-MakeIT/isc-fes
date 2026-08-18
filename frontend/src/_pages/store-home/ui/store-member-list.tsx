@@ -11,9 +11,9 @@ export function StoreMemberList({ storeId }: StoreMemberListProps) {
   const { data: members } = useSuspenseQuery(storeMemberQueryOptions(storeId));
   return (
     <>
-      {members.map((m) => {
-        <p key={m.accountId}>{m.displayName}</p>;
-      })}
+      {members.map((m) => (
+        <p key={m.accountId}>{m.displayName}</p>
+      ))}
     </>
   );
 }
