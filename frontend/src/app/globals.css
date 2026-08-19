@@ -51,7 +51,7 @@
 
 :root {
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: var(--black-soft);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -85,6 +85,8 @@
   --sidebar-header: var(--primary);
 
   /* primitive token */
+  --black-soft: #575757;
+
   --yellow-strong: #feda3e;
   --yellow: #ffec96;
   --yellow-soft: #fff8d8;

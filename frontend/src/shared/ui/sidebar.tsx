@@ -266,7 +266,7 @@ function SidebarTrigger({
       variant="ghost"
       size="icon-sm"
       className={cn(
-        "bg-sidebar-trigger shadow-sidebar-trigger hover:bg-sidebar-trigger/70 size-11 rounded-sm border-0",
+        "bg-sidebar-trigger shadow-sidebar-trigger hover:bg-sidebar-trigger/70 shrink-0 rounded-sm border-0",
         className,
       )}
       onClick={(event) => {

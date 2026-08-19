@@ -34,9 +34,10 @@ export function createStoreNavigationItems(storeId: string) {
 
 type StoreSidebarProps = {
   storeId: string;
+  className?: string;
 };
 
-export function StoreSidebar({ storeId }: StoreSidebarProps) {
+export function StoreSidebar({ storeId, className }: StoreSidebarProps) {
   const navigationItems = createStoreNavigationItems(storeId);
 
   const pathname = usePathname();
@@ -44,14 +45,15 @@ export function StoreSidebar({ storeId }: StoreSidebarProps) {
 
   return (
     <>
-      <Sidebar side={isMobile ? "right" : "left"}>
-        <SidebarHeader className="bg-sidebar-header items-end">
+      <Sidebar side={isMobile ? "right" : "left"} className={className}>
+        <SidebarHeader className="bg-sidebar-header items-end justify-center px-6 py-4">
           <SidebarTrigger
+            className="size-9"
             icon={
               isMobile ? (
-                <PanelRightCloseIcon className="size-6" />
+                <PanelRightCloseIcon className="size-5" />
               ) : (
-                <PanelLeftCloseIcon className="size-6" />
+                <PanelLeftCloseIcon className="size-5" />
               )
             }
           />
@@ -63,11 +65,11 @@ export function StoreSidebar({ storeId }: StoreSidebarProps) {
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   size="lg"
-                  className="h-16 rounded-none pl-6"
+                  className="h-auto rounded-none py-6 pl-6"
                   render={<Link href={item.href} />}
                   isActive={pathname === item.href}
                 >
-                  <DotText className="text-lg">{item.label}</DotText>
+                  <DotText className="text-base">{item.label}</DotText>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}

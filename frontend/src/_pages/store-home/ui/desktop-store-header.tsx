@@ -8,8 +8,11 @@ export function DesktopStoreHeader() {
   return (
     <>
       {state === "collapsed" && (
-        <header className="bg-primary hidden p-4 md:block">
-          <SidebarTrigger icon={<PanelLeftOpenIcon className="size-6" />} />
+        <header className="bg-primary z-20 hidden px-4 py-10 shadow-[4px_4px_2px_#5E4D9C40] md:block">
+          <SidebarTrigger
+            className="size-9"
+            icon={<PanelLeftOpenIcon className="size-5" />}
+          />
         </header>
       )}
     </>
