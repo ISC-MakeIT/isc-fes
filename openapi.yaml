@@ -624,6 +624,24 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /allergens:
+    get:
+      operationId: getAllergens
+      summary: アレルゲン一覧を取得する
+      responses:
+        "200":
+          description: アレルゲン一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAllergensResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     AccountSession:
@@ -688,6 +706,30 @@ components:
         submittedAt:
           type: string
           format: date-time
+    GetAllergensResponse:
+      type: object
+      required:
+        - total
+        - data
+      properties:
+        total:
+          type: integer
+          description: アレルゲンの総数
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Allergen"
+    Allergen:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
     GetStoreMembersResponse:
       type: object
       required:

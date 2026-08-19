@@ -12,12 +12,14 @@ import (
 	db "github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/media"
 	"github.com/isc-makeit/isc-fes/backend/repositories"
+	allergens_repository "github.com/isc-makeit/isc-fes/backend/repositories/allergens"
 	"github.com/isc-makeit/isc-fes/backend/repositories/imageurl"
 	invRepo "github.com/isc-makeit/isc-fes/backend/repositories/stores/invitations"
 	membersRepo "github.com/isc-makeit/isc-fes/backend/repositories/stores/members"
 	menuRepo "github.com/isc-makeit/isc-fes/backend/repositories/stores/menus"
 	"github.com/isc-makeit/isc-fes/backend/routers"
 	"github.com/isc-makeit/isc-fes/backend/services"
+	allergens_service "github.com/isc-makeit/isc-fes/backend/services/allergens"
 	"github.com/isc-makeit/isc-fes/backend/services/store/invitations"
 	"github.com/isc-makeit/isc-fes/backend/services/store/members"
 	"github.com/isc-makeit/isc-fes/backend/services/store/menus"
@@ -94,6 +96,7 @@ func buildDependencies(
 	storeMemberRepository := membersRepo.NewStoreMemberRepository(queries)
 	storeInvitationRepository := invRepo.NewStoreInvitationRepository(queries, pool)
 	menuRepository := menuRepo.NewMenuRepository(queries)
+	allergensRepository := allergens_repository.NewAllergenRepository(queries)
 
 	accountService := services.NewAccountService(
 		accountRepository,
@@ -117,6 +120,7 @@ func buildDependencies(
 		cfg.DiscordNotifier.WebhookURL,
 		cfg.DiscordNotifier.MentionUserIDs,
 	)
+	allergenService := allergens_service.NewAllergenService(allergensRepository)
 	menuService := menus.NewMenuService(menuRepository, imgGenerator, storeRepository, storeMemberRepository, media.NewImageProcessor(), imageRepository)
 
 	apiServer := routers.NewServer(
@@ -126,6 +130,7 @@ func buildDependencies(
 		cfg.FrontendURL,
 		accountService,
 		authService,
+		allergenService,
 		storeService,
 		storeMemberService,
 		storeInvitationService,
