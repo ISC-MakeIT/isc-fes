@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
         protocol: "http",
         hostname: "localhost",
         port: "4566",
-        pathname: "/isc-fes-local/stores/**",
+        pathname: "/isc-fes-local/**",
       },
       {
         protocol: "https",
