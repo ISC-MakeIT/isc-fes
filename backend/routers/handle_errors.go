@@ -14,6 +14,7 @@ type CommonErrorMessages struct {
 	Forbidden       string
 	NotFound        string
 	Conflict        string
+	InvalidInput    string
 	Internal        string
 }
 
@@ -22,6 +23,7 @@ var defaultCommonErrorMessages = CommonErrorMessages{
 	Forbidden:       "この操作を行う権限がありません",
 	NotFound:        "対象が見つかりません",
 	Conflict:        "操作が競合しています",
+	InvalidInput:    "入力が不正です",
 	Internal:        "サーバー内部でエラーが発生しました",
 }
 
@@ -37,6 +39,9 @@ func (m CommonErrorMessages) withDefaults() CommonErrorMessages {
 	}
 	if m.Conflict == "" {
 		m.Conflict = defaultCommonErrorMessages.Conflict
+	}
+	if m.InvalidInput == "" {
+		m.InvalidInput = defaultCommonErrorMessages.InvalidInput
 	}
 	if m.Internal == "" {
 		m.Internal = defaultCommonErrorMessages.Internal
@@ -71,6 +76,11 @@ func (s *Server) handleCommonServiceErrors(c *gin.Context, err error, options ..
 	case errors.Is(err, services.ErrConflict):
 		c.JSON(http.StatusConflict, ErrorResponse{
 			Message: messages.Conflict,
+		})
+		return
+	case errors.Is(err, services.ErrInvalidInput):
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: messages.InvalidInput,
 		})
 		return
 	default:

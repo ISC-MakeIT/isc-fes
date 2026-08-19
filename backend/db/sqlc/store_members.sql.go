@@ -152,3 +152,18 @@ func (q *Queries) GetStoreMembersByStoreID(ctx context.Context, storeID uuid.UUI
 	}
 	return items, nil
 }
+
+const removeStoreMemberByAccountIDAndStoreID = `-- name: RemoveStoreMemberByAccountIDAndStoreID :exec
+DELETE FROM store_members
+WHERE account_id = $1 AND store_id = $2
+`
+
+type RemoveStoreMemberByAccountIDAndStoreIDParams struct {
+	AccountID uuid.UUID `json:"account_id"`
+	StoreID   uuid.UUID `json:"store_id"`
+}
+
+func (q *Queries) RemoveStoreMemberByAccountIDAndStoreID(ctx context.Context, arg RemoveStoreMemberByAccountIDAndStoreIDParams) error {
+	_, err := q.db.Exec(ctx, removeStoreMemberByAccountIDAndStoreID, arg.AccountID, arg.StoreID)
+	return err
+}

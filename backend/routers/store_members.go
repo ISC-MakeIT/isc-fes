@@ -30,3 +30,13 @@ func (s *Server) GetStoreMembers(c *gin.Context, storeID uuid.UUID) {
 		}),
 	})
 }
+
+func (s *Server) RemoveStoreMember(c *gin.Context, storeID uuid.UUID, accountID uuid.UUID) {
+	err := s.storeMember.RemoveStoreMemberByAccountIDAndStoreID(c.Request.Context(), accountID, storeID)
+	if err != nil {
+		s.handleCommonServiceErrors(c, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
