@@ -1,0 +1,33 @@
+{
+  "$schema": "https://pg-language-server.com/latest/schema.json",
+
+  "files": {
+    "include": ["backend/db/migrations/**/*.sql", "backend/db/queries/**/*.sql"],
+  },
+
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+    },
+  },
+
+  "typecheck": {
+    "enabled": true,
+  },
+
+  // 現状のformatterはコメントを消す可能性があるため無効化
+  "format": {
+    "enabled": false,
+  },
+
+  "db": {
+    "host": "127.0.0.1",
+    "port": 5432,
+    "username": "isc-fes",
+    "password": "devpassword",
+    "database": "isc-fes",
+    "connTimeoutSecs": 10,
+    "allowStatementExecutionsAgainst": [],
+  },
+}
