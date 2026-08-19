@@ -145,3 +145,9 @@ func (s *Store) IsVisibleInPublic() bool {
 func (m *StoreMembership) IsMenuManagementAllowed() bool {
 	return m.Role == StoreMemberRoleManager
 }
+
+// IsMemberManagementAllowed は、店舗メンバーがメンバー管理を行えるかどうかを判定する。
+// 店舗メンバーのロールが manager の場合のみ、メンバー管理を行える
+func (m *StoreMembership) IsMemberManagementAllowed() bool {
+	return m.Role == StoreMemberRoleManager
+}

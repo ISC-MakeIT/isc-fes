@@ -46,6 +46,13 @@ func (r *StoreMemberRepository) GetStoreMembersByStoreID(c context.Context, stor
 	}), nil
 }
 
+func (r *StoreMemberRepository) RemoveStoreMemberByAccountIDAndStoreID(c context.Context, accountID uuid.UUID, storeID uuid.UUID) error {
+	return r.queries.RemoveStoreMemberByAccountIDAndStoreID(c, sqlc.RemoveStoreMemberByAccountIDAndStoreIDParams{
+		AccountID: accountID,
+		StoreID:   storeID,
+	})
+}
+
 func toStoreMembership(dbStoreMember sqlc.StoreMember) entities.StoreMembership {
 	return entities.StoreMembership{
 		AccountID: dbStoreMember.AccountID,

@@ -37,3 +37,29 @@ func (s *StoreMemberService) GetStoreMembersByStoreID(ctx context.Context, store
 
 	return s.storeMemberRepository.GetStoreMembersByStoreID(ctx, storeID)
 }
+
+func (s *StoreMemberService) RemoveStoreMemberByAccountIDAndStoreID(ctx context.Context, accountID, storeID uuid.UUID) error {
+	authorizedAccount, err := services.RequireAuthenticatedAccount(ctx)
+	if err != nil {
+		return err
+	}
+
+	authorizedMember, err := s.storeMemberRepository.GetStoreMemberByAccountIDAndStoreID(ctx, authorizedAccount.ID, storeID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return services.ErrNotFound
+		}
+		return err
+	}
+
+	// マネージャーは削除できない
+	if authorizedMember.Role == entities.StoreMemberRoleManager {
+		return services.ErrForbidden
+	}
+
+	if !authorizedMember.IsMemberManagementAllowed() {
+		return services.ErrForbidden
+	}
+
+	return s.storeMemberRepository.RemoveStoreMemberByAccountIDAndStoreID(ctx, accountID, storeID)
+}
