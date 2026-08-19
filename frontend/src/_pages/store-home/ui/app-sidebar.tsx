@@ -26,7 +26,7 @@ export function AppSidebar({ navigationItems, className }: AppSidebarProps) {
 
   return (
     <Sidebar side={isMobile ? "right" : "left"} className={className}>
-      <SidebarHeader className="bg-sidebar-header items-end justify-center px-6 py-4">
+      <SidebarHeader className="bg-sidebar-header h-18 items-end justify-center px-6">
         <SidebarTrigger
           className="size-9"
           icon={
