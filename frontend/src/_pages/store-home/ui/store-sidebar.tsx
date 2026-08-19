@@ -44,38 +44,36 @@ export function StoreSidebar({ storeId, className }: StoreSidebarProps) {
   const { isMobile } = useSidebar();
 
   return (
-    <>
-      <Sidebar side={isMobile ? "right" : "left"} className={className}>
-        <SidebarHeader className="bg-sidebar-header items-end justify-center px-6 py-4">
-          <SidebarTrigger
-            className="size-9"
-            icon={
-              isMobile ? (
-                <PanelRightCloseIcon className="size-5" />
-              ) : (
-                <PanelLeftCloseIcon className="size-5" />
-              )
-            }
-          />
-        </SidebarHeader>
+    <Sidebar side={isMobile ? "right" : "left"} className={className}>
+      <SidebarHeader className="bg-sidebar-header items-end justify-center px-6 py-4">
+        <SidebarTrigger
+          className="size-9"
+          icon={
+            isMobile ? (
+              <PanelRightCloseIcon className="size-5" />
+            ) : (
+              <PanelLeftCloseIcon className="size-5" />
+            )
+          }
+        />
+      </SidebarHeader>
 
-        <SidebarContent>
-          <SidebarMenu>
-            {navigationItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton
-                  size="lg"
-                  className="h-auto rounded-none py-6 pl-6"
-                  render={<Link href={item.href} />}
-                  isActive={pathname === item.href}
-                >
-                  <DotText className="text-base">{item.label}</DotText>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarContent>
-      </Sidebar>
-    </>
+      <SidebarContent>
+        <SidebarMenu>
+          {navigationItems.map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <SidebarMenuButton
+                size="lg"
+                className="h-auto rounded-none py-6 pl-6"
+                render={<Link href={item.href} />}
+                isActive={pathname === item.href}
+              >
+                <DotText className="text-base">{item.label}</DotText>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarContent>
+    </Sidebar>
   );
 }
