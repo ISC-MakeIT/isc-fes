@@ -192,6 +192,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/allergens": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** アレルゲン一覧を取得する */
+    get: operations["getAllergens"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -221,6 +238,16 @@ export interface components {
       reviewStatus: components["schemas"]["StoreReviewStatus"];
       /** Format: date-time */
       submittedAt: string;
+    };
+    GetAllergensResponse: {
+      /** @description アレルゲンの総数 */
+      total: number;
+      data: components["schemas"]["Allergen"][];
+    };
+    Allergen: {
+      /** Format: uuid */
+      id: string;
+      name: string;
     };
     GetStoreMembersResponse: {
       /** @description 店舗メンバーの総数 */
@@ -1128,6 +1155,35 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getAllergens: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description アレルゲン一覧 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetAllergensResponse"];
         };
       };
       /** @description サーバーエラー */
