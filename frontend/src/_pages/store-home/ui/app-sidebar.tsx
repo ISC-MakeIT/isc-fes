@@ -1,12 +1,5 @@
 "use client";
 
-import {
-  storeCallUrl,
-  storeHomeUrl,
-  storeKitchenUrl,
-  storeMenusUrl,
-  storePickupUrl,
-} from "@/shared/config";
 import { DotText } from "@/shared/ui/dot-text";
 import {
   Sidebar,
@@ -22,24 +15,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PanelLeftCloseIcon, PanelRightCloseIcon } from "lucide-react";
 
-export function createStoreNavigationItems(storeId: string) {
-  return [
-    { label: "ホーム", href: storeHomeUrl(storeId) },
-    { label: "作業場画面", href: storeKitchenUrl(storeId) },
-    { label: "受け渡し画面", href: storePickupUrl(storeId) },
-    { label: "呼び出し画面", href: storeCallUrl(storeId) },
-    { label: "商品管理画面", href: storeMenusUrl(storeId) },
-  ];
-}
-
-type StoreSidebarProps = {
-  storeId: string;
+type AppSidebarProps = {
+  navigationItems: { label: string; href: string }[];
   className?: string;
 };
 
-export function StoreSidebar({ storeId, className }: StoreSidebarProps) {
-  const navigationItems = createStoreNavigationItems(storeId);
-
+export function AppSidebar({ navigationItems, className }: AppSidebarProps) {
   const pathname = usePathname();
   const { isMobile } = useSidebar();
 
