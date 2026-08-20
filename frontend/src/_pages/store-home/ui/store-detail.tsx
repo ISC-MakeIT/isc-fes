@@ -12,8 +12,11 @@ type StoreInfoProps = {
 export function StoreInfo({ storeId }: StoreInfoProps) {
   const { data } = useSuspenseQuery(storeDetailQueryOptions(storeId));
   return (
-    <div className="border-b-primary flex space-x-12 border-b px-10 py-4">
-      <AspectRatio ratio={16 / 9} className="h-44">
+    <div className="border-b-primary flex flex-col items-center gap-12 border-b px-10 py-4 md:flex-row">
+      <AspectRatio
+        ratio={16 / 9}
+        className="mx-auto w-full md:w-80 md:shrink-0"
+      >
         <Image
           fill
           className="object-cover"

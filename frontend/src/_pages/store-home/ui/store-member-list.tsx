@@ -20,16 +20,19 @@ type StoreMemberListProps = {
 export function StoreMemberList({ storeId }: StoreMemberListProps) {
   const { data: members } = useSuspenseQuery(storeMemberQueryOptions(storeId));
   return (
-    <div className="border-primary flex flex-col items-center gap-8 border-l pt-8">
+    <div className="border-primary flex flex-col items-center gap-8 px-13 pt-8 md:border-l md:px-6">
       <HeadingCard>メンバー</HeadingCard>
 
-      <div className="self-stretch px-6">
+      <div className="self-stretch">
         {members.map((m) => (
           <MemberCard key={m.accountId} member={m} />
         ))}
       </div>
 
-      <SubmitButton className="text-lg font-bold" isDot={false}>
+      <SubmitButton
+        className="self-stretch py-2 text-lg font-bold"
+        isDot={false}
+      >
         <PlusIcon className="size-6" />
         メンバーを招待
       </SubmitButton>

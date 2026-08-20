@@ -13,6 +13,7 @@ import { SidebarInset } from "@/shared/ui/sidebar";
 import { DesktopStoreHeader } from "./desktop-store-header";
 import { MobileStoreHeader } from "./mobile-store-header";
 import { createStoreNavigationItems } from "../config/create-store-navigation-items";
+import { HeadingCard } from "@/shared/ui/heading-card";
 
 type StoreHomeViewProps = { storeId: string };
 
@@ -38,9 +39,10 @@ export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
           <ErrorBoundary fallback={<p>エラーが発生しました</p>}>
             <Suspense fallback={<p>ロード中</p>}>
               <div className="pt-18">
+                <HeadingCard className="mb-6 md:hidden">ホーム</HeadingCard>
                 <StoreInfo storeId={storeId} />
-                <div className="grid grid-cols-[1fr_24rem]">
-                  <StoreMenuList storeId={storeId} />
+                <div className="grid md:grid-cols-[1fr_24rem]">
+                  <StoreMenuList className="hidden md:grid" storeId={storeId} />
                   <StoreMemberList storeId={storeId} />
                 </div>
               </div>
