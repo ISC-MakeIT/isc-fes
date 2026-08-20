@@ -13,7 +13,7 @@ export function SubmitButton({
   children,
   ...props
 }: SubmitButtonProps) {
-  const textStyle = "inline-flex items-center gap-2 whitespace-nowrap";
+  const textStyle = "inline-flex items-center gap-2";
   return (
     <Button
       variant="secondary"

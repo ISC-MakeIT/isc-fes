@@ -63,7 +63,7 @@ function MemberCard({ member }: MemberCardProps) {
             width={50}
             height={50}
             className="rounded-full object-cover"
-            src={placeholderIcon}
+            src={member.pictureUrl ?? placeholderIcon}
             alt={`${member.displayName}さんのアイコン画像`}
           />
         </AspectRatio>

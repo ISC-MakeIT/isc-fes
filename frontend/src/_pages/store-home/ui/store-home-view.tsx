@@ -40,10 +40,10 @@ export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
         <HydrationBoundary state={dehydrate(queryClient)}>
           <ErrorBoundary fallback={<p>エラーが発生しました</p>}>
             <Suspense fallback={<p>ロード中</p>}>
-              <div className="pt-18">
+              <div className="py-18">
                 <HeadingCard className="mb-6 md:hidden">ホーム</HeadingCard>
                 <StoreInfo storeId={storeId} />
-                <div className="grid md:grid-cols-[1fr_24rem]">
+                <div className="md:grid md:grid-cols-[1fr_24rem]">
                   <StoreMenuList
                     className="hidden md:block"
                     storeId={storeId}
