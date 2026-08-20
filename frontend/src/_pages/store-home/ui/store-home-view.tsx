@@ -13,12 +13,15 @@ import { SidebarInset } from "@/shared/ui/sidebar";
 import { DesktopStoreHeader } from "./desktop-store-header";
 import { MobileStoreHeader } from "./mobile-store-header";
 import { createStoreNavigationItems } from "../config/create-store-navigation-items";
+import { HeadingCard } from "@/shared/ui/heading-card";
+import { currentAccountQueryOptions } from "@/entities/account";
 
 type StoreHomeViewProps = { storeId: string };
 
 export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
   const queryClient = createQueryClient();
   await Promise.all([
+    queryClient.prefetchQuery(currentAccountQueryOptions()),
     queryClient.prefetchQuery(storeDetailQueryOptions(storeId)),
     queryClient.prefetchQuery(storeMenusQueryOptions(storeId)),
     queryClient.prefetchQuery(storeMemberQueryOptions(storeId)),
@@ -37,10 +40,18 @@ export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
         <HydrationBoundary state={dehydrate(queryClient)}>
           <ErrorBoundary fallback={<p>エラーが発生しました</p>}>
             <Suspense fallback={<p>ロード中</p>}>
-              <div className="pt-18">
+              <div className="flex flex-1 flex-col pt-18">
+                <HeadingCard className="mb-6 self-center md:hidden">
+                  ホーム
+                </HeadingCard>
                 <StoreInfo storeId={storeId} />
-                <StoreMenuList storeId={storeId} />
-                <StoreMemberList storeId={storeId} />
+                <div className="md:grid md:flex-1 md:grid-cols-[1fr_24rem]">
+                  <StoreMenuList
+                    className="hidden md:block"
+                    storeId={storeId}
+                  />
+                  <StoreMemberList storeId={storeId} />
+                </div>
               </div>
             </Suspense>
           </ErrorBoundary>

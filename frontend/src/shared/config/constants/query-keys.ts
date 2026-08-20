@@ -5,3 +5,4 @@ export const storeMembersKey = (storeId: string) => [
   "members",
   storeId,
 ];
+export const currentAccountKey = () => ["account", "me"];

@@ -11,11 +11,15 @@ const nextConfig: NextConfig = {
         protocol: "http",
         hostname: "localhost",
         port: "4566",
-        pathname: "/isc-fes-local/stores/**",
+        pathname: "/isc-fes-local/**",
       },
       {
         protocol: "https",
         hostname: "img.fes.iwasaki.ac.jp",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
       },
     ],
     // 開発環境ではLocalの画像ストレージを使うため内部IPへの接続を許可してる
