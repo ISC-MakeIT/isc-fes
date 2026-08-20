@@ -70,7 +70,7 @@ function MemberCard({ member }: MemberCardProps) {
         <p className="text-base">{member.displayName}</p>
       </Card>
       {/* TODO: アカウントを判定して、削除ボタンのだし分けをする */}
-      <Button variant="ghost" className="text-4xl font-bold text-[#EA6082]">
+      <Button variant="ghost" className="text-close-button text-4xl font-bold">
         ×
       </Button>
     </div>

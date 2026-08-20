@@ -47,6 +47,7 @@
   --color-sidebar-header: var(--primary);
   --color-sidebar-trigger: var(--purple-strong);
   --shadow-sidebar-trigger: 2px 2px 0 var(--secondary);
+  --color-close-button: var(--close-button);
 }
 
 :root {
@@ -83,6 +84,7 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --sidebar-header: var(--primary);
+  --close-button: #ea6082;
 
   /* primitive token */
   --black-soft: #575757;
