@@ -17,12 +17,14 @@ import (
 	invRepo "github.com/isc-makeit/isc-fes/backend/repositories/stores/invitations"
 	membersRepo "github.com/isc-makeit/isc-fes/backend/repositories/stores/members"
 	menuRepo "github.com/isc-makeit/isc-fes/backend/repositories/stores/menus"
+	toppings_repository "github.com/isc-makeit/isc-fes/backend/repositories/stores/toppings"
 	"github.com/isc-makeit/isc-fes/backend/routers"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	allergens_service "github.com/isc-makeit/isc-fes/backend/services/allergens"
 	"github.com/isc-makeit/isc-fes/backend/services/store/invitations"
 	"github.com/isc-makeit/isc-fes/backend/services/store/members"
 	"github.com/isc-makeit/isc-fes/backend/services/store/menus"
+	"github.com/isc-makeit/isc-fes/backend/services/store/toppings"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -97,7 +99,7 @@ func buildDependencies(
 	storeInvitationRepository := invRepo.NewStoreInvitationRepository(queries, pool)
 	menuRepository := menuRepo.NewMenuRepository(queries)
 	allergensRepository := allergens_repository.NewAllergenRepository(queries)
-
+	toppingsRepository := toppings_repository.NewToppingsRepository(queries)
 	accountService := services.NewAccountService(
 		accountRepository,
 		sessions,
@@ -122,6 +124,7 @@ func buildDependencies(
 	)
 	allergenService := allergens_service.NewAllergenService(allergensRepository)
 	menuService := menus.NewMenuService(menuRepository, imgGenerator, storeRepository, storeMemberRepository, media.NewImageProcessor(), imageRepository)
+	toppingsService := toppings.NewToppingsService(toppingsRepository, storeMemberRepository, storeRepository)
 
 	apiServer := routers.NewServer(
 		queries,
@@ -135,6 +138,7 @@ func buildDependencies(
 		storeMemberService,
 		storeInvitationService,
 		menuService,
+		toppingsService,
 		errorNotifier,
 	)
 

@@ -85,6 +85,12 @@ func (r *StoreRepository) GetApprovedStores(ctx context.Context) ([]entities.Sto
 	return utils.Map(dbStores, r.toStore), nil
 }
 
+// 承認済みの店舗を返す
+func (r *StoreRepository) GetApprovedStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error) {
+	dbStore, err := r.queries.GetApprovedStoreByID(ctx, storeID)
+	return r.toStore(dbStore), err
+}
+
 func (r *StoreRepository) GetVisibleStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error) {
 	dbStores, err := r.queries.GetVisibleStoresByAccountID(ctx, accountID)
 	if err != nil {
