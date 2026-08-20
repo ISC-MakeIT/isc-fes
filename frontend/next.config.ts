@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "img.fes.iwasaki.ac.jp",
       },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
     ],
     // 開発環境ではLocalの画像ストレージを使うため内部IPへの接続を許可してる
     dangerouslyAllowLocalIP: isDev,
