@@ -48,7 +48,7 @@ export function MenuCard({ menu }: MenuCardProps) {
     <Card className="shadow-primary border-foreground gap-6 rounded-sm border px-4 py-6 shadow-[8px_8px_0_0]">
       <AspectRatioImage
         ratio={MENU_IMAGE_ASPECT}
-        className="w-37.5"
+        className="w-37.5 rounded-sm"
         src={menu.imageUrl}
         alt={`${menu.name}の画像`}
       />

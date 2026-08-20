@@ -47,7 +47,7 @@ function MemberCard({ member }: MemberCardProps) {
     <div className="grid grid-cols-[1fr_2.5rem] items-center gap-2">
       <Card className="border-primary flex flex-row items-center gap-6 rounded-sm border-2 px-2 py-1">
         <AspectRatioImage
-          className="w-12.5"
+          className="w-12.5 rounded-full"
           ratio={ICON_IMAGE_ASPECT}
           src={member.pictureUrl ?? fallbackIcon}
           alt={`${member.displayName}さんのアイコン画像`}
