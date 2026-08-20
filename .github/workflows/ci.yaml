@@ -59,10 +59,8 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
-      - name: Generate OpenAPI code
-        run: make gen-api
-      - name: Generate sqlc code
-        run: make sqlc
+      - name: Generate code
+        run: make generate
       - name: Check generated code is up to date
         run: |
           generated_changes="$(git status --porcelain -- \
@@ -71,7 +69,7 @@ jobs:
             frontend/src/shared/api/schema.d.ts)"
 
           if [ -n "$generated_changes" ]; then
-            echo "生成コードが最新ではありません。make gen-api と make sqlc を実行してください。"
+            echo "生成コードが最新ではありません。make generate を実行してください。"
             echo "$generated_changes"
             git diff -- \
               backend/routers/gen.go \
