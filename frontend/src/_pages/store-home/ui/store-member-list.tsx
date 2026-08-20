@@ -10,6 +10,7 @@ import Image from "next/image";
 import { Button } from "@/shared/ui/button";
 import { SubmitButton } from "@/shared/ui/submit-button";
 import { PlusIcon } from "lucide-react";
+import { currentAccountQueryOptions } from "@/entities/account";
 
 const placeholderIcon = "/avatar-placeholder.svg";
 
@@ -19,20 +20,29 @@ type StoreMemberListProps = {
 
 export function StoreMemberList({ storeId }: StoreMemberListProps) {
   const { data: members } = useSuspenseQuery(storeMemberQueryOptions(storeId));
+  const { data: currentAccount } = useSuspenseQuery(
+    currentAccountQueryOptions(),
+  );
+
+  const otherMembers = members.filter((m) => m.accountId !== currentAccount.id);
+
   return (
-    <div className="border-primary flex flex-col items-center gap-8 px-13 pt-8 md:border-l md:px-6">
-      <HeadingCard>メンバー</HeadingCard>
-
-      <div className="self-stretch">
-        {members.map((m) => (
-          <MemberCard key={m.accountId} member={m} />
-        ))}
-      </div>
-
-      <SubmitButton
-        className="self-stretch py-2 text-lg font-bold"
-        isDot={false}
-      >
+    <div className="border-primary flex flex-col gap-8 px-13 pt-8 md:border-l md:px-6">
+      <HeadingCard className="self-center">メンバー</HeadingCard>
+      {otherMembers.length === 0 ? (
+        <p>
+          メンバーがいません。
+          <br />
+          招待リンクをコピーして、メンバーを招待しましょう！
+        </p>
+      ) : (
+        <div>
+          {otherMembers.map((m) => (
+            <MemberCard key={m.accountId} member={m} />
+          ))}
+        </div>
+      )}
+      <SubmitButton className="py-2 text-lg font-bold" isDot={false}>
         <PlusIcon className="size-6" />
         メンバーを招待
       </SubmitButton>

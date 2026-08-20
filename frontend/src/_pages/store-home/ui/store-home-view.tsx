@@ -14,12 +14,14 @@ import { DesktopStoreHeader } from "./desktop-store-header";
 import { MobileStoreHeader } from "./mobile-store-header";
 import { createStoreNavigationItems } from "../config/create-store-navigation-items";
 import { HeadingCard } from "@/shared/ui/heading-card";
+import { currentAccountQueryOptions } from "@/entities/account";
 
 type StoreHomeViewProps = { storeId: string };
 
 export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
   const queryClient = createQueryClient();
   await Promise.all([
+    queryClient.prefetchQuery(currentAccountQueryOptions()),
     queryClient.prefetchQuery(storeDetailQueryOptions(storeId)),
     queryClient.prefetchQuery(storeMenusQueryOptions(storeId)),
     queryClient.prefetchQuery(storeMemberQueryOptions(storeId)),
@@ -42,7 +44,10 @@ export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
                 <HeadingCard className="mb-6 md:hidden">ホーム</HeadingCard>
                 <StoreInfo storeId={storeId} />
                 <div className="grid md:grid-cols-[1fr_24rem]">
-                  <StoreMenuList className="hidden md:grid" storeId={storeId} />
+                  <StoreMenuList
+                    className="hidden md:block"
+                    storeId={storeId}
+                  />
                   <StoreMemberList storeId={storeId} />
                 </div>
               </div>

@@ -20,11 +20,19 @@ export function StoreMenuList({ storeId, className }: StoreMenuListProps) {
   return (
     <div className={cn("space-y-8 px-6 py-8", className)}>
       <HeadingCard className="px-8 py-2">メニュー</HeadingCard>
-      <div className="grid grid-cols-[repeat(auto-fit,11.375rem)] justify-center gap-8">
-        {data.map((menu) => (
-          <MenuCard menu={menu} key={menu.id} />
-        ))}
-      </div>
+      {data.length === 0 ? (
+        <p className="text-center">
+          メニューが登録されていません。
+          <br />
+          商品管理画面からメニューを登録してください。
+        </p>
+      ) : (
+        <div className="grid grid-cols-[repeat(auto-fit,11.375rem)] justify-center gap-8">
+          {data.map((menu) => (
+            <MenuCard menu={menu} key={menu.id} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
