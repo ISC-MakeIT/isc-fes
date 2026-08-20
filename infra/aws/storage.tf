@@ -83,8 +83,11 @@ data "aws_iam_policy_document" "store_images_bucket" {
       identifiers = ["cloudfront.amazonaws.com"]
     }
 
-    actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.store_images.arn}/stores/*"]
+    actions = ["s3:GetObject"]
+    resources = [
+      "${aws_s3_bucket.store_images.arn}/stores/*",
+      "${aws_s3_bucket.store_images.arn}/menus/*",
+    ]
 
     condition {
       test     = "ArnEquals"
@@ -129,7 +132,10 @@ data "aws_iam_policy_document" "api_server_store_images" {
       "s3:GetObject",
       "s3:PutObject",
     ]
-    resources = ["${aws_s3_bucket.store_images.arn}/stores/*"]
+    resources = [
+      "${aws_s3_bucket.store_images.arn}/stores/*",
+      "${aws_s3_bucket.store_images.arn}/menus/*",
+    ]
   }
 }
 
