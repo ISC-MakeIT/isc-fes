@@ -12,7 +12,7 @@ import { SubmitButton } from "@/shared/ui/submit-button";
 import { PlusIcon } from "lucide-react";
 import { currentAccountQueryOptions } from "@/entities/account";
 
-const placeholderIcon = "/avatar-placeholder.svg";
+const placeholderIcon = "/avatar-fallback.svg";
 
 type StoreMemberListProps = {
   storeId: string;
