@@ -504,6 +504,56 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /stores/{store_id}/toppings:
+    get:
+      operationId: getToppingsByStoreID
+      summary: 店舗のトッピング一覧を取得する
+      security:
+        - AccountSession: []
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 店舗のトッピング一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetToppingsByStoreIDResponse"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 未ログイン
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 権限不足（店舗に所属していない）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない、または承認済みではない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /stores/{store_id}/invitations:
     post:
       operationId: createStoreInvitation
@@ -770,6 +820,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Menu"
+    GetToppingsByStoreIDResponse:
+      type: object
+      required:
+        - data
+        - total
+      properties:
+        total:
+          type: integer
+          description: 店舗トッピングの総数
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Topping"
     StoreMemberRole:
       type: string
       enum:
@@ -980,6 +1043,39 @@ components:
           description: |
             メニュー画像。JPEG、PNG、WebPに対応する。
             最大ファイルサイズは10MB。
+    Topping:
+      type: object
+      required:
+        - id
+        - storeId
+        - name
+        - description
+        - unitPrice
+        - soldOut
+        - updatedAt
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        storeId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        unitPrice:
+          type: integer
+          format: int32
+        soldOut:
+          type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
     ErrorResponse:
       type: object
       required:

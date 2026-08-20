@@ -17,6 +17,12 @@ FROM stores
 WHERE review_status = 'approved'
 ORDER BY created_at DESC;
 
+-- name: GetApprovedStoreByID :one
+SELECT *
+FROM stores
+WHERE review_status = 'approved'
+    AND id = $1;
+
 -- name: GetVisibleStoresByAccountID :many
 SELECT *
 FROM stores

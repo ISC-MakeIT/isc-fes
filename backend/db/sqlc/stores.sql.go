@@ -56,6 +56,30 @@ func (q *Queries) CreateStore(ctx context.Context, arg CreateStoreParams) (Store
 	return i, err
 }
 
+const getApprovedStoreByID = `-- name: GetApprovedStoreByID :one
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
+FROM stores
+WHERE review_status = 'approved'
+    AND id = $1
+`
+
+func (q *Queries) GetApprovedStoreByID(ctx context.Context, id uuid.UUID) (Store, error) {
+	row := q.db.QueryRow(ctx, getApprovedStoreByID, id)
+	var i Store
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Room,
+		&i.Description,
+		&i.ImageObjectKey,
+		&i.ReviewStatus,
+		&i.SubmittedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getApprovedStores = `-- name: GetApprovedStores :many
 SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
 FROM stores

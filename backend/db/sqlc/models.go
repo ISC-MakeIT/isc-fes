@@ -174,6 +174,12 @@ type MenuAllergen struct {
 	AllergenID uuid.UUID `json:"allergen_id"`
 }
 
+type MenuTopping struct {
+	MenuID    uuid.UUID `json:"menu_id"`
+	ToppingID uuid.UUID `json:"topping_id"`
+	StoreID   uuid.UUID `json:"store_id"`
+}
+
 type Session struct {
 	Token  string             `json:"token"`
 	Data   []byte             `json:"data"`
@@ -207,4 +213,16 @@ type StoreMember struct {
 	AccountID uuid.UUID          `json:"account_id"`
 	Role      StoreMemberRole    `json:"role"`
 	JoinedAt  pgtype.Timestamptz `json:"joined_at"`
+}
+
+type Topping struct {
+	ID          uuid.UUID          `json:"id"`
+	StoreID     uuid.UUID          `json:"store_id"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	UnitPrice   int32              `json:"unit_price"`
+	SoldOut     bool               `json:"sold_out"`
+	DeletedAt   pgtype.Timestamptz `json:"deleted_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }

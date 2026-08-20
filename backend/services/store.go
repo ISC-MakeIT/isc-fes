@@ -26,6 +26,7 @@ type ImageRepository interface {
 type StoreRepository interface {
 	CreateStoreApplication(ctx context.Context, input CreateStoreApplicationInput) (entities.Store, error)
 	GetApprovedStores(ctx context.Context) ([]entities.Store, error)
+	GetApprovedStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error)
 	GetVisibleStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error)
 	GetStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error)
 	UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error

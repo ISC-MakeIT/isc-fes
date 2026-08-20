@@ -158,6 +158,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/stores/{store_id}/toppings": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 店舗のトッピング一覧を取得する */
+    get: operations["getToppingsByStoreID"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/stores/{store_id}/invitations": {
     parameters: {
       query?: never;
@@ -267,6 +284,11 @@ export interface components {
       total: number;
       data: components["schemas"]["Menu"][];
     };
+    GetToppingsByStoreIDResponse: {
+      /** @description 店舗トッピングの総数 */
+      total: number;
+      data: components["schemas"]["Topping"][];
+    };
     /** @enum {string} */
     StoreMemberRole: "member" | "manager";
     CreateStoreInvitationResponse: {
@@ -364,6 +386,21 @@ export interface components {
        *     最大ファイルサイズは10MB。
        */
       image: string;
+    };
+    Topping: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      storeId: string;
+      name: string;
+      description: string;
+      /** Format: int32 */
+      unitPrice: number;
+      soldOut: boolean;
+      /** Format: date-time */
+      updatedAt: string;
+      /** Format: date-time */
+      createdAt: string;
     };
     ErrorResponse: {
       message: string;
@@ -1013,6 +1050,73 @@ export interface operations {
       };
       /** @description 画像ストレージが一時的に利用できない */
       503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getToppingsByStoreID: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 店舗のトッピング一覧 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetToppingsByStoreIDResponse"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 権限不足（店舗に所属していない） */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない、または承認済みではない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
         headers: {
           [name: string]: unknown;
         };
