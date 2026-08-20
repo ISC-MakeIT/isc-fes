@@ -20,12 +20,14 @@ type StoreMemberListProps = {
 export function StoreMemberList({ storeId }: StoreMemberListProps) {
   const { data: members } = useSuspenseQuery(storeMemberQueryOptions(storeId));
   return (
-    <div className="items-center space-y-8 pt-8">
+    <div className="border-primary flex flex-col items-center gap-8 border-l pt-8">
       <HeadingCard>メンバー</HeadingCard>
 
-      {members.map((m) => (
-        <MemberCard key={m.accountId} member={m} />
-      ))}
+      <div className="self-stretch px-6">
+        {members.map((m) => (
+          <MemberCard key={m.accountId} member={m} />
+        ))}
+      </div>
 
       <SubmitButton className="text-lg font-bold" isDot={false}>
         <PlusIcon className="size-6" />
@@ -42,7 +44,7 @@ type MemberCardProps = {
 function MemberCard({ member }: MemberCardProps) {
   return (
     <div className="grid grid-cols-[1fr_2.5rem] items-center gap-2">
-      <Card className="border-primary flex flex-row items-center gap-6 border-2 px-2 py-1">
+      <Card className="border-primary flex flex-row items-center gap-6 rounded-sm border-2 px-2 py-1">
         <AspectRatio ratio={1}>
           <Image
             width={50}

@@ -39,7 +39,7 @@ export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
             <Suspense fallback={<p>ロード中</p>}>
               <div className="pt-18">
                 <StoreInfo storeId={storeId} />
-                <div className="grid grid-cols-[1fr_20rem]">
+                <div className="grid grid-cols-[1fr_24rem]">
                   <StoreMenuList storeId={storeId} />
                   <StoreMemberList storeId={storeId} />
                 </div>
