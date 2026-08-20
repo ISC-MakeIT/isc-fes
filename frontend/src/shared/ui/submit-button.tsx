@@ -18,7 +18,7 @@ export function SubmitButton({
     <Button
       variant="secondary"
       className={cn(
-        "h-auto rounded-sm px-8 py-7 text-2xl shadow-[3px_3px_0_#9683DC]",
+        "h-auto rounded-sm px-8 py-3 text-2xl shadow-[3px_3px_0_#9683DC]",
         className,
       )}
       {...props}
