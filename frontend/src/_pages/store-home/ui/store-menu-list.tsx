@@ -3,12 +3,12 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { storeMenusQueryOptions } from "../api/fetch-store-menus";
 import { formatYen } from "../lib/formatYen";
-import Image from "next/image";
-import { AspectRatio } from "@/shared/ui/aspect-ratio";
 import { Card } from "@/shared/ui/card";
 import { Menu } from "@/entities/menu";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { cn } from "@/shared/lib/utils";
+import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
+import { MENU_IMAGE_ASPECT } from "@/shared/config";
 
 type StoreMenuListProps = {
   storeId: string;
@@ -44,14 +44,12 @@ type MenuCardProps = {
 export function MenuCard({ menu }: MenuCardProps) {
   return (
     <Card className="shadow-primary border-foreground gap-6 rounded-sm border px-4 py-6 shadow-[8px_8px_0_0]">
-      <AspectRatio className="h-30" ratio={5 / 4}>
-        <Image
-          fill
-          className="object-cover"
-          src={menu.imageUrl}
-          alt="メニューの画像"
-        />
-      </AspectRatio>
+      <AspectRatioImage
+        ratio={MENU_IMAGE_ASPECT}
+        className="w-37.5"
+        src={menu.imageUrl}
+        alt={`${menu.name}の画像`}
+      />
       <div className="space-y-2">
         <p className="line-clamp-2 h-[2lh] font-bold">{menu.name}</p>
         <p className="text-lg font-bold">{formatYen(menu.unitPrice)}</p>

@@ -23,3 +23,9 @@ export {
   storeMenusKey,
   currentAccountKey,
 } from "./constants/query-keys";
+
+export {
+  ICON_IMAGE_ASPECT,
+  MENU_IMAGE_ASPECT,
+  STORE_IMAGE_ASPECT,
+} from "./constants/image-aspect-ratios";

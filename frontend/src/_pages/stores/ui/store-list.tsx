@@ -6,7 +6,7 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { Mask } from "@/shared/ui/mask";
 import { AspectRatio } from "@/shared/ui/aspect-ratio";
 import Link from "next/link";
-import { storeHomeUrl } from "@/shared/config";
+import { STORE_IMAGE_ASPECT, storeHomeUrl } from "@/shared/config";
 
 export async function StoreList() {
   const stores = await fetchVisibleStores();
@@ -40,7 +40,7 @@ export function StoreCardSkelton() {
   return (
     <StoreCardShell
       image={
-        <AspectRatio ratio={16 / 9}>
+        <AspectRatio ratio={STORE_IMAGE_ASPECT}>
           <Skeleton className="h-full w-full" />
         </AspectRatio>
       }
