@@ -27,7 +27,7 @@ export function StoreMemberList({ storeId }: StoreMemberListProps) {
   const otherMembers = members.filter((m) => m.accountId !== currentAccount.id);
 
   return (
-    <div className="border-primary flex flex-col gap-8 px-13 pt-8 md:border-l md:px-6">
+    <div className="border-primary flex flex-col gap-8 px-13 py-8 md:border-l md:px-6">
       <HeadingCard className="self-center">メンバー</HeadingCard>
       {otherMembers.length === 0 ? (
         <p>
@@ -56,7 +56,7 @@ type MemberCardProps = {
 
 function MemberCard({ member }: MemberCardProps) {
   return (
-    <div className="grid grid-cols-[1fr_2.5rem] items-center gap-2">
+    <div className="pd-18 grid grid-cols-[1fr_2.5rem] items-center gap-2">
       <Card className="border-primary flex flex-row items-center gap-6 rounded-sm border-2 px-2 py-1">
         <AspectRatio ratio={1}>
           <Image
