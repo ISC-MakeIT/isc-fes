@@ -18,7 +18,7 @@ export function StoreMenuList({ storeId }: StoreMenuListProps) {
   return (
     <div className="space-y-8 px-6 py-8">
       <HeadingCard className="px-8 py-2">メニュー</HeadingCard>
-      <div className="flex flex-row flex-wrap gap-8">
+      <div className="grid grid-cols-[repeat(auto-fit,11.375rem)] justify-center gap-8">
         {data.map((menu) => (
           <MenuCard menu={menu} key={menu.id} />
         ))}
