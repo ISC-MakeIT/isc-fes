@@ -14,7 +14,7 @@ export function StoreInfo({ storeId }: StoreInfoProps) {
   return (
     <div className="border-b-primary flex flex-col items-center gap-12 border-b px-10 py-4 md:flex-row">
       <AspectRatioImage
-        className="mx-auto w-full md:w-80 md:shrink-0"
+        className="w-full md:w-80 md:shrink-0"
         ratio={STORE_IMAGE_ASPECT}
         src={store.imageUrl}
         alt="店舗の画像"
