@@ -2,7 +2,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { storeDetailQueryOptions } from "../api/fetch-store-detail";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
-import { StoreInfo } from "./store-detail";
+import { StoreInfo } from "./store-info";
 import { createQueryClient } from "@/shared/api";
 import { StoreMenuList } from "./store-menu-list";
 import { StoreMemberList } from "./store-member-list";
