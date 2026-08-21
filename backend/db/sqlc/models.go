@@ -58,7 +58,7 @@ type StoreMemberRole string
 
 const (
 	StoreMemberRoleManager StoreMemberRole = "manager"
-	StoreMemberRoleMember  StoreMemberRole = "member"
+	StoreMemberRoleStaff   StoreMemberRole = "staff"
 )
 
 func (e *StoreMemberRole) Scan(src interface{}) error {

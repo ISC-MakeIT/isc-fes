@@ -234,6 +234,42 @@ func TestOpenAPIRequestValidatorRejectsInvalidRequest(t *testing.T) {
 	}
 }
 
+func TestOpenAPIRequestValidatorValidatesStoreMemberRole(t *testing.T) {
+	tests := []struct {
+		name       string
+		role       string
+		wantStatus int
+	}{
+		{name: "staff is accepted", role: "staff", wantStatus: http.StatusNoContent},
+		{name: "legacy member is rejected", role: "member", wantStatus: http.StatusBadRequest},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			validator := mustOpenAPIRequestValidator(t, &stubCurrentAccountLoader{})
+			router := gin.New()
+			router.POST("/stores/:store_id/invitations", validator, func(c *gin.Context) {
+				c.Status(http.StatusNoContent)
+			})
+
+			request := httptest.NewRequestWithContext(
+				t.Context(),
+				http.MethodPost,
+				"/stores/00000000-0000-0000-0000-000000000000/invitations",
+				strings.NewReader(`{"role":"`+test.role+`"}`),
+			)
+			request.Header.Set("Content-Type", "application/json")
+			response := httptest.NewRecorder()
+
+			router.ServeHTTP(response, request)
+
+			if response.Code != test.wantStatus {
+				t.Errorf("status = %d, want %d", response.Code, test.wantStatus)
+			}
+		})
+	}
+}
+
 func TestLimitRequestBodyRejectsOversizedBody(t *testing.T) {
 	router := gin.New()
 	handlerCalled := false

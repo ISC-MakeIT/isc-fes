@@ -1,7 +1,7 @@
 import { v } from "@/shared/lib/valibot";
 
 enum Role {
-  Member = "member",
+  Staff = "staff",
   Manager = "manager",
 }
 
