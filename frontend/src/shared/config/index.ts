@@ -9,6 +9,7 @@ export {
   storeCallUrl,
   storeMenusUrl,
   storePickupUrl,
+  storeApplicationsUrl,
 } from "./constants/urls";
 
 export {

@@ -6,7 +6,7 @@ import {
   storeMenusUrl,
 } from "@/shared/config";
 
-export function createStoreNavigationItems(storeId: string) {
+export function storeNavigationItems(storeId: string) {
   return [
     { label: "ホーム", href: storeHomeUrl(storeId) },
     { label: "作業場画面", href: storeKitchenUrl(storeId) },
