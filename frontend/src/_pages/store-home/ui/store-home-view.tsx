@@ -8,11 +8,11 @@ import { StoreMenuList } from "./store-menu-list";
 import { StoreMemberList } from "./store-member-list";
 import { storeMenusQueryOptions } from "../api/fetch-store-menus";
 import { storeMemberQueryOptions } from "../api/fetch-store-members";
-import { AppSidebar } from "@/widgets/app-sidebar/ui/app-sidebar";
+import { AppSidebar } from "@/widgets/app-sidebar";
 import { SidebarInset } from "@/shared/ui/sidebar";
-import { DesktopAppHeader } from "@/widgets/app-sidebar/ui/desktop-app-header";
-import { MobileAppHeader } from "@/widgets/app-sidebar/ui/mobile-app-header";
-import { storeNavigationItems } from "@/widgets/app-sidebar/config/store-navigation-items";
+import { DesktopAppHeader } from "@/widgets/app-sidebar";
+import { MobileAppHeader } from "@/widgets/app-sidebar";
+import { storeNavigationItems } from "@/widgets/app-sidebar";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { currentAccountQueryOptions } from "@/entities/account";
 
