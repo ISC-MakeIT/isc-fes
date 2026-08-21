@@ -8,11 +8,11 @@ import { StoreMenuList } from "./store-menu-list";
 import { StoreMemberList } from "./store-member-list";
 import { storeMenusQueryOptions } from "../api/fetch-store-menus";
 import { storeMemberQueryOptions } from "../api/fetch-store-members";
-import { AppSidebar } from "./app-sidebar";
+import { AppSidebar } from "@/widgets/app-sidebar";
 import { SidebarInset } from "@/shared/ui/sidebar";
-import { DesktopStoreHeader } from "./desktop-store-header";
-import { MobileStoreHeader } from "./mobile-store-header";
-import { createStoreNavigationItems } from "../config/create-store-navigation-items";
+import { DesktopAppHeader } from "@/widgets/app-sidebar";
+import { MobileAppHeader } from "@/widgets/app-sidebar";
+import { storeNavigationItems } from "@/widgets/app-sidebar";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { currentAccountQueryOptions } from "@/entities/account";
 
@@ -27,16 +27,14 @@ export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
     queryClient.prefetchQuery(storeMemberQueryOptions(storeId)),
   ]);
 
-  const storeNavigation = createStoreNavigationItems(storeId);
-
   return (
     <>
-      <AppSidebar navigationItems={storeNavigation} />
+      <AppSidebar navigationItems={storeNavigationItems(storeId)} />
       {/* NOTE: モバイルとデスクトップでヘッダーの位置も呼び出し箇所も大きく変わるのでコンポーネントも分けている */}
-      <DesktopStoreHeader />
+      <DesktopAppHeader />
 
       <SidebarInset>
-        <MobileStoreHeader />
+        <MobileAppHeader />
         <HydrationBoundary state={dehydrate(queryClient)}>
           <ErrorBoundary fallback={<p>エラーが発生しました</p>}>
             <Suspense fallback={<p>ロード中</p>}>

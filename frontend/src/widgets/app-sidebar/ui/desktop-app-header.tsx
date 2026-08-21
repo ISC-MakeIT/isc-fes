@@ -3,7 +3,7 @@
 import { useSidebar, SidebarTrigger } from "@/shared/ui/sidebar";
 import { PanelLeftOpenIcon } from "lucide-react";
 
-export function DesktopStoreHeader() {
+export function DesktopAppHeader() {
   const { state } = useSidebar();
   return (
     <>
