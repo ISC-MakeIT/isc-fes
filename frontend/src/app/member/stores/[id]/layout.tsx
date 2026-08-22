@@ -1,6 +1,8 @@
 import { SidebarProvider } from "@/shared/ui/sidebar";
 
-export default function StoreManagerLayout(props: LayoutProps<"/stores/[id]">) {
+export default function StoreManagerLayout(
+  props: LayoutProps<"/member/stores/[id]">,
+) {
   return (
     <SidebarProvider
       style={
