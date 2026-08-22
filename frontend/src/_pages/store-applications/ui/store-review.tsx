@@ -20,6 +20,7 @@ export function StoreReview() {
     <div className="grid grid-cols-[1fr_1fr]">
       <div className="space-y-10 px-6 py-18">
         <HeadingCard>店舗一覧</HeadingCard>
+        <h2 className="text-lg font-bold">クラス　店舗名</h2>
         <RadioGroup value={selectedStoreId} onValueChange={setSelectedStoreId}>
           {stores.map((store) => (
             <StoreCard key={store.id} store={store} />
@@ -79,7 +80,9 @@ function StoreCard({ store }: StoreCardProps) {
     <FieldLabel htmlFor={store.id}>
       <Field orientation="horizontal">
         <FieldContent>
-          <p>{store.name}</p>
+          <p>
+            {store.room} {store.name}
+          </p>
         </FieldContent>
         <RadioGroupItem value={store.id} id={store.id} />
       </Field>
