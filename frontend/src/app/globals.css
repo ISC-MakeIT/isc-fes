@@ -48,6 +48,7 @@
   --color-sidebar-trigger: var(--purple-strong);
   --shadow-sidebar-trigger: 2px 2px 0 var(--secondary);
   --color-close-button: var(--close-button);
+  --color-secondary-heading-card: var(--orange);
 }
 
 :root {
@@ -95,6 +96,8 @@
 
   --purple-strong: #d2c7f8;
   --purple-soft: #f1edff;
+
+  --orange: #e2851b;
 }
 
 @layer base {
