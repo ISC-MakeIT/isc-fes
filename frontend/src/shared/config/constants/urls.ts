@@ -1,13 +1,13 @@
-export const storeListUrl = () => "/stores";
-export const registerStoreUrl = () => "/stores/register";
 export const loginUrl = () => "/login";
 
 // 店舗ページ
-export const storeHomeUrl = (id: string) => `/stores/${id}`;
-export const storeKitchenUrl = (id: string) => `/stores/${id}/kitchen`;
-export const storePickupUrl = (id: string) => `/stores/${id}/pickup`;
-export const storeCallUrl = (id: string) => `/stores/${id}/call`;
-export const storeMenusUrl = (id: string) => `/stores/${id}/menus`;
+export const storeListUrl = () => "/member/stores";
+export const registerStoreUrl = () => "/member/stores/register";
+export const storeHomeUrl = (id: string) => `/member/stores/${id}`;
+export const storeKitchenUrl = (id: string) => `/member/stores/${id}/kitchen`;
+export const storePickupUrl = (id: string) => `/member/stores/${id}/pickup`;
+export const storeCallUrl = (id: string) => `/member/stores/${id}/call`;
+export const storeMenusUrl = (id: string) => `/member/stores/${id}/menus`;
 
 // 管理者ページ
 export const storeApplicationsUrl = () => "/admin/store-applications";
