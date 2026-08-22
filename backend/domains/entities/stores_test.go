@@ -60,3 +60,31 @@ func TestStoreReviewStatusCanUpdateTo(t *testing.T) {
 		}
 	}
 }
+
+func TestStoreMembershipPermissions(t *testing.T) {
+	tests := []struct {
+		name    string
+		role    StoreMemberRole
+		allowed bool
+	}{
+		{name: "manager", role: StoreMemberRoleManager, allowed: true},
+		{name: "staff", role: StoreMemberRoleStaff, allowed: false},
+		{name: "unknown role", role: StoreMemberRole("unknown"), allowed: false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			membership := StoreMembership{Role: test.role}
+
+			if got := membership.IsMenuManagementAllowed(); got != test.allowed {
+				t.Errorf("IsMenuManagementAllowed() = %t, want %t", got, test.allowed)
+			}
+			if got := membership.IsMemberManagementAllowed(); got != test.allowed {
+				t.Errorf("IsMemberManagementAllowed() = %t, want %t", got, test.allowed)
+			}
+			if got := CanCreateStoreInvitation(membership); got != test.allowed {
+				t.Errorf("CanCreateStoreInvitation() = %t, want %t", got, test.allowed)
+			}
+		})
+	}
+}

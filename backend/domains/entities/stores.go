@@ -71,7 +71,7 @@ type StoreMemberRole string
 
 const (
 	StoreMemberRoleManager StoreMemberRole = "manager"
-	StoreMemberRoleMember  StoreMemberRole = "member"
+	StoreMemberRoleStaff   StoreMemberRole = "staff"
 )
 
 func (r *StoreMemberRole) String() string {

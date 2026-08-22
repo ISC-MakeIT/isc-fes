@@ -290,7 +290,7 @@ export interface components {
       data: components["schemas"]["Topping"][];
     };
     /** @enum {string} */
-    StoreMemberRole: "member" | "manager";
+    StoreMemberRole: "staff" | "manager";
     CreateStoreInvitationResponse: {
       /**
        * Format: uuid
