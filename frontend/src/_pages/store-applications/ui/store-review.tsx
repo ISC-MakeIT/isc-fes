@@ -1,20 +1,40 @@
 "use client";
 
-import { Store } from "@/entities/store";
+import { Store, StoreReviewStatus } from "@/entities/store";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { storeApplicationQueryOptions } from "../api/fetch-store-applications";
 import { useState } from "react";
 import { Field, FieldContent, FieldLabel } from "@/shared/ui/field";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
-import { STORE_IMAGE_ASPECT } from "@/shared/config";
+import { STORE_IMAGE_ASPECT, storeApplicationsKey } from "@/shared/config";
 import { SubmitButton } from "@/shared/ui/submit-button";
+import { updateStoreApplicationReviewStatus } from "../api/updateStoreApplicationReviewStatus";
 
 export function StoreReview() {
   const { data: stores } = useSuspenseQuery(storeApplicationQueryOptions());
+
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: updateStoreApplicationReviewStatus,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: storeApplicationsKey(),
+      });
+    },
+  });
+
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const selectedStore = stores.find((state) => state.id === selectedStoreId);
+
+  function updateReviewStatus(storeId: string, status: StoreReviewStatus) {
+    mutation.mutate({ storeId, status });
+  }
 
   return (
     <div className="grid grid-cols-[1fr_1fr]">
@@ -62,8 +82,21 @@ export function StoreReview() {
               <dd>{selectedStore.description}</dd>
             </div>
 
-            {/* TODO:実際の送信処理を実装する */}
-            <SubmitButton className="self-center">承認する</SubmitButton>
+            {mutation.isError && (
+              <p role="alert" className="text-red-700">
+                {mutation.error.message}
+              </p>
+            )}
+
+            <SubmitButton
+              className="self-center"
+              disabled={mutation.isPending}
+              onClick={() =>
+                updateReviewStatus(selectedStore.id, StoreReviewStatus.Approved)
+              }
+            >
+              承認する
+            </SubmitButton>
           </dl>
         )}
       </div>
