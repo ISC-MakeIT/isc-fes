@@ -2,7 +2,7 @@ import { createApiClient } from "@/shared/api";
 import { getStatusMessage, storeApplicationsKey } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { queryOptions } from "@tanstack/react-query";
-import { StoreApplications } from "../model/types";
+import { StoreApplication } from "../model/types";
 
 export function storeApplicationQueryOptions() {
   return queryOptions({
@@ -19,5 +19,5 @@ async function fetchStoreApplications() {
     throw new Error(getStatusMessage(response.status));
   }
 
-  return v.parse(v.array(StoreApplications), data.data);
+  return v.parse(v.array(StoreApplication), data.data);
 }
