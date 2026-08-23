@@ -34,6 +34,7 @@ export function StoreReview() {
 
   function updateReviewStatus(storeId: string, status: StoreReviewStatus) {
     mutation.mutate({ storeId, status });
+    setSelectedStoreId(null);
   }
 
   return (
