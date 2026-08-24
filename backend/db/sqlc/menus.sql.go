@@ -11,28 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const addAllergensToMenu = `-- name: AddAllergensToMenu :exec
-INSERT INTO menu_allergens (
-    menu_id,
-    allergen_id
-)
-SELECT
-    $1,
-    ids.allergen_id
-FROM unnest($2::uuid[]) AS ids(allergen_id)
-ON CONFLICT (menu_id, allergen_id) DO NOTHING
-`
-
-type AddAllergensToMenuParams struct {
-	MenuID      uuid.UUID   `json:"menu_id"`
-	AllergenIds []uuid.UUID `json:"allergen_ids"`
-}
-
-func (q *Queries) AddAllergensToMenu(ctx context.Context, arg AddAllergensToMenuParams) error {
-	_, err := q.db.Exec(ctx, addAllergensToMenu, arg.MenuID, arg.AllergenIds)
-	return err
-}
-
 const createMenu = `-- name: CreateMenu :one
 INSERT INTO menus (
     id,

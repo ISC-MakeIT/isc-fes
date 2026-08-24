@@ -18,13 +18,3 @@ INSERT INTO menus (
 )
 RETURNING *;
 
--- name: AddAllergensToMenu :exec
-INSERT INTO menu_allergens (
-    menu_id,
-    allergen_id
-)
-SELECT
-    sqlc.arg(menu_id),
-    ids.allergen_id
-FROM unnest(sqlc.arg(allergen_ids)::uuid[]) AS ids(allergen_id)
-ON CONFLICT (menu_id, allergen_id) DO NOTHING;

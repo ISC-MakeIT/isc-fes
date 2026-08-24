@@ -169,11 +169,6 @@ type Menu struct {
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 }
 
-type MenuAllergen struct {
-	MenuID     uuid.UUID `json:"menu_id"`
-	AllergenID uuid.UUID `json:"allergen_id"`
-}
-
 type MenuTopping struct {
 	MenuID    uuid.UUID `json:"menu_id"`
 	ToppingID uuid.UUID `json:"topping_id"`
@@ -196,6 +191,11 @@ type Store struct {
 	SubmittedAt    pgtype.Timestamptz `json:"submitted_at"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+type StoreAllergen struct {
+	StoreID    uuid.UUID `json:"store_id"`
+	AllergenID uuid.UUID `json:"allergen_id"`
 }
 
 type StoreInvitation struct {
