@@ -53,3 +53,14 @@ SET
     updated_at = now()
 WHERE id = $1
     AND review_status = 'pending'; -- pending からしか遷移できないので pending の場合のみ更新する
+
+-- name: AddAllergensToStore :exec
+INSERT INTO store_allergens (
+    store_id,
+    allergen_id
+)
+SELECT
+    sqlc.arg(store_id),
+    ids.allergen_id
+FROM unnest(sqlc.arg(allergen_ids)::uuid[]) AS ids(allergen_id)
+ON CONFLICT (store_id, allergen_id) DO NOTHING;

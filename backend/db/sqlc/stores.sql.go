@@ -11,6 +11,30 @@ import (
 	"github.com/google/uuid"
 )
 
+const addAllergensToStore = `-- name: AddAllergensToStore :exec
+
+INSERT INTO store_allergens (
+    store_id,
+    allergen_id
+)
+SELECT
+    $1,
+    ids.allergen_id
+FROM unnest($2::uuid[]) AS ids(allergen_id)
+ON CONFLICT (store_id, allergen_id) DO NOTHING
+`
+
+type AddAllergensToStoreParams struct {
+	StoreID     uuid.UUID   `json:"store_id"`
+	AllergenIds []uuid.UUID `json:"allergen_ids"`
+}
+
+// pending からしか遷移できないので pending の場合のみ更新する
+func (q *Queries) AddAllergensToStore(ctx context.Context, arg AddAllergensToStoreParams) error {
+	_, err := q.db.Exec(ctx, addAllergensToStore, arg.StoreID, arg.AllergenIds)
+	return err
+}
+
 const createStore = `-- name: CreateStore :one
 INSERT INTO stores (
     id,
