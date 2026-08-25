@@ -26,7 +26,7 @@ import { createStoreInvitationUrl } from "../api/create-store-invitation-url";
 
 const COPY_FEEDBACK_DURATION_MS = 2 * 1000; // 2秒
 
-const items: { label: string; value: number | null }[] = [
+const maxUsesOptions: { label: string; value: number | null }[] = [
   { label: "無制限", value: null },
   { label: "1", value: 1 },
   { label: "2", value: 2 },
@@ -34,7 +34,11 @@ const items: { label: string; value: number | null }[] = [
   { label: "10", value: 10 },
 ] as const;
 
-const tabItems: { label: string; value: string; content: React.ReactNode }[] = [
+const roleTabOptions: {
+  label: string;
+  value: string;
+  content: React.ReactNode;
+}[] = [
   {
     label: "管理者",
     value: StoreMemberRole.Manager,
@@ -113,7 +117,7 @@ export function StoreInvitationDialog({ storeId }: StoreInvitationDialogProps) {
               利用回数
             </Label>
             <Select
-              items={items}
+              items={maxUsesOptions}
               value={selectedUsageCount}
               onValueChange={setSelectedUsageCount}
             >
@@ -128,7 +132,7 @@ export function StoreInvitationDialog({ storeId }: StoreInvitationDialogProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {items.map((item) => (
+                  {maxUsesOptions.map((item) => (
                     <SelectItem key={item.value} value={item.value}>
                       <DotText className="text-base">{item.label}</DotText>
                     </SelectItem>
@@ -142,10 +146,10 @@ export function StoreInvitationDialog({ storeId }: StoreInvitationDialogProps) {
             <Tabs
               value={selectedRole}
               onValueChange={setSelectedRole}
-              defaultValue={tabItems[0]?.value}
+              defaultValue={roleTabOptions[0]?.value}
             >
               <TabsList className="border-primary w-full rounded-full border group-data-horizontal/tabs:h-12">
-                {tabItems.map((item) => (
+                {roleTabOptions.map((item) => (
                   <TabsTrigger
                     key={item.value}
                     value={item.value}
@@ -155,7 +159,7 @@ export function StoreInvitationDialog({ storeId }: StoreInvitationDialogProps) {
                   </TabsTrigger>
                 ))}
               </TabsList>
-              {tabItems.map((item) => (
+              {roleTabOptions.map((item) => (
                 <TabsContent key={item.value} value={item.value}>
                   {item.content}
                 </TabsContent>
