@@ -45,7 +45,6 @@ const roleTabOptions: {
     content: (
       <>
         <p>メニューの管理などが行えます。</p>
-        {/* TODO:アクセントの色をglobal.cssに切り出す */}
         <p className="text-notice">※クラス委員のみを推奨</p>
       </>
     ),
