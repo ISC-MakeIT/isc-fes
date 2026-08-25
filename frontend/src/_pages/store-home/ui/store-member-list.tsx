@@ -6,10 +6,9 @@ import { StoreMember } from "@/entities/store-member";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { Card } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
-import { SubmitButton } from "@/shared/ui/submit-button";
-import { PlusIcon } from "lucide-react";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { ICON_IMAGE_ASPECT } from "@/shared/config";
+import { StoreInvitationDialog } from "./store-invitation-dialog";
 
 const fallbackIcon = "/avatar-fallback.svg";
 
@@ -30,10 +29,7 @@ export function StoreMemberList({ storeId }: StoreMemberListProps) {
         ))}
       </div>
 
-      <SubmitButton className="py-2 text-lg font-bold" isDot={false}>
-        <PlusIcon className="size-6" />
-        メンバーを招待
-      </SubmitButton>
+      <StoreInvitationDialog storeId={storeId} />
     </div>
   );
 }
