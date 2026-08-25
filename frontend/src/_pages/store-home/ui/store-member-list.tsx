@@ -29,6 +29,7 @@ export function StoreMemberList({ storeId }: StoreMemberListProps) {
         ))}
       </div>
 
+      {/* TODO: エンドポイントができたら権限によって出しわける */}
       <StoreInvitationDialog storeId={storeId} />
     </div>
   );
