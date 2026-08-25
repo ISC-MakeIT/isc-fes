@@ -2,7 +2,7 @@ import { StoreMemberRole } from "@/entities/store-member";
 import { createApiClient } from "@/shared/api";
 import { getStatusMessage, storeInvitationsUrl } from "@/shared/config";
 
-type CreateStoreInvitationProps = {
+type CreateStoreInvitationParams = {
   origin: string;
   storeId: string;
   maxUses: number | null;
@@ -22,7 +22,7 @@ export async function createStoreInvitationUrl({
   storeId,
   maxUses,
   role,
-}: CreateStoreInvitationProps): Promise<string> {
+}: CreateStoreInvitationParams): Promise<string> {
   const client = await createApiClient();
   const { data, error, response } = await client.POST(
     "/stores/{store_id}/invitations",
