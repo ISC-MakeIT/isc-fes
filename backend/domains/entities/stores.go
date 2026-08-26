@@ -65,6 +65,7 @@ type StoreOutput struct {
 	SubmittedAt    time.Time
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+	Allergens      []Allergen
 }
 
 type StoreMemberRole string

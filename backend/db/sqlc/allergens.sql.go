@@ -7,6 +7,8 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const getAllergens = `-- name: GetAllergens :many
@@ -24,6 +26,44 @@ func (q *Queries) GetAllergens(ctx context.Context) ([]Allergen, error) {
 	for rows.Next() {
 		var i Allergen
 		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getStoreAllergensByStoreIDs = `-- name: GetStoreAllergensByStoreIDs :many
+SELECT
+    store_allergens.store_id,
+    allergens.id,
+    allergens.name
+FROM allergens
+INNER JOIN store_allergens
+    ON allergens.id = store_allergens.allergen_id
+WHERE store_allergens.store_id = ANY($1::uuid[])
+ORDER BY store_allergens.store_id ASC, allergens.name ASC, allergens.id ASC
+`
+
+type GetStoreAllergensByStoreIDsRow struct {
+	StoreID uuid.UUID `json:"store_id"`
+	ID      uuid.UUID `json:"id"`
+	Name    string    `json:"name"`
+}
+
+func (q *Queries) GetStoreAllergensByStoreIDs(ctx context.Context, storeIds []uuid.UUID) ([]GetStoreAllergensByStoreIDsRow, error) {
+	rows, err := q.db.Query(ctx, getStoreAllergensByStoreIDs, storeIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetStoreAllergensByStoreIDsRow{}
+	for rows.Next() {
+		var i GetStoreAllergensByStoreIDsRow
+		if err := rows.Scan(&i.StoreID, &i.ID, &i.Name); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

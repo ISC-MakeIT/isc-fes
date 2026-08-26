@@ -18,16 +18,7 @@ func (s *Server) GetVisibleStores(c *gin.Context) {
 
 	c.JSON(http.StatusOK, GetVisibleStoresResponse{
 		Total: len(stores),
-		Data: utils.Map(stores, func(s entities.StoreOutput) Store {
-			return Store{
-				Id:           s.ID,
-				Name:         s.Name,
-				Room:         s.Room,
-				Description:  s.Description,
-				ImageUrl:     s.ImageURL,
-				ReviewStatus: StoreReviewStatus(s.ReviewStatus),
-			}
-		}),
+		Data:  utils.Map(stores, toStoreResponse),
 	})
 }
 
@@ -38,12 +29,17 @@ func (s *Server) GetApprovedStoreByID(c *gin.Context, storeID uuid.UUID) {
 		return
 	}
 
-	c.JSON(http.StatusOK, Store{
+	c.JSON(http.StatusOK, toStoreResponse(store))
+}
+
+func toStoreResponse(store entities.StoreOutput) Store {
+	return Store{
 		Id:           store.ID,
 		Name:         store.Name,
 		Room:         store.Room,
 		Description:  store.Description,
 		ImageUrl:     store.ImageURL,
 		ReviewStatus: StoreReviewStatus(store.ReviewStatus),
-	})
+		Allergens:    utils.Map(store.Allergens, toAllergen),
+	}
 }

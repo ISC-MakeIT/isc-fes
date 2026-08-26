@@ -911,6 +911,7 @@ components:
         - description
         - imageUrl
         - reviewStatus
+        - allergens
       properties:
         id:
           type: string
@@ -925,6 +926,10 @@ components:
           type: string
         reviewStatus:
           $ref: "#/components/schemas/StoreReviewStatus"
+        allergens:
+          type: array
+          items:
+            $ref: "#/components/schemas/Allergen"
     StoreMember:
       type: object
       required:
@@ -961,6 +966,7 @@ components:
         - imageUrl
         - reviewStatus
         - submittedAt
+        - allergens
       properties:
         id:
           type: string
@@ -978,6 +984,10 @@ components:
         submittedAt:
           type: string
           format: date-time
+        allergens:
+          type: array
+          items:
+            $ref: "#/components/schemas/Allergen"
     Menu:
       type: object
       required:

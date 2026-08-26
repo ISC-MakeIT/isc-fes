@@ -29,18 +29,21 @@ func (s *Server) GetStoreApplications(c *gin.Context) {
 
 	c.JSON(http.StatusOK, GetStoreApplicationsResponse{
 		Total: len(applications),
-		Data: utils.Map(applications, func(a entities.StoreOutput) StoreApplication {
-			return StoreApplication{
-				Id:           a.ID,
-				Name:         a.Name,
-				Description:  a.Description,
-				Room:         a.Room,
-				ImageUrl:     a.ImageURL,
-				ReviewStatus: StoreReviewStatus(a.ReviewStatus),
-				SubmittedAt:  a.SubmittedAt,
-			}
-		}),
+		Data:  utils.Map(applications, toStoreApplicationResponse),
 	})
+}
+
+func toStoreApplicationResponse(application entities.StoreOutput) StoreApplication {
+	return StoreApplication{
+		Id:           application.ID,
+		Name:         application.Name,
+		Description:  application.Description,
+		Room:         application.Room,
+		ImageUrl:     application.ImageURL,
+		ReviewStatus: StoreReviewStatus(application.ReviewStatus),
+		SubmittedAt:  application.SubmittedAt,
+		Allergens:    utils.Map(application.Allergens, toAllergen),
+	}
 }
 
 // TODO: リクエスト上限、画像サイズ、サービスエラーの HTTP 変換をハンドラーテストで網羅する。

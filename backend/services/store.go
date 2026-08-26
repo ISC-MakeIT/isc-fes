@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	allergens_service "github.com/isc-makeit/isc-fes/backend/services/allergens"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -50,26 +51,29 @@ type CreateStoreApplicationServiceInput struct {
 }
 
 type StoreService struct {
-	imageProcessor  ImageProcessor
-	imageRepository ImageRepository
-	storeRepository StoreRepository
-	imgGenerator    ImageURLGenerator
-	sessions        SessionManager
+	imageProcessor     ImageProcessor
+	imageRepository    ImageRepository
+	storeRepository    StoreRepository
+	allergenRepository allergens_service.AllergenRepository
+	imgGenerator       ImageURLGenerator
+	sessions           SessionManager
 }
 
 func NewStoreService(
 	imageProcessor ImageProcessor,
 	imageRepository ImageRepository,
 	storeRepository StoreRepository,
+	allergenRepository allergens_service.AllergenRepository,
 	sessions SessionManager,
 	imgGenerator ImageURLGenerator,
 ) *StoreService {
 	return &StoreService{
-		imageProcessor:  imageProcessor,
-		imageRepository: imageRepository,
-		storeRepository: storeRepository,
-		imgGenerator:    imgGenerator,
-		sessions:        sessions,
+		imageProcessor:     imageProcessor,
+		imageRepository:    imageRepository,
+		storeRepository:    storeRepository,
+		allergenRepository: allergenRepository,
+		imgGenerator:       imgGenerator,
+		sessions:           sessions,
 	}
 }
 
@@ -248,6 +252,15 @@ func (s *StoreService) GetVisibleStores(ctx context.Context) ([]entities.StoreOu
 }
 
 func (s *StoreService) toStoreOutput(ctx context.Context, store entities.Store) (entities.StoreOutput, error) {
+	outputs, err := s.toStoreOutputs(ctx, []entities.Store{store})
+	if err != nil {
+		return entities.StoreOutput{}, err
+	}
+
+	return outputs[0], nil
+}
+
+func (s *StoreService) buildStoreOutput(ctx context.Context, store entities.Store, allergens []entities.Allergen) (entities.StoreOutput, error) {
 	publicImageURL, err := s.imgGenerator.GenerateStoreImageURL(ctx, store.ImageObjectKey)
 	if err != nil {
 		return entities.StoreOutput{}, fmt.Errorf("failed to get store image URL: %w", err)
@@ -264,13 +277,33 @@ func (s *StoreService) toStoreOutput(ctx context.Context, store entities.Store) 
 		SubmittedAt:    store.SubmittedAt,
 		UpdatedAt:      store.UpdatedAt,
 		CreatedAt:      store.CreatedAt,
+		Allergens:      allergens,
 	}, nil
 }
 
 func (s *StoreService) toStoreOutputs(ctx context.Context, stores []entities.Store) ([]entities.StoreOutput, error) {
+	if len(stores) == 0 {
+		return []entities.StoreOutput{}, nil
+	}
+
+	storeIDs := make([]uuid.UUID, len(stores))
+	for i, store := range stores {
+		storeIDs[i] = store.ID
+	}
+
+	allergensByStoreID, err := s.allergenRepository.GetStoreAllergensByStoreIDs(ctx, storeIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get store allergens: %w", err)
+	}
+
 	outputs := make([]entities.StoreOutput, len(stores))
 	for i, store := range stores {
-		output, err := s.toStoreOutput(ctx, store)
+		allergens := allergensByStoreID[store.ID]
+		if allergens == nil {
+			allergens = []entities.Allergen{}
+		}
+
+		output, err := s.buildStoreOutput(ctx, store, allergens)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert store to output: %w", err)
 		}
