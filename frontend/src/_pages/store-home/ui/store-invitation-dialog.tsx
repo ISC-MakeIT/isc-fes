@@ -79,20 +79,27 @@ export function StoreInvitationDialog({ storeId }: StoreInvitationDialogProps) {
     mutation.variables?.role !== selectedRole;
 
   const isCopyButtonDisabled = mutation.isPending || isCopied;
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function handleCopyInvitationUrl() {
-    const url = isDirty
-      ? await mutation.mutateAsync({
-          origin: location.origin,
-          storeId,
-          maxUses: selectedUsageCount,
-          role: selectedRole,
-        })
-      : mutation.data;
+    setErrorMessage(null);
 
-    await navigator.clipboard.writeText(url);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), COPY_FEEDBACK_DURATION_MS);
+    try {
+      const url = isDirty
+        ? await mutation.mutateAsync({
+            origin: location.origin,
+            storeId,
+            maxUses: selectedUsageCount,
+            role: selectedRole,
+          })
+        : mutation.data;
+
+      await navigator.clipboard.writeText(url);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), COPY_FEEDBACK_DURATION_MS);
+    } catch {
+      setErrorMessage("招待リンクをコピーできませんでした。");
+    }
   }
 
   return (
@@ -165,6 +172,12 @@ export function StoreInvitationDialog({ storeId }: StoreInvitationDialogProps) {
               ))}
             </Tabs>
           </div>
+
+          {errorMessage && (
+            <p role="alert" className="text-notice text-center">
+              {errorMessage}
+            </p>
+          )}
 
           <SubmitButton
             className="self-center px-14 py-3 text-xl shadow-none"
