@@ -75,8 +75,8 @@ export function StoreInvitationDialog({ storeId }: StoreInvitationDialogProps) {
 
   const isDirty =
     !mutation.isSuccess ||
-    mutation.variables?.maxUses !== selectedUsageCount ||
-    mutation.variables?.role !== selectedRole;
+    mutation.variables.maxUses !== selectedUsageCount ||
+    mutation.variables.role !== selectedRole;
 
   const isCopyButtonDisabled = mutation.isPending || isCopied;
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
