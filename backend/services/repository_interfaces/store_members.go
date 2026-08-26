@@ -8,7 +8,7 @@ import (
 )
 
 type StoreMembersRepository interface {
-	GetStoreMemberByAccountIDAndStoreID(c context.Context, accountID uuid.UUID, storeID uuid.UUID) (entities.StoreMembership, error)
+	GetStoreMembershipByAccountIDAndStoreID(c context.Context, accountID uuid.UUID, storeID uuid.UUID) (entities.StoreMembership, error)
 	GetStoreMembersByStoreID(c context.Context, storeID uuid.UUID) ([]entities.StoreMember, error)
 	RemoveStoreMemberByAccountIDAndStoreID(c context.Context, accountID uuid.UUID, storeID uuid.UUID) error
 }

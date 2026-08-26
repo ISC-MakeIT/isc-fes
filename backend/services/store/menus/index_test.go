@@ -38,7 +38,7 @@ type managerStoreMembersRepository struct {
 	membership entities.StoreMembership
 }
 
-func (r *managerStoreMembersRepository) GetStoreMemberByAccountIDAndStoreID(context.Context, uuid.UUID, uuid.UUID) (entities.StoreMembership, error) {
+func (r *managerStoreMembersRepository) GetStoreMembershipByAccountIDAndStoreID(context.Context, uuid.UUID, uuid.UUID) (entities.StoreMembership, error) {
 	return r.membership, nil
 }
 

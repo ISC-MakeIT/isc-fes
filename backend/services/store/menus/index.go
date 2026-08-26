@@ -81,7 +81,7 @@ func (s *MenuService) CreateMenu(c context.Context, storeID uuid.UUID, input Cre
 		return menus.MenuDisplay{}, services.ErrNotFound
 	}
 
-	member, err := s.storeMemberRepository.GetStoreMemberByAccountIDAndStoreID(c, account.ID, store.ID)
+	member, err := s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(c, account.ID, store.ID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return menus.MenuDisplay{}, services.ErrForbidden
 	}

@@ -27,7 +27,7 @@ func (s *StoreMemberService) GetStoreMembersByStoreID(ctx context.Context, store
 		return nil, err
 	}
 
-	_, err = s.storeMemberRepository.GetStoreMemberByAccountIDAndStoreID(ctx, account.ID, storeID)
+	_, err = s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(ctx, account.ID, storeID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, services.ErrNotFound
@@ -44,7 +44,7 @@ func (s *StoreMemberService) RemoveStoreMemberByAccountIDAndStoreID(ctx context.
 		return err
 	}
 
-	authorizedMember, err := s.storeMemberRepository.GetStoreMemberByAccountIDAndStoreID(ctx, authorizedAccount.ID, storeID)
+	authorizedMember, err := s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(ctx, authorizedAccount.ID, storeID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return services.ErrNotFound

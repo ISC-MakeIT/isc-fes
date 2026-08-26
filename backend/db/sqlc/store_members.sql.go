@@ -71,29 +71,6 @@ func (q *Queries) CreateStoreMemberIfNotExists(ctx context.Context, arg CreateSt
 	return i, err
 }
 
-const getStoreMemberByAccountIDAndStoreID = `-- name: GetStoreMemberByAccountIDAndStoreID :one
-SELECT store_id, account_id, role, joined_at
-FROM store_members
-WHERE account_id = $1 AND store_id = $2
-`
-
-type GetStoreMemberByAccountIDAndStoreIDParams struct {
-	AccountID uuid.UUID `json:"account_id"`
-	StoreID   uuid.UUID `json:"store_id"`
-}
-
-func (q *Queries) GetStoreMemberByAccountIDAndStoreID(ctx context.Context, arg GetStoreMemberByAccountIDAndStoreIDParams) (StoreMember, error) {
-	row := q.db.QueryRow(ctx, getStoreMemberByAccountIDAndStoreID, arg.AccountID, arg.StoreID)
-	var i StoreMember
-	err := row.Scan(
-		&i.StoreID,
-		&i.AccountID,
-		&i.Role,
-		&i.JoinedAt,
-	)
-	return i, err
-}
-
 const getStoreMembersByStoreID = `-- name: GetStoreMembersByStoreID :many
 SELECT store_id, account_id, store_members.role, joined_at, id, google_sub, email, display_name, picture_url, accounts.role, last_login_at, created_at, updated_at
 FROM store_members
@@ -151,6 +128,29 @@ func (q *Queries) GetStoreMembersByStoreID(ctx context.Context, storeID uuid.UUI
 		return nil, err
 	}
 	return items, nil
+}
+
+const getStoreMembershipByAccountIDAndStoreID = `-- name: GetStoreMembershipByAccountIDAndStoreID :one
+SELECT store_id, account_id, role, joined_at
+FROM store_members
+WHERE account_id = $1 AND store_id = $2
+`
+
+type GetStoreMembershipByAccountIDAndStoreIDParams struct {
+	AccountID uuid.UUID `json:"account_id"`
+	StoreID   uuid.UUID `json:"store_id"`
+}
+
+func (q *Queries) GetStoreMembershipByAccountIDAndStoreID(ctx context.Context, arg GetStoreMembershipByAccountIDAndStoreIDParams) (StoreMember, error) {
+	row := q.db.QueryRow(ctx, getStoreMembershipByAccountIDAndStoreID, arg.AccountID, arg.StoreID)
+	var i StoreMember
+	err := row.Scan(
+		&i.StoreID,
+		&i.AccountID,
+		&i.Role,
+		&i.JoinedAt,
+	)
+	return i, err
 }
 
 const removeStoreMemberByAccountIDAndStoreID = `-- name: RemoveStoreMemberByAccountIDAndStoreID :exec

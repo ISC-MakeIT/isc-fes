@@ -20,8 +20,8 @@ func NewStoreMemberRepository(queries *sqlc.Queries) *StoreMemberRepository {
 	}
 }
 
-func (r *StoreMemberRepository) GetStoreMemberByAccountIDAndStoreID(c context.Context, accountID uuid.UUID, storeID uuid.UUID) (entities.StoreMembership, error) {
-	dbStoreMember, err := r.queries.GetStoreMemberByAccountIDAndStoreID(c, sqlc.GetStoreMemberByAccountIDAndStoreIDParams{
+func (r *StoreMemberRepository) GetStoreMembershipByAccountIDAndStoreID(c context.Context, accountID uuid.UUID, storeID uuid.UUID) (entities.StoreMembership, error) {
+	dbStoreMember, err := r.queries.GetStoreMembershipByAccountIDAndStoreID(c, sqlc.GetStoreMembershipByAccountIDAndStoreIDParams{
 		AccountID: accountID,
 		StoreID:   storeID,
 	})
