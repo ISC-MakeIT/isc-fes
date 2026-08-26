@@ -1,4 +1,3 @@
-import { ErrorBoundary } from "react-error-boundary";
 import { storeDetailQueryOptions } from "../api/fetch-store-detail";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
@@ -36,23 +35,18 @@ export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
       <SidebarInset>
         <MobileAppHeader />
         <HydrationBoundary state={dehydrate(queryClient)}>
-          <ErrorBoundary fallback={<p>エラーが発生しました</p>}>
-            <Suspense fallback={<p>ロード中</p>}>
-              <div className="flex flex-1 flex-col pt-18">
-                <HeadingCard className="mb-6 self-center md:hidden">
-                  ホーム
-                </HeadingCard>
-                <StoreInfo storeId={storeId} />
-                <div className="md:grid md:flex-1 md:grid-cols-[1fr_24rem]">
-                  <StoreMenuList
-                    className="hidden md:block"
-                    storeId={storeId}
-                  />
-                  <StoreMemberList storeId={storeId} />
-                </div>
+          <Suspense fallback={<p>ロード中</p>}>
+            <div className="flex flex-1 flex-col pt-18">
+              <HeadingCard className="mb-6 self-center md:hidden">
+                ホーム
+              </HeadingCard>
+              <StoreInfo storeId={storeId} />
+              <div className="md:grid md:flex-1 md:grid-cols-[1fr_24rem]">
+                <StoreMenuList className="hidden md:block" storeId={storeId} />
+                <StoreMemberList storeId={storeId} />
               </div>
-            </Suspense>
-          </ErrorBoundary>
+            </div>
+          </Suspense>
         </HydrationBoundary>
       </SidebarInset>
     </>
