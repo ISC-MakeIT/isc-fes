@@ -25,6 +25,11 @@ export const StoreDescription = v.pipe(
   v.maxLength(1000, "1000文字以内で入力してください"),
 );
 
+const Allergen = v.object({
+  id: v.string(),
+  name: v.string(),
+});
+
 export const Store = v.object({
   id: v.string(),
   name: StoreName,
@@ -32,6 +37,7 @@ export const Store = v.object({
   description: StoreDescription,
   imageUrl: v.string(),
   reviewStatus: StoreReviewStatusSchema,
+  allergens: v.array(Allergen),
 });
 
 export type Store = v.InferOutput<typeof Store>;

@@ -331,6 +331,7 @@ export interface components {
       description: string;
       imageUrl: string;
       reviewStatus: components["schemas"]["StoreReviewStatus"];
+      allergens: components["schemas"]["Allergen"][];
     };
     StoreMember: {
       /** Format: uuid */
@@ -353,6 +354,7 @@ export interface components {
       reviewStatus: components["schemas"]["StoreReviewStatus"];
       /** Format: date-time */
       submittedAt: string;
+      allergens: components["schemas"]["Allergen"][];
     };
     Menu: {
       /** Format: uuid */

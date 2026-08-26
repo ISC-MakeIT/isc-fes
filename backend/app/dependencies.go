@@ -113,6 +113,7 @@ func buildDependencies(
 		media.NewImageProcessor(),
 		imageRepository,
 		storeRepository,
+		allergensRepository,
 		sessions,
 		imgGenerator,
 	)
