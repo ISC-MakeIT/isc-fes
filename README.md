@@ -1,18 +1,16 @@
-# isc-fes
+<p align="center">
+  <picture>
+    <img src="assets/icon.png" width="220" alt="isc-fes, 情報科学専門学校学園祭アプリ">
+  </picture>
+</p>
 
-## Backend
-### 前提
-- Go
-- Docker
-- Make (Mac なら標準で入っている)
-### 開発環境
-```shell
-# Docker で PostgreSQL を立てる
-make db-up
+<h1 align="center">isc-fes</h1>
 
-# localhost:8080 で Go の API サーバーを立てる（ホットリロード付き）
-make dev-api
+<p align="center">
+  <em>情報科学専門学校 学園祭 2026 アプリ</em>
+</p>
 
-# ./openapi.yaml から Go のコードを ./backend/routers/gen.go に生成する
-make gen-api
-```
+<p align="center">
+  <!-- <strong>いい感じのキャッチコピーが思いついたらここに書く</strong><br> -->
+  <sub>従来、イベント情報や店舗情報はパンフレットに、メニューや実際の注文は各店舗というように、来場者が必要とする情報が散在していた。isc-fes はイベント・店舗・メニューの閲覧から商品の注文・受け取りまでをひとつの Web アプリにまとめることで、来場者の利便性を向上させ学園祭内の回遊や店舗利用を促進し、来場者のエンゲージメントを高める。また、学園祭運営側にとって従来正確に観測することが難しかった来場状況や、来場者の行動を可視化することも可能になる。</sub>
+</p>
