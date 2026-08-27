@@ -39,7 +39,7 @@ func (s *ToppingsService) GetToppingsByStoreID(c context.Context, storeID uuid.U
 		return nil, err
 	}
 
-	_, err = s.storeMemberRepository.GetStoreMemberByAccountIDAndStoreID(c, account.ID, storeID)
+	_, err = s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(c, account.ID, storeID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, services.ErrForbidden

@@ -72,9 +72,11 @@ func (q *Queries) CreateStoreMemberIfNotExists(ctx context.Context, arg CreateSt
 }
 
 const getStoreMemberByAccountIDAndStoreID = `-- name: GetStoreMemberByAccountIDAndStoreID :one
-SELECT store_id, account_id, role, joined_at
+SELECT store_id, account_id, store_members.role, joined_at, id, google_sub, email, display_name, picture_url, accounts.role, last_login_at, created_at, updated_at
 FROM store_members
-WHERE account_id = $1 AND store_id = $2
+INNER JOIN accounts
+    ON store_members.account_id = accounts.id
+WHERE store_members.account_id = $1 AND store_members.store_id = $2
 `
 
 type GetStoreMemberByAccountIDAndStoreIDParams struct {
@@ -82,14 +84,39 @@ type GetStoreMemberByAccountIDAndStoreIDParams struct {
 	StoreID   uuid.UUID `json:"store_id"`
 }
 
-func (q *Queries) GetStoreMemberByAccountIDAndStoreID(ctx context.Context, arg GetStoreMemberByAccountIDAndStoreIDParams) (StoreMember, error) {
+type GetStoreMemberByAccountIDAndStoreIDRow struct {
+	StoreID     uuid.UUID          `json:"store_id"`
+	AccountID   uuid.UUID          `json:"account_id"`
+	Role        StoreMemberRole    `json:"role"`
+	JoinedAt    pgtype.Timestamptz `json:"joined_at"`
+	ID          uuid.UUID          `json:"id"`
+	GoogleSub   string             `json:"google_sub"`
+	Email       string             `json:"email"`
+	DisplayName string             `json:"display_name"`
+	PictureUrl  *string            `json:"picture_url"`
+	Role_2      Role               `json:"role_2"`
+	LastLoginAt pgtype.Timestamptz `json:"last_login_at"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) GetStoreMemberByAccountIDAndStoreID(ctx context.Context, arg GetStoreMemberByAccountIDAndStoreIDParams) (GetStoreMemberByAccountIDAndStoreIDRow, error) {
 	row := q.db.QueryRow(ctx, getStoreMemberByAccountIDAndStoreID, arg.AccountID, arg.StoreID)
-	var i StoreMember
+	var i GetStoreMemberByAccountIDAndStoreIDRow
 	err := row.Scan(
 		&i.StoreID,
 		&i.AccountID,
 		&i.Role,
 		&i.JoinedAt,
+		&i.ID,
+		&i.GoogleSub,
+		&i.Email,
+		&i.DisplayName,
+		&i.PictureUrl,
+		&i.Role_2,
+		&i.LastLoginAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -151,6 +178,29 @@ func (q *Queries) GetStoreMembersByStoreID(ctx context.Context, storeID uuid.UUI
 		return nil, err
 	}
 	return items, nil
+}
+
+const getStoreMembershipByAccountIDAndStoreID = `-- name: GetStoreMembershipByAccountIDAndStoreID :one
+SELECT store_id, account_id, role, joined_at
+FROM store_members
+WHERE account_id = $1 AND store_id = $2
+`
+
+type GetStoreMembershipByAccountIDAndStoreIDParams struct {
+	AccountID uuid.UUID `json:"account_id"`
+	StoreID   uuid.UUID `json:"store_id"`
+}
+
+func (q *Queries) GetStoreMembershipByAccountIDAndStoreID(ctx context.Context, arg GetStoreMembershipByAccountIDAndStoreIDParams) (StoreMember, error) {
+	row := q.db.QueryRow(ctx, getStoreMembershipByAccountIDAndStoreID, arg.AccountID, arg.StoreID)
+	var i StoreMember
+	err := row.Scan(
+		&i.StoreID,
+		&i.AccountID,
+		&i.Role,
+		&i.JoinedAt,
+	)
+	return i, err
 }
 
 const removeStoreMemberByAccountIDAndStoreID = `-- name: RemoveStoreMemberByAccountIDAndStoreID :exec

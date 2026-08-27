@@ -1,7 +1,14 @@
--- name: GetStoreMemberByAccountIDAndStoreID :one
+-- name: GetStoreMembershipByAccountIDAndStoreID :one
 SELECT *
 FROM store_members
 WHERE account_id = $1 AND store_id = $2;
+
+-- name: GetStoreMemberByAccountIDAndStoreID :one
+SELECT *
+FROM store_members
+INNER JOIN accounts
+    ON store_members.account_id = accounts.id
+WHERE store_members.account_id = $1 AND store_members.store_id = $2;
 
 -- name: CreateStoreMember :one
 INSERT INTO store_members (

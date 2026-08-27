@@ -20,12 +20,21 @@ func NewStoreMemberRepository(queries *sqlc.Queries) *StoreMemberRepository {
 	}
 }
 
-func (r *StoreMemberRepository) GetStoreMemberByAccountIDAndStoreID(c context.Context, accountID uuid.UUID, storeID uuid.UUID) (entities.StoreMembership, error) {
-	dbStoreMember, err := r.queries.GetStoreMemberByAccountIDAndStoreID(c, sqlc.GetStoreMemberByAccountIDAndStoreIDParams{
+func (r *StoreMemberRepository) GetStoreMembershipByAccountIDAndStoreID(c context.Context, accountID uuid.UUID, storeID uuid.UUID) (entities.StoreMembership, error) {
+	dbStoreMember, err := r.queries.GetStoreMembershipByAccountIDAndStoreID(c, sqlc.GetStoreMembershipByAccountIDAndStoreIDParams{
 		AccountID: accountID,
 		StoreID:   storeID,
 	})
 	return toStoreMembership(dbStoreMember), err
+}
+
+func (r *StoreMemberRepository) GetStoreMemberByAccountIDAndStoreID(c context.Context, accountID uuid.UUID, storeID uuid.UUID) (entities.StoreMember, error) {
+	dbStoreMember, err := r.queries.GetStoreMemberByAccountIDAndStoreID(c, sqlc.GetStoreMemberByAccountIDAndStoreIDParams{
+		AccountID: accountID,
+		StoreID:   storeID,
+	})
+
+	return toStoreMember(dbStoreMember), err
 }
 
 func (r *StoreMemberRepository) GetStoreMembersByStoreID(c context.Context, storeID uuid.UUID) ([]entities.StoreMember, error) {
@@ -59,6 +68,17 @@ func toStoreMembership(dbStoreMember sqlc.StoreMember) entities.StoreMembership 
 		StoreID:   dbStoreMember.StoreID,
 		Role:      entities.StoreMemberRole(dbStoreMember.Role),
 		JoinedAt:  dbStoreMember.JoinedAt.Time,
+	}
+}
+
+func toStoreMember(dbStoreMember sqlc.GetStoreMemberByAccountIDAndStoreIDRow) entities.StoreMember {
+	return entities.StoreMember{
+		StoreID:     dbStoreMember.StoreID,
+		AccountID:   dbStoreMember.AccountID,
+		Role:        entities.StoreMemberRole(dbStoreMember.Role),
+		JoinedAt:    dbStoreMember.JoinedAt.Time,
+		DisplayName: dbStoreMember.DisplayName,
+		PictureURL:  dbStoreMember.PictureUrl,
 	}
 }
 

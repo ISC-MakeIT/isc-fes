@@ -27,7 +27,7 @@ func (s *StoreMemberService) GetStoreMembersByStoreID(ctx context.Context, store
 		return nil, err
 	}
 
-	_, err = s.storeMemberRepository.GetStoreMemberByAccountIDAndStoreID(ctx, account.ID, storeID)
+	_, err = s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(ctx, account.ID, storeID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, services.ErrNotFound
@@ -38,13 +38,41 @@ func (s *StoreMemberService) GetStoreMembersByStoreID(ctx context.Context, store
 	return s.storeMemberRepository.GetStoreMembersByStoreID(ctx, storeID)
 }
 
+func (s *StoreMemberService) GetStoreMemberByAccountIDAndStoreID(ctx context.Context, accountID, storeID uuid.UUID) (entities.StoreMember, error) {
+	account, err := services.RequireAuthenticatedAccount(ctx)
+	if err != nil {
+		return entities.StoreMember{}, err
+	}
+
+	if account.ID != accountID {
+		// 自分以外のメンバー情報を取得する場合は、店舗のメンバーである必要がある
+		_, err = s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(ctx, account.ID, storeID)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return entities.StoreMember{}, services.ErrNotFound
+			}
+			return entities.StoreMember{}, err
+		}
+	}
+
+	member, err := s.storeMemberRepository.GetStoreMemberByAccountIDAndStoreID(ctx, accountID, storeID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return entities.StoreMember{}, services.ErrNotFound
+		}
+		return entities.StoreMember{}, err
+	}
+
+	return member, nil
+}
+
 func (s *StoreMemberService) RemoveStoreMemberByAccountIDAndStoreID(ctx context.Context, accountID, storeID uuid.UUID) error {
 	authorizedAccount, err := services.RequireAuthenticatedAccount(ctx)
 	if err != nil {
 		return err
 	}
 
-	authorizedMember, err := s.storeMemberRepository.GetStoreMemberByAccountIDAndStoreID(ctx, authorizedAccount.ID, storeID)
+	authorizedMember, err := s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(ctx, authorizedAccount.ID, storeID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return services.ErrNotFound

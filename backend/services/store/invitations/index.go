@@ -30,7 +30,7 @@ func (s *StoreInvitationService) CreateStoreInvitation(ctx context.Context, stor
 		return entities.StoreInvitation{}, err
 	}
 
-	storeMember, err := s.storeMembersRepository.GetStoreMemberByAccountIDAndStoreID(ctx, account.ID, storeID)
+	storeMember, err := s.storeMembersRepository.GetStoreMembershipByAccountIDAndStoreID(ctx, account.ID, storeID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return entities.StoreInvitation{}, services.ErrNotFound
 	}

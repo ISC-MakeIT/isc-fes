@@ -338,6 +338,55 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
   /stores/{store_id}/members/{account_id}:
+    get:
+      operationId: getStoreMemberByStoreIDAndAccountID
+      summary: 店舗のメンバーを取得する
+      security:
+        - AccountSession: []
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 店舗のメンバー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoreMember"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 未ログイン
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない、または対象が店舗のメンバーではない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     delete:
       operationId: removeStoreMember
       summary: 店舗のメンバーを削除する
