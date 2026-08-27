@@ -18,6 +18,7 @@ export default function NotFound() {
         <br />
         お手数ですが、トップページより再度お探しください。
       </p>
+      {/* TODO: 前のページがstores/だったかどうかで遷移先を分岐させる? */}
       <LinkButton className="text-2xl font-bold" href={homeUrl()}>
         <ChevronLeft className="size-7" />
         トップに戻る
