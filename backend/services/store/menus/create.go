@@ -17,6 +17,7 @@ type CreateMenuInput struct {
 	Name        string
 	Description string
 	UnitPrice   int32
+	ToppingIds  []uuid.UUID
 	ImageReader io.ReadSeeker
 }
 
@@ -74,13 +75,14 @@ func (s *MenuService) CreateMenu(c context.Context, storeID uuid.UUID, input Cre
 		return menus.MenuDisplay{}, err
 	}
 
-	menu, err := s.menuRepository.CreateMenu(c, CreateMenuRepositoryInput{
+	menu, err := s.menuRepository.CreateMenuWithToppings(c, CreateMenuRepositoryInput{
 		ID:             menuID,
 		StoreID:        storeID,
 		Name:           input.Name,
 		Description:    input.Description,
 		UnitPrice:      input.UnitPrice,
 		ImageObjectKey: imageObjectKey,
+		ToppingIds:     input.ToppingIds,
 	})
 	if err != nil {
 		s.imageRepository.DeleteObject(c, entities.StoreImageObjectKey(imageObjectKey))

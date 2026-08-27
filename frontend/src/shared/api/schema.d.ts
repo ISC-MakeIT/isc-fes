@@ -383,6 +383,8 @@ export interface components {
        * @example 500
        */
       unitPrice: number;
+      /** @description 対象のメニューにトッピング可能なトッピングのID一覧。空配列も可。 */
+      toppingIds?: string[];
       /**
        * Format: binary
        * @description メニュー画像。JPEG、PNG、WebPに対応する。

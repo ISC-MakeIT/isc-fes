@@ -1096,6 +1096,13 @@ components:
           format: int32
           minimum: 0
           example: 500
+        toppingIds:
+          type: array
+          description: 対象のメニューにトッピング可能なトッピングのID一覧。空配列も可。
+          items:
+            type: string
+            format: uuid
+          uniqueItems: true
         image:
           type: string
           format: binary
