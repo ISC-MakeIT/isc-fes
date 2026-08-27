@@ -130,7 +130,8 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get?: never;
+    /** 店舗のメンバーを取得する */
+    get: operations["getStoreMemberByStoreIDAndAccountID"];
     put?: never;
     post?: never;
     /** 店舗のメンバーを削除する */
@@ -820,6 +821,65 @@ export interface operations {
         };
       };
       /** @description 店舗が存在しない、または店舗のメンバーではない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getStoreMemberByStoreIDAndAccountID: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+        account_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 店舗のメンバー */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["StoreMember"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない、または対象が店舗のメンバーではない */
       404: {
         headers: {
           [name: string]: unknown;

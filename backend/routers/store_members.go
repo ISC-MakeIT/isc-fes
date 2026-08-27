@@ -31,6 +31,23 @@ func (s *Server) GetStoreMembers(c *gin.Context, storeID uuid.UUID) {
 	})
 }
 
+func (s *Server) GetStoreMemberByStoreIDAndAccountID(c *gin.Context, storeID uuid.UUID, accountID uuid.UUID) {
+	member, err := s.storeMember.GetStoreMemberByAccountIDAndStoreID(c.Request.Context(), accountID, storeID)
+	if err != nil {
+		s.handleCommonServiceErrors(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, StoreMember{
+		StoreId:     member.StoreID,
+		AccountId:   member.AccountID,
+		Role:        StoreMemberRole(member.Role),
+		JoinedAt:    member.JoinedAt,
+		DisplayName: member.DisplayName,
+		PictureUrl:  member.PictureURL,
+	})
+}
+
 func (s *Server) RemoveStoreMember(c *gin.Context, storeID uuid.UUID, accountID uuid.UUID) {
 	err := s.storeMember.RemoveStoreMemberByAccountIDAndStoreID(c.Request.Context(), accountID, storeID)
 	if err != nil {
