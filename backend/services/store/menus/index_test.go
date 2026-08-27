@@ -19,7 +19,7 @@ type recordingMenuRepository struct {
 	createCalls int
 }
 
-func (r *recordingMenuRepository) CreateMenu(context.Context, CreateMenuRepositoryInput) (menuentities.Menu, error) {
+func (r *recordingMenuRepository) CreateMenuWithToppings(context.Context, CreateMenuRepositoryInput) (menuentities.Menu, error) {
 	r.createCalls++
 	return menuentities.Menu{}, nil
 }

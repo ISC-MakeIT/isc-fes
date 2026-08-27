@@ -14,11 +14,12 @@ type CreateMenuRepositoryInput struct {
 	Name           string
 	Description    string
 	UnitPrice      int32
+	ToppingIds     []uuid.UUID
 	ImageObjectKey menus.MenuImageObjectKey
 }
 type MenuRepository interface {
 	GetMenusByStoreID(c context.Context, storeID uuid.UUID) ([]menus.Menu, error)
-	CreateMenu(c context.Context, input CreateMenuRepositoryInput) (menus.Menu, error)
+	CreateMenuWithToppings(c context.Context, input CreateMenuRepositoryInput) (menus.Menu, error)
 }
 
 type ImageProcessor interface {

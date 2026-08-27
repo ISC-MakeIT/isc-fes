@@ -30,6 +30,7 @@ type CreateMenuForm struct {
 	Name        string                `form:"name" binding:"required"`
 	Description string                `form:"description" binding:"required"`
 	UnitPrice   *int32                `form:"unitPrice" binding:"required,gte=0"`
+	ToppingIds  []uuid.UUID           `form:"toppingIds[]"`
 	Image       *multipart.FileHeader `form:"image" binding:"required"`
 }
 
@@ -86,6 +87,7 @@ func (s *Server) CreateMenu(c *gin.Context, storeID uuid.UUID) {
 		Name:        form.Name,
 		Description: form.Description,
 		UnitPrice:   *form.UnitPrice,
+		ToppingIds:  form.ToppingIds,
 		ImageReader: image,
 	})
 	if err != nil {
