@@ -21,6 +21,9 @@ func (s *MenuService) DeleteMenuByStoreIDAndMenuID(c context.Context, storeID uu
 	if errors.Is(err, pgx.ErrNoRows) {
 		return services.ErrNotFound
 	}
+	if err != nil {
+		return err
+	}
 
 	storeMembership, err := s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(c, account.ID, storeID)
 	if errors.Is(err, pgx.ErrNoRows) {
