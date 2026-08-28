@@ -1,8 +1,8 @@
 locals {
-  api_server_compose_path     = "${path.module}/../../deploy/compose.yaml"
+  api_server_compose_path     = "${path.module}/../deploy/compose.yaml"
   api_server_compose_base64   = filebase64(local.api_server_compose_path)
   api_server_compose_sha256   = filesha256(local.api_server_compose_path)
-  api_server_caddyfile_path   = "${path.module}/../../deploy/Caddyfile"
+  api_server_caddyfile_path   = "${path.module}/../deploy/Caddyfile"
   api_server_caddyfile_base64 = filebase64(local.api_server_caddyfile_path)
   api_server_caddyfile_sha256 = filesha256(local.api_server_caddyfile_path)
 }

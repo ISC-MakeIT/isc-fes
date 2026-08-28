@@ -124,7 +124,7 @@ Docker Composeの設定完了後、別のSystems Manager Associationで次のフ
 ```
 
 - `/isc-fes/prod/runtime-env`はEC2上で直接復号し、標準出力へ書き出さない
-- Compose定義とCaddyfileはRepositoryの`deploy`配下からBase64で転送する
+- Compose定義とCaddyfileはRepositoryの`infra/deploy`配下からBase64で転送する
 - 両方のSHA-256を配置前に検証する
 - 一時ファイルに対して`docker compose config --quiet`を実行する
 - 検証成功後にだけ既存ファイルを置き換える
