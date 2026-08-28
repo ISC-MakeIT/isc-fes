@@ -60,7 +60,7 @@ func (s *Server) CreateStoreApplication(c *gin.Context) {
 
 	var form createStoreApplicationForm
 	bindErr := c.ShouldBind(&form)
-	image, err := validators.ValidateImageRequestBody(c, form.Image, bindErr, validators.ImageValidationConfig{
+	image, err := validators.ValidateRequireImageRequestBody(c, form.Image, bindErr, validators.ImageValidationConfig{
 		MaxImageSize:       maxImageSize,
 		MaxRequestBodySize: maxRequestBodySize,
 	})

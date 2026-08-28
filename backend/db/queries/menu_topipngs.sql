@@ -9,3 +9,7 @@ SELECT
     ids.topping_id,
     sqlc.arg(store_id)
 FROM unnest(sqlc.arg(topping_ids)::uuid[]) AS ids(topping_id);
+
+-- name: DeleteAllMenuToppingsByMenuID :exec
+DELETE FROM menu_toppings
+WHERE menu_id = $1;

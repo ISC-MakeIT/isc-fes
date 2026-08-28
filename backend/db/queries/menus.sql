@@ -25,3 +25,18 @@ INSERT INTO menus (
 )
 RETURNING *;
 
+-- name: UpdateMenu :one
+UPDATE menus
+SET
+    name = COALESCE(sqlc.narg(name), name),
+    description = COALESCE(sqlc.narg(description), description),
+    unit_price = COALESCE(sqlc.narg(unit_price), unit_price),
+    image_object_key = COALESCE(
+        sqlc.narg(image_object_key),
+        image_object_key
+    ),
+    updated_at = now()
+WHERE store_id = sqlc.arg(store_id)
+  AND id = sqlc.arg(id)
+  AND deleted_at IS NULL
+RETURNING *;

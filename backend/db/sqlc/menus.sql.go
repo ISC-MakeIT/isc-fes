@@ -128,3 +128,54 @@ func (q *Queries) GetMenusByStoreID(ctx context.Context, storeID uuid.UUID) ([]M
 	}
 	return items, nil
 }
+
+const updateMenu = `-- name: UpdateMenu :one
+UPDATE menus
+SET
+    name = COALESCE($1, name),
+    description = COALESCE($2, description),
+    unit_price = COALESCE($3, unit_price),
+    image_object_key = COALESCE(
+        $4,
+        image_object_key
+    ),
+    updated_at = now()
+WHERE store_id = $5
+  AND id = $6
+  AND deleted_at IS NULL
+RETURNING id, store_id, name, description, unit_price, image_object_key, sold_out, deleted_at, updated_at, created_at
+`
+
+type UpdateMenuParams struct {
+	Name           *string   `json:"name"`
+	Description    *string   `json:"description"`
+	UnitPrice      *int32    `json:"unit_price"`
+	ImageObjectKey *string   `json:"image_object_key"`
+	StoreID        uuid.UUID `json:"store_id"`
+	ID             uuid.UUID `json:"id"`
+}
+
+func (q *Queries) UpdateMenu(ctx context.Context, arg UpdateMenuParams) (Menu, error) {
+	row := q.db.QueryRow(ctx, updateMenu,
+		arg.Name,
+		arg.Description,
+		arg.UnitPrice,
+		arg.ImageObjectKey,
+		arg.StoreID,
+		arg.ID,
+	)
+	var i Menu
+	err := row.Scan(
+		&i.ID,
+		&i.StoreID,
+		&i.Name,
+		&i.Description,
+		&i.UnitPrice,
+		&i.ImageObjectKey,
+		&i.SoldOut,
+		&i.DeletedAt,
+		&i.UpdatedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}

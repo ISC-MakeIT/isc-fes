@@ -159,6 +159,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/stores/{store_id}/menus/{menu_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** 店舗のメニューを更新する */
+    put: operations["updateMenuByStoreIDAndMenuID"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/stores/{store_id}/toppings": {
     parameters: {
       query?: never;
@@ -391,6 +408,25 @@ export interface components {
        *     最大ファイルサイズは10MB。
        */
       image: string;
+    };
+    UpdateMenuInput: {
+      /** @example たこ焼き */
+      name?: string;
+      /** @example 外はカリカリ、中はトロトロのたこ焼きです。 */
+      description?: string;
+      /**
+       * Format: int32
+       * @example 500
+       */
+      unitPrice?: number;
+      /** @description 対象のメニューにトッピング可能なトッピングのID一覧。空配列も可。 */
+      toppingIds?: string[];
+      /**
+       * Format: binary
+       * @description メニュー画像。JPEG、PNG、WebPに対応する。
+       *     最大ファイルサイズは10MB。
+       */
+      image?: string;
     };
     Topping: {
       /** Format: uuid */
@@ -1068,6 +1104,114 @@ export interface operations {
         };
       };
       /** @description 店舗が存在しない（未承認の店舗はメニューを登録できない） */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description アップロードされた画像が大きすぎる */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 対応していない画像形式 */
+      415: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 入力値または画像の内容が不正 */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 画像ストレージが一時的に利用できない */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  updateMenuByStoreIDAndMenuID: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+        menu_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["UpdateMenuInput"];
+      };
+    };
+    responses: {
+      /** @description 店舗のメニューを更新した */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Menu"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 権限不足（店舗のメンバーでない、または店舗マネージャーでない） */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない（未承認の店舗はメニューを更新できない）、またはメニューが存在しない */
       404: {
         headers: {
           [name: string]: unknown;

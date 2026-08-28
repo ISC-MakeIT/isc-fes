@@ -14,6 +14,7 @@ var (
 	errTooLargeImage   = errors.New("画像が大きすぎます。10 MiB 以下にしてください")
 	errEmptyImage      = errors.New("画像ファイルが空です。")
 	errCannotOpenImage = errors.New("画像を読み込めませんでした。")
+	errNilImage        = errors.New("画像が nil です。")
 )
 
 type ImageValidationConfig struct {
@@ -21,7 +22,7 @@ type ImageValidationConfig struct {
 	MaxRequestBodySize int64
 }
 
-func ValidateImageRequestBody(c *gin.Context, img *multipart.FileHeader, bindError error, config ImageValidationConfig) (multipart.File, error) {
+func ValidateRequireImageRequestBody(c *gin.Context, img *multipart.FileHeader, bindError error, config ImageValidationConfig) (multipart.File, error) {
 	// TODO: 認証ミドルウェアでアカウントを確定してから multipart body を解析し、未認証リクエストの解析コストを避ける。
 	c.Request.Body = http.MaxBytesReader(
 		c.Writer,
@@ -36,6 +37,10 @@ func ValidateImageRequestBody(c *gin.Context, img *multipart.FileHeader, bindErr
 		}
 
 		return nil, errBadRequest
+	}
+
+	if img == nil {
+		return nil, errNilImage
 	}
 
 	if img.Size > config.MaxImageSize {
@@ -54,11 +59,23 @@ func ValidateImageRequestBody(c *gin.Context, img *multipart.FileHeader, bindErr
 	return image, nil
 }
 
+func ValidateOptionalImageRequestBody(c *gin.Context, img *multipart.FileHeader, bindError error, config ImageValidationConfig) (multipart.File, error) {
+	i, err := ValidateRequireImageRequestBody(c, img, bindError, config)
+	if err != nil {
+		if errors.Is(err, errNilImage) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return i, nil
+}
+
 func MapValidationErrorToHTTPStatusCode(err error) (int, string) {
 	switch {
 	case errors.Is(err, errTooLargeBody):
 		return http.StatusRequestEntityTooLarge, err.Error()
-	case errors.Is(err, errBadRequest):
+	case errors.Is(err, errBadRequest), errors.Is(err, errNilImage):
 		return http.StatusBadRequest, err.Error()
 	case errors.Is(err, errTooLargeImage):
 		return http.StatusRequestEntityTooLarge, err.Error()
