@@ -57,16 +57,9 @@ func (s *MenuService) CreateMenu(c context.Context, storeID uuid.UUID, input Cre
 	if err != nil {
 		return menus.MenuDisplay{}, err
 	}
-	imageObjectKey := menus.NewMenuImageObjectKey(menuID)
-
-	processedImage, contentType, err := s.imageProcessor.ProcessForMenuImage(c, input.ImageReader)
+	imageObjectKey, err := s.processAndUploadMenuImage(c, menuID, input.ImageReader)
 	if err != nil {
 		return menus.MenuDisplay{}, err
-	}
-
-	err = s.imageRepository.PutObject(c, processedImage, entities.StoreImageObjectKey(imageObjectKey), contentType)
-	if err != nil {
-		return menus.MenuDisplay{}, services.ErrFailedToStoreImage
 	}
 
 	imageURL, err := s.imageURLGenerator.GenerateMenuImageURL(c, imageObjectKey)
