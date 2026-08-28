@@ -19,6 +19,7 @@ type CreateMenuRepositoryInput struct {
 }
 type MenuRepository interface {
 	GetMenusByStoreID(c context.Context, storeID uuid.UUID) ([]menus.Menu, error)
+	GetMenuByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID) (menus.Menu, error)
 	CreateMenuWithToppings(c context.Context, input CreateMenuRepositoryInput) (menus.Menu, error)
 }
 
