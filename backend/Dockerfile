@@ -4,6 +4,8 @@ FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
+ARG COMMIT_HASH=development
+ARG DEPLOYED_AT
 
 WORKDIR /src
 
@@ -12,7 +14,9 @@ RUN go mod download
 
 COPY . .
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
-    go build -trimpath -ldflags="-s -w" -o /out/server ./cmd/server
+    go build -trimpath \
+    -ldflags="-s -w -X=github.com/isc-makeit/isc-fes/backend/buildinfo.CommitHash=${COMMIT_HASH} -X=github.com/isc-makeit/isc-fes/backend/buildinfo.DeployedAt=${DEPLOYED_AT}" \
+    -o /out/server ./cmd/server
 
 FROM migrate/migrate:v4.19.0 AS migrate
 
