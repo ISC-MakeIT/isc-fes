@@ -1,6 +1,6 @@
 export const loginUrl = () => "/login";
 export const storeInvitationsUrl = (invitationId: string) =>
-  `/store-invitations/${invitationId}/accept`;
+  `/invites/${invitationId}`;
 
 // 店舗ページ
 // TODO: 引数名のidをわかりやすい名前にする
