@@ -8,17 +8,16 @@ export const actionButtonStyles = cva(
   "h-auto rounded-sm px-8 py-3 text-2xl shadow-[3px_3px_0_#9683DC]",
 );
 
-type SubmitButtonProps = ComponentProps<typeof Button> & {
+type ActionButtonProps = ComponentProps<typeof Button> & {
   isDot?: boolean;
 };
 
-// TODO: 名前をActionButtonにして、isDotをデフォルトでfalseにして、呼び出し側で<SubmitButton isDot >だけで付与できるようにする
-export function SubmitButton({
+export function ActionButton({
   isDot = true,
   className,
   children,
   ...props
-}: SubmitButtonProps) {
+}: ActionButtonProps) {
   const textStyle = cva("inline-flex items-center gap-2");
   return (
     <Button

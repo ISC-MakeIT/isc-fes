@@ -13,7 +13,7 @@ import { useState } from "react";
 import { Field, FieldContent, FieldLabel } from "@/shared/ui/field";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { STORE_IMAGE_ASPECT, storeApplicationsKey } from "@/shared/config";
-import { SubmitButton } from "@/shared/ui/submit-button";
+import { ActionButton } from "@/shared/ui/submit-button";
 import { updateStoreApplicationReviewStatus } from "../api/updateStoreApplicationReviewStatus";
 
 export function StoreReview() {
@@ -89,7 +89,7 @@ export function StoreReview() {
               </p>
             )}
 
-            <SubmitButton
+            <ActionButton
               className="self-center"
               disabled={mutation.isPending}
               onClick={() =>
@@ -97,7 +97,7 @@ export function StoreReview() {
               }
             >
               承認する
-            </SubmitButton>
+            </ActionButton>
           </dl>
         )}
       </div>

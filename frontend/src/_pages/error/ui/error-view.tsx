@@ -1,4 +1,4 @@
-import { SubmitButton } from "@/shared/ui/submit-button";
+import { ActionButton } from "@/shared/ui/submit-button";
 
 type ErrorViewProps = {
   retryFunction: () => void;
@@ -19,13 +19,13 @@ export function ErrorView({ retryFunction }: ErrorViewProps) {
         </p>
       </div>
 
-      <SubmitButton
+      <ActionButton
         isDot={false}
         className="px-10 py-4 text-base font-bold md:text-2xl"
         onClick={retryFunction}
       >
         リトライ
-      </SubmitButton>
+      </ActionButton>
     </div>
   );
 }

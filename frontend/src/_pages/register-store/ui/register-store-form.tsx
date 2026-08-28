@@ -8,7 +8,7 @@ import { Field, FieldContent, FieldError, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { PreviewImage } from "@/shared/ui/preview-image";
-import { SubmitButton } from "@/shared/ui/submit-button";
+import { ActionButton } from "@/shared/ui/submit-button";
 import { useRouter } from "next/navigation";
 import { storeListUrl } from "@/shared/config";
 
@@ -196,12 +196,12 @@ export function RegisterStoreForm() {
           state.isSubmitting,
         ]}
         children={([canSubmit, isPristine, isSubmitting]) => (
-          <SubmitButton
+          <ActionButton
             type="submit"
             disabled={!canSubmit || isPristine || isSubmitting}
           >
             {isSubmitting ? "送信中" : "この内容で申請する"}
-          </SubmitButton>
+          </ActionButton>
         )}
       />
       {serverError && <FieldError>{serverError}</FieldError>}
