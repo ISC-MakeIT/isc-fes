@@ -1,1 +1,1 @@
-export { StoreMember } from "./model/types";
+export { StoreMember, StoreMemberRole } from "./model/types";

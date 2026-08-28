@@ -84,7 +84,7 @@ export function StoreReview() {
             </div>
 
             {mutation.isError && (
-              <p role="alert" className="text-red-700">
+              <p role="alert" className="text-notice">
                 {mutation.error.message}
               </p>
             )}

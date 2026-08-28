@@ -1,16 +1,16 @@
 import { v } from "@/shared/lib/valibot";
 
-enum Role {
+export enum StoreMemberRole {
   Staff = "staff",
   Manager = "manager",
 }
 
-const RoleSchema = v.enum(Role);
+const StoreMemberRoleSchema = v.enum(StoreMemberRole);
 
 export const StoreMember = v.object({
   storeId: v.pipe(v.string()),
   accountId: v.pipe(v.string()),
-  role: RoleSchema,
+  role: StoreMemberRoleSchema,
   joinedAt: v.pipe(v.string(), v.toDate()),
   displayName: v.pipe(v.string()),
   pictureUrl: v.nullable(v.string()),

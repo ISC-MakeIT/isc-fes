@@ -14,8 +14,8 @@ export function StoresView() {
         店舗を選んでください。
         <br />
         店舗がない場合は、店舗登録したメンバーに
-        <span className="text-red-500">招待リンク</span>
-        をもらうか、<span className="text-red-500">新規店舗申請</span>
+        <span className="text-notice">招待リンク</span>
+        をもらうか、<span className="text-notice">新規店舗申請</span>
         をして新しく店舗を登録してください。
       </p>
       <Suspense fallback={<StoreCardSkelton />}>

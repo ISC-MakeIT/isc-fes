@@ -2,6 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -49,6 +51,10 @@
   --shadow-sidebar-trigger: 2px 2px 0 var(--secondary);
   --color-close-button: var(--close-button);
   --color-secondary-heading-card: var(--orange);
+  --color-dialog-overlay: var(--dialog-overlay);
+  --shadow-dialog-primary: 8px 8px 0 var(--yellow-strong);
+  --shadow-dialog-secondary: 8px 8px 0 var(--pink);
+  --color-notice: var(--notice);
 }
 
 :root {
@@ -57,7 +63,7 @@
   --card: oklch(1 0 0);
   --card-foreground: var(--black-soft);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --popover-foreground: var(--black-soft);
   --primary: #9683dc;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: #50c6db;
@@ -67,6 +73,7 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --notice: #ea6082;
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -86,6 +93,7 @@
   --sidebar-ring: oklch(0.708 0 0);
   --sidebar-header: var(--primary);
   --close-button: #ea6082;
+  --dialog-overlay: #3e3e3ebf;
 
   /* primitive token */
   --black-soft: #575757;
@@ -98,6 +106,8 @@
   --purple-soft: #f1edff;
 
   --orange: #e2851b;
+
+  --pink: #ea6082;
 }
 
 @layer base {
