@@ -252,6 +252,17 @@ export interface components {
     HealthResponse: {
       /** @example ok */
       status: string;
+      /**
+       * @description 稼働中のイメージの元となったGit Commit SHA
+       * @example 0123456789abcdef0123456789abcdef01234567
+       */
+      commitHash: string;
+      /**
+       * Format: date-time
+       * @description デプロイされた日時（正確にはビルドされた日時だが、最大でも数分程度の誤差のはず）
+       * @example 2026-08-29T12:34:56Z
+       */
+      deployedAt: string;
     };
     MeResponse: {
       /** Format: uuid */
