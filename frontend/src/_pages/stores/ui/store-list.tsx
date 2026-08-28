@@ -1,5 +1,5 @@
 import { Card } from "@/shared/ui/card";
-import { fetchVisibleStores } from "../api/fetchVisibleStores";
+import { fetchVisibleStores } from "../api/fetch-visible-stores";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { Store, StoreReviewStatus } from "@/entities/store";
 import { Skeleton } from "@/shared/ui/skeleton";

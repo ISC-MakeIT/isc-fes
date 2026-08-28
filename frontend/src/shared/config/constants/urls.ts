@@ -1,3 +1,4 @@
+export const homeUrl = () => "/";
 export const loginUrl = () => "/login";
 export const storeInvitationsUrl = (invitationId: string) =>
   `/invites/${invitationId}`;

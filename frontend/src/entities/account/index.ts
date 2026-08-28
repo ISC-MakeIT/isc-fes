@@ -1,2 +1,5 @@
 export { Account } from "./model/types";
-export { currentAccountQueryOptions } from "./api/fetch-current-account";
+export {
+  fetchCurrentAccount,
+  currentAccountQueryOptions,
+} from "./api/fetch-current-account";
