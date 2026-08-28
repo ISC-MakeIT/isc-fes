@@ -9,13 +9,13 @@ db-reset:
 	docker compose down -v && docker compose up -d
 
 push-backend-image:
-	bash scripts/push-backend-image.sh
+	bash infra/deploy/scripts/push-backend-image.sh
 
 put-runtime-env:
-	bash scripts/put-runtime-env.sh
+	bash infra/deploy/scripts/put-runtime-env.sh
 
 deploy-backend:
-	bash scripts/deploy-backend.sh
+	bash infra/deploy/scripts/deploy-backend.sh
 
 # 生成系
 .PHONY: gen generate gen-api gen-sqlc

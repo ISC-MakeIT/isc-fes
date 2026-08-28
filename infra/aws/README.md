@@ -124,7 +124,7 @@ Docker Composeの設定完了後、別のSystems Manager Associationで次のフ
 ```
 
 - `/isc-fes/prod/runtime-env`はEC2上で直接復号し、標準出力へ書き出さない
-- Compose定義とCaddyfileはRepositoryの`deploy`配下からBase64で転送する
+- Compose定義とCaddyfileはRepositoryの`infra/deploy`配下からBase64で転送する
 - 両方のSHA-256を配置前に検証する
 - 一時ファイルに対して`docker compose config --quiet`を実行する
 - 検証成功後にだけ既存ファイルを置き換える
@@ -294,7 +294,7 @@ gh variable set AWS_ACCOUNT_ID \
 同じCommit SHAのImageが既に存在する場合はbuildとpushを省略する。
 
 Image pushが成功した後、deploy Jobは`Name=isc-fes-api-server`のTagを持つ稼働中のEC2を1台だけ取得し、
-SSM Run Command経由で`scripts/deploy-backend.sh`を実行する。EC2上で対象Imageと最新のRuntime環境変数を取得し、
+SSM Run Command経由で`infra/deploy/scripts/deploy-backend.sh`を実行する。EC2上で対象Imageと最新のRuntime環境変数を取得し、
 Docker Composeのhealth checkが成功するまで待機する。失敗した場合はdeploy Jobもfailureとなる。
 
 deploy Jobは本番環境単位で直列化する。Image buildの完了順がCommit順と入れ替わっても古いImageへ戻さないよう、

@@ -32,9 +32,9 @@ DNS設定前はTerraformの`store_images_cloudfront_base_url` outputを使用し
 実際の値を設定した後、次のコマンドで`/isc-fes/prod/runtime-env`へ`SecureString`として保存する。
 
 ```shell
-cp deploy/.env.example deploy/.env
-chmod 600 deploy/.env
-# deploy/.envのプレースホルダーをすべて実際の値へ置換する
+cp infra/deploy/.env.example infra/deploy/.env
+chmod 600 infra/deploy/.env
+# infra/deploy/.envのプレースホルダーをすべて実際の値へ置換する
 make put-runtime-env
 ```
 
@@ -53,7 +53,7 @@ EC2へのDocker Compose Pluginと初期設定ファイルはTerraformで導入�
 
 ```shell
 BACKEND_IMAGE=<ECR-image-URI> \
-  docker compose --env-file deploy/.env -f deploy/compose.yaml config --quiet
+  docker compose --env-file infra/deploy/.env -f infra/deploy/compose.yaml config --quiet
 ```
 
 ## Deploy the Backend

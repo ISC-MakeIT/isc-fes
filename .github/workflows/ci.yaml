@@ -272,4 +272,4 @@ jobs:
           DEPLOY_BACKEND_REPOSITORY_URL: ${{ steps.target.outputs.repository_url }}
           DEPLOY_API_SERVER_INSTANCE_ID: ${{ steps.target.outputs.instance_id }}
           DEPLOY_COMMIT_SHA: ${{ github.sha }}
-        run: bash scripts/deploy-backend.sh
+        run: bash infra/deploy/scripts/deploy-backend.sh

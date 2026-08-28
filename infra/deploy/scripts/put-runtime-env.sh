@@ -16,11 +16,11 @@ for required_command in aws docker git terraform; do
   fi
 done
 
-env_file="${1:-deploy/.env}"
+env_file="${1:-infra/deploy/.env}"
 
 if [[ ! -f "$env_file" ]]; then
   echo "Runtime環境変数ファイルがありません: ${env_file}" >&2
-  echo "deploy/.env.exampleをもとに作成してください。" >&2
+  echo "infra/deploy/.env.exampleをもとに作成してください。" >&2
   exit 1
 fi
 
@@ -92,7 +92,7 @@ fi
 
 BACKEND_IMAGE="$validation_backend_image" docker compose \
   --env-file "$env_file" \
-  -f deploy/compose.yaml \
+  -f infra/deploy/compose.yaml \
   config --quiet
 
 aws_account_id="$(terraform -chdir=infra/aws output -raw aws_account_id)"
