@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	"github.com/isc-makeit/isc-fes/backend/routers/validators"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/utils"
 )
@@ -58,39 +59,15 @@ func (s *Server) CreateStoreApplication(c *gin.Context) {
 	)
 
 	var form createStoreApplicationForm
-	if err := c.ShouldBind(&form); err != nil {
-		var maxBytesError *http.MaxBytesError
-		if errors.As(err, &maxBytesError) {
-			c.JSON(http.StatusRequestEntityTooLarge, ErrorResponse{
-				Message: "リクエストが大きすぎます。",
-			})
-			return
-		}
-
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: "リクエスト形式が不正です。",
-		})
-		return
-	}
-
-	if form.Image.Size > maxImageSize {
-		c.JSON(http.StatusRequestEntityTooLarge, ErrorResponse{
-			Message: "画像が大きすぎます。10 MiB 以下にしてください",
-		})
-		return
-	}
-
-	if form.Image.Size == 0 {
-		c.JSON(http.StatusUnprocessableEntity, ErrorResponse{
-			Message: "画像ファイルが空です。",
-		})
-		return
-	}
-
-	image, err := form.Image.Open()
+	bindErr := c.ShouldBind(&form)
+	image, err := validators.ValidateRequireImageRequestBody(c, form.Image, bindErr, validators.ImageValidationConfig{
+		MaxImageSize:       maxImageSize,
+		MaxRequestBodySize: maxRequestBodySize,
+	})
 	if err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: "画像を読み込めませんでした。",
+		statusCode, message := validators.MapValidationErrorToHTTPStatusCode(err)
+		c.JSON(statusCode, ErrorResponse{
+			Message: message,
 		})
 		return
 	}

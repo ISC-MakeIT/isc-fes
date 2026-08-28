@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
+	"github.com/isc-makeit/isc-fes/backend/routers/validators"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	menu_service "github.com/isc-makeit/isc-fes/backend/services/store/menus"
 	"github.com/isc-makeit/isc-fes/backend/utils"
@@ -45,39 +46,15 @@ func (s *Server) CreateMenu(c *gin.Context, storeID uuid.UUID) {
 	)
 
 	var form CreateMenuForm
-	if err := c.ShouldBind(&form); err != nil {
-		var maxBytesError *http.MaxBytesError
-		if errors.As(err, &maxBytesError) {
-			c.JSON(http.StatusRequestEntityTooLarge, ErrorResponse{
-				Message: "リクエストが大きすぎます。",
-			})
-			return
-		}
-
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: "リクエスト形式が不正です。",
-		})
-		return
-	}
-
-	if form.Image.Size > maxImageSize {
-		c.JSON(http.StatusRequestEntityTooLarge, ErrorResponse{
-			Message: "画像が大きすぎます。10 MiB 以下にしてください",
-		})
-		return
-	}
-
-	if form.Image.Size == 0 {
-		c.JSON(http.StatusUnprocessableEntity, ErrorResponse{
-			Message: "画像ファイルが空です。",
-		})
-		return
-	}
-
-	image, err := form.Image.Open()
+	bindErr := c.ShouldBind(&form)
+	image, err := validators.ValidateRequireImageRequestBody(c, form.Image, bindErr, validators.ImageValidationConfig{
+		MaxImageSize:       maxImageSize,
+		MaxRequestBodySize: maxRequestBodySize,
+	})
 	if err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: "画像を読み込めませんでした。",
+		statusCode, message := validators.MapValidationErrorToHTTPStatusCode(err)
+		c.JSON(statusCode, ErrorResponse{
+			Message: message,
 		})
 		return
 	}
@@ -122,6 +99,84 @@ func (s *Server) CreateMenu(c *gin.Context, storeID uuid.UUID) {
 	}
 
 	c.JSON(http.StatusCreated, toMenu(menu))
+}
+
+type UpdateMenuForm struct {
+	Name        *string               `form:"name"`
+	Description *string               `form:"description"`
+	UnitPrice   *int32                `form:"unitPrice" binding:"omitempty,gte=0"`
+	ToppingIds  []uuid.UUID           `form:"toppingIds[]"` // 何も指定していない時は nil, 空配列を指定したときは 空配列になるようにする
+	Image       *multipart.FileHeader `form:"image"`
+}
+
+func (s *Server) UpdateMenuByStoreIDAndMenuID(c *gin.Context, storeID uuid.UUID, menuID uuid.UUID) {
+	ctx := c.Request.Context()
+
+	// TODO: 認証ミドルウェアでアカウントを確定してから multipart body を解析し、未認証リクエストの解析コストを避ける。
+	c.Request.Body = http.MaxBytesReader(
+		c.Writer,
+		c.Request.Body,
+		maxRequestBodySize,
+	)
+
+	var form UpdateMenuForm
+	bindErr := c.ShouldBind(&form)
+	image, err := validators.ValidateOptionalImageRequestBody(c, form.Image, bindErr, validators.ImageValidationConfig{
+		MaxImageSize:       maxImageSize,
+		MaxRequestBodySize: maxRequestBodySize,
+	})
+	if err != nil {
+		statusCode, message := validators.MapValidationErrorToHTTPStatusCode(err)
+		c.JSON(statusCode, ErrorResponse{
+			Message: message,
+		})
+		return
+	}
+	defer func() {
+		if image != nil {
+			image.Close()
+		}
+	}()
+
+	m, err := s.menu.UpdateMenuByStoreIDAndMenuID(ctx, storeID, menuID, menu_service.UpdateMenuInput{
+		Name:        form.Name,
+		Description: form.Description,
+		UnitPrice:   form.UnitPrice,
+		ToppingIds:  form.ToppingIds,
+		ImageReader: image,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, services.ErrImageTooLarge):
+			c.JSON(http.StatusRequestEntityTooLarge, ErrorResponse{
+				Message: "画像が大きすぎます。",
+			})
+			return
+		case errors.Is(err, services.ErrUnsupportedImageFormat):
+			c.JSON(http.StatusUnsupportedMediaType, ErrorResponse{
+				Message: "対応していない画像形式です。JPEG、PNG、WebPを使用してください。",
+			})
+			return
+		case errors.Is(err, services.ErrEmptyImage),
+			errors.Is(err, services.ErrInvalidImage),
+			errors.Is(err, services.ErrImageDimensionsExceeded),
+			errors.Is(err, services.ErrProcessedImageTooLarge):
+			c.JSON(http.StatusUnprocessableEntity, ErrorResponse{
+				Message: "画像の内容が不正です。",
+			})
+			return
+		case errors.Is(err, services.ErrFailedToStoreImage):
+			c.JSON(http.StatusServiceUnavailable, ErrorResponse{
+				Message: "画像ストレージが一時的に利用できません。",
+			})
+			return
+		}
+
+		s.handleCommonServiceErrors(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, toMenu(m))
 }
 
 func toMenu(menuDisplay menus.MenuDisplay) Menu {
