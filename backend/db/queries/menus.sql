@@ -40,3 +40,10 @@ WHERE store_id = sqlc.arg(store_id)
   AND id = sqlc.arg(id)
   AND deleted_at IS NULL
 RETURNING *;
+
+-- name: DeleteMenuByStoreIDAndMenuID :execrows
+UPDATE menus -- 論理削除
+SET deleted_at = now()
+WHERE store_id = $1
+  AND id = $2
+  AND deleted_at IS NULL;

@@ -192,3 +192,15 @@ func toMenu(menuDisplay menus.MenuDisplay) Menu {
 		CreatedAt:   menuDisplay.CreatedAt,
 	}
 }
+
+func (s *Server) DeleteMenuByStoreIDAndMenuID(c *gin.Context, storeID uuid.UUID, menuID uuid.UUID) {
+	ctx := c.Request.Context()
+
+	err := s.menu.DeleteMenuByStoreIDAndMenuID(ctx, storeID, menuID)
+	if err != nil {
+		s.handleCommonServiceErrors(c, err)
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}
