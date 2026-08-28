@@ -20,5 +20,11 @@ export default function Error({ reset }: ErrorProps) {
     });
   }
 
-  return <ErrorView retryFunction={handleRetry} />;
+  return (
+    <html lang="ja">
+      <body className="min-h-screen">
+        <ErrorView retryFunction={handleRetry} />
+      </body>
+    </html>
+  );
 }
