@@ -3,6 +3,7 @@
 import { ErrorView } from "@/_pages/error";
 import { useRouter } from "next/navigation";
 import { startTransition } from "react";
+import "./globals.css";
 
 type ErrorProps = {
   reset: () => void;
@@ -21,7 +22,7 @@ export default function Error({ reset }: ErrorProps) {
   }
 
   return (
-    <html lang="ja">
+    <html lang="ja" className="h-full antialiased">
       <body className="min-h-screen">
         <ErrorView retryFunction={handleRetry} />
       </body>
