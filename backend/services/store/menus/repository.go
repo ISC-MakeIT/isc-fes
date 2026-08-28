@@ -34,6 +34,7 @@ type MenuRepository interface {
 	GetMenuByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID) (menus.Menu, error)
 	CreateMenuWithToppings(c context.Context, input CreateMenuRepositoryInput) (menus.Menu, error)
 	UpdateMenuWithToppings(c context.Context, input UpdateMenuRepositoryInput) (menus.Menu, error)
+	DeleteMenuByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID) (int64, error)
 }
 
 type ImageProcessor interface {

@@ -67,4 +67,16 @@ func (r *MenuRepository) CreateMenuWithToppings(c context.Context, input menuSer
 	return db2entities.ToMenu(m), err
 }
 
+func (r *MenuRepository) DeleteMenuByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID) (int64, error) {
+	count, err := r.queries.DeleteMenuByStoreIDAndMenuID(c, sqlc.DeleteMenuByStoreIDAndMenuIDParams{
+		StoreID: storeID,
+		ID:      menuID,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("failed to delete menu: %w", err)
+	}
+
+	return count, nil
+}
+
 var _ menuService.MenuRepository = (*MenuRepository)(nil)

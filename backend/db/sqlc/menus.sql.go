@@ -59,6 +59,27 @@ func (q *Queries) CreateMenu(ctx context.Context, arg CreateMenuParams) (Menu, e
 	return i, err
 }
 
+const deleteMenuByStoreIDAndMenuID = `-- name: DeleteMenuByStoreIDAndMenuID :execrows
+UPDATE menus -- 論理削除
+SET deleted_at = now()
+WHERE store_id = $1
+  AND id = $2
+  AND deleted_at IS NULL
+`
+
+type DeleteMenuByStoreIDAndMenuIDParams struct {
+	StoreID uuid.UUID `json:"store_id"`
+	ID      uuid.UUID `json:"id"`
+}
+
+func (q *Queries) DeleteMenuByStoreIDAndMenuID(ctx context.Context, arg DeleteMenuByStoreIDAndMenuIDParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteMenuByStoreIDAndMenuID, arg.StoreID, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getMenuByStoreIDAndMenuID = `-- name: GetMenuByStoreIDAndMenuID :one
 SELECT id, store_id, name, description, unit_price, image_object_key, sold_out, deleted_at, updated_at, created_at
 FROM menus
