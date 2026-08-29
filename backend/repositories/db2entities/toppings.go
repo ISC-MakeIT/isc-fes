@@ -8,15 +8,14 @@ import (
 
 func ToTopping(topping sqlc.Topping) toppings.Topping {
 	return toppings.Topping{
-		ID:          topping.ID,
-		StoreID:     topping.StoreID,
-		Name:        topping.Name,
-		Description: topping.Description,
-		UnitPrice:   topping.UnitPrice,
-		SoldOut:     topping.SoldOut,
-		DeletedAt:   timestamptzToTimePtr(topping.DeletedAt),
-		UpdatedAt:   topping.UpdatedAt.Time,
-		CreatedAt:   topping.CreatedAt.Time,
+		ID:        topping.ID,
+		StoreID:   topping.StoreID,
+		Name:      topping.Name,
+		UnitPrice: topping.UnitPrice,
+		SoldOut:   topping.SoldOut,
+		DeletedAt: timestamptzToTimePtr(topping.DeletedAt),
+		UpdatedAt: topping.UpdatedAt.Time,
+		CreatedAt: topping.CreatedAt.Time,
 	}
 }
 

@@ -12,7 +12,7 @@ import (
 )
 
 const getToppingsByStoreID = `-- name: GetToppingsByStoreID :many
-SELECT id, store_id, name, description, unit_price, sold_out, deleted_at, updated_at, created_at
+SELECT id, store_id, name, unit_price, sold_out, deleted_at, updated_at, created_at
 FROM toppings
 WHERE store_id = $1
   AND deleted_at IS NULL
@@ -32,7 +32,6 @@ func (q *Queries) GetToppingsByStoreID(ctx context.Context, storeID uuid.UUID) (
 			&i.ID,
 			&i.StoreID,
 			&i.Name,
-			&i.Description,
 			&i.UnitPrice,
 			&i.SoldOut,
 			&i.DeletedAt,

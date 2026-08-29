@@ -1,0 +1,2 @@
+ALTER TABLE toppings
+    ADD COLUMN description TEXT NOT NULL DEFAULT '';
