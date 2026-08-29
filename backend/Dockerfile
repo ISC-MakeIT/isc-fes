@@ -15,7 +15,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build -trimpath \
-    -ldflags="-s -w -X=github.com/isc-makeit/isc-fes/backend/buildinfo.CommitHash=${COMMIT_HASH} -X=github.com/isc-makeit/isc-fes/backend/buildinfo.DeployedAt=${DEPLOYED_AT}" \
+    -ldflags="-s -w -X=github.com/isc-makeit/isc-fes/backend/app/buildinfo.CommitHash=${COMMIT_HASH} -X=github.com/isc-makeit/isc-fes/backend/app/buildinfo.DeployedAt=${DEPLOYED_AT}" \
     -o /out/server ./cmd/server
 
 FROM migrate/migrate:v4.19.0 AS migrate
