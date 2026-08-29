@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/isc-makeit/isc-fes/backend/buildinfo"
+	"github.com/isc-makeit/isc-fes/backend/app/buildinfo"
 )
 
 func TestGetHealthReturnsBuildInformation(t *testing.T) {
