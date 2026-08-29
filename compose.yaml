@@ -27,7 +27,7 @@ services:
       PERSISTENCE: "1"
     volumes:
       - localstack-data:/var/lib/localstack
-      - ./backend/localstack/init:/etc/localstack/init/ready.d:ro
+      - ./infra/localstack/init:/etc/localstack/init/ready.d:ro
 
   adminer:
     image: adminer:5.5.0-standalone
