@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/isc-makeit/isc-fes/backend/app"
-	"github.com/isc-makeit/isc-fes/backend/config"
+	"github.com/isc-makeit/isc-fes/backend/app/config"
 	"github.com/joho/godotenv"
 )
 

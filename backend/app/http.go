@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/isc-makeit/isc-fes/backend/config"
+	"github.com/isc-makeit/isc-fes/backend/app/config"
 )
 
 func newHTTPServer(
