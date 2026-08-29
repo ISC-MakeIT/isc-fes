@@ -446,7 +446,6 @@ export interface components {
       /** Format: uuid */
       storeId: string;
       name: string;
-      description: string;
       /** Format: int32 */
       unitPrice: number;
       soldOut: boolean;

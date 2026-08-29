@@ -7,13 +7,12 @@ import (
 )
 
 type Topping struct {
-	ID          uuid.UUID
-	StoreID     uuid.UUID
-	Name        string
-	Description string
-	UnitPrice   int32
-	SoldOut     bool
-	DeletedAt   *time.Time
-	UpdatedAt   time.Time
-	CreatedAt   time.Time
+	ID        uuid.UUID
+	StoreID   uuid.UUID
+	Name      string
+	UnitPrice int32
+	SoldOut   bool
+	DeletedAt *time.Time
+	UpdatedAt time.Time
+	CreatedAt time.Time
 }

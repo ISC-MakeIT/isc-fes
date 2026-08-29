@@ -24,13 +24,12 @@ func (s *Server) GetToppingsByStoreID(c *gin.Context, storeID uuid.UUID) {
 
 func toToppingResponse(t toppings.Topping) Topping {
 	return Topping{
-		Id:          t.ID,
-		StoreId:     t.StoreID,
-		Name:        t.Name,
-		Description: t.Description,
-		UnitPrice:   t.UnitPrice,
-		SoldOut:     t.SoldOut,
-		UpdatedAt:   t.UpdatedAt,
-		CreatedAt:   t.CreatedAt,
+		Id:        t.ID,
+		StoreId:   t.StoreID,
+		Name:      t.Name,
+		UnitPrice: t.UnitPrice,
+		SoldOut:   t.SoldOut,
+		UpdatedAt: t.UpdatedAt,
+		CreatedAt: t.CreatedAt,
 	}
 }

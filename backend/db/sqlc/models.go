@@ -216,13 +216,12 @@ type StoreMember struct {
 }
 
 type Topping struct {
-	ID          uuid.UUID          `json:"id"`
-	StoreID     uuid.UUID          `json:"store_id"`
-	Name        string             `json:"name"`
-	Description string             `json:"description"`
-	UnitPrice   int32              `json:"unit_price"`
-	SoldOut     bool               `json:"sold_out"`
-	DeletedAt   pgtype.Timestamptz `json:"deleted_at"`
-	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	ID        uuid.UUID          `json:"id"`
+	StoreID   uuid.UUID          `json:"store_id"`
+	Name      string             `json:"name"`
+	UnitPrice int32              `json:"unit_price"`
+	SoldOut   bool               `json:"sold_out"`
+	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }

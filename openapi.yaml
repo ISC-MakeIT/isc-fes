@@ -1292,7 +1292,6 @@ components:
         - id
         - storeId
         - name
-        - description
         - unitPrice
         - soldOut
         - updatedAt
@@ -1305,8 +1304,6 @@ components:
           type: string
           format: uuid
         name:
-          type: string
-        description:
           type: string
         unitPrice:
           type: integer
