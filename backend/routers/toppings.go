@@ -31,7 +31,7 @@ func (s *Server) CreateTopping(c *gin.Context, storeID uuid.UUID) {
 		return
 	}
 
-	topping, err := s.toppings.CreateTopping(c, toppings_service.CreateToppingInput{
+	topping, err := s.toppings.CreateTopping(c.Request.Context(), toppings_service.CreateToppingInput{
 		StoreID:   storeID,
 		Name:      input.Name,
 		UnitPrice: input.UnitPrice,
