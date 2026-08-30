@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
-import { ActionButton } from "@/shared/ui/submit-button";
+import { ActionButton } from "@/shared/ui/action-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useMutation } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";

@@ -1,4 +1,4 @@
-import { ActionButton } from "@/shared/ui/submit-button";
+import { ActionButton } from "@/shared/ui/action-button";
 
 type ErrorViewProps = {
   retryFunction: () => void;

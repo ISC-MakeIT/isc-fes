@@ -13,7 +13,7 @@ import { useState } from "react";
 import { Field, FieldContent, FieldLabel } from "@/shared/ui/field";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { STORE_IMAGE_ASPECT, storeApplicationsKey } from "@/shared/config";
-import { ActionButton } from "@/shared/ui/submit-button";
+import { ActionButton } from "@/shared/ui/action-button";
 import { updateStoreApplicationReviewStatus } from "../api/updateStoreApplicationReviewStatus";
 
 export function StoreReview() {
