@@ -205,7 +205,7 @@ export interface paths {
     get?: never;
     put?: never;
     post?: never;
-    /** 店舗のトッピングを削除する */
+    /** 店舗のトッピングを削除する（紐づけられているメニューのトッピングも削除される） */
     delete: operations["deleteToppingByStoreIDAndToppingID"];
     options?: never;
     head?: never;

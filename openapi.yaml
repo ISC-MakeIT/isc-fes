@@ -798,7 +798,7 @@ paths:
   /stores/{store_id}/toppings/{topping_id}:
     delete:
       operationId: deleteToppingByStoreIDAndToppingID
-      summary: 店舗のトッピングを削除する
+      summary: 店舗のトッピングを削除する（紐づけられているメニューのトッピングも削除される）
       security:
         - AccountSession: []
       parameters:

@@ -13,3 +13,7 @@ FROM unnest(sqlc.arg(topping_ids)::uuid[]) AS ids(topping_id);
 -- name: DeleteAllMenuToppingsByMenuID :exec
 DELETE FROM menu_toppings
 WHERE menu_id = $1;
+
+-- name: DeleteMenuToppingsByToppingID :exec
+DELETE FROM menu_toppings
+WHERE topping_id = $1;
