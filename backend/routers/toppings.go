@@ -44,6 +44,16 @@ func (s *Server) CreateTopping(c *gin.Context, storeID uuid.UUID) {
 	c.JSON(http.StatusCreated, toToppingResponse(topping))
 }
 
+func (s *Server) DeleteToppingByStoreIDAndToppingID(c *gin.Context, storeID uuid.UUID, toppingID uuid.UUID) {
+	err := s.toppings.DeleteTopping(c.Request.Context(), storeID, toppingID)
+	if err != nil {
+		s.handleCommonServiceErrors(c, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
 func toToppingResponse(t toppings.Topping) Topping {
 	return Topping{
 		Id:        t.ID,

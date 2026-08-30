@@ -44,3 +44,13 @@ func (q *Queries) DeleteAllMenuToppingsByMenuID(ctx context.Context, menuID uuid
 	_, err := q.db.Exec(ctx, deleteAllMenuToppingsByMenuID, menuID)
 	return err
 }
+
+const deleteMenuToppingsByToppingID = `-- name: DeleteMenuToppingsByToppingID :exec
+DELETE FROM menu_toppings
+WHERE topping_id = $1
+`
+
+func (q *Queries) DeleteMenuToppingsByToppingID(ctx context.Context, toppingID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteMenuToppingsByToppingID, toppingID)
+	return err
+}

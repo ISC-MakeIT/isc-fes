@@ -99,7 +99,7 @@ func buildDependencies(
 	storeInvitationRepository := invRepo.NewStoreInvitationRepository(queries, pool)
 	menuRepository := menuRepo.NewMenuRepository(queries, pool)
 	allergensRepository := allergens_repository.NewAllergenRepository(queries)
-	toppingsRepository := toppings_repository.NewToppingsRepository(queries)
+	toppingsRepository := toppings_repository.NewToppingsRepository(queries, pool)
 	accountService := services.NewAccountService(
 		accountRepository,
 		sessions,
