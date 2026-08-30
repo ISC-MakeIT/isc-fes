@@ -740,6 +740,61 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createTopping
+      summary: 店舗のトッピングを作成する
+      security:
+        - AccountSession: []
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateToppingInput"
+      responses:
+        "201":
+          description: 店舗のトッピングを作成した
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Topping"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 未ログイン
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 権限不足（店舗のメンバーでない、または店舗マネージャーでない）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない（未承認の店舗はトッピングを登録できない）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /stores/{store_id}/invitations:
     post:
       operationId: createStoreInvitation
@@ -1219,6 +1274,23 @@ components:
         createdAt:
           type: string
           format: date-time
+    CreateToppingInput:
+      type: object
+      required:
+        - name
+        - unitPrice
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 30
+          example: チーズ
+        unitPrice:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 10000
+          example: 100
     CreateMenuInput:
       type: object
       required:

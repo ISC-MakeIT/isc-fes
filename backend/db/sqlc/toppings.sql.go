@@ -11,6 +11,39 @@ import (
 	"github.com/google/uuid"
 )
 
+const createTopping = `-- name: CreateTopping :one
+INSERT INTO toppings (
+    store_id,
+    name,
+    unit_price
+) VALUES (
+    $1, $2, $3
+)
+RETURNING id, store_id, name, unit_price, sold_out, deleted_at, updated_at, created_at
+`
+
+type CreateToppingParams struct {
+	StoreID   uuid.UUID `json:"store_id"`
+	Name      string    `json:"name"`
+	UnitPrice int32     `json:"unit_price"`
+}
+
+func (q *Queries) CreateTopping(ctx context.Context, arg CreateToppingParams) (Topping, error) {
+	row := q.db.QueryRow(ctx, createTopping, arg.StoreID, arg.Name, arg.UnitPrice)
+	var i Topping
+	err := row.Scan(
+		&i.ID,
+		&i.StoreID,
+		&i.Name,
+		&i.UnitPrice,
+		&i.SoldOut,
+		&i.DeletedAt,
+		&i.UpdatedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getToppingsByStoreID = `-- name: GetToppingsByStoreID :many
 SELECT id, store_id, name, unit_price, sold_out, deleted_at, updated_at, created_at
 FROM toppings

@@ -9,4 +9,5 @@ import (
 
 type ToppingsRepository interface {
 	GetToppingsByStoreID(c context.Context, storeID uuid.UUID) ([]toppings.Topping, error)
+	CreateTopping(c context.Context, storeID uuid.UUID, name string, unitPrice int32) (toppings.Topping, error)
 }

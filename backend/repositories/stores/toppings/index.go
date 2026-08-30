@@ -25,4 +25,13 @@ func (r *ToppingsRepository) GetToppingsByStoreID(c context.Context, storeID uui
 	return db2entities.ToToppings(dbToppings), err
 }
 
+func (r *ToppingsRepository) CreateTopping(c context.Context, storeID uuid.UUID, name string, unitPrice int32) (toppings.Topping, error) {
+	dbTopping, err := r.queries.CreateTopping(c, sqlc.CreateToppingParams{
+		StoreID:   storeID,
+		Name:      name,
+		UnitPrice: unitPrice,
+	})
+	return db2entities.ToTopping(dbTopping), err
+}
+
 var _ toppings_service.ToppingsRepository = (*ToppingsRepository)(nil)

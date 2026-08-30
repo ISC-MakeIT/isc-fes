@@ -187,7 +187,8 @@ export interface paths {
     /** 店舗のトッピング一覧を取得する */
     get: operations["getToppingsByStoreID"];
     put?: never;
-    post?: never;
+    /** 店舗のトッピングを作成する */
+    post: operations["createTopping"];
     delete?: never;
     options?: never;
     head?: never;
@@ -401,6 +402,15 @@ export interface components {
       updatedAt: string;
       /** Format: date-time */
       createdAt: string;
+    };
+    CreateToppingInput: {
+      /** @example チーズ */
+      name: string;
+      /**
+       * Format: int32
+       * @example 100
+       */
+      unitPrice: number;
     };
     CreateMenuInput: {
       /** @example たこ焼き */
@@ -1392,6 +1402,77 @@ export interface operations {
         };
       };
       /** @description 店舗が存在しない、または承認済みではない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  createTopping: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateToppingInput"];
+      };
+    };
+    responses: {
+      /** @description 店舗のトッピングを作成した */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Topping"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 権限不足（店舗のメンバーでない、または店舗マネージャーでない） */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない（未承認の店舗はトッピングを登録できない） */
       404: {
         headers: {
           [name: string]: unknown;
