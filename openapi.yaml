@@ -795,6 +795,58 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /stores/{store_id}/toppings/{topping_id}:
+    delete:
+      operationId: deleteToppingByStoreIDAndToppingID
+      summary: 店舗のトッピングを削除する
+      security:
+        - AccountSession: []
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: topping_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: 店舗のトッピングを削除した
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 未ログイン
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 権限不足（店舗のメンバーでない、または店舗マネージャーでない）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない（未承認の店舗はトッピングを削除できない）、またはトッピングが存在しない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /stores/{store_id}/invitations:
     post:
       operationId: createStoreInvitation

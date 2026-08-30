@@ -8,6 +8,7 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/toppings"
 	"github.com/isc-makeit/isc-fes/backend/repositories/db2entities"
 	toppings_service "github.com/isc-makeit/isc-fes/backend/services/store/toppings"
+	"github.com/jackc/pgx/v5"
 )
 
 type ToppingsRepository struct {
@@ -32,6 +33,20 @@ func (r *ToppingsRepository) CreateTopping(c context.Context, storeID uuid.UUID,
 		UnitPrice: unitPrice,
 	})
 	return db2entities.ToTopping(dbTopping), err
+}
+
+func (r *ToppingsRepository) DeleteTopping(c context.Context, storeID, toppingID uuid.UUID) error {
+	rows, err := r.queries.DeleteTopping(c, sqlc.DeleteToppingParams{
+		StoreID: storeID,
+		ID:      toppingID,
+	})
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
 }
 
 var _ toppings_service.ToppingsRepository = (*ToppingsRepository)(nil)

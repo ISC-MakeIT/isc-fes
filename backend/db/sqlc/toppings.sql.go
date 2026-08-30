@@ -44,6 +44,26 @@ func (q *Queries) CreateTopping(ctx context.Context, arg CreateToppingParams) (T
 	return i, err
 }
 
+const deleteTopping = `-- name: DeleteTopping :execrows
+UPDATE toppings
+SET deleted_at = NOW()
+WHERE id = $1
+  AND store_id = $2
+`
+
+type DeleteToppingParams struct {
+	ID      uuid.UUID `json:"id"`
+	StoreID uuid.UUID `json:"store_id"`
+}
+
+func (q *Queries) DeleteTopping(ctx context.Context, arg DeleteToppingParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteTopping, arg.ID, arg.StoreID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getToppingsByStoreID = `-- name: GetToppingsByStoreID :many
 SELECT id, store_id, name, unit_price, sold_out, deleted_at, updated_at, created_at
 FROM toppings
