@@ -51,3 +51,11 @@ dev-api:
 	cd backend && go tool air
 dev-web:
 	cd frontend && pnpm run dev
+
+# Build
+.PHONY: build build-backend build-frontend
+build: build-backend # build-frontend は遅すぎるので、必要なときに個別で実行する
+build-backend:
+	cd backend && go build -o ./tmp/server ./cmd/server
+build-frontend:
+	cd frontend && pnpm run build
