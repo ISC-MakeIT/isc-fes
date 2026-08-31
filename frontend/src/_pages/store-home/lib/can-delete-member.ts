@@ -11,6 +11,7 @@ export function canDeleteMember({
 }: CanDeleteMemberParams) {
   return (
     currentMember.role === StoreMemberRole.Manager &&
-    targetMember.accountId !== currentMember.accountId
+    targetMember.accountId !== currentMember.accountId &&
+    targetMember.role !== StoreMemberRole.Manager
   );
 }
