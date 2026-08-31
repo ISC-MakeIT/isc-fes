@@ -15,7 +15,7 @@ func ToMenu(menu sqlc.Menu) menus.Menu {
 		UnitPrice:      menu.UnitPrice,
 		ImageObjectKey: menus.MenuImageObjectKey(menu.ImageObjectKey),
 		SoldOut:        menu.SoldOut,
-		DeletedAt:      timestamptzToTimePtr(menu.DeletedAt),
+		DeletedAt:      utils.TimestamptzToTimePtr(menu.DeletedAt),
 		UpdatedAt:      menu.UpdatedAt.Time,
 		CreatedAt:      menu.CreatedAt.Time,
 	}

@@ -13,7 +13,7 @@ func ToTopping(topping sqlc.Topping) toppings.Topping {
 		Name:      topping.Name,
 		UnitPrice: topping.UnitPrice,
 		SoldOut:   topping.SoldOut,
-		DeletedAt: timestamptzToTimePtr(topping.DeletedAt),
+		DeletedAt: utils.TimestamptzToTimePtr(topping.DeletedAt),
 		UpdatedAt: topping.UpdatedAt.Time,
 		CreatedAt: topping.CreatedAt.Time,
 	}
