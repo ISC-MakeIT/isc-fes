@@ -41,5 +41,6 @@ func toStoreResponse(store entities.StoreOutput) Store {
 		ImageUrl:     store.ImageURL,
 		ReviewStatus: StoreReviewStatus(store.ReviewStatus),
 		Allergens:    utils.Map(store.Allergens, toAllergen),
+		ClosedAt:     store.ClosedAt,
 	}
 }

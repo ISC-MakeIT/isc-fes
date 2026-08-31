@@ -128,6 +128,7 @@ func (r *StoreRepository) toStore(dbStore sqlc.Store) entities.Store {
 		SubmittedAt:    dbStore.SubmittedAt.Time,
 		CreatedAt:      dbStore.CreatedAt.Time,
 		UpdatedAt:      dbStore.UpdatedAt.Time,
+		ClosedAt:       utils.TimestamptzToTimePtr(dbStore.ClosedAt),
 	}
 }
 

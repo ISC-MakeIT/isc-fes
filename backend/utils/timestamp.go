@@ -1,4 +1,4 @@
-package db2entities
+package utils
 
 import (
 	"time"
@@ -6,7 +6,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func timestamptzToTimePtr(value pgtype.Timestamptz) *time.Time {
+func TimestamptzToTimePtr(value pgtype.Timestamptz) *time.Time {
 	if !value.Valid {
 		return nil
 	}

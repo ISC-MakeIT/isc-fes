@@ -1275,6 +1275,7 @@ components:
         - imageUrl
         - reviewStatus
         - allergens
+        - closedAt
       properties:
         id:
           type: string
@@ -1293,6 +1294,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Allergen"
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
     StoreMember:
       type: object
       required:
