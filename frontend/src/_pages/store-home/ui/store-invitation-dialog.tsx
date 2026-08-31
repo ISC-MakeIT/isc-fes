@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
-import { SubmitButton } from "@/shared/ui/submit-button";
+import { ActionButton } from "@/shared/ui/action-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useMutation } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
@@ -106,7 +106,7 @@ export function StoreInvitationDialog({ storeId }: StoreInvitationDialogProps) {
     <Dialog>
       <DialogTrigger
         render={
-          <SubmitButton className="py-2 text-lg font-bold" isDot={false} />
+          <ActionButton className="py-2 text-lg font-bold" isDot={false} />
         }
       >
         <PlusIcon className="size-6" />
@@ -179,13 +179,13 @@ export function StoreInvitationDialog({ storeId }: StoreInvitationDialogProps) {
             </p>
           )}
 
-          <SubmitButton
+          <ActionButton
             className="self-center px-14 py-3 text-xl shadow-none"
             onClick={handleCopyInvitationUrl}
             disabled={isCopyButtonDisabled}
           >
             {isCopied ? "コピーしました！" : "招待リンクをコピー"}
-          </SubmitButton>
+          </ActionButton>
         </div>
       </DialogContent>
     </Dialog>

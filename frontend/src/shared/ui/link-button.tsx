@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ComponentProps } from "react";
 import { cn } from "../lib/utils";
 import { buttonVariants } from "./button";
-import { actionButtonStyles } from "./submit-button";
+import { actionButtonStyles } from "./action-button";
 
 type LinkButtonProps = ComponentProps<typeof Link> & {
   children?: React.ReactNode;
