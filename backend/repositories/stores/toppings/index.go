@@ -66,4 +66,15 @@ func (r *ToppingsRepository) DeleteTopping(c context.Context, storeID, toppingID
 	return tx.Commit(c)
 }
 
+func (r *ToppingsRepository) UpdateToppingByToppingIDAndStoreID(c context.Context, toppingID, storeID uuid.UUID, input toppings_service.UpdateToppingRepositoryInput) (toppings.Topping, error) {
+	dbTopping, err := r.queries.UpdateToppingByToppingIDAndStoreID(c, sqlc.UpdateToppingByToppingIDAndStoreIDParams{
+		ToppingID: toppingID,
+		StoreID:   storeID,
+		Name:      input.Name,
+		UnitPrice: input.UnitPrice,
+		SoldOut:   input.SoldOut,
+	})
+	return db2entities.ToTopping(dbTopping), err
+}
+
 var _ toppings_service.ToppingsRepository = (*ToppingsRepository)(nil)
