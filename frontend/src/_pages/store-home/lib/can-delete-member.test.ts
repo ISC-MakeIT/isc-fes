@@ -47,6 +47,21 @@ test("自分自身は削除できない", () => {
   expect(result).toBe(false);
 });
 
+test("対象が管理者なら削除できない", () => {
+  const currentMember = createStoreMember({
+    accountId: "account-1",
+    role: StoreMemberRole.Manager,
+  });
+  const targetMember = createStoreMember({
+    accountId: "account-2",
+    role: StoreMemberRole.Manager,
+  });
+
+  const result = canDeleteMember({ currentMember, targetMember });
+
+  expect(result).toBe(false);
+});
+
 function createStoreMember({
   accountId,
   role,

@@ -1,16 +1,22 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+  QueryClient,
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { storeMemberQueryOptions } from "../api/fetch-store-members";
 import { StoreMember, StoreMemberRole } from "@/entities/store-member";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { Card } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
-import { ICON_IMAGE_ASPECT } from "@/shared/config";
+import { ICON_IMAGE_ASPECT, storeMembersKey } from "@/shared/config";
 import { StoreInvitationDialog } from "./store-invitation-dialog";
 import { storeMemberByAccountIdQueryOptions } from "../api/fetch-store-member-by-id";
 import { canDeleteMember } from "../lib/can-delete-member";
+import { deleteStoreMemberById } from "../api/delete-store-member-by-id";
 
 const fallbackIcon = "/avatar-fallback.svg";
 
@@ -33,6 +39,7 @@ export function StoreMemberList({ storeId, accountId }: StoreMemberListProps) {
         {members.map((m) => (
           <MemberCard
             key={m.accountId}
+            storeId={storeId}
             member={m}
             currentMember={currentMember}
           />
@@ -47,19 +54,26 @@ export function StoreMemberList({ storeId, accountId }: StoreMemberListProps) {
 }
 
 type MemberCardProps = {
+  storeId: string;
   member: StoreMember;
   currentMember: StoreMember;
 };
 
-function MemberCard({ member, currentMember }: MemberCardProps) {
-  const isVisibleRemoveButton = canDeleteMember({
+function MemberCard({ storeId, member, currentMember }: MemberCardProps) {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: deleteStoreMemberById,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: storeMembersKey(storeId),
+      });
+    },
+  });
+
+  const canDelete = canDeleteMember({
     currentMember,
     targetMember: member,
   });
-
-  async function handleDeleteButton() {
-    // メンバーを削除する処理
-  }
 
   return (
     <div className="grid grid-cols-[1fr_2.5rem] items-center gap-2">
@@ -72,15 +86,17 @@ function MemberCard({ member, currentMember }: MemberCardProps) {
         />
         <p className="text-base">{member.displayName}</p>
       </Card>
-      {isVisibleRemoveButton && (
-        <Button
-          variant="ghost"
-          className="text-close-button text-4xl font-bold"
-          onClick={handleDeleteButton}
-        >
-          ×
-        </Button>
-      )}
+
+      <Button
+        disabled={!canDelete || mutation.isPending}
+        variant="ghost"
+        className="text-close-button text-4xl font-bold"
+        onClick={() =>
+          mutation.mutate({ storeId, accountId: member.accountId })
+        }
+      >
+        ×
+      </Button>
     </div>
   );
 }
