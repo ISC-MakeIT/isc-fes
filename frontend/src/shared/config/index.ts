@@ -26,6 +26,7 @@ export {
   storeMenusKey,
   currentAccountKey,
   storeApplicationsKey,
+  storeMemberKey,
 } from "./constants/query-keys";
 
 export {
