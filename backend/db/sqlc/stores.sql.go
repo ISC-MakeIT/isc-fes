@@ -46,7 +46,7 @@ INSERT INTO stores (
 ) VALUES (
     $1, $2, $3, $4, $5, 'pending'
 )
-RETURNING id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
+RETURNING id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
 `
 
 type CreateStoreParams struct {
@@ -76,12 +76,13 @@ func (q *Queries) CreateStore(ctx context.Context, arg CreateStoreParams) (Store
 		&i.SubmittedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ClosedAt,
 	)
 	return i, err
 }
 
 const getApprovedStoreByID = `-- name: GetApprovedStoreByID :one
-SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
 FROM stores
 WHERE review_status = 'approved'
     AND id = $1
@@ -100,12 +101,13 @@ func (q *Queries) GetApprovedStoreByID(ctx context.Context, id uuid.UUID) (Store
 		&i.SubmittedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ClosedAt,
 	)
 	return i, err
 }
 
 const getApprovedStores = `-- name: GetApprovedStores :many
-SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
 FROM stores
 WHERE review_status = 'approved'
 ORDER BY created_at DESC
@@ -130,6 +132,7 @@ func (q *Queries) GetApprovedStores(ctx context.Context) ([]Store, error) {
 			&i.SubmittedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ClosedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -142,7 +145,7 @@ func (q *Queries) GetApprovedStores(ctx context.Context) ([]Store, error) {
 }
 
 const getStoreApplications = `-- name: GetStoreApplications :many
-SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
 FROM stores
 WHERE review_status = 'pending'
 ORDER BY created_at DESC
@@ -167,6 +170,7 @@ func (q *Queries) GetStoreApplications(ctx context.Context) ([]Store, error) {
 			&i.SubmittedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ClosedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -179,7 +183,7 @@ func (q *Queries) GetStoreApplications(ctx context.Context) ([]Store, error) {
 }
 
 const getStoreByID = `-- name: GetStoreByID :one
-SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
 FROM stores
 WHERE id = $1
 `
@@ -197,12 +201,13 @@ func (q *Queries) GetStoreByID(ctx context.Context, id uuid.UUID) (Store, error)
 		&i.SubmittedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ClosedAt,
 	)
 	return i, err
 }
 
 const getVisibleStoresByAccountID = `-- name: GetVisibleStoresByAccountID :many
-SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
 FROM stores
 WHERE review_status = 'approved'
    OR id IN (
@@ -233,6 +238,7 @@ func (q *Queries) GetVisibleStoresByAccountID(ctx context.Context, accountID uui
 			&i.SubmittedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ClosedAt,
 		); err != nil {
 			return nil, err
 		}

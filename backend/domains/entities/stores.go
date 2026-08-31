@@ -52,6 +52,7 @@ type Store struct {
 	SubmittedAt    time.Time
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+	ClosedAt       *time.Time
 }
 
 type StoreOutput struct {
@@ -66,6 +67,7 @@ type StoreOutput struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	Allergens      []Allergen
+	ClosedAt       *time.Time
 }
 
 type StoreMemberRole string

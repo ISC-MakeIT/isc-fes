@@ -191,6 +191,7 @@ type Store struct {
 	SubmittedAt    pgtype.Timestamptz `json:"submitted_at"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+	ClosedAt       pgtype.Timestamptz `json:"closed_at"`
 }
 
 type StoreAllergen struct {

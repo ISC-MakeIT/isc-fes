@@ -381,6 +381,8 @@ export interface components {
       imageUrl: string;
       reviewStatus: components["schemas"]["StoreReviewStatus"];
       allergens: components["schemas"]["Allergen"][];
+      /** Format: date-time */
+      closedAt: string | null;
     };
     StoreMember: {
       /** Format: uuid */

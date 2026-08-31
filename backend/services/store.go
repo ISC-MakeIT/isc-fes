@@ -277,6 +277,7 @@ func (s *StoreService) buildStoreOutput(ctx context.Context, store entities.Stor
 		SubmittedAt:    store.SubmittedAt,
 		UpdatedAt:      store.UpdatedAt,
 		CreatedAt:      store.CreatedAt,
+		ClosedAt:       store.ClosedAt,
 		Allergens:      allergens,
 	}, nil
 }
