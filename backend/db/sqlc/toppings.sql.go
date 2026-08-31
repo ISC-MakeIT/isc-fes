@@ -101,3 +101,46 @@ func (q *Queries) GetToppingsByStoreID(ctx context.Context, storeID uuid.UUID) (
 	}
 	return items, nil
 }
+
+const updateToppingByToppingIDAndStoreID = `-- name: UpdateToppingByToppingIDAndStoreID :one
+UPDATE toppings
+SET
+  name = $1,
+  unit_price = $2, 
+  sold_out = $3,
+  updated_at = NOW()
+WHERE id = $4
+  AND store_id = $5
+  AND deleted_at IS NULL
+RETURNING id, store_id, name, unit_price, sold_out, deleted_at, updated_at, created_at
+`
+
+type UpdateToppingByToppingIDAndStoreIDParams struct {
+	Name      string    `json:"name"`
+	UnitPrice int32     `json:"unit_price"`
+	SoldOut   bool      `json:"sold_out"`
+	ToppingID uuid.UUID `json:"topping_id"`
+	StoreID   uuid.UUID `json:"store_id"`
+}
+
+func (q *Queries) UpdateToppingByToppingIDAndStoreID(ctx context.Context, arg UpdateToppingByToppingIDAndStoreIDParams) (Topping, error) {
+	row := q.db.QueryRow(ctx, updateToppingByToppingIDAndStoreID,
+		arg.Name,
+		arg.UnitPrice,
+		arg.SoldOut,
+		arg.ToppingID,
+		arg.StoreID,
+	)
+	var i Topping
+	err := row.Scan(
+		&i.ID,
+		&i.StoreID,
+		&i.Name,
+		&i.UnitPrice,
+		&i.SoldOut,
+		&i.DeletedAt,
+		&i.UpdatedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}

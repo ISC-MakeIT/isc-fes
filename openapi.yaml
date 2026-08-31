@@ -796,6 +796,67 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
   /stores/{store_id}/toppings/{topping_id}:
+    put:
+      operationId: updateToppingByStoreIDAndToppingID
+      summary: 店舗のトッピングを更新する
+      security:
+        - AccountSession: []
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: topping_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateToppingInput"
+      responses:
+        "200":
+          description: 店舗のトッピングを更新した
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Topping"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 未ログイン
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 権限不足（店舗のメンバーでない、または店舗マネージャーでない）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない（未承認の店舗はトッピングを更新できない）、またはトッピングが存在しない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     delete:
       operationId: deleteToppingByStoreIDAndToppingID
       summary: 店舗のトッピングを削除する（紐づけられているメニューのトッピングも削除される）
@@ -1343,6 +1404,26 @@ components:
           minimum: 0
           maximum: 10000
           example: 100
+    UpdateToppingInput:
+      type: object
+      required:
+        - name
+        - unitPrice
+        - soldOut
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 30
+          example: チーズ
+        unitPrice:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 10000
+          example: 100
+        soldOut:
+          type: boolean
     CreateMenuInput:
       type: object
       required:

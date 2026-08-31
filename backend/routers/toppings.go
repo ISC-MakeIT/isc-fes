@@ -44,6 +44,26 @@ func (s *Server) CreateTopping(c *gin.Context, storeID uuid.UUID) {
 	c.JSON(http.StatusCreated, toToppingResponse(topping))
 }
 
+func (s *Server) UpdateToppingByStoreIDAndToppingID(c *gin.Context, storeID uuid.UUID, toppingID uuid.UUID) {
+	var input UpdateToppingByStoreIDAndToppingIDJSONRequestBody
+	if err := c.ShouldBindJSON(&input); err != nil {
+		s.handleCommonServiceErrors(c, fmt.Errorf("middleware で検証しているはずの、ボディのシリアライズに失敗: %w", err))
+		return
+	}
+
+	topping, err := s.toppings.UpdateToppingByStoreIDAndToppingID(c.Request.Context(), storeID, toppingID, toppings_service.UpdateToppingInput{
+		Name:      input.Name,
+		UnitPrice: input.UnitPrice,
+		SoldOut:   input.SoldOut,
+	})
+	if err != nil {
+		s.handleCommonServiceErrors(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, toToppingResponse(topping))
+}
+
 func (s *Server) DeleteToppingByStoreIDAndToppingID(c *gin.Context, storeID uuid.UUID, toppingID uuid.UUID) {
 	err := s.toppings.DeleteTopping(c.Request.Context(), storeID, toppingID)
 	if err != nil {
