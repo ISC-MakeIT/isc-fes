@@ -80,8 +80,16 @@ func (s *StoreMemberService) RemoveStoreMemberByAccountIDAndStoreID(ctx context.
 		return err
 	}
 
+	membership, err := s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(ctx, accountID, storeID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return services.ErrNotFound
+		}
+		return err
+	}
+
 	// マネージャーは削除できない
-	if authorizedMember.Role == entities.StoreMemberRoleManager {
+	if membership.Role == entities.StoreMemberRoleManager {
 		return services.ErrForbidden
 	}
 
