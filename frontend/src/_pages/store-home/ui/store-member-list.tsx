@@ -16,6 +16,7 @@ import { StoreInvitationDialog } from "./store-invitation-dialog";
 import { storeMemberByAccountIdQueryOptions } from "../api/fetch-store-member-by-id";
 import { canDeleteMember } from "../lib/can-delete-member";
 import { deleteStoreMemberById } from "../api/delete-store-member-by-id";
+import { XIcon } from "lucide-react";
 
 const fallbackIcon = "/avatar-fallback.svg";
 
@@ -89,12 +90,12 @@ function MemberCard({ storeId, member, currentMember }: MemberCardProps) {
       <Button
         disabled={!canDelete || mutation.isPending}
         variant="ghost"
-        className="text-close-button text-4xl font-bold"
+        className="text-close-button"
         onClick={() =>
           mutation.mutate({ storeId, accountId: member.accountId })
         }
       >
-        ×
+        <XIcon className="size-7" strokeWidth={4} />
       </Button>
     </div>
   );
