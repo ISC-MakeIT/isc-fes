@@ -17,6 +17,8 @@ import { storeMemberByAccountIdQueryOptions } from "../api/fetch-store-member-by
 import { canDeleteMember } from "../lib/can-delete-member";
 import { deleteStoreMemberById } from "../api/delete-store-member-by-id";
 import { XIcon } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/shared/ui/dialog";
+import { DotText } from "@/shared/ui/dot-text";
 
 const fallbackIcon = "/avatar-fallback.svg";
 
@@ -87,16 +89,30 @@ function MemberCard({ storeId, member, currentMember }: MemberCardProps) {
         <p className="text-base">{member.displayName}</p>
       </Card>
 
-      <Button
-        disabled={!canDelete || mutation.isPending}
-        variant="ghost"
-        className="text-close-button"
-        onClick={() =>
-          mutation.mutate({ storeId, accountId: member.accountId })
-        }
-      >
-        <XIcon className="size-7" strokeWidth={4} />
-      </Button>
+      <Dialog>
+        <DialogTrigger
+          disabled={!canDelete || mutation.isPending}
+          render={<Button variant="ghost" />}
+        >
+          <XIcon className="text-close-button size-7" strokeWidth={4} />
+        </DialogTrigger>
+
+        <DialogContent className="shadow-dialog-primary flex flex-col gap-6 px-14 pt-18 pb-4.5 text-center text-xl">
+          <p>
+            {member.displayName}
+            <br />
+            上記のメンバーを<span className="text-notice">削除</span>しますか？
+          </p>
+          <Button
+            className="bg-destructive h-auto self-center px-14 py-3 text-xl"
+            onClick={() =>
+              mutation.mutate({ storeId, accountId: member.accountId })
+            }
+          >
+            <DotText>削除する</DotText>
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

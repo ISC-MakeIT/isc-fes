@@ -113,7 +113,7 @@ export function StoreInvitationDialog({ storeId }: StoreInvitationDialogProps) {
         メンバーを招待
       </DialogTrigger>
 
-      <DialogContent className="shadow-dialog-primary flex flex-col px-14 pt-18 pb-8 sm:max-w-md">
+      <DialogContent className="shadow-dialog-primary flex flex-col px-14 pt-18 pb-8">
         <DialogTitle className="self-center text-[1.375rem]">
           メンバーを招待する
         </DialogTitle>
