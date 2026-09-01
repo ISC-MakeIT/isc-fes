@@ -19,6 +19,7 @@ import { deleteStoreMemberById } from "../api/delete-store-member-by-id";
 import { XIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/shared/ui/dialog";
 import { DotText } from "@/shared/ui/dot-text";
+import { useState } from "react";
 
 const fallbackIcon = "/avatar-fallback.svg";
 
@@ -62,10 +63,13 @@ type MemberCardProps = {
 };
 
 function MemberCard({ storeId, member, currentMember }: MemberCardProps) {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: deleteStoreMemberById,
     onSuccess: async () => {
+      setIsDeleteDialogOpen(false);
       await queryClient.invalidateQueries({
         queryKey: storeMembersKey(storeId),
       });
@@ -89,7 +93,7 @@ function MemberCard({ storeId, member, currentMember }: MemberCardProps) {
         <p className="text-base">{member.displayName}</p>
       </Card>
 
-      <Dialog>
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogTrigger
           disabled={!canDelete || mutation.isPending}
           render={<Button variant="ghost" />}
@@ -97,20 +101,22 @@ function MemberCard({ storeId, member, currentMember }: MemberCardProps) {
           <XIcon className="text-close-button size-7" strokeWidth={4} />
         </DialogTrigger>
 
-        <DialogContent className="shadow-dialog-primary flex flex-col gap-6 px-14 pt-18 pb-4.5 text-center text-xl">
-          <p>
+        <DialogContent className="shadow-dialog-primary flex flex-col gap-6 px-14 pt-18 pb-4.5 text-center">
+          <p className="text-xl">
             {member.displayName}
             <br />
             上記のメンバーを<span className="text-notice">削除</span>しますか？
           </p>
+
           {mutation.error && (
-            <p role="alert" className="text-notice">
+            <p role="alert" className="text-notice text-sm">
               {mutation.error.message}
             </p>
           )}
+
           <Button
             className="bg-destructive h-auto self-center px-14 py-3 text-xl"
-            disabled={!canDelete || mutation.isPending}
+            disabled={mutation.isPending}
             onClick={() =>
               mutation.mutate({ storeId, accountId: member.accountId })
             }

@@ -22,7 +22,6 @@ export async function deleteStoreMemberById({
       },
     },
   );
-
   if (error) {
     throw new Error(getStatusMessage(response.status));
   }
