@@ -34,7 +34,7 @@ export function StoreMemberList({ storeId, accountId }: StoreMemberListProps) {
     <div className="border-primary flex flex-col gap-8 px-13 py-8 md:border-l md:px-6">
       <HeadingCard className="self-center">メンバー</HeadingCard>
 
-      <div>
+      <div className="space-y-5">
         {members.map((m) => (
           <MemberCard
             key={m.accountId}
