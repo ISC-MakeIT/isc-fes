@@ -103,8 +103,14 @@ function MemberCard({ storeId, member, currentMember }: MemberCardProps) {
             <br />
             上記のメンバーを<span className="text-notice">削除</span>しますか？
           </p>
+          {mutation.error && (
+            <p role="alert" className="text-notice">
+              {mutation.error.message}
+            </p>
+          )}
           <Button
             className="bg-destructive h-auto self-center px-14 py-3 text-xl"
+            disabled={!canDelete || mutation.isPending}
             onClick={() =>
               mutation.mutate({ storeId, accountId: member.accountId })
             }
