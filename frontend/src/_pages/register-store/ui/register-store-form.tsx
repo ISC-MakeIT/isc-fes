@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { CreateStoreForm, CreateStoreFormImage } from "../model/types";
+import { CreateStoreForm } from "../model/types";
 import { createStoreApplication } from "../api/create-store-application";
 import { useState } from "react";
 import { Field, FieldContent, FieldError, FieldLabel } from "@/shared/ui/field";
@@ -11,6 +11,7 @@ import { PreviewImage } from "@/shared/ui/preview-image";
 import { ActionButton } from "@/shared/ui/action-button";
 import { useRouter } from "next/navigation";
 import { storeListUrl } from "@/shared/config";
+import { UploadImage } from "@/shared/model/upload-image";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -111,8 +112,8 @@ export function RegisterStoreForm() {
         <form.Field
           name="image"
           validators={{
-            onChange: CreateStoreFormImage,
-            onMount: CreateStoreFormImage,
+            onChange: UploadImage,
+            onMount: UploadImage,
             onSubmit: ({ value }) =>
               // Input Fileはundefinedを許容しないと使えないので、ここでフォーム送信前のundefinedチェックを挟む
               // もしくはここまではundefined許容したForm用のSchemaを使って、ここで店舗のSchemaでparseするべきかも
