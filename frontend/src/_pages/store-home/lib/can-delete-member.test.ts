@@ -1,65 +1,67 @@
 import { StoreMember, StoreMemberRole } from "@/entities/store-member";
-import { expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { canDeleteMember } from "./can-delete-member";
 
-test("マネージャーは自分以外のメンバーを削除できる", () => {
-  const currentMember = createStoreMember({
-    accountId: "account-1",
-    role: StoreMemberRole.Manager,
-  });
-  const targetMember = createStoreMember({
-    accountId: "account-2",
-    role: StoreMemberRole.Staff,
-  });
+describe("canDeleteMember", () => {
+  test("マネージャーは自分以外のメンバーを削除できる", () => {
+    const currentMember = createStoreMember({
+      accountId: "account-1",
+      role: StoreMemberRole.Manager,
+    });
+    const targetMember = createStoreMember({
+      accountId: "account-2",
+      role: StoreMemberRole.Staff,
+    });
 
-  const result = canDeleteMember({ currentMember, targetMember });
+    const result = canDeleteMember({ currentMember, targetMember });
 
-  expect(result).toBe(true);
-});
-
-test("スタッフは他のメンバーを削除できない", () => {
-  const currentMember = createStoreMember({
-    accountId: "account-1",
-    role: StoreMemberRole.Staff,
-  });
-  const targetMember = createStoreMember({
-    accountId: "account-2",
-    role: StoreMemberRole.Staff,
+    expect(result).toBe(true);
   });
 
-  const result = canDeleteMember({ currentMember, targetMember });
+  test("スタッフは他のメンバーを削除できない", () => {
+    const currentMember = createStoreMember({
+      accountId: "account-1",
+      role: StoreMemberRole.Staff,
+    });
+    const targetMember = createStoreMember({
+      accountId: "account-2",
+      role: StoreMemberRole.Staff,
+    });
 
-  expect(result).toBe(false);
-});
+    const result = canDeleteMember({ currentMember, targetMember });
 
-test("自分自身は削除できない", () => {
-  const currentMember = createStoreMember({
-    accountId: "account-1",
-    role: StoreMemberRole.Manager,
-  });
-  const targetMember = createStoreMember({
-    accountId: "account-1",
-    role: StoreMemberRole.Manager,
-  });
-
-  const result = canDeleteMember({ currentMember, targetMember });
-
-  expect(result).toBe(false);
-});
-
-test("対象が管理者なら削除できない", () => {
-  const currentMember = createStoreMember({
-    accountId: "account-1",
-    role: StoreMemberRole.Manager,
-  });
-  const targetMember = createStoreMember({
-    accountId: "account-2",
-    role: StoreMemberRole.Manager,
+    expect(result).toBe(false);
   });
 
-  const result = canDeleteMember({ currentMember, targetMember });
+  test("自分自身は削除できない", () => {
+    const currentMember = createStoreMember({
+      accountId: "account-1",
+      role: StoreMemberRole.Manager,
+    });
+    const targetMember = createStoreMember({
+      accountId: "account-1",
+      role: StoreMemberRole.Manager,
+    });
 
-  expect(result).toBe(false);
+    const result = canDeleteMember({ currentMember, targetMember });
+
+    expect(result).toBe(false);
+  });
+
+  test("対象が管理者なら削除できない", () => {
+    const currentMember = createStoreMember({
+      accountId: "account-1",
+      role: StoreMemberRole.Manager,
+    });
+    const targetMember = createStoreMember({
+      accountId: "account-2",
+      role: StoreMemberRole.Manager,
+    });
+
+    const result = canDeleteMember({ currentMember, targetMember });
+
+    expect(result).toBe(false);
+  });
 });
 
 function createStoreMember({
