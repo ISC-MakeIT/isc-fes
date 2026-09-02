@@ -151,6 +151,12 @@ type Account struct {
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
+type AccountSession struct {
+	Token  string             `json:"token"`
+	Data   []byte             `json:"data"`
+	Expiry pgtype.Timestamptz `json:"expiry"`
+}
+
 type Allergen struct {
 	ID   uuid.UUID `json:"id"`
 	Name string    `json:"name"`
@@ -173,12 +179,6 @@ type MenuTopping struct {
 	MenuID    uuid.UUID `json:"menu_id"`
 	ToppingID uuid.UUID `json:"topping_id"`
 	StoreID   uuid.UUID `json:"store_id"`
-}
-
-type Session struct {
-	Token  string             `json:"token"`
-	Data   []byte             `json:"data"`
-	Expiry pgtype.Timestamptz `json:"expiry"`
 }
 
 type Store struct {
