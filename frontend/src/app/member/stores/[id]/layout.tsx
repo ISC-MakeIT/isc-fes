@@ -1,8 +1,15 @@
-import { SidebarProvider } from "@/shared/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/shared/ui/sidebar";
+import {
+  AppSidebar,
+  DesktopAppHeader,
+  MobileAppHeader,
+  storeNavigationItems,
+} from "@/widgets/app-sidebar";
 
-export default function StoreManagerLayout(
+export default async function StoreManagerLayout(
   props: LayoutProps<"/member/stores/[id]">,
 ) {
+  const { id: storeId } = await props.params;
   return (
     <SidebarProvider
       style={
@@ -12,7 +19,14 @@ export default function StoreManagerLayout(
       }
       defaultOpen={false}
     >
-      {props.children}
+      <AppSidebar navigationItems={storeNavigationItems(storeId)} />
+      {/* NOTE: モバイルとデスクトップでヘッダーの位置も呼び出し箇所も大きく変わるのでコンポーネントも分けている */}
+      <DesktopAppHeader />
+
+      <SidebarInset>
+        <MobileAppHeader />
+        {props.children}
+      </SidebarInset>
     </SidebarProvider>
   );
 }
