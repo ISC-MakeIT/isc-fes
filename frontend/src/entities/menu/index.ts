@@ -1,1 +1,1 @@
-export { Menu } from "./model/types";
+export { Menu, MenuDescription, MenuName, MenuUnitPrice } from "./model/types";
