@@ -18,7 +18,7 @@ export function ActionButton({
   children,
   ...props
 }: ActionButtonProps) {
-  const textStyle = cva("inline-flex items-center gap-2");
+  const textStyle = cva("inline-flex items-center");
   return (
     <Button
       variant="secondary"

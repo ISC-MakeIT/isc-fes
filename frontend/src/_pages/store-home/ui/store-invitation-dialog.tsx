@@ -109,8 +109,10 @@ export function StoreInvitationDialog({ storeId }: StoreInvitationDialogProps) {
           <ActionButton className="py-2 text-lg font-bold" isDot={false} />
         }
       >
-        <PlusIcon className="size-6" />
-        メンバーを招待
+        <span className="flex items-center gap-2">
+          <PlusIcon className="size-6" />
+          メンバーを招待
+        </span>
       </DialogTrigger>
 
       <DialogContent className="shadow-dialog-primary flex flex-col px-14 pt-18 pb-8">
