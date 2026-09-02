@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { StoreInfo } from "./store-info";
 import { createQueryClient } from "@/shared/api";
 import { StoreMenuList } from "./store-menu-list";
-import { StoreMemberList } from "./store-member-list";
+import { StoreMembersSection } from "./store-member-section";
 import { storeMenusQueryOptions } from "../api/fetch-store-menus";
 import { storeMemberQueryOptions } from "../api/fetch-store-members";
 import { AppSidebar } from "@/widgets/app-sidebar";
@@ -14,22 +14,18 @@ import { MobileAppHeader } from "@/widgets/app-sidebar";
 import { storeNavigationItems } from "@/widgets/app-sidebar";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { currentAccountQueryOptions } from "@/entities/account";
-import { redirect } from "next/navigation";
-import { loginUrl } from "@/shared/config";
 
 type StoreHomeViewProps = { storeId: string };
 
 export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
   const queryClient = createQueryClient();
 
-  const [currentAccount] = await Promise.all([
-    queryClient.fetchQuery(currentAccountQueryOptions()),
+  await Promise.all([
+    queryClient.prefetchQuery(currentAccountQueryOptions()),
     queryClient.prefetchQuery(storeDetailQueryOptions(storeId)),
     queryClient.prefetchQuery(storeMenusQueryOptions(storeId)),
     queryClient.prefetchQuery(storeMemberQueryOptions(storeId)),
   ]);
-
-  if (!currentAccount) redirect(loginUrl());
 
   return (
     <>
@@ -48,10 +44,7 @@ export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
               <StoreInfo storeId={storeId} />
               <div className="md:grid md:flex-1 md:grid-cols-[1fr_24rem]">
                 <StoreMenuList className="hidden md:block" storeId={storeId} />
-                <StoreMemberList
-                  storeId={storeId}
-                  accountId={currentAccount.id}
-                />
+                <StoreMembersSection storeId={storeId} />
               </div>
             </div>
           </Suspense>

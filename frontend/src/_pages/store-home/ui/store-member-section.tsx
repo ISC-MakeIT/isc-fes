@@ -20,24 +20,41 @@ import { XIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/shared/ui/dialog";
 import { DotText } from "@/shared/ui/dot-text";
 import { useState } from "react";
+import { currentAccountQueryOptions } from "@/entities/account";
 
 const fallbackIcon = "/avatar-fallback.svg";
+
+type StoreMembersSectionProps = {
+  storeId: string;
+};
+
+export function StoreMembersSection({ storeId }: StoreMembersSectionProps) {
+  const { data: currentAccount } = useSuspenseQuery(
+    currentAccountQueryOptions(),
+  );
+
+  return (
+    <div className="border-primary flex flex-col gap-8 px-13 py-8 md:border-l md:px-6">
+      <HeadingCard className="self-center">メンバー</HeadingCard>
+      {currentAccount && (
+        <StoreMemberList accountId={currentAccount.id} storeId={storeId} />
+      )}
+    </div>
+  );
+}
 
 type StoreMemberListProps = {
   storeId: string;
   accountId: string;
 };
 
-export function StoreMemberList({ storeId, accountId }: StoreMemberListProps) {
+function StoreMemberList({ storeId, accountId }: StoreMemberListProps) {
   const { data: members } = useSuspenseQuery(storeMemberQueryOptions(storeId));
   const { data: currentMember } = useSuspenseQuery(
     storeMemberByAccountIdQueryOptions(storeId, accountId),
   );
-
   return (
-    <div className="border-primary flex flex-col gap-8 px-13 py-8 md:border-l md:px-6">
-      <HeadingCard className="self-center">メンバー</HeadingCard>
-
+    <>
       <div className="space-y-5">
         {members.map((m) => (
           <MemberCard
@@ -52,7 +69,7 @@ export function StoreMemberList({ storeId, accountId }: StoreMemberListProps) {
       {currentMember.role === StoreMemberRole.Manager && (
         <StoreInvitationDialog storeId={storeId} />
       )}
-    </div>
+    </>
   );
 }
 
