@@ -47,7 +47,10 @@ func NewSessions(
 	domain string,
 ) (*Sessions, func()) {
 
-	store := pgxstore.New(pool)
+	store := pgxstore.NewWithConfig(pool, pgxstore.Config{
+		TableName:       "account_sessions",
+		CleanUpInterval: 5 * time.Minute,
+	})
 
 	manager := scs.New()
 	manager.Store = store
