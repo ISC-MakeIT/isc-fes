@@ -13,7 +13,6 @@ import { DesktopAppHeader } from "@/widgets/app-sidebar";
 import { MobileAppHeader } from "@/widgets/app-sidebar";
 import { storeNavigationItems } from "@/widgets/app-sidebar";
 import { HeadingCard } from "@/shared/ui/heading-card";
-import { currentAccountQueryOptions } from "@/entities/account";
 
 type StoreHomeViewProps = { storeId: string };
 
@@ -21,7 +20,6 @@ export async function StoreHomeView({ storeId }: StoreHomeViewProps) {
   const queryClient = createQueryClient();
 
   await Promise.all([
-    queryClient.prefetchQuery(currentAccountQueryOptions()),
     queryClient.prefetchQuery(storeDetailQueryOptions(storeId)),
     queryClient.prefetchQuery(storeMenusQueryOptions(storeId)),
     queryClient.prefetchQuery(storeMemberQueryOptions(storeId)),
