@@ -1,38 +1,28 @@
-"use client";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { storeMenusQueryOptions } from "@/entities/menu/api/fetch-store-menus";
+import { Editor } from "./editor";
+import { MenuList } from "./menu-list";
+import { createQueryClient } from "@/shared/api";
+import { MenuEditorProvider } from "../model/menu-editor-context";
 
-import { ActionButton } from "@/shared/ui/action-button";
-import { HeadingCard } from "@/shared/ui/heading-card";
-import { PlusIcon } from "lucide-react";
-import { useState } from "react";
-import { CreateMenuForm } from "./create-menu-form";
+type StoreMenusViewProps = {
+  storeId: string;
+};
 
-enum FormType {
-  CreateMenu = "createMenu",
-  EditMenu = "editMenu",
-  CreateTopping = "createTopping",
-  EditTopping = "editTopping",
-}
-
-export function StoreMenusView() {
-  const [activeForm, setActiveForm] = useState<FormType | null>(null);
+export async function StoreMenusView({ storeId }: StoreMenusViewProps) {
+  const client = createQueryClient();
+  await client.prefetchQuery(storeMenusQueryOptions(storeId));
 
   return (
-    <div className="grid grid-cols-[1fr_25rem]">
-      <div className="pt-18">
-        <HeadingCard className="px-8 py-4">メニュー</HeadingCard>
-
-        <ActionButton
-          className="px-6 py-4 text-lg font-bold"
-          isDot={false}
-          onClick={() => setActiveForm(FormType.CreateMenu)}
-        >
-          <PlusIcon className="size-6" />
-          メニューの追加
-        </ActionButton>
+    <MenuEditorProvider>
+      <div className="grid grid-cols-[1fr_25rem]">
+        <div className="px-4 pt-18">
+          <HydrationBoundary state={dehydrate(client)}>
+            <MenuList storeId={storeId} />
+          </HydrationBoundary>
+        </div>
+        <Editor />
       </div>
-      <div className="border-primary flex min-h-screen flex-col border-l px-6 pt-18">
-        {activeForm === FormType.CreateMenu && <CreateMenuForm />}
-      </div>
-    </div>
+    </MenuEditorProvider>
   );
 }

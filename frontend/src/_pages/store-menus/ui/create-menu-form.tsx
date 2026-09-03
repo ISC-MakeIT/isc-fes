@@ -5,9 +5,8 @@ import { useMenuForm } from "../model/hooks/use-menu-form";
 import { MenuFormFields } from "./menu-form-fields";
 import { CreateMenuInput, MenuFormValues } from "../model/types";
 import { createMenu } from "../api/create-menu";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ActionButton } from "@/shared/ui/action-button";
-import { createQueryClient } from "@/shared/api";
 import { storeMenusKey } from "@/shared/config";
 import { useEffect } from "react";
 import { v } from "@/shared/lib/valibot";
@@ -22,7 +21,7 @@ const defaultFormValue: MenuFormValues = {
 
 export function CreateMenuForm() {
   const storeId = useStoreId();
-  const client = createQueryClient();
+  const client = useQueryClient();
   const mutation = useMutation({
     mutationFn: createMenu,
     onSuccess: () => {
