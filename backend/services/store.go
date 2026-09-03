@@ -34,6 +34,12 @@ type StoreRepository interface {
 	GetStoreApplications(ctx context.Context) ([]entities.Store, error)
 }
 
+// CurrentAccountSessionは、未ログインでも利用できる店舗一覧で
+// 現在のAccount IDを任意に解決するための境界。
+type CurrentAccountSession interface {
+	AccountID(ctx context.Context) (uuid.UUID, error)
+}
+
 type CreateStoreApplicationInput struct {
 	AccountID      uuid.UUID
 	ID             uuid.UUID
@@ -56,7 +62,7 @@ type StoreService struct {
 	storeRepository    StoreRepository
 	allergenRepository allergens_service.AllergenRepository
 	imgGenerator       ImageURLGenerator
-	sessions           SessionManager
+	accountSession     CurrentAccountSession
 }
 
 func NewStoreService(
@@ -64,7 +70,7 @@ func NewStoreService(
 	imageRepository ImageRepository,
 	storeRepository StoreRepository,
 	allergenRepository allergens_service.AllergenRepository,
-	sessions SessionManager,
+	accountSession CurrentAccountSession,
 	imgGenerator ImageURLGenerator,
 ) *StoreService {
 	return &StoreService{
@@ -73,7 +79,7 @@ func NewStoreService(
 		storeRepository:    storeRepository,
 		allergenRepository: allergenRepository,
 		imgGenerator:       imgGenerator,
-		sessions:           sessions,
+		accountSession:     accountSession,
 	}
 }
 
@@ -223,7 +229,7 @@ func (s *StoreService) GetApprovedStoreByID(ctx context.Context, storeID uuid.UU
 // GetVisibleStores は、ユーザーが閲覧可能な店舗一覧を取得する。
 // 承認済みの店舗はすべて返し、申請中・却下済みの店舗は、ユーザーがその店舗の管理者である場合のみ返す。
 func (s *StoreService) GetVisibleStores(ctx context.Context) ([]entities.StoreOutput, error) {
-	accountID, err := s.sessions.AccountID(ctx)
+	accountID, err := s.accountSession.AccountID(ctx)
 	if err != nil {
 		rawStores, err := s.storeRepository.GetApprovedStores(ctx)
 		if err != nil {

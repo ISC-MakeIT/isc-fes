@@ -47,7 +47,9 @@ type OAuthProvider interface {
 	) (GoogleIdentity, error)
 }
 
-type SessionManager interface {
+// AuthSessionは、Google OAuthとAccountのログイン状態を管理する。
+// Guestセッションとは独立したCookieとストアを使用する。
+type AuthSession interface {
 	// OAuth フローを開始する。
 	// state, nonce, PKCE verifierを生成し、セッションに保存する。
 	BeginOAuth(ctx context.Context) (OAuthFlow, error)
@@ -58,25 +60,24 @@ type SessionManager interface {
 		receivedState string,
 	) (OAuthFlow, error)
 
-	AccountID(ctx context.Context) (uuid.UUID, error)
 	SignIn(ctx context.Context, accountID uuid.UUID) error
 	SignOut(ctx context.Context) error
 }
 
 type AuthService struct {
 	provider OAuthProvider
-	sessions SessionManager
+	session  AuthSession
 	accounts AccountRepository
 }
 
 func NewAuthService(
 	provider OAuthProvider,
-	sessions SessionManager,
+	session AuthSession,
 	accounts AccountRepository,
 ) *AuthService {
 	return &AuthService{
 		provider: provider,
-		sessions: sessions,
+		session:  session,
 		accounts: accounts,
 	}
 }
@@ -84,7 +85,7 @@ func NewAuthService(
 // Google ログインを開始して、Google のログインページのURLを返す
 // /auth/google/login で呼び出される。
 func (s *AuthService) StartGoogleLogin(ctx context.Context) (string, error) {
-	flow, err := s.sessions.BeginOAuth(ctx)
+	flow, err := s.session.BeginOAuth(ctx)
 	if err != nil {
 		return "", fmt.Errorf("begin OAuth: %w", err)
 	}
@@ -95,7 +96,7 @@ func (s *AuthService) StartGoogleLogin(ctx context.Context) (string, error) {
 // Google ログインを完了する。
 // /auth/google/callback で呼び出される。
 func (s *AuthService) CompleteGoogleLogin(ctx context.Context, input CompleteLoginInput) error {
-	flow, err := s.sessions.ConsumeOAuth(ctx, input.State)
+	flow, err := s.session.ConsumeOAuth(ctx, input.State)
 	if err != nil {
 		return fmt.Errorf("consume OAuth: %w", err)
 	}
@@ -119,7 +120,7 @@ func (s *AuthService) CompleteGoogleLogin(ctx context.Context, input CompleteLog
 		return fmt.Errorf("upsert Google account: %w", err)
 	}
 
-	if err := s.sessions.SignIn(ctx, account.ID); err != nil {
+	if err := s.session.SignIn(ctx, account.ID); err != nil {
 		return fmt.Errorf("sign in account: %w", err)
 	}
 
@@ -127,5 +128,5 @@ func (s *AuthService) CompleteGoogleLogin(ctx context.Context, input CompleteLog
 }
 
 func (s *AuthService) SignOut(ctx context.Context) error {
-	return s.sessions.SignOut(ctx)
+	return s.session.SignOut(ctx)
 }

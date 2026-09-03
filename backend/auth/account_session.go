@@ -37,15 +37,15 @@ var (
 	ErrNotAuthenticated = errors.New("not authenticated")
 )
 
-type Sessions struct {
+type AccountSession struct {
 	manager *scs.SessionManager
 }
 
-func NewSessions(
+func NewAccountSession(
 	pool *pgxpool.Pool,
 	secure bool,
 	domain string,
-) (*Sessions, func()) {
+) (*AccountSession, func()) {
 
 	store := pgxstore.NewWithConfig(pool, pgxstore.Config{
 		TableName:       "account_sessions",
@@ -57,19 +57,19 @@ func NewSessions(
 	manager.HashTokenInStore = true
 	manager.Lifetime = 24 * time.Hour
 
-	configureSessionCookie(manager, secure, domain)
+	configureAccountSessionCookie(manager, secure, domain)
 
-	sessions := &Sessions{
+	session := &AccountSession{
 		manager: manager,
 	}
 
-	return sessions, store.StopCleanup
+	return session, store.StopCleanup
 }
 
-// configureSessionCookieは、セッションCookieの共通属性を設定する。
+// configureAccountSessionCookieは、AccountセッションCookieの属性を設定する。
 // domainが空のローカル環境ではhost-only Cookieとし、
 // 本番環境ではフロントエンドとAPIの共通ドメインへCookieを送信できるようにする。
-func configureSessionCookie(
+func configureAccountSessionCookie(
 	manager *scs.SessionManager,
 	secure bool,
 	domain string,
@@ -83,7 +83,7 @@ func configureSessionCookie(
 	manager.Cookie.Persist = true
 }
 
-func (s *Sessions) LoadAndSave(next http.Handler) http.Handler {
+func (s *AccountSession) LoadAndSave(next http.Handler) http.Handler {
 	return s.manager.LoadAndSave(next)
 }
 
@@ -97,7 +97,7 @@ func randomURLSafeToken() (string, error) {
 	return base64.RawURLEncoding.EncodeToString(data), nil
 }
 
-func (s *Sessions) BeginOAuth(ctx context.Context) (services.OAuthFlow, error) {
+func (s *AccountSession) BeginOAuth(ctx context.Context) (services.OAuthFlow, error) {
 	state, err := randomURLSafeToken()
 	if err != nil {
 		return services.OAuthFlow{}, err
@@ -123,7 +123,7 @@ func (s *Sessions) BeginOAuth(ctx context.Context) (services.OAuthFlow, error) {
 	return flow, nil
 }
 
-func (s *Sessions) ConsumeOAuth(
+func (s *AccountSession) ConsumeOAuth(
 	ctx context.Context,
 	receivedState string,
 ) (services.OAuthFlow, error) {
@@ -169,14 +169,14 @@ func (s *Sessions) ConsumeOAuth(
 	return flow, nil
 }
 
-func (s *Sessions) removeOAuth(ctx context.Context) {
+func (s *AccountSession) removeOAuth(ctx context.Context) {
 	s.manager.Remove(ctx, oauthStateKey)
 	s.manager.Remove(ctx, oauthNonceKey)
 	s.manager.Remove(ctx, oauthPKCEVerifierKey)
 	s.manager.Remove(ctx, oauthStartedAtKey)
 }
 
-func (s *Sessions) SignIn(
+func (s *AccountSession) SignIn(
 	ctx context.Context,
 	accountID uuid.UUID,
 ) error {
@@ -192,7 +192,7 @@ func (s *Sessions) SignIn(
 	return nil
 }
 
-func (s *Sessions) AccountID(ctx context.Context) (uuid.UUID, error) {
+func (s *AccountSession) AccountID(ctx context.Context) (uuid.UUID, error) {
 	value := s.manager.GetString(ctx, accountIDKey)
 	if value == "" {
 		return uuid.Nil, ErrNotAuthenticated
@@ -209,7 +209,7 @@ func (s *Sessions) AccountID(ctx context.Context) (uuid.UUID, error) {
 	return accountID, nil
 }
 
-func (s *Sessions) SignOut(ctx context.Context) error {
+func (s *AccountSession) SignOut(ctx context.Context) error {
 	if err := s.manager.Destroy(ctx); err != nil {
 		return fmt.Errorf("destroy session: %w", err)
 	}
@@ -218,5 +218,7 @@ func (s *Sessions) SignOut(ctx context.Context) error {
 }
 
 var (
-	_ services.SessionManager = (*Sessions)(nil)
+	_ services.AuthSession           = (*AccountSession)(nil)
+	_ services.AccountSession        = (*AccountSession)(nil)
+	_ services.CurrentAccountSession = (*AccountSession)(nil)
 )
