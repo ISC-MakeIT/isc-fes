@@ -1,4 +1,4 @@
-import { StoreMenusView } from "@/_pages/store-menus/ui/store-menus-view";
+import { StoreMenusView } from "@/_pages/store-menus";
 
 export default async function StoreMenusPage({
   params,

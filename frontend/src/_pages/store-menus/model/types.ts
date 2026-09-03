@@ -1,6 +1,6 @@
 import { MenuDescription, MenuName, MenuUnitPrice } from "@/entities/menu";
 import { v } from "@/shared/lib/valibot";
-import { UploadImage } from "@/shared/model/upload-image";
+import { UploadImage } from "@/shared/model";
 
 // メニューのフォーム用の型
 export const MenuFormValues = v.object({

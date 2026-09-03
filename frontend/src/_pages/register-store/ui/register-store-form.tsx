@@ -11,7 +11,7 @@ import { PreviewImage } from "@/shared/ui/preview-image";
 import { ActionButton } from "@/shared/ui/action-button";
 import { useRouter } from "next/navigation";
 import { storeListUrl } from "@/shared/config";
-import { UploadImage } from "@/shared/model/upload-image";
+import { UploadImage } from "@/shared/model";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",

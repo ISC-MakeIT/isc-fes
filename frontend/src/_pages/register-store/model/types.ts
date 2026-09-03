@@ -1,6 +1,6 @@
 import { StoreDescription, StoreName, StoreRoom } from "@/entities/store";
 import { v } from "@/shared/lib/valibot";
-import { UploadImage } from "@/shared/model/upload-image";
+import { UploadImage } from "@/shared/model";
 
 export const CreateStoreForm = v.object({
   name: StoreName,

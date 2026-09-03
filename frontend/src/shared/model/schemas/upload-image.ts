@@ -1,4 +1,4 @@
-import { v } from "../lib/valibot";
+import { v } from "../../lib/valibot";
 
 export const UploadImage = v.pipe(
   v.file("画像を選択してください"),

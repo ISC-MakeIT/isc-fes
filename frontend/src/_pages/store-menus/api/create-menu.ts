@@ -9,7 +9,7 @@ import { createApiClient } from "@/shared/api";
 import { buildFormDataBody } from "@/shared/lib/build-form-data-body";
 import { getStatusMessage } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
-import { UploadImage } from "@/shared/model/upload-image";
+import { UploadImage } from "@/shared/model";
 
 export const CreateMenuInput = v.object({
   name: MenuName,
