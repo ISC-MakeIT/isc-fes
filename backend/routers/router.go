@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -17,7 +18,10 @@ import (
 	ginmiddleware "github.com/oapi-codegen/gin-middleware"
 )
 
-const accountSessionSecurityScheme = "AccountSession"
+const (
+	accountSessionSecurityScheme = "AccountSession"
+	guestSessionSecurityScheme   = "GuestSession"
+)
 
 const authenticationErrorContextKey = "openapi-authentication-error"
 
@@ -54,11 +58,12 @@ func NewRouter(s *Server, corsAllowedOrigins []string) (*gin.Engine, error) {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	handleAuthenticationError := func(c *gin.Context, err error) {
+		s.handleCommonServiceErrors(c, err)
+	}
 	openAPIValidator, err := newOpenAPIRequestValidator(
 		s.accountService,
-		func(c *gin.Context, err error) {
-			s.handleCommonServiceErrors(c, err)
-		},
+		handleAuthenticationError,
 	)
 	if err != nil {
 		return nil, err
@@ -67,6 +72,7 @@ func NewRouter(s *Server, corsAllowedOrigins []string) (*gin.Engine, error) {
 	openAPIRoutes := router.Group("")
 	openAPIRoutes.Use(limitRequestBody(maxRequestBodySize))
 	openAPIRoutes.Use(openAPIValidator)
+	openAPIRoutes.Use(resolveRequiredGuestSession(s.guestResolver, handleAuthenticationError))
 	RegisterHandlers(openAPIRoutes, s)
 
 	// OAuth のログイン・コールバックは OpenAPI の管理対象外なので、
@@ -128,6 +134,14 @@ func newOpenAPIRequestValidator(
 		return nil, fmt.Errorf("load OpenAPI specification: %w", err)
 	}
 
+	return openAPIRequestValidator(swagger, accountLoader, handleAuthenticationError), nil
+}
+
+func openAPIRequestValidator(
+	swagger *openapi3.T,
+	accountLoader currentAccountLoader,
+	handleAuthenticationError authenticationErrorHandler,
+) gin.HandlerFunc {
 	// 環境ごとの Host に依存せず、パスとリクエスト内容を検証する。
 	swagger.Servers = nil
 
@@ -135,7 +149,7 @@ func newOpenAPIRequestValidator(
 		swagger,
 		&ginmiddleware.Options{
 			Options: openapi3filter.Options{
-				AuthenticationFunc: authenticateAccountSession(accountLoader),
+				AuthenticationFunc: authenticateSession(accountLoader),
 			},
 			ErrorHandler: func(c *gin.Context, _ string, statusCode int) {
 				if authenticationError, ok := c.Get(authenticationErrorContextKey); ok {
@@ -148,28 +162,39 @@ func newOpenAPIRequestValidator(
 				})
 			},
 		},
-	), nil
+	)
 }
 
-func authenticateAccountSession(accountLoader currentAccountLoader) openapi3filter.AuthenticationFunc {
+func authenticateSession(accountLoader currentAccountLoader) openapi3filter.AuthenticationFunc {
 	return func(ctx context.Context, input *openapi3filter.AuthenticationInput) error {
-		if input.SecuritySchemeName != accountSessionSecurityScheme {
-			return input.NewError(fmt.Errorf("unsupported security scheme: %s", input.SecuritySchemeName))
-		}
-
 		ginContext := ginmiddleware.GetGinContext(ctx)
 		if ginContext == nil {
 			return input.NewError(fmt.Errorf("get Gin context for authentication"))
 		}
 
 		request := input.RequestValidationInput.Request
-		account, err := accountLoader.GetCurrentAccount(request.Context())
-		if err != nil {
-			ginContext.Set(authenticationErrorContextKey, err)
-			return input.NewError(err)
+
+		switch input.SecuritySchemeName {
+		case accountSessionSecurityScheme:
+			account, err := accountLoader.GetCurrentAccount(request.Context())
+			if err != nil {
+				ginContext.Set(authenticationErrorContextKey, err)
+				return input.NewError(err)
+			}
+
+			request = request.WithContext(
+				services.WithAuthenticatedAccount(request.Context(), account),
+			)
+		case guestSessionSecurityScheme:
+			// Guestは未発行でも認証成功とし、OpenAPI検証後のMiddlewareで発行する。
+			// ここで発行すると、不正なrequest bodyでもGuestが作成されてしまう。
+			ginContext.Set(guestSessionRequiredContextKey, true)
+		default:
+			return input.NewError(
+				fmt.Errorf("unsupported security scheme: %s", input.SecuritySchemeName),
+			)
 		}
 
-		request = request.WithContext(services.WithAuthenticatedAccount(request.Context(), account))
 		input.RequestValidationInput.Request = request
 		ginContext.Request = request
 

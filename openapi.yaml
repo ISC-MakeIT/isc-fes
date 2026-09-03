@@ -1052,6 +1052,10 @@ components:
       type: apiKey
       in: cookie
       name: isc_fes_account_session
+    GuestSession:
+      type: apiKey
+      in: cookie
+      name: isc_fes_guest_session
   schemas:
     HealthResponse:
       type: object

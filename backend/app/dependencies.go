@@ -36,10 +36,11 @@ type sessionMiddleware interface {
 }
 
 type dependencies struct {
-	pool                      *pgxpool.Pool
-	accountSession            sessionMiddleware
-	stopAccountSessionCleanup func()
-	apiServer                 *routers.Server
+	pool               *pgxpool.Pool
+	accountSession     sessionMiddleware
+	guestSession       sessionMiddleware
+	stopSessionCleanup func()
+	apiServer          *routers.Server
 }
 
 func buildDependencies(
@@ -61,6 +62,15 @@ func buildDependencies(
 		cfg.Auth.SessionCookieSecure,
 		cfg.Auth.SessionCookieDomain,
 	)
+	guestSession, stopGuestSessionCleanup := auth.NewGuestSession(
+		pool,
+		cfg.Auth.SessionCookieSecure,
+		cfg.Auth.SessionCookieDomain,
+	)
+	stopSessionCleanup := func() {
+		stopGuestSessionCleanup()
+		stopAccountSessionCleanup()
+	}
 
 	googleAuthenticator, err := auth.NewGoogleAuthenticator(
 		ctx,
@@ -71,14 +81,14 @@ func buildDependencies(
 		},
 	)
 	if err != nil {
-		stopAccountSessionCleanup()
+		stopSessionCleanup()
 		pool.Close()
 		return nil, fmt.Errorf("initialize Google auth: %w", err)
 	}
 
 	s3Client, err := newS3Client(ctx, cfg.S3)
 	if err != nil {
-		stopAccountSessionCleanup()
+		stopSessionCleanup()
 		pool.Close()
 		return nil, err
 	}
@@ -96,7 +106,7 @@ func buildDependencies(
 	} else {
 		imgGenerator, err = imageurl.NewCloudFrontImageURLGenerator(cfg.StoreImageBaseURL)
 		if err != nil {
-			stopAccountSessionCleanup()
+			stopSessionCleanup()
 			pool.Close()
 			return nil, fmt.Errorf("initialize store image URL generator: %w", err)
 		}
@@ -111,6 +121,8 @@ func buildDependencies(
 		accountRepository,
 		accountSession,
 	)
+	guestRepository := repositories.NewGuestRepository(queries)
+	guestResolver := services.NewGuestService(guestSession, guestRepository)
 	authService := services.NewAuthService(
 		googleAuthenticator,
 		accountSession,
@@ -140,6 +152,7 @@ func buildDependencies(
 		cfg.FrontendURL,
 		accountService,
 		authService,
+		guestResolver,
 		allergenService,
 		storeService,
 		storeMemberService,
@@ -150,10 +163,11 @@ func buildDependencies(
 	)
 
 	return &dependencies{
-		pool:                      pool,
-		accountSession:            accountSession,
-		stopAccountSessionCleanup: stopAccountSessionCleanup,
-		apiServer:                 apiServer,
+		pool:               pool,
+		accountSession:     accountSession,
+		guestSession:       guestSession,
+		stopSessionCleanup: stopSessionCleanup,
+		apiServer:          apiServer,
 	}, nil
 }
 

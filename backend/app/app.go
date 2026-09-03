@@ -25,12 +25,14 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		cfg.HTTP.CORSAllowedOrigins,
 	)
 	if err != nil {
-		deps.stopAccountSessionCleanup()
+		deps.stopSessionCleanup()
 		deps.pool.Close()
 		return nil, fmt.Errorf("initialize router: %w", err)
 	}
 
-	handler := deps.accountSession.LoadAndSave(router)
+	handler := deps.accountSession.LoadAndSave(
+		deps.guestSession.LoadAndSave(router),
+	)
 
 	httpServer := newHTTPServer(cfg.HTTP, handler)
 
@@ -41,6 +43,6 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 }
 
 func (a *App) Close() {
-	a.dependencies.stopAccountSessionCleanup()
+	a.dependencies.stopSessionCleanup()
 	a.dependencies.pool.Close()
 }
