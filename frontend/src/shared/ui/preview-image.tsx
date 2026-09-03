@@ -17,7 +17,6 @@ type PreviewImageProps =
       alt: string;
     });
 
-// TODO: メニュー登録画面でも使いそうなので、aspect比とか変えられるようにリファクタする
 export function PreviewImage({
   className,
   alt,
