@@ -5,7 +5,7 @@ import { HeadingCard } from "@/shared/ui/heading-card";
 import { PlusIcon } from "lucide-react";
 import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { storeMenusQueryOptions } from "@/entities/menu/api/fetch-store-menus";
+import { storeMenusQueryOptions } from "@/entities/menu";
 import { Menu } from "@/entities/menu";
 import { Card } from "@/shared/ui/card";
 import { PreviewImage } from "@/shared/ui/preview-image";

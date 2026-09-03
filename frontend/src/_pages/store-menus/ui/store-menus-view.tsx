@@ -1,5 +1,5 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { storeMenusQueryOptions } from "@/entities/menu/api/fetch-store-menus";
+import { storeMenusQueryOptions } from "@/entities/menu";
 import { Editor } from "./editor";
 import { MenuList } from "./menu-list";
 import { createQueryClient } from "@/shared/api";
