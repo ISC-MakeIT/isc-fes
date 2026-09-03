@@ -59,9 +59,16 @@ func NewGuestSession(
 
 // LoadAndSaveはGuestセッションを読み書きし、期限が近い有効なセッションだけ更新する。
 // Guest IDが保存されていないリクエストではセッションを作成しない。
+// 不正なGuest IDを含むセッションは破棄し、Guest未発行のリクエストとして処理を続ける。
 func (s *GuestSession) LoadAndSave(next http.Handler) http.Handler {
 	return s.manager.LoadAndSave(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := s.RenewIfNeeded(r.Context()); err != nil {
+		err := s.RenewIfNeeded(r.Context())
+		if errors.Is(err, ErrInvalidGuestSession) {
+			if err := s.manager.Destroy(r.Context()); err != nil {
+				s.manager.ErrorFunc(w, r, fmt.Errorf("destroy invalid guest session: %w", err))
+				return
+			}
+		} else if err != nil {
 			s.manager.ErrorFunc(w, r, err)
 			return
 		}

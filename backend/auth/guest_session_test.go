@@ -62,6 +62,61 @@ func TestGuestIDRejectsInvalidStoredValue(t *testing.T) {
 	}
 }
 
+func TestGuestSessionDestroysInvalidSessionAndContinuesRequest(t *testing.T) {
+	session, ctx := newTestGuestSession(t)
+	session.manager.Put(ctx, guestIDKey, "invalid")
+
+	token, _, err := session.manager.Commit(ctx)
+	if err != nil {
+		t.Fatalf("Commit() error = %v", err)
+	}
+
+	handlerCalled := false
+	handler := session.LoadAndSave(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		handlerCalled = true
+		w.WriteHeader(http.StatusNoContent)
+	}))
+
+	request := httptest.NewRequest(http.MethodGet, "/health", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  "isc_fes_guest_session",
+		Value: token,
+	})
+	recorder := httptest.NewRecorder()
+
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusNoContent {
+		t.Errorf("status = %d, want %d", recorder.Code, http.StatusNoContent)
+	}
+	if !handlerCalled {
+		t.Error("handler was not called")
+	}
+
+	var expired bool
+	for _, cookie := range recorder.Result().Cookies() {
+		if cookie.Name == "isc_fes_guest_session" && cookie.Value == "" && cookie.MaxAge < 0 {
+			expired = true
+			break
+		}
+	}
+	if !expired {
+		t.Error("invalid guest session cookie was not expired")
+	}
+
+	reloadedCtx, err := session.manager.Load(context.Background(), token)
+	if err != nil {
+		t.Fatalf("Load() destroyed session error = %v", err)
+	}
+	_, found, err := session.GuestID(reloadedCtx)
+	if err != nil {
+		t.Fatalf("GuestID() destroyed session error = %v", err)
+	}
+	if found {
+		t.Error("GuestID() destroyed session found = true, want false")
+	}
+}
+
 func TestBindGuestRejectsNilID(t *testing.T) {
 	session, ctx := newTestGuestSession(t)
 
