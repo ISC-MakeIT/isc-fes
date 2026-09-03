@@ -5,7 +5,7 @@ import { StoreInfo } from "./store-info";
 import { createQueryClient } from "@/shared/api";
 import { StoreMenuList } from "./store-menu-list";
 import { StoreMembersSection } from "./store-member-section";
-import { storeMenusQueryOptions } from "../api/fetch-store-menus";
+import { storeMenusQueryOptions } from "@/entities/menu/api/fetch-store-menus";
 import { storeMemberQueryOptions } from "../api/fetch-store-members";
 import { HeadingCard } from "@/shared/ui/heading-card";
 
