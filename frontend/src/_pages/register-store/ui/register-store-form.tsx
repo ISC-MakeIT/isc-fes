@@ -10,7 +10,7 @@ import { Textarea } from "@/shared/ui/textarea";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { ActionButton } from "@/shared/ui/action-button";
 import { useRouter } from "next/navigation";
-import { storeListUrl } from "@/shared/config";
+import { STORE_IMAGE_ASPECT, storeListUrl } from "@/shared/config";
 import { UploadImage } from "@/shared/model";
 
 const defaultFormValue: CreateStoreForm = {
@@ -140,7 +140,11 @@ export function RegisterStoreForm() {
                     onChange={(e) => field.handleChange(e.target.files?.[0])}
                     onBlur={field.handleBlur}
                   />
-                  <PreviewImage imageFile={field.state.value} />
+                  <PreviewImage
+                    imageFile={field.state.value}
+                    alt="店舗の写真"
+                    ratio={STORE_IMAGE_ASPECT}
+                  />
                 </label>
 
                 <FieldError
