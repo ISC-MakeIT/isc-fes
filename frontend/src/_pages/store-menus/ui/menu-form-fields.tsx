@@ -13,7 +13,7 @@ type MenuFormFieldsProps = {
 export function MenuFormFields({ form }: MenuFormFieldsProps) {
   const inputStyle = "border border-primary rounded-sm";
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex w-full flex-col gap-6">
       <form.Field
         name="name"
         validators={{ onChange: MenuFormValues.entries.name }}
@@ -35,8 +35,8 @@ export function MenuFormFields({ form }: MenuFormFieldsProps) {
                 <FieldError errors={field.state.meta.errors} />
               )}
             </FieldContent>
-            <p className="text-notice text-end">
-              16文字以上は省略される可能性があります
+            <p className="text-notice text-end text-sm">
+              16文字以上は、省略される可能性があります
             </p>
           </Field>
         )}

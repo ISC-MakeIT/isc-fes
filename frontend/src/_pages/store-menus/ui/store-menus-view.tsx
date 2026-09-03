@@ -23,10 +23,10 @@ export function StoreMenusView({ storeId }: StoreMenusViewProps) {
   return (
     <div className="grid grid-cols-[1fr_25rem]">
       <div className="pt-18">
-        <HeadingCard>メニュー</HeadingCard>
+        <HeadingCard className="px-8 py-4">メニュー</HeadingCard>
 
         <ActionButton
-          className="gap-0 text-lg font-bold"
+          className="px-6 py-4 text-lg font-bold"
           isDot={false}
           onClick={() => setActiveForm(FormType.CreateMenu)}
         >
@@ -34,7 +34,7 @@ export function StoreMenusView({ storeId }: StoreMenusViewProps) {
           メニューの追加
         </ActionButton>
       </div>
-      <div className="border-primary min-h-screen border-l pt-18">
+      <div className="border-primary flex min-h-screen flex-col border-l px-6 pt-18">
         {activeForm === FormType.CreateMenu && (
           <CreateMenuForm storeId={storeId} />
         )}

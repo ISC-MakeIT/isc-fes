@@ -45,7 +45,7 @@ export function CreateMenuForm({ storeId }: CreateMenuFormProps) {
 
   return (
     <div className="space-y-10">
-      <HeadingCard className="bg-secondary-heading-card">
+      <HeadingCard className="bg-secondary-heading-card px-8 py-4">
         メニューの追加
       </HeadingCard>
       <form
@@ -63,7 +63,11 @@ export function CreateMenuForm({ storeId }: CreateMenuFormProps) {
           </p>
         )}
 
-        <ActionButton disabled={mutation.isPending} type="submit">
+        <ActionButton
+          disabled={mutation.isPending}
+          type="submit"
+          className="px-14 py-4 text-xl"
+        >
           メニューを追加
         </ActionButton>
       </form>
