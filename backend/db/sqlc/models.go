@@ -162,6 +162,17 @@ type Allergen struct {
 	Name string    `json:"name"`
 }
 
+type Guest struct {
+	ID        uuid.UUID          `json:"id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type GuestSession struct {
+	Token  string             `json:"token"`
+	Data   []byte             `json:"data"`
+	Expiry pgtype.Timestamptz `json:"expiry"`
+}
+
 type Menu struct {
 	ID             uuid.UUID          `json:"id"`
 	StoreID        uuid.UUID          `json:"store_id"`
