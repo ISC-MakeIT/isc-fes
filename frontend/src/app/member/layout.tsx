@@ -1,6 +1,7 @@
-import { SESSION_COOKIE_NAME } from "@/shared/config";
+import { currentAccountQueryOptions } from "@/entities/account";
+import { createQueryClient } from "@/shared/api";
 import { loginUrl } from "@/shared/config";
-import { cookies } from "next/headers";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
 
 /**
@@ -8,9 +9,13 @@ import { redirect } from "next/navigation";
  * TTFBが伸びる関係でここではsessionだけを見た楽観的なアクセス制限を行っている
  */
 export default async function MemberLayout(props: LayoutProps<"/">) {
-  const sessionCookie = (await cookies()).get(SESSION_COOKIE_NAME);
+  const queryClient = createQueryClient();
+  const data = await queryClient.fetchQuery(currentAccountQueryOptions());
+  if (!data) redirect(loginUrl());
 
-  if (!sessionCookie) redirect(loginUrl());
-
-  return props.children;
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      {props.children}
+    </HydrationBoundary>
+  );
 }
