@@ -74,13 +74,12 @@ func configureAccountSessionCookie(
 	secure bool,
 	domain string,
 ) {
-	manager.Cookie.Name = "isc_fes_account_session"
-	manager.Cookie.Path = "/"
-	manager.Cookie.Domain = domain
-	manager.Cookie.HttpOnly = true
-	manager.Cookie.SameSite = http.SameSiteLaxMode
-	manager.Cookie.Secure = secure
-	manager.Cookie.Persist = true
+	configureSessionCookie(
+		manager,
+		"isc_fes_account_session",
+		secure,
+		domain,
+	)
 }
 
 func (s *AccountSession) LoadAndSave(next http.Handler) http.Handler {
