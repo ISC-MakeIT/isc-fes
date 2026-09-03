@@ -22,11 +22,12 @@ export function CreateMenuForm({ storeId }: CreateMenuFormProps) {
     mutationFn: createMenu,
   });
 
+  // TODO: 作成成功時にメニューをもう一度fetchさせる
   const form = useMenuForm({
     initialValues: defaultFormValue,
     requiresImage: true,
     onSubmit: async (values) => {
-      mutation.mutate({ storeId, formValues: values });
+      await mutation.mutateAsync({ storeId, formValues: values });
     },
   });
   return (
@@ -49,7 +50,12 @@ export function CreateMenuForm({ storeId }: CreateMenuFormProps) {
           </p>
         )}
 
-        <ActionButton type="submit">メニューを追加</ActionButton>
+        <ActionButton
+          disabled={mutation.isPending && mutation.isSuccess}
+          type="submit"
+        >
+          メニューを追加
+        </ActionButton>
       </form>
     </div>
   );
