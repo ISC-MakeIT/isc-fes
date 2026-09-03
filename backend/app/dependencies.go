@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -28,11 +29,17 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// sessionMiddlewareは、HTTPリクエストへセッションを読み書きする境界。
+// AccountとGuestの各Session実装を同じ形で組み込めるようにする。
+type sessionMiddleware interface {
+	LoadAndSave(next http.Handler) http.Handler
+}
+
 type dependencies struct {
-	pool               *pgxpool.Pool
-	sessions           *auth.Sessions
-	stopSessionCleanup func()
-	apiServer          *routers.Server
+	pool                      *pgxpool.Pool
+	accountSession            sessionMiddleware
+	stopAccountSessionCleanup func()
+	apiServer                 *routers.Server
 }
 
 func buildDependencies(
@@ -49,7 +56,7 @@ func buildDependencies(
 		return nil, fmt.Errorf("ping database: %w", err)
 	}
 
-	sessions, stopSessionCleanup := auth.NewSessions(
+	accountSession, stopAccountSessionCleanup := auth.NewAccountSession(
 		pool,
 		cfg.Auth.SessionCookieSecure,
 		cfg.Auth.SessionCookieDomain,
@@ -64,14 +71,14 @@ func buildDependencies(
 		},
 	)
 	if err != nil {
-		stopSessionCleanup()
+		stopAccountSessionCleanup()
 		pool.Close()
 		return nil, fmt.Errorf("initialize Google auth: %w", err)
 	}
 
 	s3Client, err := newS3Client(ctx, cfg.S3)
 	if err != nil {
-		stopSessionCleanup()
+		stopAccountSessionCleanup()
 		pool.Close()
 		return nil, err
 	}
@@ -89,7 +96,7 @@ func buildDependencies(
 	} else {
 		imgGenerator, err = imageurl.NewCloudFrontImageURLGenerator(cfg.StoreImageBaseURL)
 		if err != nil {
-			stopSessionCleanup()
+			stopAccountSessionCleanup()
 			pool.Close()
 			return nil, fmt.Errorf("initialize store image URL generator: %w", err)
 		}
@@ -102,11 +109,11 @@ func buildDependencies(
 	toppingsRepository := toppings_repository.NewToppingsRepository(queries, pool)
 	accountService := services.NewAccountService(
 		accountRepository,
-		sessions,
+		accountSession,
 	)
 	authService := services.NewAuthService(
 		googleAuthenticator,
-		sessions,
+		accountSession,
 		accountRepository,
 	)
 	storeService := services.NewStoreService(
@@ -114,7 +121,7 @@ func buildDependencies(
 		imageRepository,
 		storeRepository,
 		allergensRepository,
-		sessions,
+		accountSession,
 		imgGenerator,
 	)
 	storeMemberService := members.NewStoreMemberService(storeMemberRepository)
@@ -129,7 +136,6 @@ func buildDependencies(
 
 	apiServer := routers.NewServer(
 		queries,
-		sessions,
 		googleAuthenticator,
 		cfg.FrontendURL,
 		accountService,
@@ -144,10 +150,10 @@ func buildDependencies(
 	)
 
 	return &dependencies{
-		pool:               pool,
-		sessions:           sessions,
-		stopSessionCleanup: stopSessionCleanup,
-		apiServer:          apiServer,
+		pool:                      pool,
+		accountSession:            accountSession,
+		stopAccountSessionCleanup: stopAccountSessionCleanup,
+		apiServer:                 apiServer,
 	}, nil
 }
 

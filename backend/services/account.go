@@ -22,13 +22,13 @@ type AccountSession interface {
 
 type AccountService struct {
 	accountRepository AccountRepository
-	sessions          AccountSession
+	session           AccountSession
 }
 
-func NewAccountService(accountRepository AccountRepository, sessions AccountSession) *AccountService {
+func NewAccountService(accountRepository AccountRepository, session AccountSession) *AccountService {
 	return &AccountService{
 		accountRepository: accountRepository,
-		sessions:          sessions,
+		session:           session,
 	}
 }
 
@@ -38,14 +38,14 @@ func (s *AccountService) GetAccountByID(ctx context.Context, accountID uuid.UUID
 
 // 現在のセッションのアカウントを取得する
 func (s *AccountService) GetCurrentAccount(ctx context.Context) (entities.Account, error) {
-	accountID, err := s.sessions.AccountID(ctx)
+	accountID, err := s.session.AccountID(ctx)
 	if err != nil {
 		return entities.Account{}, ErrUnauthenticated
 	}
 
 	acc, err := s.accountRepository.GetAccountByID(ctx, accountID)
 	if errors.Is(err, ErrAccountNotFound) || errors.Is(err, pgx.ErrNoRows) {
-		_ = s.sessions.SignOut(ctx) // DB からアカウントが削除されている場合、セッションも破棄する
+		_ = s.session.SignOut(ctx) // DB からアカウントが削除されている場合、セッションも破棄する
 		return entities.Account{}, ErrUnauthenticated
 	}
 

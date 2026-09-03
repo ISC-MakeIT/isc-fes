@@ -2,7 +2,7 @@ import { createApiClient } from "@/shared/api";
 import {
   currentAccountKey,
   getStatusMessage,
-  SESSION_COOKIE_NAME,
+  ACCOUNT_SESSION_COOKIE_NAME,
   STATUS,
 } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
@@ -21,7 +21,7 @@ export async function fetchCurrentAccount(): FetchCurrentAccountResult {
   const isServer = typeof window === "undefined";
   if (isServer) {
     const { cookies } = await import("next/headers");
-    const session = (await cookies()).get(SESSION_COOKIE_NAME);
+    const session = (await cookies()).get(ACCOUNT_SESSION_COOKIE_NAME);
     if (!session) return null;
   }
 

@@ -14,7 +14,7 @@ import (
 // 正しいstateでOAuthフローを取得でき、取得後は再利用できないことを確認する。
 // これによりcallbackのリプレイを防ぐ単回使用であることをテストする。
 func TestConsumeOAuthWithValidStateConsumesFlow(t *testing.T) {
-	sessions, ctx := newTestSessions(t)
+	sessions, ctx := newTestAccountSession(t)
 
 	want, err := sessions.BeginOAuth(ctx)
 	if err != nil {
@@ -62,7 +62,7 @@ func TestConsumeOAuthWithValidStateConsumesFlow(t *testing.T) {
 // 不正なstateを受け取っても、正規ユーザーが開始したOAuthフローを
 // 攻撃者のリクエストで破棄できないことを確認する。
 func TestConsumeOAuthWithInvalidStatePreservesFlow(t *testing.T) {
-	sessions, ctx := newTestSessions(t)
+	sessions, ctx := newTestAccountSession(t)
 
 	flow, err := sessions.BeginOAuth(ctx)
 	if err != nil {
@@ -92,7 +92,7 @@ func TestConsumeOAuthWithInvalidStatePreservesFlow(t *testing.T) {
 // 有効期限を過ぎたOAuthフローを拒否し、正しいstateを提示済みの
 // 期限切れフローは再利用できないことを確認する。
 func TestConsumeOAuthRejectsAndConsumesExpiredFlow(t *testing.T) {
-	sessions, ctx := newTestSessions(t)
+	sessions, ctx := newTestAccountSession(t)
 
 	flow, err := sessions.BeginOAuth(ctx)
 	if err != nil {
@@ -132,7 +132,7 @@ func TestConsumeOAuthRejectsAndConsumesExpiredFlow(t *testing.T) {
 // SignInで保存したaccount IDがリクエストをまたいでも復元できることを確認する。
 // UUIDはGobへ直接保存せず文字列化しているため、CommitとLoadも実際に通す。
 func TestSignInPersistsAccountID(t *testing.T) {
-	sessions, ctx := newTestSessions(t)
+	sessions, ctx := newTestAccountSession(t)
 	want := uuid.New()
 
 	if err := sessions.SignIn(ctx, want); err != nil {
@@ -152,7 +152,7 @@ func TestSignInPersistsAccountID(t *testing.T) {
 
 // account IDがないセッションを、ログイン済みとして扱わないことを確認する。
 func TestAccountIDWithoutSignIn(t *testing.T) {
-	sessions, ctx := newTestSessions(t)
+	sessions, ctx := newTestAccountSession(t)
 
 	_, err := sessions.AccountID(ctx)
 	if !errors.Is(err, ErrNotAuthenticated) {
@@ -184,7 +184,7 @@ func TestConfigureSessionCookieDomain(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			manager := scs.New()
 
-			configureSessionCookie(manager, true, test.domain)
+			configureAccountSessionCookie(manager, true, test.domain)
 
 			if manager.Cookie.Domain != test.domain {
 				t.Errorf(
@@ -213,7 +213,7 @@ func TestConfigureSessionCookieDomain(t *testing.T) {
 // Postgresを起動せず高速に実行できるよう、SCS標準のメモリStoreを使う。
 // HashTokenInStoreは本番と同じ設定にして、Cookieの生トークンではなく
 // ハッシュをStoreのキーとして扱う経路もテストする。
-func newTestSessions(t *testing.T) (*Sessions, context.Context) {
+func newTestAccountSession(t *testing.T) (*AccountSession, context.Context) {
 	t.Helper()
 
 	manager := scs.New()
@@ -224,7 +224,7 @@ func newTestSessions(t *testing.T) (*Sessions, context.Context) {
 		t.Fatalf("load test session: %v", err)
 	}
 
-	return &Sessions{manager: manager}, ctx
+	return &AccountSession{manager: manager}, ctx
 }
 
 // セッションをStoreへ保存し、Cookieから受け取ったトークンで次のリクエストへ
@@ -232,7 +232,7 @@ func newTestSessions(t *testing.T) (*Sessions, context.Context) {
 // Gobエンコードや永続化の問題も、この境界を通すことで検出できる。
 func commitAndReloadSession(
 	t *testing.T,
-	sessions *Sessions,
+	sessions *AccountSession,
 	ctx context.Context,
 ) context.Context {
 	t.Helper()

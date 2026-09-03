@@ -13,7 +13,6 @@ import (
 
 type Server struct {
 	queries             *db.Queries
-	sessions            *auth.Sessions
 	googleAuthenticator *auth.GoogleAuthenticator
 	frontendURL         string
 	accountService      *services.AccountService
@@ -29,7 +28,6 @@ type Server struct {
 
 func NewServer(
 	queries *db.Queries,
-	sessions *auth.Sessions,
 	googleAuthenticator *auth.GoogleAuthenticator,
 	frontendURL string,
 	accountService *services.AccountService,
@@ -44,7 +42,6 @@ func NewServer(
 ) *Server {
 	return &Server{
 		queries:             queries,
-		sessions:            sessions,
 		googleAuthenticator: googleAuthenticator,
 		frontendURL:         frontendURL,
 		accountService:      accountService,
