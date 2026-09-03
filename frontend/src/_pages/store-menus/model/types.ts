@@ -6,7 +6,7 @@ import { UploadImage } from "@/shared/model";
 export const MenuFormValues = v.object({
   name: MenuName,
   image: v.optional(UploadImage),
-  unitPrice: MenuUnitPrice,
+  unitPrice: v.optional(MenuUnitPrice),
   description: MenuDescription,
   // TODO: トッピング
 });

@@ -12,7 +12,7 @@ import { useEffect } from "react";
 const defaultFormValue: MenuFormValues = {
   name: "",
   image: undefined,
-  unitPrice: 0,
+  unitPrice: undefined,
   description: "",
 };
 
