@@ -5,6 +5,9 @@ import { MenuFormValues } from "../model/types";
 import { createMenu } from "../api/create-menu";
 import { useMutation } from "@tanstack/react-query";
 import { ActionButton } from "@/shared/ui/action-button";
+import { createQueryClient } from "@/shared/api";
+import { storeMenusKey } from "@/shared/config";
+import { useEffect } from "react";
 
 const defaultFormValue: MenuFormValues = {
   name: "",
@@ -18,11 +21,14 @@ type CreateMenuFormProps = {
 };
 
 export function CreateMenuForm({ storeId }: CreateMenuFormProps) {
+  const client = createQueryClient();
   const mutation = useMutation({
     mutationFn: createMenu,
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: storeMenusKey(storeId) });
+    },
   });
 
-  // TODO: 作成成功時にメニューをもう一度fetchさせる
   const form = useMenuForm({
     initialValues: defaultFormValue,
     requiresImage: true,
@@ -30,6 +36,13 @@ export function CreateMenuForm({ storeId }: CreateMenuFormProps) {
       await mutation.mutateAsync({ storeId, formValues: values });
     },
   });
+
+  useEffect(() => {
+    if (mutation.isSuccess) {
+      form.reset();
+    }
+  }, [form, mutation.isSuccess]);
+
   return (
     <div className="space-y-10">
       <HeadingCard className="bg-secondary-heading-card">
@@ -50,10 +63,7 @@ export function CreateMenuForm({ storeId }: CreateMenuFormProps) {
           </p>
         )}
 
-        <ActionButton
-          disabled={mutation.isPending && mutation.isSuccess}
-          type="submit"
-        >
+        <ActionButton disabled={mutation.isPending} type="submit">
           メニューを追加
         </ActionButton>
       </form>
