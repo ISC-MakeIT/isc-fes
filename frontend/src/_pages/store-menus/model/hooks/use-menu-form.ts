@@ -5,7 +5,7 @@ import { MenuFormValues } from "../types";
 
 type UseMenuFormOptions = {
   initialValues: MenuFormValues;
-  requiresImage: true;
+  requiresImage: boolean;
   onSubmit: (values: MenuFormValues) => Promise<void>;
 };
 
