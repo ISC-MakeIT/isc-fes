@@ -4,22 +4,27 @@ import { Input } from "@/shared/ui/input";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { Textarea } from "@/shared/ui/textarea";
 import { MenuFormApi } from "../model/hooks/use-menu-form";
+import { MENU_IMAGE_ASPECT } from "@/shared/config";
 
 type MenuFormFieldsProps = {
   form: MenuFormApi;
 };
 
 export function MenuFormFields({ form }: MenuFormFieldsProps) {
+  const inputStyle = "border border-primary rounded-sm";
   return (
-    <>
+    <div className="flex flex-col gap-6">
       <form.Field
         name="name"
         validators={{ onChange: MenuFormValues.entries.name }}
         children={(field) => (
-          <Field>
-            <FieldLabel htmlFor={field.name}>商品名</FieldLabel>
+          <Field className="flex flex-col gap-2">
+            <FieldLabel className="text-xl" htmlFor={field.name}>
+              商品名
+            </FieldLabel>
             <FieldContent>
               <Input
+                className={inputStyle}
                 id={field.name}
                 name={field.name}
                 value={field.state.value}
@@ -29,8 +34,10 @@ export function MenuFormFields({ form }: MenuFormFieldsProps) {
               {field.state.meta.isTouched && (
                 <FieldError errors={field.state.meta.errors} />
               )}
-              <p>16文字以上は省略される可能性があります</p>
             </FieldContent>
+            <p className="text-notice text-end">
+              16文字以上は省略される可能性があります
+            </p>
           </Field>
         )}
       />
@@ -40,7 +47,9 @@ export function MenuFormFields({ form }: MenuFormFieldsProps) {
         validators={{ onChange: MenuFormValues.entries.image }}
         children={(field) => (
           <Field>
-            <FieldLabel htmlFor={field.name}>商品画像</FieldLabel>
+            <FieldLabel className="text-xl" htmlFor={field.name}>
+              商品画像
+            </FieldLabel>
             <FieldContent>
               <label htmlFor={field.name} className="cursor-pointer">
                 <input
@@ -48,10 +57,16 @@ export function MenuFormFields({ form }: MenuFormFieldsProps) {
                   accept="image/jpeg,image/png,image/webp"
                   id={field.name}
                   name={field.name}
+                  className="sr-only"
                   onChange={(e) => field.handleChange(e.target.files?.[0])}
                   onBlur={field.handleBlur}
                 />
-                <PreviewImage imageFile={field.state.value} />
+                <PreviewImage
+                  className={inputStyle}
+                  ratio={MENU_IMAGE_ASPECT}
+                  imageFile={field.state.value}
+                  alt="登録する商品画像"
+                />
               </label>
 
               {field.state.meta.isTouched && (
@@ -67,9 +82,12 @@ export function MenuFormFields({ form }: MenuFormFieldsProps) {
         validators={{ onChange: MenuFormValues.entries.unitPrice }}
         children={(field) => (
           <Field>
-            <FieldLabel htmlFor={field.name}>値段</FieldLabel>
+            <FieldLabel className="text-xl" htmlFor={field.name}>
+              値段
+            </FieldLabel>
             <FieldContent>
               <Input
+                className={inputStyle}
                 type="number"
                 id={field.name}
                 name={field.name}
@@ -93,9 +111,12 @@ export function MenuFormFields({ form }: MenuFormFieldsProps) {
         validators={{ onChange: MenuFormValues.entries.description }}
         children={(field) => (
           <Field>
-            <FieldLabel htmlFor={field.name}>商品説明</FieldLabel>
+            <FieldLabel className="text-xl" htmlFor={field.name}>
+              商品説明
+            </FieldLabel>
             <FieldContent>
               <Textarea
+                className={inputStyle}
                 id={field.name}
                 name={field.name}
                 value={field.state.value}
@@ -109,6 +130,8 @@ export function MenuFormFields({ form }: MenuFormFieldsProps) {
           </Field>
         )}
       />
-    </>
+
+      {/* TODO: トッピング */}
+    </div>
   );
 }

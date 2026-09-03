@@ -30,11 +30,12 @@ export function CreateMenuForm({ storeId }: CreateMenuFormProps) {
     },
   });
   return (
-    <div>
+    <div className="space-y-10">
       <HeadingCard className="bg-secondary-heading-card">
         メニューの追加
       </HeadingCard>
       <form
+        className="flex flex-col items-center gap-10"
         onSubmit={(e) => {
           e.preventDefault();
           form.handleSubmit();
