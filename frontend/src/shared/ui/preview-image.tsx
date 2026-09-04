@@ -5,18 +5,18 @@ import { ComponentProps, useEffect, useState } from "react";
 import { AspectRatioImage } from "./aspect-ratio-image";
 import { cn } from "../lib/utils";
 
-type PreviewImageProps =
-  | (ComponentProps<typeof AspectRatio> & {
-      imageFile: File | undefined;
-      imagePath?: never;
-      alt: string;
-    })
-  | (ComponentProps<typeof AspectRatio> & {
-      imageFile?: never;
-      imagePath: string;
-      alt: string;
-    });
+type PreviewImageProps = ComponentProps<typeof AspectRatio> & {
+  imageFile?: File | undefined;
+  imagePath?: string;
+  alt: string;
+};
 
+/**
+ * 画像を比率固定にして表示するコンポーネント
+ * iamgePathとimageFileどっちも渡した場合、imageFileが優先される
+ * @param
+ * @returns
+ */
 export function PreviewImage({
   className,
   alt,
@@ -25,7 +25,7 @@ export function PreviewImage({
   imagePath,
 }: PreviewImageProps) {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
-  const previewUrl = imagePath ?? objectUrl;
+  const previewUrl = objectUrl ?? imagePath;
 
   useEffect(() => {
     if (!imageFile) {
