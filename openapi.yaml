@@ -977,6 +977,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /stores/{store_id}/carts:
+    get:
+      operationId: getStoreCart
+      summary: 店舗の自分のカートを取得する（Guest セッションがない場合は空カートが返る）
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 店舗のカート
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない、または承認済みではない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /store-invitations/{invitation_id}/accept:
     post:
       operationId: acceptStoreInvitation
@@ -1269,6 +1306,92 @@ components:
           format: uuid
         role:
           $ref: "#/components/schemas/StoreMemberRole"
+    Cart:
+      type: object
+      required:
+        - storeId
+        - items
+        - totalAmount
+        - canCheckout
+      properties:
+        storeId:
+          type: string
+          format: uuid
+        totalAmount:
+          type: integer
+        canCheckout:
+          type: boolean
+          description: カートの内容で注文可能かどうか。店舗が閉店している場合、カートに利用できないアイテムが含まれている場合、カートがからの場合はfalseになる。
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItem"
+    CartItem:
+      required:
+        - id
+        - menuId
+        - name
+        - imageUrl
+        - quantity
+        - unitPrice
+        - available
+        - toppings
+      properties:
+        id:
+          type: string
+          format: uuid
+        menuId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        imageUrl:
+          type: string
+        available:
+          type: boolean
+          description: メニューが現在利用可能かどうか。店舗がメニューを削除した場合や売り切れはfalseになる。
+        storeId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          format: int32
+        unitPrice:
+          type: integer
+          format: int32
+        toppings:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItemTopping"
+    CartItemTopping:
+      type: object
+      required:
+        - menuId
+        - toppingId
+        - name
+        - unitPrice
+        - available
+      properties:
+        id:
+          type: string
+          format: uuid
+        cartItemId:
+          type: string
+          format: uuid
+        menuId:
+          type: string
+          format: uuid
+        toppingId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        unitPrice:
+          type: integer
+          format: int32
+        available:
+          type: boolean
+          description: トッピングが現在利用可能かどうか。店舗がトッピングを削除した場合や在庫切れはfalseになる。
     Store:
       type: object
       required:

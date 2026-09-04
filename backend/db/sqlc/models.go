@@ -162,6 +162,28 @@ type Allergen struct {
 	Name string    `json:"name"`
 }
 
+type Cart struct {
+	ID      uuid.UUID `json:"id"`
+	GuestID uuid.UUID `json:"guest_id"`
+	StoreID uuid.UUID `json:"store_id"`
+}
+
+type CartItem struct {
+	ID        uuid.UUID          `json:"id"`
+	CartID    uuid.UUID          `json:"cart_id"`
+	MenuID    uuid.UUID          `json:"menu_id"`
+	StoreID   uuid.UUID          `json:"store_id"`
+	Quantity  int32              `json:"quantity"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type CartItemTopping struct {
+	ID         uuid.UUID `json:"id"`
+	CartItemID uuid.UUID `json:"cart_item_id"`
+	MenuID     uuid.UUID `json:"menu_id"`
+	ToppingID  uuid.UUID `json:"topping_id"`
+}
+
 type Guest struct {
 	ID        uuid.UUID          `json:"id"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`

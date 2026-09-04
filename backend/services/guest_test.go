@@ -33,6 +33,27 @@ type stubGuestRepository struct {
 	callCount int
 }
 
+func TestResolveGuestDoesNotCreateGuest(t *testing.T) {
+	want := uuid.New()
+	session := &stubGuestSession{guestID: want, found: true}
+	repository := &stubGuestRepository{}
+	service := NewGuestService(session, repository)
+
+	got, found, err := service.ResolveGuest(t.Context())
+	if err != nil {
+		t.Fatalf("ResolveGuest() error = %v", err)
+	}
+	if !found {
+		t.Fatal("ResolveGuest() found = false, want true")
+	}
+	if got != want {
+		t.Errorf("ResolveGuest() = %v, want %v", got, want)
+	}
+	if repository.callCount != 0 {
+		t.Errorf("CreateGuest() calls = %d, want 0", repository.callCount)
+	}
+}
+
 func (r *stubGuestRepository) CreateGuest(context.Context) (uuid.UUID, error) {
 	r.callCount++
 	return r.guestID, r.err
