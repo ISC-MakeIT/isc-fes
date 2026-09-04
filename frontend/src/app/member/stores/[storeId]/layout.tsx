@@ -7,9 +7,9 @@ import {
 } from "@/widgets/app-sidebar";
 
 export default async function StoreManagerLayout(
-  props: LayoutProps<"/member/stores/[id]">,
+  props: LayoutProps<"/member/stores/[storeId]">,
 ) {
-  const { id: storeId } = await props.params;
+  const { storeId } = await props.params;
   return (
     <SidebarProvider
       style={

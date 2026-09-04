@@ -13,11 +13,7 @@ enum FormType {
   EditTopping = "editTopping",
 }
 
-type StoreMenusViewProps = {
-  storeId: string;
-};
-
-export function StoreMenusView({ storeId }: StoreMenusViewProps) {
+export function StoreMenusView() {
   const [activeForm, setActiveForm] = useState<FormType | null>(null);
 
   return (
@@ -35,9 +31,7 @@ export function StoreMenusView({ storeId }: StoreMenusViewProps) {
         </ActionButton>
       </div>
       <div className="border-primary flex min-h-screen flex-col border-l px-6 pt-18">
-        {activeForm === FormType.CreateMenu && (
-          <CreateMenuForm storeId={storeId} />
-        )}
+        {activeForm === FormType.CreateMenu && <CreateMenuForm />}
       </div>
     </div>
   );

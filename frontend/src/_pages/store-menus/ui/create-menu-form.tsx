@@ -1,3 +1,5 @@
+"use client";
+
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { useMenuForm } from "../model/hooks/use-menu-form";
 import { MenuFormFields } from "./menu-form-fields";
@@ -9,6 +11,7 @@ import { createQueryClient } from "@/shared/api";
 import { storeMenusKey } from "@/shared/config";
 import { useEffect } from "react";
 import { v } from "@/shared/lib/valibot";
+import { useStoreId } from "../model/hooks/use-store-id";
 
 const defaultFormValue: MenuFormValues = {
   name: "",
@@ -17,11 +20,8 @@ const defaultFormValue: MenuFormValues = {
   description: "",
 };
 
-type CreateMenuFormProps = {
-  storeId: string;
-};
-
-export function CreateMenuForm({ storeId }: CreateMenuFormProps) {
+export function CreateMenuForm() {
+  const storeId = useStoreId();
   const client = createQueryClient();
   const mutation = useMutation({
     mutationFn: createMenu,
