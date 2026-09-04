@@ -5,16 +5,11 @@ import { CreateMenuInput, MenuFormValues } from "../types";
 
 type UseMenuFormOptions = {
   initialValues: MenuFormValues;
-  requiresImage: boolean;
   onSubmit: (values: MenuFormValues) => Promise<void>;
 };
 
 // menu-form-fields側からtanstack formの型を使うためのフック
-export function useMenuForm({
-  initialValues,
-  requiresImage,
-  onSubmit,
-}: UseMenuFormOptions) {
+export function useMenuForm({ initialValues, onSubmit }: UseMenuFormOptions) {
   return useForm({
     defaultValues: initialValues,
     validators: {

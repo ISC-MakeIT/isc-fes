@@ -32,7 +32,6 @@ export function CreateMenuForm({ storeId }: CreateMenuFormProps) {
 
   const form = useMenuForm({
     initialValues: defaultFormValue,
-    requiresImage: true,
     onSubmit: async (values) => {
       const createMenuInput = v.parse(CreateMenuInput, values);
       await mutation.mutateAsync({ storeId, createMenuInput });
