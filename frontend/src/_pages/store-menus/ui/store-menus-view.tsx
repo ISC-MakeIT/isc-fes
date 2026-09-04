@@ -1,6 +1,6 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { storeMenusQueryOptions } from "@/entities/menu";
-import { Editor } from "./editor";
+import { MenuEditor } from "./menu-editor";
 import { MenuList } from "./menu-list";
 import { createQueryClient } from "@/shared/api";
 import { MenuEditorProvider } from "../model/menu-editor-context";
@@ -21,7 +21,7 @@ export async function StoreMenusView({ storeId }: StoreMenusViewProps) {
             <MenuList />
           </HydrationBoundary>
         </div>
-        <Editor />
+        <MenuEditor />
       </div>
     </MenuEditorProvider>
   );

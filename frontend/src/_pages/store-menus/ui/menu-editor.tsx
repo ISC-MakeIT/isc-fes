@@ -3,7 +3,7 @@
 import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { CreateMenuForm } from "./create-menu-form";
 
-export function Editor() {
+export function MenuEditor() {
   const { menuEditor } = useMenuEditor();
   const [type] = menuEditor;
   return (
