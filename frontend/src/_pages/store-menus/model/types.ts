@@ -22,3 +22,13 @@ export const CreateMenuInput = v.object({
   // TODO: トッピング
 });
 export type CreateMenuInput = v.InferOutput<typeof CreateMenuInput>;
+
+export const EditMenuInput = v.object({
+  name: MenuName,
+  // 編集時は画像を選択しなかったら今の画像が維持される
+  image: v.optional(UploadImage),
+  unitPrice: MenuUnitPrice,
+  description: MenuDescription,
+  // TODO: トッピング
+});
+export type EditMenuInput = v.InferOutput<typeof EditMenuInput>;

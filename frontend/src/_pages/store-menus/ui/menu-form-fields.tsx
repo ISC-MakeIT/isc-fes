@@ -8,9 +8,10 @@ import { MENU_IMAGE_ASPECT } from "@/shared/config";
 
 type MenuFormFieldsProps = {
   form: MenuFormApi;
+  initialImageUrl?: string;
 };
 
-export function MenuFormFields({ form }: MenuFormFieldsProps) {
+export function MenuFormFields({ form, initialImageUrl }: MenuFormFieldsProps) {
   const inputStyle = "border border-primary rounded-sm";
   return (
     <div className="flex w-full flex-col gap-6">
@@ -65,6 +66,7 @@ export function MenuFormFields({ form }: MenuFormFieldsProps) {
                   className={inputStyle}
                   ratio={MENU_IMAGE_ASPECT}
                   imageFile={field.state.value}
+                  imagePath={initialImageUrl}
                   alt="登録する商品画像"
                 />
               </label>

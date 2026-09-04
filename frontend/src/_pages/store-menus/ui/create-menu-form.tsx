@@ -30,6 +30,7 @@ export function CreateMenuForm() {
   });
 
   const form = useMenuForm({
+    submitSchema: CreateMenuInput,
     initialValues: defaultFormValue,
     onSubmit: async (values) => {
       const createMenuInput = v.parse(CreateMenuInput, values);
