@@ -18,7 +18,7 @@ export async function StoreMenusView({ storeId }: StoreMenusViewProps) {
       <div className="grid grid-cols-[1fr_25rem]">
         <div className="px-4 pt-18">
           <HydrationBoundary state={dehydrate(client)}>
-            <MenuList storeId={storeId} />
+            <MenuList />
           </HydrationBoundary>
         </div>
         <Editor />

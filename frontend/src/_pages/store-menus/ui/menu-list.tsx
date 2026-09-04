@@ -10,12 +10,10 @@ import { Menu } from "@/entities/menu";
 import { Card } from "@/shared/ui/card";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { MENU_IMAGE_ASPECT } from "@/shared/config";
+import { useStoreId } from "../model/hooks/use-store-id";
 
-type MenuListProps = {
-  storeId: string;
-};
-
-export function MenuList({ storeId }: MenuListProps) {
+export function MenuList() {
+  const storeId = useStoreId();
   const { setMenuEditor } = useMenuEditor();
   const { data: menus } = useSuspenseQuery(storeMenusQueryOptions(storeId));
 
