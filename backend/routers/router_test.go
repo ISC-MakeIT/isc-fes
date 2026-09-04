@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
@@ -19,6 +20,17 @@ type stubCurrentAccountLoader struct {
 	account entities.Account
 	err     error
 	calls   int
+}
+
+type stubGuestResolver struct {
+	guestID uuid.UUID
+	err     error
+	calls   int
+}
+
+func (s *stubGuestResolver) ResolveOrCreateGuest(context.Context) (uuid.UUID, error) {
+	s.calls++
+	return s.guestID, s.err
 }
 
 func (s *stubCurrentAccountLoader) GetCurrentAccount(context.Context) (entities.Account, error) {
@@ -34,24 +46,78 @@ func mustOpenAPIRequestValidator(
 
 	validator, err := newOpenAPIRequestValidator(
 		accountLoader,
-		func(c *gin.Context, err error) {
-			if errors.Is(err, services.ErrUnauthenticated) {
-				c.AbortWithStatusJSON(http.StatusUnauthorized, ErrorResponse{
-					Message: "未ログインです",
-				})
-				return
-			}
-
-			c.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{
-				Message: "サーバー内部でエラーが発生しました",
-			})
-		},
+		handleTestAuthenticationError,
 	)
 	if err != nil {
 		t.Fatalf("newOpenAPIRequestValidator() error = %v", err)
 	}
 
 	return validator
+}
+
+func handleTestAuthenticationError(c *gin.Context, err error) {
+	if errors.Is(err, services.ErrUnauthenticated) {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, ErrorResponse{
+			Message: "未ログインです",
+		})
+		return
+	}
+
+	c.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{
+		Message: "サーバー内部でエラーが発生しました",
+	})
+}
+
+func guestSessionSecurityRequirement() *openapi3.SecurityRequirements {
+	requirements := openapi3.SecurityRequirements{
+		openapi3.SecurityRequirement{guestSessionSecurityScheme: []string{}},
+	}
+	return &requirements
+}
+
+func TestOpenAPIRequestValidatorResolvesGuestForGuestSessionOperation(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	want := uuid.New()
+	guestResolver := &stubGuestResolver{guestID: want}
+
+	swagger, err := GetSwagger()
+	if err != nil {
+		t.Fatalf("GetSwagger() error = %v", err)
+	}
+	swagger.Paths.Find("/health").Get.Security = guestSessionSecurityRequirement()
+
+	router := gin.New()
+	router.GET(
+		"/health",
+		openAPIRequestValidator(swagger, &stubCurrentAccountLoader{}, handleTestAuthenticationError),
+		resolveRequiredGuestSession(guestResolver, handleTestAuthenticationError),
+		func(c *gin.Context) {
+			got, err := services.RequireGuest(c.Request.Context())
+			if err != nil {
+				t.Errorf("RequireGuest() error = %v", err)
+				c.Status(http.StatusInternalServerError)
+				return
+			}
+			if got != want {
+				t.Errorf("RequireGuest() = %v, want %v", got, want)
+				c.Status(http.StatusInternalServerError)
+				return
+			}
+
+			c.Status(http.StatusNoContent)
+		},
+	)
+
+	request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/health", nil)
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+
+	if response.Code != http.StatusNoContent {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusNoContent)
+	}
+	if guestResolver.calls != 1 {
+		t.Errorf("ResolveOrCreateGuest() calls = %d, want 1", guestResolver.calls)
+	}
 }
 
 func TestRouterCORSAllowedOrigins(t *testing.T) {
@@ -206,14 +272,29 @@ func TestOpenAPIRequestValidatorReturnsInternalServerErrorOnAccountLoadFailure(t
 }
 
 func TestOpenAPIRequestValidatorRejectsInvalidRequest(t *testing.T) {
-	validator := mustOpenAPIRequestValidator(t, &stubCurrentAccountLoader{})
+	swagger, err := GetSwagger()
+	if err != nil {
+		t.Fatalf("GetSwagger() error = %v", err)
+	}
+	swagger.Paths.Find("/store-applications").Post.Security = guestSessionSecurityRequirement()
+	validator := openAPIRequestValidator(
+		swagger,
+		&stubCurrentAccountLoader{},
+		handleTestAuthenticationError,
+	)
+	guestResolver := &stubGuestResolver{}
 
 	router := gin.New()
 	handlerCalled := false
-	router.POST("/store-applications", validator, func(c *gin.Context) {
-		handlerCalled = true
-		c.Status(http.StatusNoContent)
-	})
+	router.POST(
+		"/store-applications",
+		validator,
+		resolveRequiredGuestSession(guestResolver, handleTestAuthenticationError),
+		func(c *gin.Context) {
+			handlerCalled = true
+			c.Status(http.StatusNoContent)
+		},
+	)
 
 	request := httptest.NewRequestWithContext(
 		t.Context(),
@@ -231,6 +312,9 @@ func TestOpenAPIRequestValidatorRejectsInvalidRequest(t *testing.T) {
 	}
 	if handlerCalled {
 		t.Error("handler was called for an invalid OpenAPI request")
+	}
+	if guestResolver.calls != 0 {
+		t.Errorf("ResolveOrCreateGuest() calls = %d, want 0", guestResolver.calls)
 	}
 }
 

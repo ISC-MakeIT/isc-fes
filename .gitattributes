@@ -1,0 +1,2 @@
+backend/routers/gen.go linguist-generated=true
+backend/db/sqlc/*.go linguist-generated=true

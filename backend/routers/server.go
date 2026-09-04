@@ -17,6 +17,7 @@ type Server struct {
 	frontendURL         string
 	accountService      *services.AccountService
 	auth                *services.AuthService
+	guestResolver       guestResolver
 	allergen            *allergens.AllergenService
 	store               *services.StoreService
 	storeMember         *members.StoreMemberService
@@ -32,6 +33,7 @@ func NewServer(
 	frontendURL string,
 	accountService *services.AccountService,
 	authService *services.AuthService,
+	guestResolver guestResolver,
 	allergenService *allergens.AllergenService,
 	storeService *services.StoreService,
 	storeMemberService *members.StoreMemberService,
@@ -46,6 +48,7 @@ func NewServer(
 		frontendURL:         frontendURL,
 		accountService:      accountService,
 		auth:                authService,
+		guestResolver:       guestResolver,
 		allergen:            allergenService,
 		store:               storeService,
 		storeMember:         storeMemberService,
