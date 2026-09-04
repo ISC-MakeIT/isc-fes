@@ -1,5 +1,5 @@
 import Image from "next/image";
-import appLogo from "@/shared/assets/app-logo.svg";
+import appLogo from "../_assets/app-logo.svg";
 import { DotText } from "@/shared/ui/dot-text";
 
 export function GuestHeader() {
