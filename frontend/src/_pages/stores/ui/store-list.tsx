@@ -26,7 +26,13 @@ export function StoreCard({ store }: StoreCardProps) {
       <Mask active={isPending} label="申請中">
         <Link href={storeHomeUrl(store.id)}>
           <StoreCardShell
-            image={<PreviewImage imagePath={store.imageUrl} />}
+            image={
+              <PreviewImage
+                ratio={STORE_IMAGE_ASPECT}
+                imagePath={store.imageUrl}
+                alt={`${store.name}の店舗画像`}
+              />
+            }
             title={store.name}
             description={store.description}
           />

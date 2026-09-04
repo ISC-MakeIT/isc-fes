@@ -1,18 +1,29 @@
 "use client";
 
 import { AspectRatio } from "@/shared/ui/aspect-ratio";
-import Image from "next/image";
-import { useEffect, useState } from "react";
+import { ComponentProps, useEffect, useState } from "react";
+import { AspectRatioImage } from "./aspect-ratio-image";
+import { cn } from "../lib/utils";
 
 type PreviewImageProps =
-  | {
+  | (ComponentProps<typeof AspectRatio> & {
       imageFile: File | undefined;
       imagePath?: never;
-    }
-  | { imageFile?: never; imagePath: string };
+      alt: string;
+    })
+  | (ComponentProps<typeof AspectRatio> & {
+      imageFile?: never;
+      imagePath: string;
+      alt: string;
+    });
 
-// TODO: メニュー登録画面でも使いそうなので、aspect比とか変えられるようにリファクタする
-export function PreviewImage({ imageFile, imagePath }: PreviewImageProps) {
+export function PreviewImage({
+  className,
+  alt,
+  ratio,
+  imageFile,
+  imagePath,
+}: PreviewImageProps) {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const previewUrl = imagePath ?? objectUrl;
 
@@ -31,18 +42,11 @@ export function PreviewImage({ imageFile, imagePath }: PreviewImageProps) {
   }, [imageFile]);
 
   return (
-    <AspectRatio
-      ratio={16 / 9}
-      className="bg-muted overflow-hidden rounded-md border border-dashed"
-    >
-      {previewUrl && (
-        <Image
-          fill
-          className="absolute inset-0 h-full w-full object-cover"
-          src={previewUrl}
-          alt="店舗写真プレビュー"
-        />
-      )}
-    </AspectRatio>
+    <AspectRatioImage
+      ratio={ratio}
+      src={previewUrl}
+      alt={alt}
+      className={cn(className)}
+    />
   );
 }

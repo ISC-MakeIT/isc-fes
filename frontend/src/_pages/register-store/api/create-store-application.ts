@@ -1,7 +1,7 @@
 import { createApiClient } from "@/shared/api";
 import { components } from "@/shared/api/";
 import { CreateStoreForm } from "../model/types";
-import { buildFormDataBody } from "../lib/build-form-data-body";
+import { buildFormDataBody } from "@/shared/lib/build-form-data-body";
 import { getStatusMessage } from "@/shared/config";
 
 type CreateStoreApplicationResponse =

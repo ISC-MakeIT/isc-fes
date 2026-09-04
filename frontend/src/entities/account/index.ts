@@ -1,4 +1,4 @@
-export { Account } from "./model/types";
+export { Account, AccountRole } from "./model/types";
 export {
   fetchCurrentAccount,
   currentAccountQueryOptions,

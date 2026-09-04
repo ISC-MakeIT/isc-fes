@@ -1,5 +1,5 @@
 import { fetchCurrentAccount } from "@/entities/account";
-import { AccountRole } from "@/entities/account/model/types";
+import { AccountRole } from "@/entities/account";
 import { loginUrl, storeListUrl } from "@/shared/config";
 import { SidebarProvider } from "@/shared/ui/sidebar";
 import { redirect } from "next/navigation";
