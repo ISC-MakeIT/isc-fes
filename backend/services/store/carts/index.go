@@ -31,29 +31,38 @@ func NewCartService(
 }
 
 func (s *CartService) GetCart(c context.Context, storeID uuid.UUID) (CartOutput, error) {
+	store, err := s.storeRepository.GetApprovedStoreByID(c, storeID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return CartOutput{}, services.ErrNotFound // 店舗が存在しない場合は404を返す
+		}
+		return CartOutput{}, err
+	}
+
 	guestID, found, err := s.guestResolver.ResolveGuest(c)
 	if err != nil {
 		return CartOutput{}, err
 	}
 	if !found {
-		return CartOutput{}, services.ErrNotFound
-	}
-
-	store, err := s.storeRepository.GetApprovedStoreByID(c, storeID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return CartOutput{}, services.ErrNotFound
-		}
-		return CartOutput{}, err
+		return emptyCartOutput(storeID), nil // ゲストセッションがない場合は空のカートを返す
 	}
 
 	cart, err := s.cartRepository.GetCartByGuestIDAndStoreID(c, guestID, storeID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return CartOutput{}, services.ErrNotFound
+			return emptyCartOutput(storeID), nil // カートが存在しない場合は空のカートを返す
 		}
 		return CartOutput{}, err
 	}
 
 	return ToCartOutput(c, cart, store, s.imageURLGenerator)
+}
+
+func emptyCartOutput(storeID uuid.UUID) CartOutput {
+	return CartOutput{
+		StoreID:     storeID,
+		Items:       []CartItemOutput{},
+		TotalAmount: 0,
+		CanCheckout: false,
+	}
 }
