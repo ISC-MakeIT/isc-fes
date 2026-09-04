@@ -1,7 +1,7 @@
 "use client";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { storeMenusQueryOptions } from "../api/fetch-store-menus";
+import { storeMenusQueryOptions } from "@/entities/menu";
 import { formatYen } from "../lib/formatYen";
 import { Card } from "@/shared/ui/card";
 import { Menu } from "@/entities/menu";
