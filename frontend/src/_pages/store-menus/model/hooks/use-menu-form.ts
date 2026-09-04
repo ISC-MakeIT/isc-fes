@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { MenuFormValues } from "../types";
+import { CreateMenuInput, MenuFormValues } from "../types";
 
 type UseMenuFormOptions = {
   initialValues: MenuFormValues;
@@ -19,13 +19,7 @@ export function useMenuForm({
     defaultValues: initialValues,
     validators: {
       onMount: MenuFormValues,
-      onSubmit: ({ value }) => {
-        if (requiresImage && !value.image) {
-          return {
-            fields: { image: { message: "メニュー写真を選択してください" } },
-          };
-        }
-      },
+      onSubmit: CreateMenuInput,
     },
     onSubmit: ({ value }) => onSubmit(value),
   });

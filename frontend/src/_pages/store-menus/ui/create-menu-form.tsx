@@ -1,13 +1,14 @@
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { useMenuForm } from "../model/hooks/use-menu-form";
 import { MenuFormFields } from "./menu-form-fields";
-import { MenuFormValues } from "../model/types";
+import { CreateMenuInput, MenuFormValues } from "../model/types";
 import { createMenu } from "../api/create-menu";
 import { useMutation } from "@tanstack/react-query";
 import { ActionButton } from "@/shared/ui/action-button";
 import { createQueryClient } from "@/shared/api";
 import { storeMenusKey } from "@/shared/config";
 import { useEffect } from "react";
+import { v } from "@/shared/lib/valibot";
 
 const defaultFormValue: MenuFormValues = {
   name: "",
@@ -33,7 +34,8 @@ export function CreateMenuForm({ storeId }: CreateMenuFormProps) {
     initialValues: defaultFormValue,
     requiresImage: true,
     onSubmit: async (values) => {
-      await mutation.mutateAsync({ storeId, formValues: values });
+      const createMenuInput = v.parse(CreateMenuInput, values);
+      await mutation.mutateAsync({ storeId, createMenuInput });
     },
   });
 
