@@ -15,6 +15,7 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/repositories"
 	allergens_repository "github.com/isc-makeit/isc-fes/backend/repositories/allergens"
 	"github.com/isc-makeit/isc-fes/backend/repositories/imageurl"
+	"github.com/isc-makeit/isc-fes/backend/repositories/stores/carts"
 	invRepo "github.com/isc-makeit/isc-fes/backend/repositories/stores/invitations"
 	membersRepo "github.com/isc-makeit/isc-fes/backend/repositories/stores/members"
 	menuRepo "github.com/isc-makeit/isc-fes/backend/repositories/stores/menus"
@@ -22,6 +23,7 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/routers"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	allergens_service "github.com/isc-makeit/isc-fes/backend/services/allergens"
+	carts_service "github.com/isc-makeit/isc-fes/backend/services/store/carts"
 	"github.com/isc-makeit/isc-fes/backend/services/store/invitations"
 	"github.com/isc-makeit/isc-fes/backend/services/store/members"
 	"github.com/isc-makeit/isc-fes/backend/services/store/menus"
@@ -145,6 +147,8 @@ func buildDependencies(
 	allergenService := allergens_service.NewAllergenService(allergensRepository)
 	menuService := menus.NewMenuService(menuRepository, imgGenerator, storeRepository, storeMemberRepository, media.NewImageProcessor(), imageRepository)
 	toppingsService := toppings.NewToppingsService(toppingsRepository, storeMemberRepository, storeRepository)
+	cartsRepository := carts.NewCartRepository(queries)
+	cartService := carts_service.NewCartService(cartsRepository, storeRepository, guestResolver, imgGenerator)
 
 	apiServer := routers.NewServer(
 		queries,
@@ -159,6 +163,7 @@ func buildDependencies(
 		storeInvitationService,
 		menuService,
 		toppingsService,
+		cartService,
 		errorNotifier,
 	)
 

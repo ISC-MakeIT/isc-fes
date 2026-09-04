@@ -5,6 +5,7 @@ import (
 	db "github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/services/allergens"
+	"github.com/isc-makeit/isc-fes/backend/services/store/carts"
 	"github.com/isc-makeit/isc-fes/backend/services/store/invitations"
 	"github.com/isc-makeit/isc-fes/backend/services/store/members"
 	"github.com/isc-makeit/isc-fes/backend/services/store/menus"
@@ -24,6 +25,7 @@ type Server struct {
 	storeInvitation     *invitations.StoreInvitationService
 	menu                *menus.MenuService
 	toppings            *toppings.ToppingsService
+	cart                *carts.CartService
 	errorNotifier       *services.ErrorNotifier
 }
 
@@ -40,6 +42,7 @@ func NewServer(
 	storeInvitationService *invitations.StoreInvitationService,
 	menuService *menus.MenuService,
 	toppingsService *toppings.ToppingsService,
+	cartService *carts.CartService,
 	errorNotifier *services.ErrorNotifier,
 ) *Server {
 	return &Server{
@@ -55,6 +58,7 @@ func NewServer(
 		storeInvitation:     storeInvitationService,
 		menu:                menuService,
 		toppings:            toppingsService,
+		cart:                cartService,
 		errorNotifier:       errorNotifier,
 	}
 }

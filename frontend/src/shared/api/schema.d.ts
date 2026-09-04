@@ -230,6 +230,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/stores/{store_id}/carts": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 店舗の自分のカートを取得する（Guest セッションがない場合は空カートが返る） */
+    get: operations["getStoreCart"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/store-invitations/{invitation_id}/accept": {
     parameters: {
       query?: never;
@@ -371,6 +388,46 @@ export interface components {
       /** Format: uuid */
       storeId: string;
       role: components["schemas"]["StoreMemberRole"];
+    };
+    Cart: {
+      /** Format: uuid */
+      storeId: string;
+      totalAmount: number;
+      /** @description カートの内容で注文可能かどうか。店舗が閉店している場合、カートに利用できないアイテムが含まれている場合、カートがからの場合はfalseになる。 */
+      canCheckout: boolean;
+      items: components["schemas"]["CartItem"][];
+    };
+    CartItem: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      menuId: string;
+      name: string;
+      imageUrl: string;
+      /** @description メニューが現在利用可能かどうか。店舗がメニューを削除した場合や売り切れはfalseになる。 */
+      available: boolean;
+      /** Format: uuid */
+      storeId?: string;
+      /** Format: int32 */
+      quantity: number;
+      /** Format: int32 */
+      unitPrice: number;
+      toppings: components["schemas"]["CartItemTopping"][];
+    };
+    CartItemTopping: {
+      /** Format: uuid */
+      id?: string;
+      /** Format: uuid */
+      cartItemId?: string;
+      /** Format: uuid */
+      menuId: string;
+      /** Format: uuid */
+      toppingId: string;
+      name: string;
+      /** Format: int32 */
+      unitPrice: number;
+      /** @description トッピングが現在利用可能かどうか。店舗がトッピングを削除した場合や在庫切れはfalseになる。 */
+      available: boolean;
     };
     Store: {
       /** Format: uuid */
@@ -1720,6 +1777,55 @@ export interface operations {
         };
       };
       /** @description 店舗が存在しないか、店舗のメンバーではない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getStoreCart: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 店舗のカート */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Cart"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない、または承認済みではない */
       404: {
         headers: {
           [name: string]: unknown;

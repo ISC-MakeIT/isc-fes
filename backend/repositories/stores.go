@@ -7,6 +7,7 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	"github.com/isc-makeit/isc-fes/backend/services"
+	"github.com/isc-makeit/isc-fes/backend/services/store/carts"
 	"github.com/isc-makeit/isc-fes/backend/utils"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -133,3 +134,4 @@ func (r *StoreRepository) toStore(dbStore sqlc.Store) entities.Store {
 }
 
 var _ services.StoreRepository = (*StoreRepository)(nil)
+var _ carts.StoreRepository = (*StoreRepository)(nil)
