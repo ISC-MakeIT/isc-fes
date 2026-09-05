@@ -13,9 +13,9 @@ type SoldOutSwitch = {
 };
 
 export function SoldOutSwitch({ menu }: SoldOutSwitch) {
-  const [isDialogOpen, setIsDialogOpen] = useState(menu.soldOut);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   // 検証用のステート
-  const [isSoldOut, setIsSoldOut] = useState(false);
+  const [isSoldOut, setIsSoldOut] = useState(menu.soldOut);
   const mutation = useMutation({
     mutationFn: updateMenuSoldOutStatus,
     onSuccess: (value) => {
