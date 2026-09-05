@@ -12,19 +12,19 @@ import floor7Image from "./assets/floor-7f.svg";
 import floor8Image from "./assets/floor-8f.svg";
 import type { StaticImageData } from "next/image";
 
-export type Floor = {
+export type Floors = {
   number: number;
   label: string;
   image: StaticImageData;
-};
+}[];
 
-export const floors: Floor[] = [
+export const floors: Floors = [
   { number: 8, label: "８階", image: floor8Image },
   { number: 7, label: "７階", image: floor7Image },
   { number: 6, label: "６階", image: floor6Image },
   { number: 5, label: "５階", image: floor5Image },
   { number: 1, label: "１階", image: floor1Image },
-] as const;
+];
 
 export function FloorGuide() {
   const [selectedFloor, setSelectedFloor] = useState<number | null>(
@@ -61,6 +61,7 @@ export function FloorGuide() {
               </div>
               <button
                 id={floor.number.toString()}
+                aria-pressed={selectedFloor === floor.number}
                 className={cn(
                   "h-[2.8293rem] cursor-pointer transition-transform",
                   selectedFloor === floor.number &&
