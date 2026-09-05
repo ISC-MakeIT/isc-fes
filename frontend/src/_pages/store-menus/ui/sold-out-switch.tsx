@@ -54,7 +54,7 @@ export function SoldOutSwitch({ menu }: SoldOutSwitch) {
         }
       />
 
-      <DialogContent className="shadow-dialog-primary flex flex-col items-center justify-center gap-5 px-8 pt-18 pb-8">
+      <DialogContent className="shadow-dialog-primary flex flex-col items-center justify-center gap-5 px-8 pt-18 pb-8 data-closed:hidden">
         <div className="space-y-4 text-center text-xl font-bold">
           <p>{menu.name}</p>
           {confirmationMessage}
