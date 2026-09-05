@@ -12,7 +12,7 @@ export function LinkButton({ className, children, ...props }: LinkButtonProps) {
   return (
     <Link
       className={cn(
-        buttonVariants({ variant: "secondary" }),
+        buttonVariants({ variant: "default" }),
         actionButtonStyles(),
         className,
       )}
