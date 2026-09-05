@@ -34,6 +34,10 @@ type StoreRepository interface {
 	GetStoreApplications(ctx context.Context) ([]entities.Store, error)
 }
 
+type RoomsRepository interface {
+	GetRoomByName(c context.Context, name string) (entities.Room, error)
+}
+
 // CurrentAccountSessionは、未ログインでも利用できる店舗一覧で
 // 現在のAccount IDを任意に解決するための境界。
 type CurrentAccountSession interface {
@@ -63,6 +67,7 @@ type StoreService struct {
 	allergenRepository allergens_service.AllergenRepository
 	imgGenerator       ImageURLGenerator
 	accountSession     CurrentAccountSession
+	roomsRepository    RoomsRepository
 }
 
 func NewStoreService(
@@ -72,6 +77,7 @@ func NewStoreService(
 	allergenRepository allergens_service.AllergenRepository,
 	accountSession CurrentAccountSession,
 	imgGenerator ImageURLGenerator,
+	roomsRepository RoomsRepository,
 ) *StoreService {
 	return &StoreService{
 		imageProcessor:     imageProcessor,
@@ -80,6 +86,7 @@ func NewStoreService(
 		allergenRepository: allergenRepository,
 		imgGenerator:       imgGenerator,
 		accountSession:     accountSession,
+		roomsRepository:    roomsRepository,
 	}
 }
 
@@ -126,6 +133,14 @@ func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateS
 	account, err := RequireAuthenticatedAccount(ctx)
 	if err != nil {
 		return entities.Store{}, err
+	}
+
+	_, err = s.roomsRepository.GetRoomByName(ctx, input.Room)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return entities.Store{}, ErrInvalidInput
+		}
+		return entities.Store{}, fmt.Errorf("failed to get room by name: %w", err)
 	}
 
 	storeID, err := uuid.NewRandom()

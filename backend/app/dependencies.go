@@ -132,14 +132,6 @@ func buildDependencies(
 		accountSession,
 		accountRepository,
 	)
-	storeService := services.NewStoreService(
-		media.NewImageProcessor(),
-		imageRepository,
-		storeRepository,
-		allergensRepository,
-		accountSession,
-		imgGenerator,
-	)
 	storeMemberService := members.NewStoreMemberService(storeMemberRepository)
 	storeInvitationService := invitations.NewStoreInvitationService(storeMemberRepository, storeInvitationRepository)
 	errorNotifier := services.NewErrorNotifier(
@@ -153,6 +145,15 @@ func buildDependencies(
 	cartService := carts_service.NewCartService(cartsRepository, storeRepository, guestResolver, imgGenerator)
 	roomsRepository := rooms.NewRoomsRepository(queries)
 	roomsService := rooms_service.NewRoomsService(roomsRepository)
+	storeService := services.NewStoreService(
+		media.NewImageProcessor(),
+		imageRepository,
+		storeRepository,
+		allergensRepository,
+		accountSession,
+		imgGenerator,
+		roomsRepository,
+	)
 
 	apiServer := routers.NewServer(
 		queries,

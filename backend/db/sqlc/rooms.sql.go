@@ -9,6 +9,19 @@ import (
 	"context"
 )
 
+const getRoomByName = `-- name: GetRoomByName :one
+SELECT name, sort_order
+FROM rooms
+WHERE name = $1
+`
+
+func (q *Queries) GetRoomByName(ctx context.Context, name string) (Room, error) {
+	row := q.db.QueryRow(ctx, getRoomByName, name)
+	var i Room
+	err := row.Scan(&i.Name, &i.SortOrder)
+	return i, err
+}
+
 const getRooms = `-- name: GetRooms :many
 SELECT name, sort_order
 FROM rooms
