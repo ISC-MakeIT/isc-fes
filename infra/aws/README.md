@@ -161,7 +161,8 @@ isc-fes-images-<AWS Account ID>
 - TLSを使わないS3通信をBucket Policyで拒否
 - TerraformによるBucket削除を防止
 
-APIサーバーのIAM Roleには`stores/*`配下のObjectに対する`PutObject`、`GetObject`、`DeleteObject`だけを許可する。
+APIサーバーのIAM Roleには`images/*`配下のObjectに対する`PutObject`、`GetObject`、`DeleteObject`だけを許可する。
+旧形式の`stores/*`と`menus/*`には、既存画像の配信と置き換え後の削除のため、`GetObject`と`DeleteObject`だけを引き続き許可する。
 Bucketは直接公開せず、CloudFront Origin Access Controlからの`GetObject`だけをBucket Policyで追加許可する。
 CloudFrontからS3へのRequestはSigV4で常に署名し、ViewerからはHTTPSだけを使用する。
 

@@ -75,7 +75,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "store_images" {
 
 data "aws_iam_policy_document" "store_images_bucket" {
   statement {
-    sid    = "AllowCloudFrontReadStoreImages"
+    sid    = "AllowCloudFrontReadImages"
     effect = "Allow"
 
     principals {
@@ -85,6 +85,8 @@ data "aws_iam_policy_document" "store_images_bucket" {
 
     actions = ["s3:GetObject"]
     resources = [
+      "${aws_s3_bucket.store_images.arn}/images/*",
+      # 旧形式の画像を移行期間中も配信する。
       "${aws_s3_bucket.store_images.arn}/stores/*",
       "${aws_s3_bucket.store_images.arn}/menus/*",
     ]
@@ -126,11 +128,20 @@ resource "aws_s3_bucket_policy" "store_images" {
 
 data "aws_iam_policy_document" "api_server_store_images" {
   statement {
-    sid = "ManageStoreImages"
+    sid = "ManageImages"
     actions = [
       "s3:DeleteObject",
       "s3:GetObject",
       "s3:PutObject",
+    ]
+    resources = ["${aws_s3_bucket.store_images.arn}/images/*"]
+  }
+
+  statement {
+    sid = "ReadAndDeleteLegacyEntityImages"
+    actions = [
+      "s3:DeleteObject",
+      "s3:GetObject",
     ]
     resources = [
       "${aws_s3_bucket.store_images.arn}/stores/*",
