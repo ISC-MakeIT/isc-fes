@@ -89,15 +89,33 @@ export function StoreReview() {
               </p>
             )}
 
-            <ActionButton
-              className="self-center"
-              disabled={mutation.isPending}
-              onClick={() =>
-                updateReviewStatus(selectedStore.id, StoreReviewStatus.Approved)
-              }
-            >
-              承認する
-            </ActionButton>
+            <div className="flex flex-row justify-center gap-10">
+              <ActionButton
+                variant="destructive"
+                className="shadow-button-destructive"
+                disabled={mutation.isPending}
+                onClick={() =>
+                  updateReviewStatus(
+                    selectedStore.id,
+                    StoreReviewStatus.Rejected,
+                  )
+                }
+              >
+                却下
+              </ActionButton>
+
+              <ActionButton
+                disabled={mutation.isPending}
+                onClick={() =>
+                  updateReviewStatus(
+                    selectedStore.id,
+                    StoreReviewStatus.Approved,
+                  )
+                }
+              >
+                承認する
+              </ActionButton>
+            </div>
           </dl>
         )}
       </div>
