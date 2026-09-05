@@ -64,7 +64,9 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
       ...menuFormOptions.validators,
       onSubmit: EditMenuInput,
     },
-    onSubmit: async ({ value }) => {
+    onSubmit: async ({ value, formApi }) => {
+      if (formApi.state.isDefaultValue) return;
+
       const editMenuInput = v.parse(EditMenuInput, value);
       await mutation.mutateAsync({ storeId, menuId: menu.id, editMenuInput });
     },
@@ -73,7 +75,7 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
   return (
     <div className="space-y-10">
       <HeadingCard className="bg-secondary-heading-card px-8 py-4">
-        メニューの追加
+        メニューの編集
       </HeadingCard>
       <form
         className="flex flex-col items-center gap-10"
@@ -90,13 +92,17 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
           </p>
         )}
 
-        <ActionButton
-          disabled={mutation.isPending}
-          type="submit"
-          className="px-14 py-4 text-xl"
-        >
-          保存する
-        </ActionButton>
+        <form.Subscribe selector={(state) => [state.isDefaultValue]}>
+          {([isDefaultValue]) => (
+            <ActionButton
+              disabled={mutation.isPending || isDefaultValue}
+              type="submit"
+              className="px-14 py-4 text-xl"
+            >
+              保存する
+            </ActionButton>
+          )}
+        </form.Subscribe>
       </form>
     </div>
   );
