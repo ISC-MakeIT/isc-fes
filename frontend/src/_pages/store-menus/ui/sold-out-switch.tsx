@@ -7,6 +7,7 @@ import { updateMenuSoldOutStatus } from "../api/update-menu-sold-out-status";
 import { useState } from "react";
 import { Menu } from "@/entities/menu";
 import { ActionButton } from "@/shared/ui/action-button";
+import { cn } from "@/shared/lib/utils";
 
 type SoldOutSwitch = {
   menu: Menu;
@@ -19,10 +20,23 @@ export function SoldOutSwitch({ menu }: SoldOutSwitch) {
   const mutation = useMutation({
     mutationFn: updateMenuSoldOutStatus,
     onSuccess: (value) => {
-      setIsSoldOut(value);
       setIsDialogOpen(false);
+      setIsSoldOut(value);
     },
   });
+
+  const confirmationMessage = isSoldOut ? (
+    <p>
+      の<span className="text-notice">完売状態を解除</span>しますか？
+    </p>
+  ) : (
+    <p>
+      を<span className="text-notice">完売状態</span>にしますか？
+    </p>
+  );
+
+  const buttonLabel = isSoldOut ? "完売解除" : "完売した！";
+
   return (
     <Dialog
       open={isDialogOpen}
@@ -38,17 +52,19 @@ export function SoldOutSwitch({ menu }: SoldOutSwitch) {
       <DialogContent className="shadow-dialog-primary flex flex-col items-center justify-center gap-5 px-8 pt-18 pb-8">
         <div className="space-y-4 text-center text-xl font-bold">
           <p>{menu.name}</p>
-          <p>
-            を<span className="text-notice">完売状態</span>にしますか？
-          </p>
+          {confirmationMessage}
         </div>
 
         <ActionButton
           disabled={mutation.isPending}
+          // TODO: variantのdestructiveをfigmaのデザインに寄せる。影響範囲が大きいので別PRで
+          variant={isSoldOut ? "destructive" : "default"}
           className="shadow-none"
-          onClick={() => mutation.mutate({ soldOutStatus: true })}
+          onClick={() =>
+            mutation.mutate({ soldOutStatus: isSoldOut ? false : true })
+          }
         >
-          完売した！
+          {buttonLabel}
         </ActionButton>
       </DialogContent>
     </Dialog>
