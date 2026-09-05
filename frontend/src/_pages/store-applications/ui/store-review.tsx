@@ -26,16 +26,12 @@ export function StoreReview() {
       await queryClient.invalidateQueries({
         queryKey: storeApplicationsKey(),
       });
+      setSelectedStoreId(null);
     },
   });
 
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const selectedStore = stores.find((state) => state.id === selectedStoreId);
-
-  function updateReviewStatus(storeId: string, status: StoreReviewStatus) {
-    mutation.mutate({ storeId, status });
-    setSelectedStoreId(null);
-  }
 
   return (
     <div className="grid grid-cols-[1fr_1fr]">
@@ -95,10 +91,10 @@ export function StoreReview() {
                 className="shadow-button-destructive"
                 disabled={mutation.isPending}
                 onClick={() =>
-                  updateReviewStatus(
-                    selectedStore.id,
-                    StoreReviewStatus.Rejected,
-                  )
+                  mutation.mutate({
+                    storeId: selectedStore.id,
+                    status: StoreReviewStatus.Rejected,
+                  })
                 }
               >
                 却下
@@ -107,10 +103,10 @@ export function StoreReview() {
               <ActionButton
                 disabled={mutation.isPending}
                 onClick={() =>
-                  updateReviewStatus(
-                    selectedStore.id,
-                    StoreReviewStatus.Approved,
-                  )
+                  mutation.mutate({
+                    storeId: selectedStore.id,
+                    status: StoreReviewStatus.Approved,
+                  })
                 }
               >
                 承認する
