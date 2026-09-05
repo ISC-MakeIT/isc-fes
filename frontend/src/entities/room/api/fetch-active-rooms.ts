@@ -1,10 +1,19 @@
-import { activeRoomsKey } from "@/shared/config";
+import { activeRoomsKey, getStatusMessage } from "@/shared/config";
 import { queryOptions } from "@tanstack/react-query";
-import { rooms } from "../model/types";
+import { createApiClient } from "@/shared/api";
+import { v } from "@/shared/lib/valibot";
+import { Room } from "../model/types";
 
-function fetchActiveRooms() {
+export async function fetchActiveRooms() {
   // TODO: バックエンドのAPI叩いて有効な教室を返す
-  return rooms;
+  const client = await createApiClient();
+  const { data, error, response } = await client.GET("/rooms");
+
+  if (error) {
+    throw new Error(getStatusMessage(response.status));
+  }
+
+  return v.parse(v.array(Room), data.data);
 }
 
 export function activeRoomsQueryOptions() {

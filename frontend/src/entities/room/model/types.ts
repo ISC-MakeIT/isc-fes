@@ -1,4 +1,6 @@
-export const rooms = [
+import { v } from "@/shared/lib/valibot";
+
+export const roomNames = [
   "1F",
   "501",
   "502",
@@ -21,3 +23,8 @@ export const rooms = [
   "iCrossArena",
   "8Fステージ",
 ] as const;
+
+export const Room = v.object({
+  name: v.picklist(roomNames),
+});
+export type Room = v.InferOutput<typeof Room>;
