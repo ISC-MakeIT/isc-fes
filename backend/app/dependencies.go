@@ -139,15 +139,15 @@ func buildDependencies(
 		cfg.DiscordNotifier.MentionUserIDs,
 	)
 	allergenService := allergens_service.NewAllergenService(allergensRepository)
-	menuService := menus.NewMenuService(menuRepository, imgGenerator, storeRepository, storeMemberRepository, media.NewImageProcessor(), imageRepository)
+	imageProcessor := media.NewImageProcessor()
+	imageService := services.NewImageService(imageProcessor, imageRepository)
+	menuService := menus.NewMenuService(menuRepository, imgGenerator, storeRepository, storeMemberRepository, imageProcessor, imageRepository)
 	toppingsService := toppings.NewToppingsService(toppingsRepository, storeMemberRepository, storeRepository)
 	cartsRepository := carts.NewCartRepository(queries)
 	cartService := carts_service.NewCartService(cartsRepository, storeRepository, guestResolver, imgGenerator)
 	roomsRepository := rooms.NewRoomsRepository(queries)
 	roomsService := rooms_service.NewRoomsService(roomsRepository)
 	storeService := services.NewStoreService(
-		media.NewImageProcessor(),
-		imageRepository,
 		storeRepository,
 		allergensRepository,
 		accountSession,
@@ -163,6 +163,7 @@ func buildDependencies(
 		authService,
 		guestResolver,
 		allergenService,
+		imageService,
 		storeService,
 		storeMemberService,
 		storeInvitationService,

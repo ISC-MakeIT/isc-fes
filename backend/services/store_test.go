@@ -1,10 +1,8 @@
 package services
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"io"
 	"reflect"
 	"testing"
 
@@ -40,22 +38,6 @@ func (stubStoreImageURLGenerator) GenerateMenuImageURL(context.Context, menuenti
 	return "", errors.New("unexpected call to GenerateMenuImageURL")
 }
 
-type passthroughStoreImageProcessor struct{}
-
-func (passthroughStoreImageProcessor) ProcessForStoreImage(_ context.Context, reader io.ReadSeeker) (io.ReadSeeker, string, error) {
-	return reader, "image/jpeg", nil
-}
-
-type recordingStoreImageRepository struct {
-	ImageRepository
-	putKeys []entities.StoreImageObjectKey
-}
-
-func (r *recordingStoreImageRepository) PutObject(_ context.Context, _ io.ReadSeeker, key entities.StoreImageObjectKey, _ string) error {
-	r.putKeys = append(r.putKeys, key)
-	return nil
-}
-
 type recordingStoreRepository struct {
 	StoreRepository
 	createInput CreateStoreApplicationInput
@@ -77,40 +59,50 @@ func (existingRoomRepository) GetRoomByName(_ context.Context, name string) (ent
 	return entities.Room{Name: name}, nil
 }
 
-func TestCreateStoreApplicationUsesImageIDForObjectKey(t *testing.T) {
+func TestCreateStoreApplicationUsesUploadedImageObjectKey(t *testing.T) {
 	accountID := uuid.New()
 	storeRepository := &recordingStoreRepository{}
-	imageRepository := &recordingStoreImageRepository{}
 	service := &StoreService{
-		imageProcessor:  passthroughStoreImageProcessor{},
-		imageRepository: imageRepository,
 		storeRepository: storeRepository,
 		roomsRepository: existingRoomRepository{},
 	}
 	ctx := WithAuthenticatedAccount(t.Context(), entities.Account{ID: accountID})
+	imageObjectKey := entities.NewImageObjectKey(uuid.New())
 
 	store, err := service.CreateStoreApplication(ctx, CreateStoreApplicationServiceInput{
-		Name:        "たこ焼き屋",
-		Room:        "605",
-		Description: "外はカリカリ、中はトロトロです。",
-		ImageReader: bytes.NewReader([]byte("image")),
+		Name:           "たこ焼き屋",
+		Room:           "605",
+		Description:    "外はカリカリ、中はトロトロです。",
+		ImageObjectKey: imageObjectKey,
 	})
 	if err != nil {
 		t.Fatalf("CreateStoreApplication() error = %v", err)
 	}
 
-	if len(imageRepository.putKeys) != 1 {
-		t.Fatalf("PutObject() calls = %d, want 1", len(imageRepository.putKeys))
+	if storeRepository.createInput.ImageObjectKey != imageObjectKey {
+		t.Errorf("repository image object key = %q, want %q", storeRepository.createInput.ImageObjectKey, imageObjectKey)
 	}
-	objectKey := imageRepository.putKeys[0]
-	if !objectKey.IsValid() {
-		t.Errorf("image object key %q is invalid", objectKey)
+	if store.ImageObjectKey != imageObjectKey {
+		t.Errorf("store image object key = %q, want %q", store.ImageObjectKey, imageObjectKey)
 	}
-	if objectKey == entities.NewStoreImageObjectKey(store.ID) {
-		t.Error("image object key was derived from the store ID")
+}
+
+func TestCreateStoreApplicationRejectsInvalidImageObjectKey(t *testing.T) {
+	storeRepository := &recordingStoreRepository{}
+	service := &StoreService{
+		storeRepository: storeRepository,
+		roomsRepository: existingRoomRepository{},
 	}
-	if storeRepository.createInput.ImageObjectKey != objectKey {
-		t.Errorf("repository image object key = %q, want %q", storeRepository.createInput.ImageObjectKey, objectKey)
+	ctx := WithAuthenticatedAccount(t.Context(), entities.Account{ID: uuid.New()})
+
+	_, err := service.CreateStoreApplication(ctx, CreateStoreApplicationServiceInput{
+		Name:           "たこ焼き屋",
+		Room:           "605",
+		Description:    "外はカリカリ、中はトロトロです。",
+		ImageObjectKey: "stores/not-an-image-id",
+	})
+	if !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("CreateStoreApplication() error = %v, want ErrInvalidInput", err)
 	}
 }
 

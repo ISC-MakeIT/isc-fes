@@ -4,25 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	allergens_service "github.com/isc-makeit/isc-fes/backend/services/allergens"
 	"github.com/jackc/pgx/v5"
 )
-
-// ImageProcessorは、利用者がアップロードした画像を店舗画像として配信可能な形式へ変換する。
-type ImageProcessor interface {
-	// ProcessForStoreImageは、入力画像を検証および変換し、処理後の画像とContent-Typeを返す。
-	ProcessForStoreImage(ctx context.Context, reader io.ReadSeeker) (io.ReadSeeker, string, error)
-}
-
-type ImageRepository interface {
-	PutObject(ctx context.Context, reader io.ReadSeeker, objectKey entities.ImageObjectKey, contentType string) error
-
-	DeleteObject(ctx context.Context, objectKey entities.ImageObjectKey) error
-}
 
 type StoreRepository interface {
 	CreateStoreApplication(ctx context.Context, input CreateStoreApplicationInput) (entities.Store, error)
@@ -54,15 +41,13 @@ type CreateStoreApplicationInput struct {
 }
 
 type CreateStoreApplicationServiceInput struct {
-	Name        string
-	Room        string
-	Description string
-	ImageReader io.ReadSeeker
+	Name           string
+	Room           string
+	Description    string
+	ImageObjectKey entities.ImageObjectKey
 }
 
 type StoreService struct {
-	imageProcessor     ImageProcessor
-	imageRepository    ImageRepository
 	storeRepository    StoreRepository
 	allergenRepository allergens_service.AllergenRepository
 	imgGenerator       ImageURLGenerator
@@ -71,8 +56,6 @@ type StoreService struct {
 }
 
 func NewStoreService(
-	imageProcessor ImageProcessor,
-	imageRepository ImageRepository,
 	storeRepository StoreRepository,
 	allergenRepository allergens_service.AllergenRepository,
 	accountSession CurrentAccountSession,
@@ -80,8 +63,6 @@ func NewStoreService(
 	roomsRepository RoomsRepository,
 ) *StoreService {
 	return &StoreService{
-		imageProcessor:     imageProcessor,
-		imageRepository:    imageRepository,
 		storeRepository:    storeRepository,
 		allergenRepository: allergenRepository,
 		imgGenerator:       imgGenerator,
@@ -113,22 +94,6 @@ func (s *StoreService) GetStoreApplications(ctx context.Context) ([]entities.Sto
 	return storeApplications, nil
 }
 
-var (
-	// ErrEmptyImageは、入力された画像が空であることを示す。
-	ErrEmptyImage = errors.New("empty image")
-	// ErrImageTooLargeは、入力画像のファイルサイズが上限を超えていることを示す。
-	ErrImageTooLarge = errors.New("image too large")
-	// ErrUnsupportedImageFormatは、入力画像が対応していない形式であることを示す。
-	ErrUnsupportedImageFormat = errors.New("unsupported image format")
-	// ErrInvalidImageは、入力画像が破損しているか、画像として解釈できないことを示す。
-	ErrInvalidImage = errors.New("invalid image")
-	// ErrImageDimensionsExceededは、入力画像の幅、高さ、または総画素数が上限を超えていることを示す。
-	ErrImageDimensionsExceeded = errors.New("image dimensions exceeded")
-	// ErrProcessedImageTooLargeは、変換後の画像サイズが上限を超えていることを示す。
-	ErrProcessedImageTooLarge = errors.New("processed image too large")
-)
-
-// TODO: 正常系、非対応形式、S3 Put 失敗、DB 失敗、補償 Delete 失敗を StoreService の単体テストで網羅する。
 func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateStoreApplicationServiceInput) (entities.Store, error) {
 	account, err := RequireAuthenticatedAccount(ctx)
 	if err != nil {
@@ -142,42 +107,23 @@ func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateS
 		}
 		return entities.Store{}, fmt.Errorf("failed to get room by name: %w", err)
 	}
+	if !input.ImageObjectKey.IsValid() {
+		return entities.Store{}, ErrInvalidInput
+	}
 
 	storeID, err := uuid.NewRandom()
 	if err != nil {
 		return entities.Store{}, fmt.Errorf("failed to generate UUID: %w", err)
 	}
-	imageID, err := uuid.NewRandom()
-	if err != nil {
-		return entities.Store{}, fmt.Errorf("failed to generate image UUID: %w", err)
-	}
-	objectKey := entities.NewStoreImageObjectKey(imageID)
-
-	processedImage, contentType, err := s.imageProcessor.ProcessForStoreImage(
-		ctx,
-		input.ImageReader,
-	)
-	if err != nil {
-		return entities.Store{}, fmt.Errorf("process store image: %w", err)
-	}
-
-	err = s.imageRepository.PutObject(ctx, processedImage, objectKey, contentType)
-	if err != nil {
-		// TODO: S3 の元エラーを %w で保持し、503 判定や障害調査に利用できるようにする。
-		return entities.Store{}, ErrFailedToStoreImage
-	}
-
 	store, err := s.storeRepository.CreateStoreApplication(ctx, CreateStoreApplicationInput{
 		ID:             storeID,
 		AccountID:      account.ID,
 		Name:           input.Name,
 		Room:           input.Room,
 		Description:    input.Description,
-		ImageObjectKey: objectKey,
+		ImageObjectKey: input.ImageObjectKey,
 	})
 	if err != nil {
-		// TODO: context.WithoutCancel と短い timeout で補償削除し、DeleteObject の失敗もログまたは errors.Join で保持する。
-		s.imageRepository.DeleteObject(ctx, objectKey)
 		return entities.Store{}, fmt.Errorf("failed to create store application: %w", err)
 	}
 
