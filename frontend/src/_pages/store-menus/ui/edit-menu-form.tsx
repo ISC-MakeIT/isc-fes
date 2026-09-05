@@ -64,8 +64,8 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
       ...menuFormOptions.validators,
       onSubmit: EditMenuInput,
     },
-    onSubmit: async (values) => {
-      const editMenuInput = v.parse(EditMenuInput, values);
+    onSubmit: async ({ value }) => {
+      const editMenuInput = v.parse(EditMenuInput, value);
       await mutation.mutateAsync({ storeId, menuId: menu.id, editMenuInput });
     },
   });

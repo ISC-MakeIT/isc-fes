@@ -30,8 +30,8 @@ export function CreateMenuForm() {
       onSubmit: CreateMenuInput,
     },
 
-    onSubmit: async (values) => {
-      const createMenuInput = v.parse(CreateMenuInput, values);
+    onSubmit: async ({ value }) => {
+      const createMenuInput = v.parse(CreateMenuInput, value);
       await mutation.mutateAsync({ storeId, createMenuInput });
     },
   });
