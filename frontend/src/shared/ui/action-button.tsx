@@ -5,7 +5,7 @@ import { DotText } from "./dot-text";
 import { cva } from "class-variance-authority";
 
 export const actionButtonStyles = cva(
-  "h-auto rounded-sm px-8 py-3 text-2xl shadow-[3px_3px_0_#9683DC]",
+  "shadow-button-primary h-auto rounded-sm px-8 py-3 text-2xl",
 );
 
 type ActionButtonProps = ComponentProps<typeof Button> & {

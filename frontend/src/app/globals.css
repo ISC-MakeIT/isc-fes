@@ -55,6 +55,8 @@
   --shadow-dialog-primary: 8px 8px 0 var(--yellow-strong);
   --shadow-dialog-secondary: 8px 8px 0 var(--pink);
   --color-notice: var(--notice);
+  --shadow-button-destructive: 4px 4px 0 var(--yellow-strong);
+  --shadow-button-primary: 4px 4px 0 var(--primary);
 }
 
 :root {
