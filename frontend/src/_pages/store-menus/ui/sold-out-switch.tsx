@@ -7,14 +7,13 @@ import { updateMenuSoldOutStatus } from "../api/update-menu-sold-out-status";
 import { useState } from "react";
 import { Menu } from "@/entities/menu";
 import { ActionButton } from "@/shared/ui/action-button";
-import { cn } from "@/shared/lib/utils";
 
 type SoldOutSwitch = {
   menu: Menu;
 };
 
 export function SoldOutSwitch({ menu }: SoldOutSwitch) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(menu.soldOut);
   // 検証用のステート
   const [isSoldOut, setIsSoldOut] = useState(false);
   const mutation = useMutation({
@@ -46,7 +45,13 @@ export function SoldOutSwitch({ menu }: SoldOutSwitch) {
     >
       <DialogTrigger
         nativeButton={false}
-        render={<Switch checked={isSoldOut} size="lg" />}
+        render={
+          <Switch
+            checked={isSoldOut}
+            size="lg"
+            aria-label={`${menu.name}の販売状態を変更`}
+          />
+        }
       />
 
       <DialogContent className="shadow-dialog-primary flex flex-col items-center justify-center gap-5 px-8 pt-18 pb-8">
@@ -54,6 +59,10 @@ export function SoldOutSwitch({ menu }: SoldOutSwitch) {
           <p>{menu.name}</p>
           {confirmationMessage}
         </div>
+
+        {mutation.isError && (
+          <p className="text-notice text-sm">{mutation.error.message}</p>
+        )}
 
         <ActionButton
           disabled={mutation.isPending}
