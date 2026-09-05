@@ -57,6 +57,9 @@
   --color-notice: var(--notice);
   --shadow-button-destructive: 4px 4px 0 var(--yellow-strong);
   --shadow-button-primary: 4px 4px 0 var(--primary);
+  --color-switch-track-checked: var(--sky-blue);
+  --color-switch-track-unchecked: var(--foreground);
+  --color-switch-thumb: var(--secondary);
 }
 
 :root {
@@ -110,6 +113,8 @@
   --orange: #e2851b;
 
   --pink: #ea6082;
+
+  --sky-blue: #c0e4ff;
 }
 
 @layer base {
