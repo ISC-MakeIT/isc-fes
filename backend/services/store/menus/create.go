@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/google/uuid"
-	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/services/entity2display"
@@ -57,14 +56,14 @@ func (s *MenuService) CreateMenu(c context.Context, storeID uuid.UUID, input Cre
 	if err != nil {
 		return menus.MenuDisplay{}, err
 	}
-	imageObjectKey, err := s.processAndUploadMenuImage(c, menuID, input.ImageReader)
+	imageObjectKey, err := s.processAndUploadMenuImage(c, input.ImageReader)
 	if err != nil {
 		return menus.MenuDisplay{}, err
 	}
 
 	imageURL, err := s.imageURLGenerator.GenerateMenuImageURL(c, imageObjectKey)
 	if err != nil {
-		s.imageRepository.DeleteObject(c, entities.StoreImageObjectKey(imageObjectKey))
+		s.imageRepository.DeleteObject(c, imageObjectKey)
 		return menus.MenuDisplay{}, err
 	}
 
@@ -78,7 +77,7 @@ func (s *MenuService) CreateMenu(c context.Context, storeID uuid.UUID, input Cre
 		ToppingIds:     input.ToppingIds,
 	})
 	if err != nil {
-		s.imageRepository.DeleteObject(c, entities.StoreImageObjectKey(imageObjectKey))
+		s.imageRepository.DeleteObject(c, imageObjectKey)
 		return menus.MenuDisplay{}, err
 	}
 

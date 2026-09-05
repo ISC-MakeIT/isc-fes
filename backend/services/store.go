@@ -19,9 +19,9 @@ type ImageProcessor interface {
 }
 
 type ImageRepository interface {
-	PutObject(ctx context.Context, reader io.ReadSeeker, objectKey entities.StoreImageObjectKey, contentType string) error
+	PutObject(ctx context.Context, reader io.ReadSeeker, objectKey entities.ImageObjectKey, contentType string) error
 
-	DeleteObject(ctx context.Context, objectKey entities.StoreImageObjectKey) error
+	DeleteObject(ctx context.Context, objectKey entities.ImageObjectKey) error
 }
 
 type StoreRepository interface {
@@ -50,7 +50,7 @@ type CreateStoreApplicationInput struct {
 	Name           string
 	Room           string
 	Description    string
-	ImageObjectKey entities.StoreImageObjectKey
+	ImageObjectKey entities.ImageObjectKey
 }
 
 type CreateStoreApplicationServiceInput struct {
@@ -147,7 +147,11 @@ func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateS
 	if err != nil {
 		return entities.Store{}, fmt.Errorf("failed to generate UUID: %w", err)
 	}
-	objectKey := entities.NewStoreImageObjectKey(storeID)
+	imageID, err := uuid.NewRandom()
+	if err != nil {
+		return entities.Store{}, fmt.Errorf("failed to generate image UUID: %w", err)
+	}
+	objectKey := entities.NewStoreImageObjectKey(imageID)
 
 	processedImage, contentType, err := s.imageProcessor.ProcessForStoreImage(
 		ctx,

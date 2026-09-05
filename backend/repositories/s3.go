@@ -24,7 +24,7 @@ func NewS3Repository(client *s3.Client, bucket string) *S3Repository {
 	}
 }
 
-func (r *S3Repository) PutObject(ctx context.Context, reader io.ReadSeeker, objectKey entities.StoreImageObjectKey, contentType string) error {
+func (r *S3Repository) PutObject(ctx context.Context, reader io.ReadSeeker, objectKey entities.ImageObjectKey, contentType string) error {
 	_, err := r.client.PutObject(
 		ctx,
 		&s3.PutObjectInput{
@@ -42,7 +42,7 @@ func (r *S3Repository) PutObject(ctx context.Context, reader io.ReadSeeker, obje
 	return nil
 }
 
-func (r *S3Repository) DeleteObject(ctx context.Context, objectKey entities.StoreImageObjectKey) error {
+func (r *S3Repository) DeleteObject(ctx context.Context, objectKey entities.ImageObjectKey) error {
 	_, err := r.client.DeleteObject(
 		ctx,
 		&s3.DeleteObjectInput{

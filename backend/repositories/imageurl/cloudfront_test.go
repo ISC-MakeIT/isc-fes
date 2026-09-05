@@ -20,7 +20,7 @@ func TestCloudFrontImageURLGeneratorGenerateStoreImageURL(t *testing.T) {
 		t.Fatalf("GenerateStoreImageURL() error = %v", err)
 	}
 
-	want := "https://d111111abcdef8.cloudfront.net/stores/e625d731-8d26-4de9-ac77-a1bc96affb8e/image"
+	want := "https://d111111abcdef8.cloudfront.net/images/e625d731-8d26-4de9-ac77-a1bc96affb8e"
 	if got != want {
 		t.Errorf("GenerateStoreImageURL() = %q, want %q", got, want)
 	}

@@ -66,7 +66,7 @@ func (s *MenuService) UpdateMenuByStoreIDAndMenuID(c context.Context, storeID uu
 	// メニュー画像の変更がある場合は、画像を処理してS3にアップロードする
 	var imageObjectKey *menus.MenuImageObjectKey
 	if input.ImageReader != nil {
-		key, err := s.processAndUploadMenuImage(c, menuID, input.ImageReader)
+		key, err := s.processAndUploadMenuImage(c, input.ImageReader)
 		if err != nil {
 			return menus.MenuDisplay{}, err
 		}
@@ -88,7 +88,13 @@ func (s *MenuService) UpdateMenuByStoreIDAndMenuID(c context.Context, storeID uu
 		ImageObjectKey: imageObjectKey,
 	})
 	if err != nil {
+		if imageObjectKey != nil {
+			s.imageRepository.DeleteObject(c, *imageObjectKey)
+		}
 		return menus.MenuDisplay{}, err
+	}
+	if imageObjectKey != nil {
+		s.imageRepository.DeleteObject(c, menu.ImageObjectKey)
 	}
 
 	return entity2display.ToMenuDisplay(c, updatedMenu, s.imageURLGenerator)

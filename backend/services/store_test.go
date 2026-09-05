@@ -1,8 +1,10 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
 	"reflect"
 	"testing"
 
@@ -36,6 +38,80 @@ func (stubStoreImageURLGenerator) GenerateStoreImageURL(_ context.Context, objec
 
 func (stubStoreImageURLGenerator) GenerateMenuImageURL(context.Context, menuentities.MenuImageObjectKey) (string, error) {
 	return "", errors.New("unexpected call to GenerateMenuImageURL")
+}
+
+type passthroughStoreImageProcessor struct{}
+
+func (passthroughStoreImageProcessor) ProcessForStoreImage(_ context.Context, reader io.ReadSeeker) (io.ReadSeeker, string, error) {
+	return reader, "image/jpeg", nil
+}
+
+type recordingStoreImageRepository struct {
+	ImageRepository
+	putKeys []entities.StoreImageObjectKey
+}
+
+func (r *recordingStoreImageRepository) PutObject(_ context.Context, _ io.ReadSeeker, key entities.StoreImageObjectKey, _ string) error {
+	r.putKeys = append(r.putKeys, key)
+	return nil
+}
+
+type recordingStoreRepository struct {
+	StoreRepository
+	createInput CreateStoreApplicationInput
+}
+
+func (r *recordingStoreRepository) CreateStoreApplication(_ context.Context, input CreateStoreApplicationInput) (entities.Store, error) {
+	r.createInput = input
+	return entities.Store{
+		ID:             input.ID,
+		ImageObjectKey: input.ImageObjectKey,
+	}, nil
+}
+
+type existingRoomRepository struct {
+	RoomsRepository
+}
+
+func (existingRoomRepository) GetRoomByName(_ context.Context, name string) (entities.Room, error) {
+	return entities.Room{Name: name}, nil
+}
+
+func TestCreateStoreApplicationUsesImageIDForObjectKey(t *testing.T) {
+	accountID := uuid.New()
+	storeRepository := &recordingStoreRepository{}
+	imageRepository := &recordingStoreImageRepository{}
+	service := &StoreService{
+		imageProcessor:  passthroughStoreImageProcessor{},
+		imageRepository: imageRepository,
+		storeRepository: storeRepository,
+		roomsRepository: existingRoomRepository{},
+	}
+	ctx := WithAuthenticatedAccount(t.Context(), entities.Account{ID: accountID})
+
+	store, err := service.CreateStoreApplication(ctx, CreateStoreApplicationServiceInput{
+		Name:        "たこ焼き屋",
+		Room:        "605",
+		Description: "外はカリカリ、中はトロトロです。",
+		ImageReader: bytes.NewReader([]byte("image")),
+	})
+	if err != nil {
+		t.Fatalf("CreateStoreApplication() error = %v", err)
+	}
+
+	if len(imageRepository.putKeys) != 1 {
+		t.Fatalf("PutObject() calls = %d, want 1", len(imageRepository.putKeys))
+	}
+	objectKey := imageRepository.putKeys[0]
+	if !objectKey.IsValid() {
+		t.Errorf("image object key %q is invalid", objectKey)
+	}
+	if objectKey == entities.NewStoreImageObjectKey(store.ID) {
+		t.Error("image object key was derived from the store ID")
+	}
+	if storeRepository.createInput.ImageObjectKey != objectKey {
+		t.Errorf("repository image object key = %q, want %q", storeRepository.createInput.ImageObjectKey, objectKey)
+	}
 }
 
 func TestStoreServiceToStoreOutputsIncludesAllergens(t *testing.T) {
