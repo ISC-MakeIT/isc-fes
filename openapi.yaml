@@ -43,6 +43,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /rooms:
+    get:
+      operationId: getRooms
+      summary: 利用可能な教室一覧を取得する
+      responses:
+        "200":
+          description: 教室一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetRoomsResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /store-applications:
     get:
       operationId: getStoreApplications
@@ -1135,6 +1154,26 @@ components:
           enum:
             - member
             - admin
+    GetRoomsResponse:
+      type: object
+      required:
+        - total
+        - data
+      properties:
+        total:
+          type: integer
+          description: ルームの総数
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Room"
+    Room:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
     StoreReviewStatus:
       type: string
       enum:
