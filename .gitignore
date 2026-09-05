@@ -11,3 +11,5 @@
 **/*.tfplan
 **/tfplan
 crash.log
+
+node_modules

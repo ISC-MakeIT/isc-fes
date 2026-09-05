@@ -37,6 +37,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/rooms": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 利用可能な教室一覧を取得する */
+    get: operations["getRooms"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/store-applications": {
     parameters: {
       query?: never;
@@ -309,6 +326,14 @@ export interface components {
       pictureUrl: string | null;
       /** @enum {string} */
       role: "member" | "admin";
+    };
+    GetRoomsResponse: {
+      /** @description ルームの総数 */
+      total: number;
+      data: components["schemas"]["Room"][];
+    };
+    Room: {
+      name: string;
     };
     /** @enum {string} */
     StoreReviewStatus: "pending" | "approved" | "rejected";
@@ -608,6 +633,35 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getRooms: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 教室一覧 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetRoomsResponse"];
         };
       };
       /** @description サーバーエラー */

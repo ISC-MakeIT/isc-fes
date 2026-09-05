@@ -214,6 +214,11 @@ type MenuTopping struct {
 	StoreID   uuid.UUID `json:"store_id"`
 }
 
+type Room struct {
+	Name      string `json:"name"`
+	SortOrder int16  `json:"sort_order"`
+}
+
 type Store struct {
 	ID             uuid.UUID          `json:"id"`
 	Name           string             `json:"name"`
