@@ -1,18 +1,24 @@
-import { MenuFormValues } from "../model/types";
+"use client";
+
 import { Field, FieldContent, FieldError, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { Textarea } from "@/shared/ui/textarea";
-import { MenuFormApi } from "../model/hooks/use-menu-form";
 import { MENU_IMAGE_ASPECT } from "@/shared/config";
+import { withForm } from "@/shared/lib/form-hook";
+import { menuFormOptions, MenuFormValues } from "../model/menu-form";
 
 type MenuFormFieldsProps = {
-  form: MenuFormApi;
+  initialImageUrl?: string;
 };
 
-export function MenuFormFields({ form }: MenuFormFieldsProps) {
-  const inputStyle = "border border-primary rounded-sm";
-  return (
+const defaultMenuFormFieldProps: MenuFormFieldsProps = {};
+const inputStyle = "border border-primary rounded-sm";
+
+export const MenuFormFields = withForm({
+  ...menuFormOptions,
+  props: defaultMenuFormFieldProps,
+  render: ({ form, initialImageUrl }) => (
     <div className="flex w-full flex-col gap-6">
       <form.Field
         name="name"
@@ -65,6 +71,7 @@ export function MenuFormFields({ form }: MenuFormFieldsProps) {
                   className={inputStyle}
                   ratio={MENU_IMAGE_ASPECT}
                   imageFile={field.state.value}
+                  imagePath={initialImageUrl}
                   alt="登録する商品画像"
                 />
               </label>
@@ -133,5 +140,5 @@ export function MenuFormFields({ form }: MenuFormFieldsProps) {
 
       {/* TODO: トッピング */}
     </div>
-  );
-}
+  ),
+});

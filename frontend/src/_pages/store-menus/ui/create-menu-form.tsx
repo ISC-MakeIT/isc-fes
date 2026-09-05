@@ -1,23 +1,16 @@
 "use client";
 
 import { HeadingCard } from "@/shared/ui/heading-card";
-import { useMenuForm } from "../model/hooks/use-menu-form";
 import { MenuFormFields } from "./menu-form-fields";
-import { CreateMenuInput, MenuFormValues } from "../model/types";
-import { createMenu } from "../api/create-menu";
+import { createMenu, CreateMenuInput } from "../api/create-menu";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ActionButton } from "@/shared/ui/action-button";
 import { storeMenusKey } from "@/shared/config";
 import { useEffect } from "react";
 import { v } from "@/shared/lib/valibot";
 import { useStoreId } from "../model/hooks/use-store-id";
-
-const defaultFormValue: MenuFormValues = {
-  name: "",
-  image: undefined,
-  unitPrice: undefined,
-  description: "",
-};
+import { useAppForm } from "@/shared/lib/form-hook";
+import { menuFormOptions } from "../model/menu-form";
 
 export function CreateMenuForm() {
   const storeId = useStoreId();
@@ -29,10 +22,16 @@ export function CreateMenuForm() {
     },
   });
 
-  const form = useMenuForm({
-    initialValues: defaultFormValue,
-    onSubmit: async (values) => {
-      const createMenuInput = v.parse(CreateMenuInput, values);
+  const form = useAppForm({
+    ...menuFormOptions,
+
+    validators: {
+      ...menuFormOptions.validators,
+      onSubmit: CreateMenuInput,
+    },
+
+    onSubmit: async ({ value }) => {
+      const createMenuInput = v.parse(CreateMenuInput, value);
       await mutation.mutateAsync({ storeId, createMenuInput });
     },
   });
@@ -48,6 +47,7 @@ export function CreateMenuForm() {
       <HeadingCard className="bg-secondary-heading-card px-8 py-4">
         メニューの追加
       </HeadingCard>
+
       <form
         className="flex flex-col items-center gap-10"
         onSubmit={(e) => {
