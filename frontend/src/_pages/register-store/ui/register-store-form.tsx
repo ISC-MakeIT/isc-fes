@@ -10,7 +10,6 @@ import { PreviewImage } from "@/shared/ui/preview-image";
 import { ActionButton } from "@/shared/ui/action-button";
 import { useRouter } from "next/navigation";
 import { STORE_IMAGE_ASPECT, storeListUrl } from "@/shared/config";
-import { UploadImage } from "@/shared/model";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { v } from "@/shared/lib/valibot";
 import {
