@@ -71,11 +71,10 @@ export function RegisterStoreForm() {
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
                 />
-                <FieldError
-                  errors={
-                    field.state.meta.isTouched ? field.state.meta.errors : []
-                  }
-                />
+
+                {field.state.meta.isTouched && (
+                  <FieldError errors={field.state.meta.errors} />
+                )}
               </FieldContent>
             </Field>
           )}
@@ -101,11 +100,10 @@ export function RegisterStoreForm() {
                   }}
                   onBlur={field.handleBlur}
                 />
-                <FieldError
-                  errors={
-                    field.state.meta.isTouched ? field.state.meta.errors : []
-                  }
-                />
+
+                {field.state.meta.isTouched && (
+                  <FieldError errors={field.state.meta.errors} />
+                )}
               </FieldContent>
             </Field>
           )}
@@ -142,11 +140,9 @@ export function RegisterStoreForm() {
                   />
                 </label>
 
-                <FieldError
-                  errors={
-                    field.state.meta.isTouched ? field.state.meta.errors : []
-                  }
-                />
+                {field.state.meta.isTouched && (
+                  <FieldError errors={field.state.meta.errors} />
+                )}
               </FieldContent>
             </Field>
           )}
@@ -173,11 +169,10 @@ export function RegisterStoreForm() {
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
                 />
-                <FieldError
-                  errors={
-                    field.state.meta.isTouched ? field.state.meta.errors : []
-                  }
-                />
+
+                {field.state.meta.isTouched && (
+                  <FieldError errors={field.state.meta.errors} />
+                )}
               </FieldContent>
             </Field>
           )}
