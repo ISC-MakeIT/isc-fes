@@ -22,7 +22,6 @@ import {
   ComboboxList,
 } from "@/shared/ui/combobox";
 import { activeRoomsQueryOptions } from "@/entities/room";
-import { cn } from "@/shared/lib/utils";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -67,34 +66,6 @@ export function RegisterStoreForm() {
     >
       <div className="grid grid-cols-[6.25rem_minmax(0,27.5rem)] items-start gap-x-4 gap-y-6">
         <form.Field
-          name="name"
-          validators={{ onChange: CreateStoreForm.entries.name }}
-          children={(field) => (
-            <Field
-              className="contents"
-              data-invalid={
-                field.state.meta.isTouched && !field.state.meta.isValid
-              }
-            >
-              <FieldLabel htmlFor={field.name}>店舗名</FieldLabel>
-              <FieldContent>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  className={inputStyle}
-                />
-
-                {field.state.meta.isTouched && (
-                  <FieldError errors={field.state.meta.errors} />
-                )}
-              </FieldContent>
-            </Field>
-          )}
-        />
-        <form.Field
           name="room"
           validators={{ onChange: CreateStoreForm.entries.room }}
           children={(field) => (
@@ -104,7 +75,7 @@ export function RegisterStoreForm() {
                 field.state.meta.isTouched && !field.state.meta.isValid
               }
             >
-              <FieldLabel htmlFor={field.name}>教室</FieldLabel>
+              <FieldLabel htmlFor={field.name}>出店教室</FieldLabel>
               <FieldContent>
                 <Combobox
                   items={activeRooms}
@@ -135,6 +106,35 @@ export function RegisterStoreForm() {
         />
 
         <form.Field
+          name="name"
+          validators={{ onChange: CreateStoreForm.entries.name }}
+          children={(field) => (
+            <Field
+              className="contents"
+              data-invalid={
+                field.state.meta.isTouched && !field.state.meta.isValid
+              }
+            >
+              <FieldLabel htmlFor={field.name}>店舗名</FieldLabel>
+              <FieldContent>
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  className={inputStyle}
+                />
+
+                {field.state.meta.isTouched && (
+                  <FieldError errors={field.state.meta.errors} />
+                )}
+              </FieldContent>
+            </Field>
+          )}
+        />
+
+        <form.Field
           name="image"
           validators={{
             onChange: UploadImage,
@@ -146,7 +146,7 @@ export function RegisterStoreForm() {
                 field.state.meta.isTouched && !field.state.meta.isValid
               }
             >
-              <FieldLabel htmlFor={field.name}>店舗写真</FieldLabel>
+              <FieldLabel htmlFor={field.name}>バナー</FieldLabel>
               <FieldContent>
                 <label htmlFor={field.name} className="cursor-pointer">
                   <input
