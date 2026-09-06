@@ -567,12 +567,7 @@ export interface components {
       unitPrice: number;
       /** @description 対象のメニューにトッピング可能なトッピングのID一覧。空配列も可。 */
       toppingIds?: string[];
-      /**
-       * Format: binary
-       * @description メニュー画像。JPEG、PNG、WebPに対応する。
-       *     最大ファイルサイズは10MB。
-       */
-      image: string;
+      imageObjectKey: components["schemas"]["ImageObjectKey"];
     };
     UpdateMenuInput: {
       /** @example たこ焼き */
@@ -586,12 +581,7 @@ export interface components {
       unitPrice?: number;
       /** @description 対象のメニューにトッピング可能なトッピングのID一覧。空配列も可。 */
       toppingIds?: string[];
-      /**
-       * Format: binary
-       * @description メニュー画像。JPEG、PNG、WebPに対応する。
-       *     最大ファイルサイズは10MB。
-       */
-      image?: string;
+      imageObjectKey?: components["schemas"]["ImageObjectKey"];
     };
     Topping: {
       /** Format: uuid */
@@ -1301,7 +1291,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "multipart/form-data": components["schemas"]["CreateMenuInput"];
+        "application/json": components["schemas"]["CreateMenuInput"];
       };
     };
     responses: {
@@ -1350,44 +1340,8 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description アップロードされた画像が大きすぎる */
-      413: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 対応していない画像形式 */
-      415: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 入力値または画像の内容が不正 */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
       /** @description サーバーエラー */
       500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 画像ストレージが一時的に利用できない */
-      503: {
         headers: {
           [name: string]: unknown;
         };
@@ -1409,7 +1363,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "multipart/form-data": components["schemas"]["UpdateMenuInput"];
+        "application/json": components["schemas"]["UpdateMenuInput"];
       };
     };
     responses: {
@@ -1458,44 +1412,8 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description アップロードされた画像が大きすぎる */
-      413: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 対応していない画像形式 */
-      415: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 入力値または画像の内容が不正 */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
       /** @description サーバーエラー */
       500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 画像ストレージが一時的に利用できない */
-      503: {
         headers: {
           [name: string]: unknown;
         };

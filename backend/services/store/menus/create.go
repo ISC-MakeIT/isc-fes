@@ -3,7 +3,6 @@ package menus
 import (
 	"context"
 	"errors"
-	"io"
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
@@ -13,11 +12,11 @@ import (
 )
 
 type CreateMenuInput struct {
-	Name        string
-	Description string
-	UnitPrice   int32
-	ToppingIds  []uuid.UUID
-	ImageReader io.ReadSeeker
+	Name           string
+	Description    string
+	UnitPrice      int32
+	ToppingIds     []uuid.UUID
+	ImageObjectKey menus.MenuImageObjectKey
 }
 
 func (s *MenuService) CreateMenu(c context.Context, storeID uuid.UUID, input CreateMenuInput) (menus.MenuDisplay, error) {
@@ -51,19 +50,16 @@ func (s *MenuService) CreateMenu(c context.Context, storeID uuid.UUID, input Cre
 		return menus.MenuDisplay{}, services.ErrForbidden
 	}
 
-	// メニュー画像を処理して、S3にアップロードする
+	if !input.ImageObjectKey.IsValid() {
+		return menus.MenuDisplay{}, services.ErrInvalidInput
+	}
+
 	menuID, err := uuid.NewRandom()
 	if err != nil {
 		return menus.MenuDisplay{}, err
 	}
-	imageObjectKey, err := s.processAndUploadMenuImage(c, input.ImageReader)
+	imageURL, err := s.imageURLGenerator.GenerateMenuImageURL(c, input.ImageObjectKey)
 	if err != nil {
-		return menus.MenuDisplay{}, err
-	}
-
-	imageURL, err := s.imageURLGenerator.GenerateMenuImageURL(c, imageObjectKey)
-	if err != nil {
-		s.imageRepository.DeleteObject(c, imageObjectKey)
 		return menus.MenuDisplay{}, err
 	}
 
@@ -73,11 +69,10 @@ func (s *MenuService) CreateMenu(c context.Context, storeID uuid.UUID, input Cre
 		Name:           input.Name,
 		Description:    input.Description,
 		UnitPrice:      input.UnitPrice,
-		ImageObjectKey: imageObjectKey,
+		ImageObjectKey: input.ImageObjectKey,
 		ToppingIds:     input.ToppingIds,
 	})
 	if err != nil {
-		s.imageRepository.DeleteObject(c, imageObjectKey)
 		return menus.MenuDisplay{}, err
 	}
 

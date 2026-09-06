@@ -12,7 +12,7 @@ import (
 
 // ImageProcessorは、利用者がアップロードした画像を配信可能な形式へ変換する。
 type ImageProcessor interface {
-	ProcessForStoreImage(ctx context.Context, reader io.ReadSeeker) (io.ReadSeeker, string, error)
+	ProcessImage(ctx context.Context, reader io.ReadSeeker) (io.ReadSeeker, string, error)
 }
 
 type ImageRepository interface {
@@ -65,7 +65,7 @@ func (s *ImageService) UploadImage(
 	}
 	objectKey := entities.NewImageObjectKey(imageID)
 
-	processedImage, contentType, err := s.imageProcessor.ProcessForStoreImage(ctx, imageReader)
+	processedImage, contentType, err := s.imageProcessor.ProcessImage(ctx, imageReader)
 	if err != nil {
 		return "", fmt.Errorf("process image: %w", err)
 	}

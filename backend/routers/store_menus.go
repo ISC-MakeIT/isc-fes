@@ -1,15 +1,11 @@
 package routers
 
 import (
-	"errors"
-	"mime/multipart"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
-	"github.com/isc-makeit/isc-fes/backend/routers/validators"
-	"github.com/isc-makeit/isc-fes/backend/services"
 	menu_service "github.com/isc-makeit/isc-fes/backend/services/store/menus"
 	"github.com/isc-makeit/isc-fes/backend/utils"
 )
@@ -27,73 +23,30 @@ func (s *Server) GetMenusByStoreID(c *gin.Context, storeID uuid.UUID) {
 	})
 }
 
-type CreateMenuForm struct {
-	Name        string                `form:"name" binding:"required"`
-	Description string                `form:"description" binding:"required"`
-	UnitPrice   *int32                `form:"unitPrice" binding:"required,gte=0"`
-	ToppingIds  []uuid.UUID           `form:"toppingIds[]"`
-	Image       *multipart.FileHeader `form:"image" binding:"required"`
-}
-
 func (s *Server) CreateMenu(c *gin.Context, storeID uuid.UUID) {
 	ctx := c.Request.Context()
 
-	// TODO: 認証ミドルウェアでアカウントを確定してから multipart body を解析し、未認証リクエストの解析コストを避ける。
-	c.Request.Body = http.MaxBytesReader(
-		c.Writer,
-		c.Request.Body,
-		maxRequestBodySize,
-	)
-
-	var form CreateMenuForm
-	bindErr := c.ShouldBind(&form)
-	image, err := validators.ValidateRequireImageRequestBody(c, form.Image, bindErr, validators.ImageValidationConfig{
-		MaxImageSize:       maxImageSize,
-		MaxRequestBodySize: maxRequestBodySize,
-	})
-	if err != nil {
-		statusCode, message := validators.MapValidationErrorToHTTPStatusCode(err)
-		c.JSON(statusCode, ErrorResponse{
-			Message: message,
+	var body CreateMenuInput
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "リクエスト形式が不正です。",
 		})
 		return
 	}
-	defer image.Close()
+
+	var toppingIDs []uuid.UUID
+	if body.ToppingIds != nil {
+		toppingIDs = *body.ToppingIds
+	}
 
 	menu, err := s.menu.CreateMenu(ctx, storeID, menu_service.CreateMenuInput{
-		Name:        form.Name,
-		Description: form.Description,
-		UnitPrice:   *form.UnitPrice,
-		ToppingIds:  form.ToppingIds,
-		ImageReader: image,
+		Name:           body.Name,
+		Description:    body.Description,
+		UnitPrice:      body.UnitPrice,
+		ToppingIds:     toppingIDs,
+		ImageObjectKey: menus.MenuImageObjectKey(body.ImageObjectKey),
 	})
 	if err != nil {
-		switch {
-		case errors.Is(err, services.ErrImageTooLarge):
-			c.JSON(http.StatusRequestEntityTooLarge, ErrorResponse{
-				Message: "画像が大きすぎます。",
-			})
-			return
-		case errors.Is(err, services.ErrUnsupportedImageFormat):
-			c.JSON(http.StatusUnsupportedMediaType, ErrorResponse{
-				Message: "対応していない画像形式です。JPEG、PNG、WebPを使用してください。",
-			})
-			return
-		case errors.Is(err, services.ErrEmptyImage),
-			errors.Is(err, services.ErrInvalidImage),
-			errors.Is(err, services.ErrImageDimensionsExceeded),
-			errors.Is(err, services.ErrProcessedImageTooLarge):
-			c.JSON(http.StatusUnprocessableEntity, ErrorResponse{
-				Message: "画像の内容が不正です。",
-			})
-			return
-		case errors.Is(err, services.ErrFailedToStoreImage):
-			c.JSON(http.StatusServiceUnavailable, ErrorResponse{
-				Message: "画像ストレージが一時的に利用できません。",
-			})
-			return
-		}
-
 		s.handleCommonServiceErrors(c, err)
 		return
 	}
@@ -101,77 +54,35 @@ func (s *Server) CreateMenu(c *gin.Context, storeID uuid.UUID) {
 	c.JSON(http.StatusCreated, toMenu(menu))
 }
 
-type UpdateMenuForm struct {
-	Name        *string               `form:"name"`
-	Description *string               `form:"description"`
-	UnitPrice   *int32                `form:"unitPrice" binding:"omitempty,gte=0"`
-	ToppingIds  []uuid.UUID           `form:"toppingIds[]"` // 何も指定していない時は nil, 空配列を指定したときは 空配列になるようにする
-	Image       *multipart.FileHeader `form:"image"`
-}
-
 func (s *Server) UpdateMenuByStoreIDAndMenuID(c *gin.Context, storeID uuid.UUID, menuID uuid.UUID) {
 	ctx := c.Request.Context()
 
-	// TODO: 認証ミドルウェアでアカウントを確定してから multipart body を解析し、未認証リクエストの解析コストを避ける。
-	c.Request.Body = http.MaxBytesReader(
-		c.Writer,
-		c.Request.Body,
-		maxRequestBodySize,
-	)
-
-	var form UpdateMenuForm
-	bindErr := c.ShouldBind(&form)
-	image, err := validators.ValidateOptionalImageRequestBody(c, form.Image, bindErr, validators.ImageValidationConfig{
-		MaxImageSize:       maxImageSize,
-		MaxRequestBodySize: maxRequestBodySize,
-	})
-	if err != nil {
-		statusCode, message := validators.MapValidationErrorToHTTPStatusCode(err)
-		c.JSON(statusCode, ErrorResponse{
-			Message: message,
+	var body UpdateMenuInput
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "リクエスト形式が不正です。",
 		})
 		return
 	}
-	defer func() {
-		if image != nil {
-			image.Close()
-		}
-	}()
+
+	var toppingIDs []uuid.UUID
+	if body.ToppingIds != nil {
+		toppingIDs = *body.ToppingIds
+	}
+	var imageObjectKey *menus.MenuImageObjectKey
+	if body.ImageObjectKey != nil {
+		key := menus.MenuImageObjectKey(*body.ImageObjectKey)
+		imageObjectKey = &key
+	}
 
 	m, err := s.menu.UpdateMenuByStoreIDAndMenuID(ctx, storeID, menuID, menu_service.UpdateMenuInput{
-		Name:        form.Name,
-		Description: form.Description,
-		UnitPrice:   form.UnitPrice,
-		ToppingIds:  form.ToppingIds,
-		ImageReader: image,
+		Name:           body.Name,
+		Description:    body.Description,
+		UnitPrice:      body.UnitPrice,
+		ToppingIds:     toppingIDs,
+		ImageObjectKey: imageObjectKey,
 	})
 	if err != nil {
-		switch {
-		case errors.Is(err, services.ErrImageTooLarge):
-			c.JSON(http.StatusRequestEntityTooLarge, ErrorResponse{
-				Message: "画像が大きすぎます。",
-			})
-			return
-		case errors.Is(err, services.ErrUnsupportedImageFormat):
-			c.JSON(http.StatusUnsupportedMediaType, ErrorResponse{
-				Message: "対応していない画像形式です。JPEG、PNG、WebPを使用してください。",
-			})
-			return
-		case errors.Is(err, services.ErrEmptyImage),
-			errors.Is(err, services.ErrInvalidImage),
-			errors.Is(err, services.ErrImageDimensionsExceeded),
-			errors.Is(err, services.ErrProcessedImageTooLarge):
-			c.JSON(http.StatusUnprocessableEntity, ErrorResponse{
-				Message: "画像の内容が不正です。",
-			})
-			return
-		case errors.Is(err, services.ErrFailedToStoreImage):
-			c.JSON(http.StatusServiceUnavailable, ErrorResponse{
-				Message: "画像ストレージが一時的に利用できません。",
-			})
-			return
-		}
-
 		s.handleCommonServiceErrors(c, err)
 		return
 	}
