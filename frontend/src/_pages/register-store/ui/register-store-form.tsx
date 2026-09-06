@@ -45,7 +45,9 @@ export function RegisterStoreForm() {
   const form = useForm({
     defaultValues: defaultFormValue,
     validators: {
-      onMount: CreateStoreForm,
+      onMount: CreateStoreInput,
+      onSubmit: CreateStoreInput,
+      onChange: CreateStoreInput,
     },
     onSubmit: async ({ value }) => {
       const createStoreInput = v.parse(CreateStoreInput, value);
@@ -67,7 +69,6 @@ export function RegisterStoreForm() {
       <div className="grid grid-cols-[6.25rem_minmax(0,27.5rem)] items-start gap-x-4 gap-y-6">
         <form.Field
           name="room"
-          validators={{ onChange: CreateStoreForm.entries.room }}
           children={(field) => (
             <Field
               className="contents"
@@ -84,7 +85,12 @@ export function RegisterStoreForm() {
                     field.handleChange(value ?? undefined);
                   }}
                 >
-                  <ComboboxInput className={inputStyle} />
+                  <ComboboxInput
+                    className={inputStyle}
+                    onBlur={field.handleBlur}
+                    id={field.name}
+                    name={field.name}
+                  />
                   <ComboboxContent>
                     <ComboboxEmpty>教室が見つかりません</ComboboxEmpty>
                     <ComboboxList>
@@ -107,7 +113,6 @@ export function RegisterStoreForm() {
 
         <form.Field
           name="name"
-          validators={{ onChange: CreateStoreForm.entries.name }}
           children={(field) => (
             <Field
               className="contents"
@@ -136,9 +141,6 @@ export function RegisterStoreForm() {
 
         <form.Field
           name="image"
-          validators={{
-            onChange: UploadImage,
-          }}
           children={(field) => (
             <Field
               className="contents"
@@ -176,9 +178,6 @@ export function RegisterStoreForm() {
 
         <form.Field
           name="description"
-          validators={{
-            onChange: CreateStoreForm.entries.description,
-          }}
           children={(field) => (
             <Field
               className="contents"
