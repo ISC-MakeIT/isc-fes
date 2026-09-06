@@ -1,4 +1,4 @@
-import { activeRoomsKey, getStatusMessage } from "@/shared/config";
+import { roomsKey, getStatusMessage } from "@/shared/config";
 import { queryOptions } from "@tanstack/react-query";
 import { createApiClient } from "@/shared/api";
 import { v } from "@/shared/lib/valibot";
@@ -20,7 +20,7 @@ export async function fetchActiveRooms() {
 
 export function activeRoomsQueryOptions() {
   return queryOptions({
-    queryKey: activeRoomsKey(),
+    queryKey: roomsKey(),
     queryFn: fetchActiveRooms,
     staleTime: Infinity,
   });

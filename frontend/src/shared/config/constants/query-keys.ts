@@ -13,4 +13,4 @@ export const storeMembersKey = (storeId: string) => [
 ];
 export const currentAccountKey = () => ["account", "me"];
 export const storeApplicationsKey = () => ["store-applications"];
-export const activeRoomsKey = () => ["active-rooms"];
+export const roomsKey = () => ["rooms"];
