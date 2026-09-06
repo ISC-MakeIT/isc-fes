@@ -11,7 +11,7 @@ import { ActionButton } from "@/shared/ui/action-button";
 import { useRouter } from "next/navigation";
 import { STORE_IMAGE_ASPECT, storeListUrl } from "@/shared/config";
 import { UploadImage } from "@/shared/model";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { v } from "@/shared/lib/valibot";
 import {
   Combobox,
@@ -21,7 +21,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/shared/ui/combobox";
-import { roomNames } from "@/entities/room";
+import { activeRoomsQueryOptions } from "@/entities/room";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -32,6 +32,8 @@ const defaultFormValue: CreateStoreForm = {
 
 export function RegisterStoreForm() {
   const router = useRouter();
+
+  const { data: activeRooms } = useSuspenseQuery(activeRoomsQueryOptions());
 
   const mutation = useMutation({
     mutationFn: createStoreApplication,
@@ -100,17 +102,8 @@ export function RegisterStoreForm() {
             >
               <FieldLabel htmlFor={field.name}>教室</FieldLabel>
               <FieldContent>
-                {/* <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onChange={(e) => {
-                    field.handleChange(e.target.value);
-                  }}
-                  onBlur={field.handleBlur}
-                /> */}
                 <Combobox
-                  items={roomNames}
+                  items={activeRooms}
                   value={field.state.value ?? null}
                   onValueChange={(value) => {
                     field.handleChange(value ?? undefined);
