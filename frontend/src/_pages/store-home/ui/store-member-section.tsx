@@ -132,7 +132,8 @@ function MemberCard({ storeId, member, currentMember }: MemberCardProps) {
           )}
 
           <Button
-            className="bg-destructive h-auto self-center px-14 py-3 text-xl"
+            variant="destructive"
+            className="h-auto self-center px-14 py-3 text-xl"
             disabled={mutation.isPending}
             onClick={() =>
               mutation.mutate({ storeId, accountId: member.accountId })

@@ -11,6 +11,8 @@ import { Card } from "@/shared/ui/card";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { MENU_IMAGE_ASPECT } from "@/shared/config";
 import { useStoreId } from "../model/hooks/use-store-id";
+import { SoldOutSwitch } from "./sold-out-switch";
+import { Fragment } from "react/jsx-runtime";
 
 export function MenuList() {
   const storeId = useStoreId();
@@ -21,20 +23,21 @@ export function MenuList() {
     <section className="border-primary border-b px-4">
       <HeadingCard className="px-8 py-4">メニュー</HeadingCard>
       <div className="space-y-6 py-8">
-        <div className="grid grid-cols-[1fr_4.375rem] gap-6">
-          <div className="space-y-6">
-            <p className="border-foreground border-b text-center text-lg">
-              メニュー名
-            </p>
-            {menus.map((menu) => (
-              <MenuCard key={menu.id} menu={menu} />
-            ))}
-          </div>
-          <div>
-            <p className="border-foreground border-b text-center text-lg">
-              完売中
-            </p>
-          </div>
+        <div className="grid grid-cols-[minmax(0,1fr)_4.375rem] gap-x-6 gap-y-6">
+          <p className="border-foreground border-b text-center text-lg">
+            メニュー名
+          </p>
+          <p className="border-foreground border-b text-center text-lg">
+            完売中
+          </p>
+          {menus.map((menu) => (
+            <Fragment key={menu.id}>
+              <MenuCard menu={menu} />
+              <div className="flex items-center justify-center">
+                <SoldOutSwitch menu={menu} />
+              </div>
+            </Fragment>
+          ))}
         </div>
 
         <ActionButton

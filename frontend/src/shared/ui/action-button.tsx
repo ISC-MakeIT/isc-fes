@@ -20,11 +20,7 @@ export function ActionButton({
 }: ActionButtonProps) {
   const textStyle = cva("inline-flex items-center");
   return (
-    <Button
-      variant="secondary"
-      className={cn(actionButtonStyles(), className)}
-      {...props}
-    >
+    <Button className={cn(actionButtonStyles(), className)} {...props}>
       {isDot ? (
         <DotText className={textStyle()}>{children}</DotText>
       ) : (
