@@ -2,7 +2,6 @@ package menus
 
 import (
 	"context"
-	"io"
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
@@ -35,9 +34,4 @@ type MenuRepository interface {
 	CreateMenuWithToppings(c context.Context, input CreateMenuRepositoryInput) (menus.Menu, error)
 	UpdateMenuWithToppings(c context.Context, input UpdateMenuRepositoryInput) (menus.Menu, error)
 	DeleteMenuByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID) (int64, error)
-}
-
-type ImageProcessor interface {
-	// ProcessForMenuImageは、入力画像を検証および変換し、処理後の画像とContent-Typeを返す
-	ProcessForMenuImage(ctx context.Context, reader io.ReadSeeker) (io.ReadSeeker, string, error)
 }

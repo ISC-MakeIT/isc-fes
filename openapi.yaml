@@ -522,7 +522,7 @@ paths:
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
               $ref: "#/components/schemas/CreateMenuInput"
       responses:
@@ -556,32 +556,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "413":
-          description: アップロードされた画像が大きすぎる
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "415":
-          description: 対応していない画像形式
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "422":
-          description: 入力値または画像の内容が不正
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: サーバーエラー
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "503":
-          description: 画像ストレージが一時的に利用できない
           content:
             application/json:
               schema:
@@ -608,7 +584,7 @@ paths:
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
               $ref: "#/components/schemas/UpdateMenuInput"
       responses:
@@ -642,32 +618,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "413":
-          description: アップロードされた画像が大きすぎる
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "415":
-          description: 対応していない画像形式
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "422":
-          description: 入力値または画像の内容が不正
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: サーバーエラー
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "503":
-          description: 画像ストレージが一時的に利用できない
           content:
             application/json:
               schema:
@@ -1651,7 +1603,7 @@ components:
         - name
         - description
         - unitPrice
-        - image
+        - imageObjectKey
       properties:
         name:
           type: string
@@ -1675,12 +1627,8 @@ components:
             type: string
             format: uuid
           uniqueItems: true
-        image:
-          type: string
-          format: binary
-          description: |
-            メニュー画像。JPEG、PNG、WebPに対応する。
-            最大ファイルサイズは10MB。
+        imageObjectKey:
+          $ref: "#/components/schemas/ImageObjectKey"
     UpdateMenuInput:
       type: object
       properties:
@@ -1706,12 +1654,8 @@ components:
             type: string
             format: uuid
           uniqueItems: true
-        image:
-          type: string
-          format: binary
-          description: |
-            メニュー画像。JPEG、PNG、WebPに対応する。
-            最大ファイルサイズは10MB。
+        imageObjectKey:
+          $ref: "#/components/schemas/ImageObjectKey"
     Topping:
       type: object
       required:

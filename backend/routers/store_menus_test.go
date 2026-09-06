@@ -1,54 +1,82 @@
 package routers
 
 import (
-	"bytes"
-	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 )
 
-func TestCreateMenuFormBindsUnitPriceFromOpenAPIFieldName(t *testing.T) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	for name, value := range map[string]string{
-		"name":        "たこ焼き",
-		"description": "外はカリカリ、中はトロトロです。",
-		"unitPrice":   "0",
-	} {
-		if err := writer.WriteField(name, value); err != nil {
-			t.Fatalf("WriteField(%q) error = %v", name, err)
-		}
-	}
-
-	image, err := writer.CreateFormFile("image", "menu.jpg")
-	if err != nil {
-		t.Fatalf("CreateFormFile() error = %v", err)
-	}
-	if _, err := image.Write([]byte("image")); err != nil {
-		t.Fatalf("image.Write() error = %v", err)
-	}
-	if err := writer.Close(); err != nil {
-		t.Fatalf("writer.Close() error = %v", err)
-	}
-
-	request := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/stores/00000000-0000-0000-0000-000000000000/menus", body)
-	request.Header.Set("Content-Type", writer.FormDataContentType())
+func TestCreateMenuInputBindsJSON(t *testing.T) {
+	request := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodPost,
+		"/stores/00000000-0000-0000-0000-000000000000/menus",
+		strings.NewReader(`{
+			"name":"たこ焼き",
+			"description":"外はカリカリ、中はトロトロです。",
+			"unitPrice":0,
+			"imageObjectKey":"images/00000000-0000-0000-0000-000000000001",
+			"toppingIds":[]
+		}`),
+	)
+	request.Header.Set("Content-Type", "application/json")
 	response := httptest.NewRecorder()
 	context, _ := gin.CreateTestContext(response)
 	context.Request = request
 
-	var form CreateMenuForm
-	if err := context.ShouldBind(&form); err != nil {
-		t.Fatalf("ShouldBind() error = %v", err)
+	var input CreateMenuInput
+	if err := context.ShouldBindJSON(&input); err != nil {
+		t.Fatalf("ShouldBindJSON() error = %v", err)
 	}
-	if form.UnitPrice == nil {
-		t.Fatal("UnitPrice is nil")
+	if input.UnitPrice != 0 {
+		t.Errorf("UnitPrice = %d, want 0", input.UnitPrice)
 	}
-	if got := *form.UnitPrice; got != 0 {
-		t.Errorf("UnitPrice = %d, want 0", got)
+	if input.ToppingIds == nil {
+		t.Fatal("ToppingIds is nil, want an empty slice")
+	}
+	if len(*input.ToppingIds) != 0 {
+		t.Errorf("len(ToppingIds) = %d, want 0", len(*input.ToppingIds))
+	}
+}
+
+func TestUpdateMenuInputDistinguishesOmittedAndEmptyToppingIds(t *testing.T) {
+	tests := []struct {
+		name      string
+		body      string
+		wantNil   bool
+		wantCount int
+	}{
+		{name: "omitted", body: `{}`, wantNil: true},
+		{name: "empty", body: `{"toppingIds":[]}`, wantCount: 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/menus", strings.NewReader(tt.body))
+			request.Header.Set("Content-Type", "application/json")
+			response := httptest.NewRecorder()
+			context, _ := gin.CreateTestContext(response)
+			context.Request = request
+
+			var input UpdateMenuInput
+			if err := context.ShouldBindJSON(&input); err != nil {
+				t.Fatalf("ShouldBindJSON() error = %v", err)
+			}
+			if tt.wantNil {
+				if input.ToppingIds != nil {
+					t.Errorf("ToppingIds = %v, want nil", *input.ToppingIds)
+				}
+				return
+			}
+			if input.ToppingIds == nil {
+				t.Fatal("ToppingIds is nil, want an empty slice")
+			}
+			if len(*input.ToppingIds) != tt.wantCount {
+				t.Errorf("len(ToppingIds) = %d, want %d", len(*input.ToppingIds), tt.wantCount)
+			}
+		})
 	}
 }

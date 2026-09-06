@@ -4,8 +4,7 @@ import {
   MenuName,
   MenuUnitPrice,
 } from "@/entities/menu";
-import { createApiClient } from "@/shared/api";
-import { buildFormDataBody } from "@/shared/lib/build-form-data-body";
+import { createApiClient, uploadImage } from "@/shared/api";
 import { getStatusMessage } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { UploadImage } from "@/shared/model";
@@ -30,6 +29,12 @@ export async function createMenu({
   createMenuInput,
   storeId,
 }: CreateMenuParams) {
+  const { image, ...menuInput } = createMenuInput;
+  const uploadResult = await uploadImage(image);
+  if (uploadResult.data === undefined) {
+    throw new Error(uploadResult.error);
+  }
+
   const client = await createApiClient();
   const { data, error, response } = await client.POST(
     "/stores/{store_id}/menus",
@@ -39,8 +44,10 @@ export async function createMenu({
           store_id: storeId,
         },
       },
-      body: createMenuInput as never,
-      bodySerializer: (body) => buildFormDataBody(body),
+      body: {
+        ...menuInput,
+        imageObjectKey: uploadResult.data.imageObjectKey,
+      },
     },
   );
 

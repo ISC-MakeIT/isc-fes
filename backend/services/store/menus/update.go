@@ -3,7 +3,6 @@ package menus
 import (
 	"context"
 	"errors"
-	"io"
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
@@ -14,17 +13,20 @@ import (
 
 // CreateMenuInput と構造的には同じだが、Optional にするために別の構造体として定義
 type UpdateMenuInput struct {
-	Name        *string
-	Description *string
-	UnitPrice   *int32
-	ToppingIds  []uuid.UUID
-	ImageReader io.ReadSeeker
+	Name           *string
+	Description    *string
+	UnitPrice      *int32
+	ToppingIds     []uuid.UUID
+	ImageObjectKey *menus.MenuImageObjectKey
 }
 
 func (s *MenuService) UpdateMenuByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID, input UpdateMenuInput) (menus.MenuDisplay, error) {
 	account, err := services.RequireAuthenticatedAccount(c)
 	if err != nil {
 		return menus.MenuDisplay{}, err
+	}
+	if input.ImageObjectKey != nil && !input.ImageObjectKey.IsValid() {
+		return menus.MenuDisplay{}, services.ErrInvalidInput
 	}
 
 	// 認可
@@ -63,17 +65,7 @@ func (s *MenuService) UpdateMenuByStoreIDAndMenuID(c context.Context, storeID uu
 		return entity2display.ToMenuDisplay(c, menu, s.imageURLGenerator)
 	}
 
-	// メニュー画像の変更がある場合は、画像を処理してS3にアップロードする
-	var imageObjectKey *menus.MenuImageObjectKey
-	if input.ImageReader != nil {
-		key, err := s.processAndUploadMenuImage(c, input.ImageReader)
-		if err != nil {
-			return menus.MenuDisplay{}, err
-		}
-		imageObjectKey = &key
-	}
-
-	// メニューを更新するvar toppingIDs *[]uuid.UUID
+	// メニューを更新する
 	var toppingIDs *[]uuid.UUID
 	if input.ToppingIds != nil {
 		toppingIDs = &input.ToppingIds
@@ -85,15 +77,12 @@ func (s *MenuService) UpdateMenuByStoreIDAndMenuID(c context.Context, storeID uu
 		Description:    input.Description,
 		UnitPrice:      input.UnitPrice,
 		ToppingIds:     toppingIDs,
-		ImageObjectKey: imageObjectKey,
+		ImageObjectKey: input.ImageObjectKey,
 	})
 	if err != nil {
-		if imageObjectKey != nil {
-			s.imageRepository.DeleteObject(c, *imageObjectKey)
-		}
 		return menus.MenuDisplay{}, err
 	}
-	if imageObjectKey != nil {
+	if input.ImageObjectKey != nil && *input.ImageObjectKey != menu.ImageObjectKey {
 		s.imageRepository.DeleteObject(c, menu.ImageObjectKey)
 	}
 
@@ -101,5 +90,5 @@ func (s *MenuService) UpdateMenuByStoreIDAndMenuID(c context.Context, storeID uu
 }
 
 func (i *UpdateMenuInput) IsAllNil() bool {
-	return i.Name == nil && i.Description == nil && i.UnitPrice == nil && i.ToppingIds == nil && i.ImageReader == nil
+	return i.Name == nil && i.Description == nil && i.UnitPrice == nil && i.ToppingIds == nil && i.ImageObjectKey == nil
 }

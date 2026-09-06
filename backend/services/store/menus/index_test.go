@@ -1,10 +1,8 @@
 package menus
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"io"
 	"testing"
 
 	"github.com/google/uuid"
@@ -18,14 +16,23 @@ type recordingMenuRepository struct {
 	MenuRepository
 	menu        menuentities.Menu
 	createCalls int
+	createInput CreateMenuRepositoryInput
 	updateCalls int
 	updateInput UpdateMenuRepositoryInput
 	updateErr   error
 }
 
-func (r *recordingMenuRepository) CreateMenuWithToppings(context.Context, CreateMenuRepositoryInput) (menuentities.Menu, error) {
+func (r *recordingMenuRepository) CreateMenuWithToppings(_ context.Context, input CreateMenuRepositoryInput) (menuentities.Menu, error) {
 	r.createCalls++
-	return menuentities.Menu{}, nil
+	r.createInput = input
+	return menuentities.Menu{
+		ID:             input.ID,
+		StoreID:        input.StoreID,
+		Name:           input.Name,
+		Description:    input.Description,
+		UnitPrice:      input.UnitPrice,
+		ImageObjectKey: input.ImageObjectKey,
+	}, nil
 }
 
 func (r *recordingMenuRepository) GetMenuByStoreIDAndMenuID(context.Context, uuid.UUID, uuid.UUID) (menuentities.Menu, error) {
@@ -66,28 +73,12 @@ func (r *managerStoreMembersRepository) GetStoreMembershipByAccountIDAndStoreID(
 	return r.membership, nil
 }
 
-type passthroughMenuImageProcessor struct{}
-
-func (passthroughMenuImageProcessor) ProcessForMenuImage(_ context.Context, reader io.ReadSeeker) (io.ReadSeeker, string, error) {
-	return reader, "image/jpeg", nil
-}
-
 type recordingMenuImageRepository struct {
 	services.ImageRepository
-	putCalls    int
-	deleteCalls int
-	putKeys     []entities.StoreImageObjectKey
-	deleteKeys  []entities.StoreImageObjectKey
-}
-
-func (r *recordingMenuImageRepository) PutObject(_ context.Context, _ io.ReadSeeker, key entities.StoreImageObjectKey, _ string) error {
-	r.putCalls++
-	r.putKeys = append(r.putKeys, key)
-	return nil
+	deleteKeys []entities.StoreImageObjectKey
 }
 
 func (r *recordingMenuImageRepository) DeleteObject(_ context.Context, key entities.StoreImageObjectKey) error {
-	r.deleteCalls++
 	r.deleteKeys = append(r.deleteKeys, key)
 	return nil
 }
@@ -109,15 +100,16 @@ func (staticMenuImageURLGenerator) GenerateMenuImageURL(_ context.Context, key m
 	return "https://example.com/" + key.String(), nil
 }
 
-func TestCreateMenuDoesNotPersistWhenImageURLGenerationFails(t *testing.T) {
-	accountID := uuid.New()
-	storeID := uuid.New()
-	wantErr := errors.New("generate image URL")
-	menuRepository := &recordingMenuRepository{}
-	imageRepository := &recordingMenuImageRepository{}
-	service := NewMenuService(
+func newAuthorizedMenuService(
+	accountID uuid.UUID,
+	storeID uuid.UUID,
+	menuRepository MenuRepository,
+	imageURLGenerator services.ImageURLGenerator,
+	imageRepository services.ImageRepository,
+) *MenuService {
+	return NewMenuService(
 		menuRepository,
-		&failingMenuImageURLGenerator{err: wantErr},
+		imageURLGenerator,
 		&approvedStoreRepository{store: entities.Store{
 			ID:           storeID,
 			ReviewStatus: entities.StoreReviewStatusApproved,
@@ -127,16 +119,74 @@ func TestCreateMenuDoesNotPersistWhenImageURLGenerationFails(t *testing.T) {
 			AccountID: accountID,
 			Role:      entities.StoreMemberRoleManager,
 		}},
-		passthroughMenuImageProcessor{},
+		imageRepository,
+	)
+}
+
+func TestCreateMenuUsesSuppliedImageObjectKey(t *testing.T) {
+	accountID := uuid.New()
+	storeID := uuid.New()
+	imageObjectKey := menuentities.NewMenuImageObjectKey(uuid.New())
+	menuRepository := &recordingMenuRepository{}
+	imageRepository := &recordingMenuImageRepository{}
+	service := newAuthorizedMenuService(accountID, storeID, menuRepository, staticMenuImageURLGenerator{}, imageRepository)
+	ctx := services.WithAuthenticatedAccount(t.Context(), entities.Account{ID: accountID})
+
+	createdMenu, err := service.CreateMenu(ctx, storeID, CreateMenuInput{
+		Name:           "たこ焼き",
+		Description:    "外はカリカリ、中はトロトロです。",
+		UnitPrice:      500,
+		ImageObjectKey: imageObjectKey,
+	})
+	if err != nil {
+		t.Fatalf("CreateMenu() error = %v", err)
+	}
+
+	if menuRepository.createInput.ImageObjectKey != imageObjectKey {
+		t.Errorf("repository image object key = %q, want %q", menuRepository.createInput.ImageObjectKey, imageObjectKey)
+	}
+	if len(imageRepository.deleteKeys) != 0 {
+		t.Errorf("deleted image object keys = %v, want none", imageRepository.deleteKeys)
+	}
+	if createdMenu.ImageURL != "https://example.com/"+imageObjectKey.String() {
+		t.Errorf("created menu image URL = %q, want uploaded image URL", createdMenu.ImageURL)
+	}
+}
+
+func TestCreateMenuRejectsInvalidImageObjectKey(t *testing.T) {
+	accountID := uuid.New()
+	storeID := uuid.New()
+	menuRepository := &recordingMenuRepository{}
+	service := newAuthorizedMenuService(accountID, storeID, menuRepository, staticMenuImageURLGenerator{}, &recordingMenuImageRepository{})
+	ctx := services.WithAuthenticatedAccount(t.Context(), entities.Account{ID: accountID})
+
+	_, err := service.CreateMenu(ctx, storeID, CreateMenuInput{ImageObjectKey: "stores/not-an-image-id"})
+
+	if !errors.Is(err, services.ErrInvalidInput) {
+		t.Fatalf("CreateMenu() error = %v, want %v", err, services.ErrInvalidInput)
+	}
+	if menuRepository.createCalls != 0 {
+		t.Errorf("CreateMenu repository calls = %d, want 0", menuRepository.createCalls)
+	}
+}
+
+func TestCreateMenuDoesNotDeleteSuppliedImageWhenImageURLGenerationFails(t *testing.T) {
+	accountID := uuid.New()
+	storeID := uuid.New()
+	wantErr := errors.New("generate image URL")
+	menuRepository := &recordingMenuRepository{}
+	imageRepository := &recordingMenuImageRepository{}
+	service := newAuthorizedMenuService(
+		accountID,
+		storeID,
+		menuRepository,
+		&failingMenuImageURLGenerator{err: wantErr},
 		imageRepository,
 	)
 	ctx := services.WithAuthenticatedAccount(t.Context(), entities.Account{ID: accountID})
 
 	_, err := service.CreateMenu(ctx, storeID, CreateMenuInput{
-		Name:        "たこ焼き",
-		Description: "外はカリカリ、中はトロトロです。",
-		UnitPrice:   500,
-		ImageReader: bytes.NewReader([]byte("image")),
+		ImageObjectKey: menuentities.NewMenuImageObjectKey(uuid.New()),
 	})
 
 	if !errors.Is(err, wantErr) {
@@ -145,62 +195,33 @@ func TestCreateMenuDoesNotPersistWhenImageURLGenerationFails(t *testing.T) {
 	if menuRepository.createCalls != 0 {
 		t.Errorf("CreateMenu repository calls = %d, want 0", menuRepository.createCalls)
 	}
-	if imageRepository.putCalls != 1 {
-		t.Errorf("PutObject() calls = %d, want 1", imageRepository.putCalls)
-	}
-	if imageRepository.deleteCalls != 1 {
-		t.Errorf("DeleteObject() calls = %d, want 1", imageRepository.deleteCalls)
+	if len(imageRepository.deleteKeys) != 0 {
+		t.Errorf("deleted image object keys = %v, want none", imageRepository.deleteKeys)
 	}
 }
 
-func TestUpdateMenuReplacesImageUsingUniqueObjectKey(t *testing.T) {
+func TestUpdateMenuReplacesImageUsingSuppliedObjectKey(t *testing.T) {
 	accountID := uuid.New()
 	storeID := uuid.New()
 	menuID := uuid.New()
 	oldObjectKey := menuentities.NewMenuImageObjectKey(uuid.New())
+	newObjectKey := menuentities.NewMenuImageObjectKey(uuid.New())
 	menuRepository := &recordingMenuRepository{menu: menuentities.Menu{
 		ID:             menuID,
 		StoreID:        storeID,
 		ImageObjectKey: oldObjectKey,
 	}}
 	imageRepository := &recordingMenuImageRepository{}
-	service := NewMenuService(
-		menuRepository,
-		staticMenuImageURLGenerator{},
-		&approvedStoreRepository{store: entities.Store{
-			ID:           storeID,
-			ReviewStatus: entities.StoreReviewStatusApproved,
-		}},
-		&managerStoreMembersRepository{membership: entities.StoreMembership{
-			StoreID:   storeID,
-			AccountID: accountID,
-			Role:      entities.StoreMemberRoleManager,
-		}},
-		passthroughMenuImageProcessor{},
-		imageRepository,
-	)
+	service := newAuthorizedMenuService(accountID, storeID, menuRepository, staticMenuImageURLGenerator{}, imageRepository)
 	ctx := services.WithAuthenticatedAccount(t.Context(), entities.Account{ID: accountID})
 
 	updatedMenu, err := service.UpdateMenuByStoreIDAndMenuID(ctx, storeID, menuID, UpdateMenuInput{
-		ImageReader: bytes.NewReader([]byte("new image")),
+		ImageObjectKey: &newObjectKey,
 	})
 	if err != nil {
 		t.Fatalf("UpdateMenuByStoreIDAndMenuID() error = %v", err)
 	}
 
-	if len(imageRepository.putKeys) != 1 {
-		t.Fatalf("PutObject() calls = %d, want 1", len(imageRepository.putKeys))
-	}
-	newObjectKey := imageRepository.putKeys[0]
-	if !newObjectKey.IsValid() {
-		t.Errorf("new image object key %q is invalid", newObjectKey)
-	}
-	if newObjectKey == oldObjectKey {
-		t.Error("new image overwrote the old image object")
-	}
-	if newObjectKey == menuentities.NewMenuImageObjectKey(menuID) {
-		t.Error("new image object key was derived from the menu ID")
-	}
 	if menuRepository.updateInput.ImageObjectKey == nil || *menuRepository.updateInput.ImageObjectKey != newObjectKey {
 		t.Errorf("repository image object key = %v, want %q", menuRepository.updateInput.ImageObjectKey, newObjectKey)
 	}
@@ -212,12 +233,13 @@ func TestUpdateMenuReplacesImageUsingUniqueObjectKey(t *testing.T) {
 	}
 }
 
-func TestUpdateMenuDeletesNewImageWhenPersistenceFails(t *testing.T) {
+func TestUpdateMenuDoesNotDeleteImageWhenPersistenceFails(t *testing.T) {
 	accountID := uuid.New()
 	storeID := uuid.New()
 	menuID := uuid.New()
-	oldObjectKey := menuentities.NewMenuImageObjectKey(uuid.New())
 	wantErr := errors.New("update menu")
+	oldObjectKey := menuentities.NewMenuImageObjectKey(uuid.New())
+	newObjectKey := menuentities.NewMenuImageObjectKey(uuid.New())
 	menuRepository := &recordingMenuRepository{
 		menu: menuentities.Menu{
 			ID:             menuID,
@@ -227,37 +249,41 @@ func TestUpdateMenuDeletesNewImageWhenPersistenceFails(t *testing.T) {
 		updateErr: wantErr,
 	}
 	imageRepository := &recordingMenuImageRepository{}
-	service := NewMenuService(
-		menuRepository,
-		staticMenuImageURLGenerator{},
-		&approvedStoreRepository{store: entities.Store{
-			ID:           storeID,
-			ReviewStatus: entities.StoreReviewStatusApproved,
-		}},
-		&managerStoreMembersRepository{membership: entities.StoreMembership{
-			StoreID:   storeID,
-			AccountID: accountID,
-			Role:      entities.StoreMemberRoleManager,
-		}},
-		passthroughMenuImageProcessor{},
-		imageRepository,
-	)
+	service := newAuthorizedMenuService(accountID, storeID, menuRepository, staticMenuImageURLGenerator{}, imageRepository)
 	ctx := services.WithAuthenticatedAccount(t.Context(), entities.Account{ID: accountID})
 
 	_, err := service.UpdateMenuByStoreIDAndMenuID(ctx, storeID, menuID, UpdateMenuInput{
-		ImageReader: bytes.NewReader([]byte("new image")),
+		ImageObjectKey: &newObjectKey,
 	})
 	if !errors.Is(err, wantErr) {
 		t.Fatalf("UpdateMenuByStoreIDAndMenuID() error = %v, want %v", err, wantErr)
 	}
+	if len(imageRepository.deleteKeys) != 0 {
+		t.Errorf("deleted image object keys = %v, want none", imageRepository.deleteKeys)
+	}
+}
 
-	if len(imageRepository.putKeys) != 1 {
-		t.Fatalf("PutObject() calls = %d, want 1", len(imageRepository.putKeys))
+func TestUpdateMenuDoesNotDeleteImageWhenObjectKeyIsUnchanged(t *testing.T) {
+	accountID := uuid.New()
+	storeID := uuid.New()
+	menuID := uuid.New()
+	imageObjectKey := menuentities.NewMenuImageObjectKey(uuid.New())
+	menuRepository := &recordingMenuRepository{menu: menuentities.Menu{
+		ID:             menuID,
+		StoreID:        storeID,
+		ImageObjectKey: imageObjectKey,
+	}}
+	imageRepository := &recordingMenuImageRepository{}
+	service := newAuthorizedMenuService(accountID, storeID, menuRepository, staticMenuImageURLGenerator{}, imageRepository)
+	ctx := services.WithAuthenticatedAccount(t.Context(), entities.Account{ID: accountID})
+
+	_, err := service.UpdateMenuByStoreIDAndMenuID(ctx, storeID, menuID, UpdateMenuInput{
+		ImageObjectKey: &imageObjectKey,
+	})
+	if err != nil {
+		t.Fatalf("UpdateMenuByStoreIDAndMenuID() error = %v", err)
 	}
-	if len(imageRepository.deleteKeys) != 1 || imageRepository.deleteKeys[0] != imageRepository.putKeys[0] {
-		t.Errorf("deleted image object keys = %v, want new image key %q", imageRepository.deleteKeys, imageRepository.putKeys[0])
-	}
-	if len(imageRepository.deleteKeys) == 1 && imageRepository.deleteKeys[0] == oldObjectKey {
-		t.Error("old image was deleted even though persistence failed")
+	if len(imageRepository.deleteKeys) != 0 {
+		t.Errorf("deleted image object keys = %v, want none", imageRepository.deleteKeys)
 	}
 }

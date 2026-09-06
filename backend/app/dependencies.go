@@ -141,7 +141,7 @@ func buildDependencies(
 	allergenService := allergens_service.NewAllergenService(allergensRepository)
 	imageProcessor := media.NewImageProcessor()
 	imageService := services.NewImageService(imageProcessor, imageRepository)
-	menuService := menus.NewMenuService(menuRepository, imgGenerator, storeRepository, storeMemberRepository, imageProcessor, imageRepository)
+	menuService := menus.NewMenuService(menuRepository, imgGenerator, storeRepository, storeMemberRepository, imageRepository)
 	toppingsService := toppings.NewToppingsService(toppingsRepository, storeMemberRepository, storeRepository)
 	cartsRepository := carts.NewCartRepository(queries)
 	cartService := carts_service.NewCartService(cartsRepository, storeRepository, guestResolver, imgGenerator)

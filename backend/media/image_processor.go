@@ -14,7 +14,6 @@ import (
 	"io"
 
 	"github.com/isc-makeit/isc-fes/backend/services"
-	"github.com/isc-makeit/isc-fes/backend/services/store/menus"
 	xdraw "golang.org/x/image/draw"
 	_ "golang.org/x/image/webp"
 )
@@ -39,16 +38,16 @@ type ImageProcessor struct {
 	slots chan struct{}
 }
 
-// NewImageProcessorは、店舗画像用の制限値を設定したImageProcessorを生成する。
+// NewImageProcessorは、アップロード画像共通の制限値を設定したImageProcessorを生成する。
 func NewImageProcessor() *ImageProcessor {
 	return &ImageProcessor{
 		slots: make(chan struct{}, storeImageConcurrency),
 	}
 }
 
-// ProcessForStoreImageは、アップロードされた画像を検証し、長辺を縮小したJPEGを返す。
+// ProcessImageは、アップロードされた画像を検証し、長辺を縮小したJPEGを返す。
 // JPEGに含まれるEXIFの画像方向情報は画素へ反映し、位置情報などのメタデータは再エンコードによって除去する。
-func (p *ImageProcessor) ProcessForStoreImage(
+func (p *ImageProcessor) ProcessImage(
 	ctx context.Context,
 	reader io.ReadSeeker,
 ) (io.ReadSeeker, string, error) {
@@ -71,7 +70,7 @@ func (p *ImageProcessor) ProcessForStoreImage(
 	orientation := extractStoreImageOrientation(reader, format)
 
 	if err := ctx.Err(); err != nil {
-		return nil, "", fmt.Errorf("process store image: %w", err)
+		return nil, "", fmt.Errorf("process image: %w", err)
 	}
 
 	decoded, err := decodeStoreImage(reader, format)
@@ -82,14 +81,14 @@ func (p *ImageProcessor) ProcessForStoreImage(
 		return nil, "", err
 	}
 	if err := ctx.Err(); err != nil {
-		return nil, "", fmt.Errorf("process store image: %w", err)
+		return nil, "", fmt.Errorf("process image: %w", err)
 	}
 
 	resized := resizeStoreImage(decoded)
 	oriented := applyStoreImageOrientation(resized, orientation)
 	flattened := flattenStoreImageOnWhite(oriented)
 	if err := ctx.Err(); err != nil {
-		return nil, "", fmt.Errorf("process store image: %w", err)
+		return nil, "", fmt.Errorf("process image: %w", err)
 	}
 
 	encoded, err := encodeStoreImageJPEG(flattened)
@@ -100,14 +99,6 @@ func (p *ImageProcessor) ProcessForStoreImage(
 	return bytes.NewReader(encoded), storeImageContentType, nil
 }
 
-func (p *ImageProcessor) ProcessForMenuImage(
-	ctx context.Context,
-	reader io.ReadSeeker,
-) (io.ReadSeeker, string, error) {
-	// 一旦、店舗画像と同じ処理を行う。将来的にメニュー画像専用の制限値を設ける場合は、ここで分岐する。
-	return p.ProcessForStoreImage(ctx, reader)
-}
-
 // acquireは、画像処理の実行枠が空くまで待機する。
 // 待機中にリクエストがキャンセルされた場合は、画像を処理せず終了する。
 func (p *ImageProcessor) acquire(ctx context.Context) error {
@@ -115,7 +106,7 @@ func (p *ImageProcessor) acquire(ctx context.Context) error {
 	case p.slots <- struct{}{}:
 		return nil
 	case <-ctx.Done():
-		return fmt.Errorf("wait for store image processor: %w", ctx.Err())
+		return fmt.Errorf("wait for image processor: %w", ctx.Err())
 	}
 }
 
@@ -368,4 +359,3 @@ func (w *cappedBuffer) Bytes() []byte {
 }
 
 var _ services.ImageProcessor = (*ImageProcessor)(nil)
-var _ menus.ImageProcessor = (*ImageProcessor)(nil)

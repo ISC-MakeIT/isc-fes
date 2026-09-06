@@ -15,7 +15,7 @@ type passthroughImageProcessor struct {
 	err error
 }
 
-func (p passthroughImageProcessor) ProcessForStoreImage(
+func (p passthroughImageProcessor) ProcessImage(
 	_ context.Context,
 	reader io.ReadSeeker,
 ) (io.ReadSeeker, string, error) {

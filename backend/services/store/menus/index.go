@@ -18,17 +18,15 @@ type MenuService struct {
 	imageURLGenerator     services.ImageURLGenerator
 	storeRepository       services.StoreRepository
 	storeMemberRepository repositoryinterfaces.StoreMembersRepository
-	imageProcessor        ImageProcessor
 	imageRepository       services.ImageRepository
 }
 
-func NewMenuService(menuRepository MenuRepository, imageURLGenerator services.ImageURLGenerator, storeRepository services.StoreRepository, storeMemberRepository repositoryinterfaces.StoreMembersRepository, imageProcessor ImageProcessor, imageRepository services.ImageRepository) *MenuService {
+func NewMenuService(menuRepository MenuRepository, imageURLGenerator services.ImageURLGenerator, storeRepository services.StoreRepository, storeMemberRepository repositoryinterfaces.StoreMembersRepository, imageRepository services.ImageRepository) *MenuService {
 	return &MenuService{
 		menuRepository:        menuRepository,
 		imageURLGenerator:     imageURLGenerator,
 		storeRepository:       storeRepository,
 		storeMemberRepository: storeMemberRepository,
-		imageProcessor:        imageProcessor,
 		imageRepository:       imageRepository,
 	}
 }
