@@ -13,7 +13,10 @@ export async function fetchActiveRooms() {
     throw new Error(getStatusMessage(response.status));
   }
 
-  return v.parse(v.array(Room), data.data);
+  return v.parse(
+    v.array(Room),
+    data.data.map((room) => room.name),
+  );
 }
 
 export function activeRoomsQueryOptions() {

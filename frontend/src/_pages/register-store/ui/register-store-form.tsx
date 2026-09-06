@@ -13,10 +13,19 @@ import { STORE_IMAGE_ASPECT, storeListUrl } from "@/shared/config";
 import { UploadImage } from "@/shared/model";
 import { useMutation } from "@tanstack/react-query";
 import { v } from "@/shared/lib/valibot";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/shared/ui/combobox";
+import { roomNames } from "@/entities/room";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
-  room: "",
+  room: undefined,
   description: "",
   image: undefined,
 };
@@ -91,7 +100,7 @@ export function RegisterStoreForm() {
             >
               <FieldLabel htmlFor={field.name}>教室</FieldLabel>
               <FieldContent>
-                <Input
+                {/* <Input
                   id={field.name}
                   name={field.name}
                   value={field.state.value}
@@ -99,7 +108,26 @@ export function RegisterStoreForm() {
                     field.handleChange(e.target.value);
                   }}
                   onBlur={field.handleBlur}
-                />
+                /> */}
+                <Combobox
+                  items={roomNames}
+                  value={field.state.value ?? null}
+                  onValueChange={(value) => {
+                    field.handleChange(value ?? undefined);
+                  }}
+                >
+                  <ComboboxInput />
+                  <ComboboxContent>
+                    <ComboboxEmpty>教室が見つかりません</ComboboxEmpty>
+                    <ComboboxList>
+                      {(item) => (
+                        <ComboboxItem key={item} value={item}>
+                          {item}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
 
                 {field.state.meta.isTouched && (
                   <FieldError errors={field.state.meta.errors} />

@@ -24,7 +24,6 @@ export const roomNames = [
   "8Fステージ",
 ] as const;
 
-export const Room = v.object({
-  name: v.picklist(roomNames),
-});
+export const Room = v.picklist(roomNames);
+
 export type Room = v.InferOutput<typeof Room>;
