@@ -1,3 +1,4 @@
+import { Room } from "@/entities/room";
 import { StoreDescription, StoreName, StoreRoom } from "@/entities/store";
 import { v } from "@/shared/lib/valibot";
 import { UploadImage } from "@/shared/model";
@@ -11,3 +12,11 @@ export const CreateStoreForm = v.object({
 });
 
 export type CreateStoreForm = v.InferOutput<typeof CreateStoreForm>;
+
+export const CreateStoreInput = v.object({
+  name: StoreName,
+  room: Room,
+  description: StoreDescription,
+  image: UploadImage,
+});
+export type CreateStoreInput = v.InferOutput<typeof CreateStoreInput>;

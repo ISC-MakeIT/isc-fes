@@ -1,9 +1,8 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { CreateStoreForm } from "../model/types";
+import { CreateStoreForm, CreateStoreInput } from "../model/types";
 import { createStoreApplication } from "../api/create-store-application";
-import { useState } from "react";
 import { Field, FieldContent, FieldError, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
@@ -12,6 +11,8 @@ import { ActionButton } from "@/shared/ui/action-button";
 import { useRouter } from "next/navigation";
 import { STORE_IMAGE_ASPECT, storeListUrl } from "@/shared/config";
 import { UploadImage } from "@/shared/model";
+import { useMutation } from "@tanstack/react-query";
+import { v } from "@/shared/lib/valibot";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -22,21 +23,22 @@ const defaultFormValue: CreateStoreForm = {
 
 export function RegisterStoreForm() {
   const router = useRouter();
-  const [serverError, setServerError] = useState<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: createStoreApplication,
+    onSuccess: () => {
+      router.push(storeListUrl());
+    },
+  });
+
   const form = useForm({
     defaultValues: defaultFormValue,
     validators: {
       onMount: CreateStoreForm,
     },
     onSubmit: async ({ value }) => {
-      const { data, error } = await createStoreApplication(value);
-
-      if (data) {
-        router.push(storeListUrl());
-        return;
-      }
-
-      setServerError(error);
+      const createStoreInput = v.parse(CreateStoreInput, value);
+      await mutation.mutateAsync({ createStoreInput });
     },
   });
 
@@ -113,13 +115,6 @@ export function RegisterStoreForm() {
           name="image"
           validators={{
             onChange: UploadImage,
-            onMount: UploadImage,
-            onSubmit: ({ value }) =>
-              // Input Fileはundefinedを許容しないと使えないので、ここでフォーム送信前のundefinedチェックを挟む
-              // もしくはここまではundefined許容したForm用のSchemaを使って、ここで店舗のSchemaでparseするべきかも
-              value === undefined
-                ? { message: "店舗写真を選択してください" }
-                : undefined,
           }}
           children={(field) => (
             <Field
@@ -209,7 +204,8 @@ export function RegisterStoreForm() {
           </ActionButton>
         )}
       />
-      {serverError && <FieldError>{serverError}</FieldError>}
+
+      {mutation.isError && <FieldError>{mutation.error.message}</FieldError>}
     </form>
   );
 }

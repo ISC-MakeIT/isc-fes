@@ -1,31 +1,22 @@
 import { createApiClient, uploadImage } from "@/shared/api";
-import type { components } from "@/shared/api/";
-import { CreateStoreForm } from "../model/types";
 import { getStatusMessage } from "@/shared/config";
+import { CreateStoreInput } from "../model/types";
 
-type CreateStoreApplicationResponse =
-  components["schemas"]["CreateStoreApplicationResponse"];
-
-export type CreateStoreApplicationResult =
-  | { data: CreateStoreApplicationResponse; error?: never }
-  | { data?: never; error: string };
+type CreateStoreApplicationParams = {
+  createStoreInput: CreateStoreInput;
+};
 
 /**
- * 店舗を新規作成するAPI
- * @param formData フォームの入力値
- * @returns data
+ * 店舗申請を作成するAPI
  */
-export async function createStoreApplication(
-  formValues: CreateStoreForm,
-): Promise<CreateStoreApplicationResult> {
-  const { image, ...storeApplication } = formValues;
-  if (image === undefined) {
-    return { error: getStatusMessage(400) };
-  }
-
+export async function createStoreApplication({
+  createStoreInput,
+}: CreateStoreApplicationParams) {
+  const { image, ...storeApplication } = createStoreInput;
   const uploadResult = await uploadImage(image);
+
   if (uploadResult.data === undefined) {
-    return { error: uploadResult.error };
+    throw new Error(uploadResult.error);
   }
 
   const client = await createApiClient();
@@ -37,8 +28,7 @@ export async function createStoreApplication(
   });
 
   if (error) {
-    const errorMessage = getStatusMessage(response.status);
-    return { error: errorMessage };
+    throw new Error(getStatusMessage(response.status));
   }
 
   return { data };
