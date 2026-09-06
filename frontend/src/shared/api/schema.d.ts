@@ -54,6 +54,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/images": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 画像をアップロードする */
+    post: operations["uploadImage"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/store-applications": {
     parameters: {
       query?: never;
@@ -337,6 +354,20 @@ export interface components {
     };
     /** @enum {string} */
     StoreReviewStatus: "pending" | "approved" | "rejected";
+    /** @example images/e625d731-8d26-4de9-ac77-a1bc96affb8e */
+    ImageObjectKey: string;
+    UploadImageResponse: {
+      imageObjectKey: components["schemas"]["ImageObjectKey"];
+    };
+    CreateStoreApplicationInput: {
+      /** @example たこ焼き屋 */
+      name: string;
+      /** @example 605 */
+      room: string;
+      /** @example 外はカリカリ、中はトロトロのたこ焼きです。 */
+      description: string;
+      imageObjectKey: components["schemas"]["ImageObjectKey"];
+    };
     CreateStoreApplicationResponse: {
       /**
        * Format: uuid
@@ -675,6 +706,100 @@ export interface operations {
       };
     };
   };
+  uploadImage: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": {
+          /**
+           * Format: binary
+           * @description 画像。JPEG、PNG、WebPに対応する。
+           *     最大ファイルサイズは10MB。
+           */
+          image: string;
+        };
+      };
+    };
+    responses: {
+      /** @description 画像をアップロードした */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UploadImageResponse"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description アップロードされた画像が大きすぎる */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 対応していない画像形式 */
+      415: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 画像の内容が不正 */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 画像ストレージが一時的に利用できない */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
   getStoreApplications: {
     parameters: {
       query?: never;
@@ -731,20 +856,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "multipart/form-data": {
-          /** @example たこ焼き屋 */
-          name: string;
-          /** @example 605 */
-          room: string;
-          /** @example 外はカリカリ、中はトロトロのたこ焼きです。 */
-          description: string;
-          /**
-           * Format: binary
-           * @description 店舗画像。JPEG、PNG、WebPに対応する。
-           *     最大ファイルサイズは10MB。
-           */
-          image: string;
-        };
+        "application/json": components["schemas"]["CreateStoreApplicationInput"];
       };
     };
     responses: {
@@ -775,44 +887,8 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description アップロードされた画像が大きすぎる */
-      413: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 対応していない画像形式 */
-      415: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 入力値または画像の内容が不正 */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
       /** @description サーバーエラー */
       500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 画像ストレージが一時的に利用できない */
-      503: {
         headers: {
           [name: string]: unknown;
         };

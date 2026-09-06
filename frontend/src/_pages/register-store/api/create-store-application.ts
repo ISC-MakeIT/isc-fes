@@ -1,7 +1,6 @@
-import { createApiClient } from "@/shared/api";
-import { components } from "@/shared/api/";
+import { createApiClient, uploadImage } from "@/shared/api";
+import type { components } from "@/shared/api/";
 import { CreateStoreForm } from "../model/types";
-import { buildFormDataBody } from "@/shared/lib/build-form-data-body";
 import { getStatusMessage } from "@/shared/config";
 
 type CreateStoreApplicationResponse =
@@ -19,11 +18,22 @@ export type CreateStoreApplicationResult =
 export async function createStoreApplication(
   formValues: CreateStoreForm,
 ): Promise<CreateStoreApplicationResult> {
+  const { image, ...storeApplication } = formValues;
+  if (image === undefined) {
+    return { error: getStatusMessage(400) };
+  }
+
+  const uploadResult = await uploadImage(image);
+  if (uploadResult.data === undefined) {
+    return { error: uploadResult.error };
+  }
+
   const client = await createApiClient();
   const { data, error, response } = await client.POST("/store-applications", {
-    // openapi-fetchの型定義がmultipart/form-dataに対応していないための回避
-    body: formValues as never,
-    bodySerializer: (body) => buildFormDataBody(body),
+    body: {
+      ...storeApplication,
+      imageObjectKey: uploadResult.data.imageObjectKey,
+    },
   });
 
   if (error) {

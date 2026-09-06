@@ -21,6 +21,7 @@ type Server struct {
 	auth                *services.AuthService
 	guestResolver       guestResolver
 	allergen            *allergens.AllergenService
+	image               *services.ImageService
 	store               *services.StoreService
 	storeMember         *members.StoreMemberService
 	storeInvitation     *invitations.StoreInvitationService
@@ -39,6 +40,7 @@ func NewServer(
 	authService *services.AuthService,
 	guestResolver guestResolver,
 	allergenService *allergens.AllergenService,
+	imageService *services.ImageService,
 	storeService *services.StoreService,
 	storeMemberService *members.StoreMemberService,
 	storeInvitationService *invitations.StoreInvitationService,
@@ -56,6 +58,7 @@ func NewServer(
 		auth:                authService,
 		guestResolver:       guestResolver,
 		allergen:            allergenService,
+		image:               imageService,
 		store:               storeService,
 		storeMember:         storeMemberService,
 		storeInvitation:     storeInvitationService,
