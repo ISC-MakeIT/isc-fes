@@ -1,9 +1,25 @@
-import { Menu } from "@/entities/menu";
+import {
+  Menu,
+  MenuDescription,
+  MenuName,
+  MenuUnitPrice,
+} from "@/entities/menu";
 import { createApiClient } from "@/shared/api";
 import { buildFormDataBody } from "@/shared/lib/build-form-data-body";
 import { getStatusMessage } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
-import { CreateMenuInput } from "../model/types";
+import { UploadImage } from "@/shared/model";
+
+// API送信時の型
+// TODO: このAPI内ではOpenAPIの自動生成の型を使った方が綺麗かも
+export const CreateMenuInput = v.object({
+  name: MenuName,
+  image: UploadImage,
+  unitPrice: MenuUnitPrice,
+  description: MenuDescription,
+  // TODO: トッピング
+});
+export type CreateMenuInput = v.InferOutput<typeof CreateMenuInput>;
 
 type CreateMenuParams = {
   storeId: string;
