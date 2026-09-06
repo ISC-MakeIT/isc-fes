@@ -22,6 +22,7 @@ import {
   ComboboxList,
 } from "@/shared/ui/combobox";
 import { activeRoomsQueryOptions } from "@/entities/room";
+import { cn } from "@/shared/lib/utils";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -53,6 +54,8 @@ export function RegisterStoreForm() {
     },
   });
 
+  const inputStyle = "border border-primary rounded-sm";
+
   return (
     <form
       className="space-y-6"
@@ -81,6 +84,7 @@ export function RegisterStoreForm() {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
+                  className={inputStyle}
                 />
 
                 {field.state.meta.isTouched && (
@@ -109,7 +113,7 @@ export function RegisterStoreForm() {
                     field.handleChange(value ?? undefined);
                   }}
                 >
-                  <ComboboxInput />
+                  <ComboboxInput className={inputStyle} />
                   <ComboboxContent>
                     <ComboboxEmpty>教室が見つかりません</ComboboxEmpty>
                     <ComboboxList>
@@ -158,6 +162,7 @@ export function RegisterStoreForm() {
                     imageFile={field.state.value}
                     alt="店舗の写真"
                     ratio={STORE_IMAGE_ASPECT}
+                    className={inputStyle}
                   />
                 </label>
 
@@ -189,6 +194,7 @@ export function RegisterStoreForm() {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
+                  className={inputStyle}
                 />
 
                 {field.state.meta.isTouched && (
