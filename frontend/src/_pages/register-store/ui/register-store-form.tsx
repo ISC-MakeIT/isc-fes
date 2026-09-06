@@ -51,7 +51,7 @@ export function RegisterStoreForm() {
         form.handleSubmit();
       }}
     >
-      <div className="grid grid-cols-[6rem_1fr] items-start gap-x-4 gap-y-6">
+      <div className="grid grid-cols-[6.25rem_minmax(0,27.5rem)] items-start gap-x-4 gap-y-6">
         <form.Field
           name="name"
           validators={{ onChange: CreateStoreForm.entries.name }}
@@ -194,6 +194,7 @@ export function RegisterStoreForm() {
           <ActionButton
             type="submit"
             disabled={!canSubmit || isPristine || isSubmitting}
+            className="px-14 py-4 text-lg"
           >
             {isSubmitting ? "送信中" : "この内容で申請する"}
           </ActionButton>
