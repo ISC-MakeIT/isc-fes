@@ -13,7 +13,7 @@ import floor8Image from "./assets/floor-8f.svg";
 import type { StaticImageData } from "next/image";
 import { Floor } from "../model/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { visibleStoresQueryOptions } from "@/_pages/stores/api/fetch-visible-stores";
+import { visibleStoresQueryOptions } from "@/entities/store";
 import { filterStoresByFloor } from "../lib/filterStoresByFloor";
 
 export type Floors = {

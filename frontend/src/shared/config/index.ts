@@ -25,6 +25,7 @@ export {
 } from "./constants/status-codes";
 
 export {
+  storesKey,
   storeDetailKey,
   storeMembersKey,
   storeMenusKey,

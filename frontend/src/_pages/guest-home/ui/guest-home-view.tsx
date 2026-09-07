@@ -2,7 +2,7 @@ import { HERO_IMAGE_ASPECT } from "@/shared/config";
 import { AspectRatio } from "@/shared/ui/aspect-ratio";
 import { FloorGuide } from "./floor-guide";
 import { createQueryClient } from "@/shared/api";
-import { visibleStoresQueryOptions } from "@/_pages/stores/api/fetch-visible-stores";
+import { visibleStoresQueryOptions } from "@/entities/store";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 export async function GuestHomeView() {
