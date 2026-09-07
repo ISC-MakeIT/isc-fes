@@ -1,15 +1,26 @@
 import { HERO_IMAGE_ASPECT } from "@/shared/config";
 import { AspectRatio } from "@/shared/ui/aspect-ratio";
 import { FloorGuide } from "./floor-guide";
+import { createQueryClient } from "@/shared/api";
+import { visibleStoresQueryOptions } from "@/_pages/stores/api/fetch-visible-stores";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
-export function GuestHomeView() {
+export async function GuestHomeView() {
+  const queryClient = createQueryClient();
+  await queryClient.prefetchQuery(visibleStoresQueryOptions());
+
   return (
-    <div className="space-y-8 md:flex md:flex-row">
-      {/* TODO: キービジュアルができしだい配備 */}
-      <AspectRatio ratio={HERO_IMAGE_ASPECT} className="bg-gray-300 md:w-140" />
-      <div className="mx-auto">
-        <FloorGuide />
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <div className="space-y-8 md:flex md:flex-row">
+        {/* TODO: キービジュアルができしだい配備 */}
+        <AspectRatio
+          ratio={HERO_IMAGE_ASPECT}
+          className="bg-gray-300 md:w-140"
+        />
+        <div className="mx-auto">
+          <FloorGuide />
+        </div>
       </div>
-    </div>
+    </HydrationBoundary>
   );
 }

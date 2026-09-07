@@ -11,9 +11,13 @@ import floor6Image from "./assets/floor-6f.svg";
 import floor7Image from "./assets/floor-7f.svg";
 import floor8Image from "./assets/floor-8f.svg";
 import type { StaticImageData } from "next/image";
+import { Floor } from "../model/types";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { visibleStoresQueryOptions } from "@/_pages/stores/api/fetch-visible-stores";
+import { filterStoresByFloor } from "../lib/filterStoresByFloor";
 
 export type Floors = {
-  level: number;
+  level: Floor;
   label: string;
   image: StaticImageData;
 }[];
@@ -27,7 +31,7 @@ export const floors: Floors = [
 ];
 
 export function FloorGuide() {
-  const [selectedFloor, setSelectedFloor] = useState<number | null>(
+  const [selectedFloor, setSelectedFloor] = useState<Floor | null>(
     floors.at(-1)?.level ?? null,
   );
   return (
@@ -78,6 +82,28 @@ export function FloorGuide() {
           ))}
         </ul>
       </div>
+      {selectedFloor && <FloorStoreList floor={selectedFloor} />}
     </section>
+  );
+}
+
+type FloorStoreListProps = {
+  floor: Floor;
+};
+
+function FloorStoreList({ floor }: FloorStoreListProps) {
+  const { data: stores } = useSuspenseQuery({
+    ...visibleStoresQueryOptions(),
+    // visibleStoreは店舗側でも使うので呼び出し側からstaleTimeを設定
+    staleTime: Infinity,
+  });
+  const storesByFloor = filterStoresByFloor(stores, floor);
+
+  return (
+    <div>
+      {storesByFloor.map((store) => (
+        <div key={store.id}>{store.name}</div>
+      ))}
+    </div>
   );
 }
