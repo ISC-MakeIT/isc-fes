@@ -1,9 +1,8 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { CreateStoreForm } from "../model/types";
+import { CreateStoreForm, CreateStoreInput } from "../model/types";
 import { createStoreApplication } from "../api/create-store-application";
-import { useState } from "react";
 import { Field, FieldContent, FieldError, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
@@ -11,34 +10,51 @@ import { PreviewImage } from "@/shared/ui/preview-image";
 import { ActionButton } from "@/shared/ui/action-button";
 import { useRouter } from "next/navigation";
 import { STORE_IMAGE_ASPECT, storeListUrl } from "@/shared/config";
-import { UploadImage } from "@/shared/model";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { v } from "@/shared/lib/valibot";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/shared/ui/combobox";
+import { activeRoomsQueryOptions } from "@/entities/room";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
-  room: "",
+  room: undefined,
   description: "",
   image: undefined,
 };
 
 export function RegisterStoreForm() {
   const router = useRouter();
-  const [serverError, setServerError] = useState<string | null>(null);
+
+  const { data: activeRooms } = useSuspenseQuery(activeRoomsQueryOptions());
+
+  const mutation = useMutation({
+    mutationFn: createStoreApplication,
+    onSuccess: () => {
+      router.push(storeListUrl());
+    },
+  });
+
   const form = useForm({
     defaultValues: defaultFormValue,
     validators: {
-      onMount: CreateStoreForm,
+      onMount: CreateStoreInput,
+      onSubmit: CreateStoreInput,
+      onChange: CreateStoreInput,
     },
     onSubmit: async ({ value }) => {
-      const { data, error } = await createStoreApplication(value);
-
-      if (data) {
-        router.push(storeListUrl());
-        return;
-      }
-
-      setServerError(error);
+      const createStoreInput = v.parse(CreateStoreInput, value);
+      await mutation.mutateAsync({ createStoreInput });
     },
   });
+
+  const inputStyle = "border border-primary rounded-sm";
 
   return (
     <form
@@ -49,10 +65,53 @@ export function RegisterStoreForm() {
         form.handleSubmit();
       }}
     >
-      <div className="grid grid-cols-[6rem_1fr] items-start gap-x-4 gap-y-6">
+      <div className="grid grid-cols-[6.25rem_minmax(0,27.5rem)] items-start gap-x-4 gap-y-6">
+        <form.Field
+          name="room"
+          children={(field) => (
+            <Field
+              className="contents"
+              data-invalid={
+                field.state.meta.isTouched && !field.state.meta.isValid
+              }
+            >
+              <FieldLabel htmlFor={field.name}>出店教室</FieldLabel>
+              <FieldContent>
+                <Combobox
+                  items={activeRooms}
+                  value={field.state.value ?? null}
+                  onValueChange={(value) => {
+                    field.handleChange(value ?? undefined);
+                  }}
+                >
+                  <ComboboxInput
+                    className={inputStyle}
+                    onBlur={field.handleBlur}
+                    id={field.name}
+                    name={field.name}
+                  />
+                  <ComboboxContent>
+                    <ComboboxEmpty>教室が見つかりません</ComboboxEmpty>
+                    <ComboboxList>
+                      {(item) => (
+                        <ComboboxItem key={item} value={item}>
+                          {item}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+
+                {field.state.meta.isTouched && (
+                  <FieldError errors={field.state.meta.errors} />
+                )}
+              </FieldContent>
+            </Field>
+          )}
+        />
+
         <form.Field
           name="name"
-          validators={{ onChange: CreateStoreForm.entries.name }}
           children={(field) => (
             <Field
               className="contents"
@@ -68,42 +127,12 @@ export function RegisterStoreForm() {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
+                  className={inputStyle}
                 />
-                <FieldError
-                  errors={
-                    field.state.meta.isTouched ? field.state.meta.errors : []
-                  }
-                />
-              </FieldContent>
-            </Field>
-          )}
-        />
-        <form.Field
-          name="room"
-          validators={{ onChange: CreateStoreForm.entries.room }}
-          children={(field) => (
-            <Field
-              className="contents"
-              data-invalid={
-                field.state.meta.isTouched && !field.state.meta.isValid
-              }
-            >
-              <FieldLabel htmlFor={field.name}>教室</FieldLabel>
-              <FieldContent>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onChange={(e) => {
-                    field.handleChange(e.target.value);
-                  }}
-                  onBlur={field.handleBlur}
-                />
-                <FieldError
-                  errors={
-                    field.state.meta.isTouched ? field.state.meta.errors : []
-                  }
-                />
+
+                {field.state.meta.isTouched && (
+                  <FieldError errors={field.state.meta.errors} />
+                )}
               </FieldContent>
             </Field>
           )}
@@ -111,16 +140,6 @@ export function RegisterStoreForm() {
 
         <form.Field
           name="image"
-          validators={{
-            onChange: UploadImage,
-            onMount: UploadImage,
-            onSubmit: ({ value }) =>
-              // Input Fileはundefinedを許容しないと使えないので、ここでフォーム送信前のundefinedチェックを挟む
-              // もしくはここまではundefined許容したForm用のSchemaを使って、ここで店舗のSchemaでparseするべきかも
-              value === undefined
-                ? { message: "店舗写真を選択してください" }
-                : undefined,
-          }}
           children={(field) => (
             <Field
               className="contents"
@@ -128,7 +147,7 @@ export function RegisterStoreForm() {
                 field.state.meta.isTouched && !field.state.meta.isValid
               }
             >
-              <FieldLabel htmlFor={field.name}>店舗写真</FieldLabel>
+              <FieldLabel htmlFor={field.name}>バナー</FieldLabel>
               <FieldContent>
                 <label htmlFor={field.name} className="cursor-pointer">
                   <input
@@ -144,14 +163,13 @@ export function RegisterStoreForm() {
                     imageFile={field.state.value}
                     alt="店舗の写真"
                     ratio={STORE_IMAGE_ASPECT}
+                    className={inputStyle}
                   />
                 </label>
 
-                <FieldError
-                  errors={
-                    field.state.meta.isTouched ? field.state.meta.errors : []
-                  }
-                />
+                {field.state.meta.isTouched && (
+                  <FieldError errors={field.state.meta.errors} />
+                )}
               </FieldContent>
             </Field>
           )}
@@ -159,9 +177,6 @@ export function RegisterStoreForm() {
 
         <form.Field
           name="description"
-          validators={{
-            onChange: CreateStoreForm.entries.description,
-          }}
           children={(field) => (
             <Field
               className="contents"
@@ -177,12 +192,12 @@ export function RegisterStoreForm() {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
+                  className={inputStyle}
                 />
-                <FieldError
-                  errors={
-                    field.state.meta.isTouched ? field.state.meta.errors : []
-                  }
-                />
+
+                {field.state.meta.isTouched && (
+                  <FieldError errors={field.state.meta.errors} />
+                )}
               </FieldContent>
             </Field>
           )}
@@ -204,12 +219,14 @@ export function RegisterStoreForm() {
           <ActionButton
             type="submit"
             disabled={!canSubmit || isPristine || isSubmitting}
+            className="px-14 py-4 text-lg"
           >
             {isSubmitting ? "送信中" : "この内容で申請する"}
           </ActionButton>
         )}
       />
-      {serverError && <FieldError>{serverError}</FieldError>}
+
+      {mutation.isError && <FieldError>{mutation.error.message}</FieldError>}
     </form>
   );
 }
