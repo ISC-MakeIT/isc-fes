@@ -1,5 +1,5 @@
 import { Floor, roomFloorMap } from "../model/types";
-import { roomNames } from "@/entities/room/model/types";
+import { roomNames } from "@/entities/room";
 import { Store, StoreReviewStatus } from "@/entities/store";
 
 /**
