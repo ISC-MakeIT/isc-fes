@@ -1,5 +1,4 @@
 import { HERO_IMAGE_ASPECT } from "@/shared/config";
-import { AspectRatio } from "@/shared/ui/aspect-ratio";
 import { FloorGuide } from "./floor-guide";
 import { createQueryClient } from "@/shared/api";
 import { visibleStoresQueryOptions } from "@/entities/store";
