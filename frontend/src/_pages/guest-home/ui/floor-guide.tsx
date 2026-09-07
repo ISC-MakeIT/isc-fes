@@ -104,12 +104,12 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
   const storesByFloor = selectFloorGuideStores(stores, floor);
 
   return (
-    <div className="flex w-full flex-col px-4">
+    <div className="flex w-full flex-col items-center px-4">
       {storesByFloor.map((store) => (
         <Link
           href=""
           key={store.id}
-          className="border-foreground flex w-full flex-row items-center gap-2 border-b border-dashed px-2 py-4"
+          className="border-foreground flex w-full flex-row items-center gap-2 border-b border-dashed px-2 py-4 lg:max-w-115.5"
         >
           <PreviewImage
             ratio={STORE_IMAGE_ASPECT}
