@@ -98,6 +98,7 @@ type FloorStoreListProps = {
 function FloorStoreList({ floor }: FloorStoreListProps) {
   const { data: stores } = useSuspenseQuery({
     ...visibleStoresQueryOptions(),
+    // FloorStoreListは学園祭当日用のページで、当日は店舗が更新されることはない想定
     // visibleStoreは店舗側でも使うので呼び出し側からstaleTimeを設定
     staleTime: Infinity,
   });
@@ -107,6 +108,7 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
     <div className="flex w-full flex-col items-center px-4">
       {storesByFloor.map((store) => (
         <Link
+          // TODO: 店舗のページへ飛ばす
           href=""
           key={store.id}
           className="border-foreground flex w-full flex-row items-center gap-2 border-b border-dashed px-2 py-4 lg:max-w-115.5"
