@@ -14,7 +14,14 @@ import type { StaticImageData } from "next/image";
 import { Floor } from "../model/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { visibleStoresQueryOptions } from "@/entities/store";
-import { filterStoresByFloor } from "../lib/filterStoresByFloor";
+import {
+  filterStoresByFloor,
+  selectFloorGuideStores,
+} from "../lib/selectFloorGuideStores";
+import { PreviewImage } from "@/shared/ui/preview-image";
+import { STORE_IMAGE_ASPECT, storeHomeUrl } from "@/shared/config";
+import { ChevronRight, ChevronRightIcon } from "lucide-react";
+import Link from "next/link";
 
 export type Floors = {
   level: Floor;
@@ -97,12 +104,27 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
     // visibleStoreは店舗側でも使うので呼び出し側からstaleTimeを設定
     staleTime: Infinity,
   });
-  const storesByFloor = filterStoresByFloor(stores, floor);
+  const storesByFloor = selectFloorGuideStores(stores, floor);
 
   return (
-    <div>
+    <div className="flex w-full flex-col px-4">
       {storesByFloor.map((store) => (
-        <div key={store.id}>{store.name}</div>
+        <Link
+          href=""
+          key={store.id}
+          className="border-foreground flex w-full flex-row items-center gap-2 border-b border-dashed px-2 py-4"
+        >
+          <PreviewImage
+            ratio={STORE_IMAGE_ASPECT}
+            alt={`${store.name}の店舗画像`}
+            imagePath={store.imageUrl}
+            className="w-28"
+          />
+          <div>
+            <p className="text-lg">{store.name}</p>
+          </div>
+          <ChevronRightIcon strokeWidth={0.5} className="ml-auto" size={40} />
+        </Link>
       ))}
     </div>
   );
