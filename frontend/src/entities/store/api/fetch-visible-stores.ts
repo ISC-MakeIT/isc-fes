@@ -1,4 +1,4 @@
-import { Store } from "@/entities/store";
+import { Store } from "@/entities/store/model/types";
 import { createApiClient } from "@/shared/api";
 import { storesKey } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
