@@ -14,13 +14,10 @@ import type { StaticImageData } from "next/image";
 import { Floor } from "../model/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { visibleStoresQueryOptions } from "@/entities/store";
-import {
-  filterStoresByFloor,
-  selectFloorGuideStores,
-} from "../lib/selectFloorGuideStores";
+import { selectFloorGuideStores } from "../lib/selectFloorGuideStores";
 import { PreviewImage } from "@/shared/ui/preview-image";
-import { STORE_IMAGE_ASPECT, storeHomeUrl } from "@/shared/config";
-import { ChevronRight, ChevronRightIcon } from "lucide-react";
+import { STORE_IMAGE_ASPECT } from "@/shared/config";
+import { ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
 
 export type Floors = {
@@ -42,7 +39,7 @@ export function FloorGuide() {
     floors.at(-1)?.level ?? null,
   );
   return (
-    <section className="flex flex-col items-center gap-16 pt-8 pb-16">
+    <section className="flex w-full flex-col items-center gap-16 pt-8 pb-16">
       <HeadingCard className="px-14 py-2">フロアガイド</HeadingCard>
       <div className="flex flex-col items-center gap-6">
         <p className="text-lg">
