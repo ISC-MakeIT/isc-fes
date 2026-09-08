@@ -14,7 +14,7 @@ import type { StaticImageData } from "next/image";
 import { Floor } from "../model/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { visibleStoresQueryOptions } from "@/entities/store";
-import { selectFloorGuideStores } from "../lib/selectFloorGuideStores";
+import { selectApprovedStoresByFloor } from "../lib/select-approved-stores-by-floor";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { STORE_IMAGE_ASPECT } from "@/shared/config";
 import { ChevronRightIcon } from "lucide-react";
@@ -102,7 +102,7 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
     // visibleStoreは店舗側でも使うので呼び出し側からstaleTimeを設定
     staleTime: Infinity,
   });
-  const storesByFloor = selectFloorGuideStores(stores, floor);
+  const storesByFloor = selectApprovedStoresByFloor(stores, floor);
 
   return (
     <div className="flex w-full flex-col items-center px-4">

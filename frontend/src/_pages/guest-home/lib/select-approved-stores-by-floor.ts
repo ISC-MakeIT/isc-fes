@@ -8,7 +8,10 @@ import { Store, StoreReviewStatus } from "@/entities/store";
  * @param floor
  * @returns
  */
-export function selectFloorGuideStores(stores: Store[], floor: Floor): Store[] {
+export function selectApprovedStoresByFloor(
+  stores: Store[],
+  floor: Floor,
+): Store[] {
   //   const targetRooms = roomNames.filter((room) => roomFloorMap[room] === floor);
   const targetRooms = new Set<string>(
     roomNames.filter((room) => roomFloorMap[room] == floor),
