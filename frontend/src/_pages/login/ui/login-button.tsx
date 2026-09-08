@@ -1,10 +1,10 @@
-import { API_BASE_URL } from "@/shared/config";
+import { getApiBaseUrl } from "@/shared/config";
 import { cn } from "@/shared/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
 import { DotText } from "@/shared/ui/dot-text";
 import { LinkButton } from "@/shared/ui/link-button";
 
-const GOOGLE_LOGIN_ENDPOINT = API_BASE_URL + "/auth/google/login";
+const GOOGLE_LOGIN_ENDPOINT = getApiBaseUrl() + "/auth/google/login";
 
 export function LoginButton() {
   return (

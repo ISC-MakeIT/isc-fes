@@ -2,7 +2,7 @@ export {
   ACCOUNT_SESSION_COOKIE_NAME,
   GUEST_SESSION_COOKIE_NAME,
 } from "./constants/cookies";
-export { API_BASE_URL } from "./constants/env";
+export { getApiBaseUrl } from "./constants/env";
 export {
   homeUrl,
   loginUrl,
