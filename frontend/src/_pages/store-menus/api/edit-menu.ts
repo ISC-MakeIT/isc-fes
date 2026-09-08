@@ -1,5 +1,4 @@
-import { createApiClient } from "@/shared/api";
-import { buildFormDataBody } from "@/shared/lib/build-form-data-body";
+import { createApiClient, uploadImage } from "@/shared/api";
 import { v } from "@/shared/lib/valibot";
 import {
   Menu,
@@ -33,12 +32,20 @@ export async function editMenu({
   storeId,
   editMenuInput,
 }: EditMenuParms) {
+  const { image, ...menuInput } = editMenuInput;
+  const uploadResult = image && (await uploadImage(image));
+  if (uploadResult && uploadResult.data === undefined) {
+    throw new Error(uploadResult.error);
+  }
+
   const client = await createApiClient();
   const { data, error, response } = await client.PUT(
     "/stores/{store_id}/menus/{menu_id}",
     {
-      body: editMenuInput as never,
-      bodySerializer: (body) => buildFormDataBody(body),
+      body: {
+        ...menuInput,
+        imageObjectKey: uploadResult?.data.imageObjectKey,
+      },
       params: {
         path: {
           store_id: storeId,
