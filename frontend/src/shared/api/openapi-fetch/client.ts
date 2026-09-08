@@ -1,8 +1,8 @@
 import createOpenApiClient from "openapi-fetch";
 import type { paths } from "../schema";
 import {
+  getApiBaseUrl,
   ACCOUNT_SESSION_COOKIE_NAME,
-  API_BASE_URL,
   GUEST_SESSION_COOKIE_NAME,
 } from "@/shared/config";
 
@@ -17,7 +17,7 @@ export async function createApiClient() {
  */
 function createClient() {
   return createOpenApiClient<paths>({
-    baseUrl: API_BASE_URL,
+    baseUrl: getApiBaseUrl(),
     credentials: "include",
   });
 }
@@ -42,7 +42,7 @@ async function createServerClient() {
     .join("; ");
 
   return createOpenApiClient<paths>({
-    baseUrl: API_BASE_URL,
+    baseUrl: getApiBaseUrl(),
     credentials: "include",
     headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
   });
