@@ -1,6 +1,6 @@
 import Image from "next/image";
 import appLogo from "./assets/app-logo.svg";
-import homeLogo from "./assets/home-icon.svg";
+import homeIcon from "./assets/home-icon.svg";
 import { DotText } from "@/shared/ui/dot-text";
 import Link from "next/link";
 import { ACCOUNT_SESSION_COOKIE_NAME, storeListUrl } from "@/shared/config";
@@ -24,7 +24,7 @@ export async function GuestHeader() {
 
       {hasAccountSession && (
         <Link href={storeListUrl()} className="flex flex-row gap-2">
-          <Image src={homeLogo} alt="" />
+          <Image src={homeIcon} alt="" />
           <p className="text-sm">店舗へ</p>
         </Link>
       )}
