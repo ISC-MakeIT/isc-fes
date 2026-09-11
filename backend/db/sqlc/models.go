@@ -166,6 +166,7 @@ type Cart struct {
 	ID      uuid.UUID `json:"id"`
 	GuestID uuid.UUID `json:"guest_id"`
 	StoreID uuid.UUID `json:"store_id"`
+	Version int32     `json:"version"`
 }
 
 type CartItem struct {

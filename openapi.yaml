@@ -1351,6 +1351,7 @@ components:
       type: object
       required:
         - storeId
+        - version
         - items
         - totalAmount
         - canCheckout
@@ -1358,6 +1359,9 @@ components:
         storeId:
           type: string
           format: uuid
+        version:
+          type: integer
+          format: int32
         totalAmount:
           type: integer
         canCheckout:

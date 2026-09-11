@@ -1,6 +1,7 @@
 -- name: GetCartByGuestIDAndStoreID :many
 SELECT
     carts.id AS cart_id,
+    carts.version AS cart_version,
     carts.guest_id,
     carts.store_id,
 

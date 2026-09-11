@@ -61,6 +61,7 @@ func (s *CartService) GetCart(c context.Context, storeID uuid.UUID) (CartOutput,
 func emptyCartOutput(storeID uuid.UUID) CartOutput {
 	return CartOutput{
 		StoreID:     storeID,
+		Version:     0,
 		Items:       []CartItemOutput{},
 		TotalAmount: 0,
 		CanCheckout: false,

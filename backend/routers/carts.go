@@ -23,6 +23,7 @@ func toCartResponse(cart servicecarts.CartOutput) Cart {
 	return Cart{
 		CanCheckout: cart.CanCheckout,
 		StoreId:     cart.StoreID,
+		Version:     cart.Version,
 		Items:       utils.Map(cart.Items, toCartItemResponse),
 		TotalAmount: int(cart.TotalAmount),
 	}

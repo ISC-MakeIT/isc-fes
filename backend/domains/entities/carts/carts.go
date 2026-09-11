@@ -9,6 +9,7 @@ import (
 
 type Cart struct {
 	ID      uuid.UUID
+	Version int32
 	GuestID uuid.UUID
 	StoreID uuid.UUID
 	Items   []CartItem

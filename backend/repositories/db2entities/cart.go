@@ -17,6 +17,7 @@ func ToCart(raw []sqlc.GetCartByGuestIDAndStoreIDRow) carts.Cart {
 
 	cart := carts.Cart{
 		ID:      raw[0].CartID, // 全ての行で同じ値なので、最初の行から取得
+		Version: raw[0].CartVersion,
 		GuestID: raw[0].GuestID,
 		StoreID: raw[0].StoreID,
 		Items:   make([]carts.CartItem, 0, len(raw)),

@@ -11,6 +11,7 @@ import (
 
 type CartOutput struct {
 	StoreID     uuid.UUID
+	Version     int32
 	Items       []CartItemOutput
 	TotalAmount int64
 	CanCheckout bool
@@ -45,6 +46,7 @@ func ToCartOutput(
 ) (CartOutput, error) {
 	output := CartOutput{
 		StoreID:     cart.StoreID,
+		Version:     cart.Version,
 		Items:       make([]CartItemOutput, len(cart.Items)),
 		TotalAmount: cart.TotalAmount(),
 		CanCheckout: canCheckout(store, cart.Items),

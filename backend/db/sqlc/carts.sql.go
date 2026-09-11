@@ -15,6 +15,7 @@ import (
 const getCartByGuestIDAndStoreID = `-- name: GetCartByGuestIDAndStoreID :many
 SELECT
     carts.id AS cart_id,
+    carts.version AS cart_version,
     carts.guest_id,
     carts.store_id,
 
@@ -63,6 +64,7 @@ type GetCartByGuestIDAndStoreIDParams struct {
 
 type GetCartByGuestIDAndStoreIDRow struct {
 	CartID             uuid.UUID          `json:"cart_id"`
+	CartVersion        int32              `json:"cart_version"`
 	GuestID            uuid.UUID          `json:"guest_id"`
 	StoreID            uuid.UUID          `json:"store_id"`
 	CartItemID         uuid.UUID          `json:"cart_item_id"`
@@ -93,6 +95,7 @@ func (q *Queries) GetCartByGuestIDAndStoreID(ctx context.Context, arg GetCartByG
 		var i GetCartByGuestIDAndStoreIDRow
 		if err := rows.Scan(
 			&i.CartID,
+			&i.CartVersion,
 			&i.GuestID,
 			&i.StoreID,
 			&i.CartItemID,
