@@ -7,6 +7,7 @@ export const ToppingName = v.pipe(
 );
 export const ToppingUnitPrice = v.pipe(
   v.number("数値を入力してください"),
+  v.integer("整数で入力してください"),
   v.minValue(0, "0円以上で入力してください"),
   v.maxValue(10000, "10,000円以下で入力してください"),
 );
@@ -17,5 +18,7 @@ export const Topping = v.object({
   name: ToppingName,
   unitPrice: ToppingUnitPrice,
   soldOut: v.boolean(),
+  createdAt: v.pipe(v.string(), v.toDate()),
+  updateAt: v.pipe(v.string(), v.toDate()),
 });
 export type Topping = v.InferOutput<typeof Topping>;
