@@ -11,9 +11,17 @@ import floor6Image from "./assets/floor-6f.svg";
 import floor7Image from "./assets/floor-7f.svg";
 import floor8Image from "./assets/floor-8f.svg";
 import type { StaticImageData } from "next/image";
+import { Floor } from "../model/types";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { visibleStoresQueryOptions } from "@/entities/store";
+import { selectApprovedStoresByFloor } from "../lib/select-approved-stores-by-floor";
+import { PreviewImage } from "@/shared/ui/preview-image";
+import { STORE_IMAGE_ASPECT } from "@/shared/config";
+import { ChevronRightIcon } from "lucide-react";
+import Link from "next/link";
 
 export type Floors = {
-  level: number;
+  level: Floor;
   label: string;
   image: StaticImageData;
 }[];
@@ -27,11 +35,11 @@ export const floors: Floors = [
 ];
 
 export function FloorGuide() {
-  const [selectedFloor, setSelectedFloor] = useState<number | null>(
+  const [selectedFloor, setSelectedFloor] = useState<Floor | null>(
     floors.at(-1)?.level ?? null,
   );
   return (
-    <section className="flex flex-col items-center gap-16 pt-8 pb-16">
+    <section className="flex w-full flex-col items-center gap-16 pt-8 pb-16">
       <HeadingCard className="px-14 py-2">フロアガイド</HeadingCard>
       <div className="flex flex-col items-center gap-6">
         <p className="text-lg">
@@ -78,6 +86,45 @@ export function FloorGuide() {
           ))}
         </ul>
       </div>
+      {selectedFloor && <FloorStoreList floor={selectedFloor} />}
     </section>
+  );
+}
+
+type FloorStoreListProps = {
+  floor: Floor;
+};
+
+function FloorStoreList({ floor }: FloorStoreListProps) {
+  const { data: stores } = useSuspenseQuery({
+    ...visibleStoresQueryOptions(),
+    // FloorStoreListは学園祭当日用のページで、当日は店舗が更新されることはない想定
+    // visibleStoreは店舗側でも使うので呼び出し側からstaleTimeを設定
+    staleTime: Infinity,
+  });
+  const storesByFloor = selectApprovedStoresByFloor(stores, floor);
+
+  return (
+    <div className="flex w-full flex-col items-center px-4">
+      {storesByFloor.map((store) => (
+        <Link
+          // TODO: 店舗のページへ飛ばす
+          href=""
+          key={store.id}
+          className="border-foreground flex w-full flex-row items-center gap-2 border-b border-dashed px-2 py-4 lg:max-w-115.5"
+        >
+          <PreviewImage
+            ratio={STORE_IMAGE_ASPECT}
+            alt={`${store.name}の店舗画像`}
+            imagePath={store.imageUrl}
+            className="w-28"
+          />
+          <div>
+            <p className="text-lg">{store.name}</p>
+          </div>
+          <ChevronRightIcon strokeWidth={0.5} className="ml-auto" size={40} />
+        </Link>
+      ))}
+    </div>
   );
 }

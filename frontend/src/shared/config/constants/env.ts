@@ -3,4 +3,6 @@ function requireEnv(value: string | undefined) {
   return value;
 }
 
-export const API_BASE_URL = requireEnv(process.env.NEXT_PUBLIC_API_BASE_URL);
+export function getApiBaseUrl() {
+  return requireEnv(process.env.NEXT_PUBLIC_API_BASE_URL);
+}
