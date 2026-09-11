@@ -12,9 +12,8 @@ export function selectApprovedStoresByFloor(
   stores: Store[],
   floor: Floor,
 ): Store[] {
-  //   const targetRooms = roomNames.filter((room) => roomFloorMap[room] === floor);
   const targetRooms = new Set<string>(
-    roomNames.filter((room) => roomFloorMap[room] == floor),
+    roomNames.filter((room) => roomFloorMap[room] === floor),
   );
   return stores.filter(
     (store) =>
