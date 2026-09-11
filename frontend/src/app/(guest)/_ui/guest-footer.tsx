@@ -1,5 +1,5 @@
 import Image from "next/image";
-import appLogo from "../_assets/app-logo.svg";
+import appLogo from "./assets/app-logo.svg";
 import { DotText } from "@/shared/ui/dot-text";
 import Link from "next/link";
 import { homeUrl, ordersUrl } from "@/shared/config";
