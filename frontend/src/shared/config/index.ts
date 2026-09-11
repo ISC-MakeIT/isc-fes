@@ -32,6 +32,7 @@ export {
   storeApplicationsKey,
   storeMemberKey,
   roomsKey,
+  storeToppingsKey,
 } from "./constants/query-keys";
 
 export {
