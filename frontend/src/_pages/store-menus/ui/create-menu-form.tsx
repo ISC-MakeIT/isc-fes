@@ -6,7 +6,6 @@ import { createMenu, CreateMenuInput } from "../api/create-menu";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ActionButton } from "@/shared/ui/action-button";
 import { storeMenusKey } from "@/shared/config";
-import { useEffect } from "react";
 import { v } from "@/shared/lib/valibot";
 import { useStoreId } from "../model/hooks/use-store-id";
 import { useAppForm } from "@/shared/lib/form-hook";
@@ -19,6 +18,7 @@ export function CreateMenuForm() {
     mutationFn: createMenu,
     onSuccess: () => {
       client.invalidateQueries({ queryKey: storeMenusKey(storeId) });
+      form.reset();
     },
   });
 
@@ -35,12 +35,6 @@ export function CreateMenuForm() {
       await mutation.mutateAsync({ storeId, createMenuInput });
     },
   });
-
-  useEffect(() => {
-    if (mutation.isSuccess) {
-      form.reset();
-    }
-  }, [form, mutation.isSuccess]);
 
   return (
     <div className="space-y-10">
