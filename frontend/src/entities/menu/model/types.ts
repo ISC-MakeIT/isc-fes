@@ -14,6 +14,7 @@ export const MenuDescription = v.pipe(
 
 export const MenuUnitPrice = v.pipe(
   v.number("数値を入力してください"),
+  v.integer("整数で入力してください"),
   v.minValue(0, "0円以上で入力してください"),
   v.maxValue(10000, "1万円以内で入力してください"),
 );

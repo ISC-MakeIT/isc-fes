@@ -2,6 +2,7 @@
 
 import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { CreateMenuForm } from "./create-menu-form";
+import { CreateToppingForm } from "./create-topping-form";
 import { EditMenuForm } from "./edit-menu-form";
 
 export function MenuEditor() {
@@ -12,6 +13,8 @@ export function MenuEditor() {
       {type === EditorType.CreateMenu && <CreateMenuForm />}
       {/* keyを渡すことで、メニューのidが変わった時に再レンダリングを起こしている */}
       {type === EditorType.EditMenu && <EditMenuForm key={id} menuId={id} />}
+
+      {type === EditorType.CreateTopping && <CreateToppingForm />}
     </div>
   );
 }

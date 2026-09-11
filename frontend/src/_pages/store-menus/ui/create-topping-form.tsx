@@ -1,45 +1,42 @@
-"use client";
-
-import { HeadingCard } from "@/shared/ui/heading-card";
-import { MenuFormFields } from "./menu-form-fields";
-import { createMenu, CreateMenuInput } from "../api/create-menu";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ActionButton } from "@/shared/ui/action-button";
-import { storeMenusKey } from "@/shared/config";
-import { v } from "@/shared/lib/valibot";
 import { useStoreId } from "../model/hooks/use-store-id";
+import { createTopping, CreateToppingInput } from "../api/create-topping";
+import { storeToppingsKey } from "@/shared/config";
 import { useAppForm } from "@/shared/lib/form-hook";
-import { menuFormOptions } from "../model/menu-form";
+import { toppingFormOptions } from "../model/topping-form";
+import { v } from "@/shared/lib/valibot";
+import { HeadingCard } from "@/shared/ui/heading-card";
+import { ToppingFormFields } from "./topping-form-fields";
+import { ActionButton } from "@/shared/ui/action-button";
 
-export function CreateMenuForm() {
+export function CreateToppingForm() {
   const storeId = useStoreId();
   const client = useQueryClient();
   const mutation = useMutation({
-    mutationFn: createMenu,
+    mutationFn: createTopping,
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: storeMenusKey(storeId) });
+      client.invalidateQueries({ queryKey: storeToppingsKey(storeId) });
       form.reset();
     },
   });
 
   const form = useAppForm({
-    ...menuFormOptions,
-
+    ...toppingFormOptions,
     validators: {
-      ...menuFormOptions.validators,
-      onSubmit: CreateMenuInput,
+      ...toppingFormOptions.validators,
+      onSubmit: CreateToppingInput,
     },
 
     onSubmit: async ({ value }) => {
-      const createMenuInput = v.parse(CreateMenuInput, value);
-      await mutation.mutateAsync({ storeId, createMenuInput });
+      const createToppingInput = v.parse(CreateToppingInput, value);
+      await mutation.mutateAsync({ storeId, createToppingInput });
     },
   });
 
   return (
     <div className="space-y-10">
       <HeadingCard className="bg-secondary-heading-card px-8 py-4">
-        メニューの追加
+        カスタマイズの追加
       </HeadingCard>
 
       <form
@@ -49,7 +46,7 @@ export function CreateMenuForm() {
           form.handleSubmit();
         }}
       >
-        <MenuFormFields form={form} />
+        <ToppingFormFields form={form} />
 
         {mutation.error && (
           <p role="alert" className="text-notice">
@@ -62,7 +59,7 @@ export function CreateMenuForm() {
           type="submit"
           className="px-14 py-4 text-xl"
         >
-          メニューを追加
+          カスタマイズを追加
         </ActionButton>
       </form>
     </div>
