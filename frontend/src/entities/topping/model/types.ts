@@ -19,6 +19,6 @@ export const Topping = v.object({
   unitPrice: ToppingUnitPrice,
   soldOut: v.boolean(),
   createdAt: v.pipe(v.string(), v.toDate()),
-  updateAt: v.pipe(v.string(), v.toDate()),
+  updatedAt: v.pipe(v.string(), v.toDate()),
 });
 export type Topping = v.InferOutput<typeof Topping>;
