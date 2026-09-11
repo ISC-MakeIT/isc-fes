@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -39,6 +40,11 @@ var (
 
 type AccountSession struct {
 	manager *scs.SessionManager
+}
+
+type oauthStatePayload struct {
+	CSRFToken  string `json:"csrf_token"`
+	RedirectTo string `json:"redirect_to"`
 }
 
 func NewAccountSession(
@@ -96,8 +102,49 @@ func randomURLSafeToken() (string, error) {
 	return base64.RawURLEncoding.EncodeToString(data), nil
 }
 
-func (s *AccountSession) BeginOAuth(ctx context.Context) (services.OAuthFlow, error) {
-	state, err := randomURLSafeToken()
+func encodeOAuthState(payload oauthStatePayload) (string, error) {
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return "", fmt.Errorf("marshal OAuth state: %w", err)
+	}
+
+	return base64.RawURLEncoding.EncodeToString(data), nil
+}
+
+func decodeOAuthState(state string) (oauthStatePayload, error) {
+	data, err := base64.RawURLEncoding.DecodeString(state)
+	if err != nil {
+		return oauthStatePayload{}, fmt.Errorf("decode OAuth state: %w", err)
+	}
+
+	var payload oauthStatePayload
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return oauthStatePayload{}, fmt.Errorf("unmarshal OAuth state: %w", err)
+	}
+	if payload.CSRFToken == "" || payload.RedirectTo == "" {
+		return oauthStatePayload{}, errors.New("OAuth state payload is incomplete")
+	}
+
+	return payload, nil
+}
+
+func newOAuthState(redirectTo string) (string, error) {
+	csrfToken, err := randomURLSafeToken()
+	if err != nil {
+		return "", err
+	}
+
+	return encodeOAuthState(oauthStatePayload{
+		CSRFToken:  csrfToken,
+		RedirectTo: redirectTo,
+	})
+}
+
+func (s *AccountSession) BeginOAuth(
+	ctx context.Context,
+	redirectTo string,
+) (services.OAuthFlow, error) {
+	state, err := newOAuthState(redirectTo)
 	if err != nil {
 		return services.OAuthFlow{}, err
 	}
@@ -112,6 +159,7 @@ func (s *AccountSession) BeginOAuth(ctx context.Context) (services.OAuthFlow, er
 		Nonce:        nonce,
 		PKCEVerifier: oauth2.GenerateVerifier(),
 		StartedAt:    time.Now().UTC(),
+		RedirectTo:   redirectTo,
 	}
 
 	s.manager.Put(ctx, oauthStateKey, flow.State)
@@ -153,11 +201,17 @@ func (s *AccountSession) ConsumeOAuth(
 		return services.OAuthFlow{}, fmt.Errorf("parse OAuth flow start time: %w", err)
 	}
 
+	statePayload, err := decodeOAuthState(state)
+	if err != nil {
+		return services.OAuthFlow{}, fmt.Errorf("%w: %v", ErrInvalidOAuthState, err)
+	}
+
 	flow := services.OAuthFlow{
 		State:        state,
 		Nonce:        nonce,
 		PKCEVerifier: pkceVerifier,
 		StartedAt:    startedAt,
+		RedirectTo:   statePayload.RedirectTo,
 	}
 
 	age := time.Since(flow.StartedAt)
