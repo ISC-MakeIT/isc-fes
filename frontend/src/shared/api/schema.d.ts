@@ -448,6 +448,8 @@ export interface components {
     Cart: {
       /** Format: uuid */
       storeId: string;
+      /** Format: int32 */
+      version: number;
       totalAmount: number;
       /** @description カートの内容で注文可能かどうか。店舗が閉店している場合、カートに利用できないアイテムが含まれている場合、カートがからの場合はfalseになる。 */
       canCheckout: boolean;

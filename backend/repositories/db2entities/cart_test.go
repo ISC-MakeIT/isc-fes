@@ -21,6 +21,7 @@ func TestToCart(t *testing.T) {
 
 	want := carts.Cart{
 		ID:      cartID,
+		Version: 3,
 		GuestID: guestID,
 		StoreID: storeID,
 
@@ -89,25 +90,29 @@ func TestToCart(t *testing.T) {
 	raw := []sqlc.GetCartByGuestIDAndStoreIDRow{
 		{
 			CartID:             cartID,
+			CartVersion:        3,
 			GuestID:            guestID,
 			StoreID:            storeID,
-			CartItemID:         testUUID("cart-item-id-1"),
-			CartItemQuantity:   2,
-			MenuID:             menuID1,
-			MenuName:           "menu-1",
-			MenuUnitPrice:      500,
-			MenuImageObjectKey: menuImageObjectKey1.String(),
+			CartItemID:         pointerTo(testUUID("cart-item-id-1")),
+			CartItemQuantity:   pointerTo(int32(2)),
+			MenuID:             &menuID1,
+			MenuName:           pointerTo("menu-1"),
+			MenuUnitPrice:      pointerTo(int32(500)),
+			MenuImageObjectKey: pointerTo(menuImageObjectKey1.String()),
+			MenuSoldOut:        pointerTo(false),
 		},
 		{
 			CartID:             cartID,
+			CartVersion:        3,
 			GuestID:            guestID,
 			StoreID:            storeID,
-			CartItemID:         testUUID("cart-item-id-2"),
-			CartItemQuantity:   1,
-			MenuID:             menuID1,
-			MenuName:           "menu-1",
-			MenuUnitPrice:      500,
-			MenuImageObjectKey: menuImageObjectKey1.String(),
+			CartItemID:         pointerTo(testUUID("cart-item-id-2")),
+			CartItemQuantity:   pointerTo(int32(1)),
+			MenuID:             &menuID1,
+			MenuName:           pointerTo("menu-1"),
+			MenuUnitPrice:      pointerTo(int32(500)),
+			MenuImageObjectKey: pointerTo(menuImageObjectKey1.String()),
+			MenuSoldOut:        pointerTo(false),
 			CartItemToppingID:  &cartItemToppingID2,
 			ToppingID:          &toppingID1,
 			ToppingName:        &toppingName1,
@@ -116,14 +121,16 @@ func TestToCart(t *testing.T) {
 		},
 		{
 			CartID:             cartID,
+			CartVersion:        3,
 			GuestID:            guestID,
 			StoreID:            storeID,
-			CartItemID:         testUUID("cart-item-id-3"),
-			CartItemQuantity:   1,
-			MenuID:             menuID2,
-			MenuName:           "menu-2",
-			MenuUnitPrice:      200,
-			MenuImageObjectKey: menuImageObjectKey2.String(),
+			CartItemID:         pointerTo(testUUID("cart-item-id-3")),
+			CartItemQuantity:   pointerTo(int32(1)),
+			MenuID:             &menuID2,
+			MenuName:           pointerTo("menu-2"),
+			MenuUnitPrice:      pointerTo(int32(200)),
+			MenuImageObjectKey: pointerTo(menuImageObjectKey2.String()),
+			MenuSoldOut:        pointerTo(false),
 			CartItemToppingID:  &cartItemToppingID1,
 			ToppingID:          &toppingID1,
 			ToppingName:        &toppingName1,
@@ -136,6 +143,36 @@ func TestToCart(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("ToCart() = %v, want %v", got, want)
 	}
+}
+
+func TestToCartReturnsSavedEmptyCart(t *testing.T) {
+	cartID := testUUID("empty-cart-id")
+	guestID := testUUID("empty-cart-guest-id")
+	storeID := testUUID("empty-cart-store-id")
+
+	got := ToCart([]sqlc.GetCartByGuestIDAndStoreIDRow{
+		{
+			CartID:      cartID,
+			CartVersion: 4,
+			GuestID:     guestID,
+			StoreID:     storeID,
+		},
+	})
+
+	want := carts.Cart{
+		ID:      cartID,
+		Version: 4,
+		GuestID: guestID,
+		StoreID: storeID,
+		Items:   []carts.CartItem{},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("ToCart() = %v, want %v", got, want)
+	}
+}
+
+func pointerTo[T any](value T) *T {
+	return &value
 }
 
 func testUUID(name string) uuid.UUID {

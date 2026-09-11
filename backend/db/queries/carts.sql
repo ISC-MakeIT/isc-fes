@@ -1,6 +1,7 @@
 -- name: GetCartByGuestIDAndStoreID :many
 SELECT
     carts.id AS cart_id,
+    carts.version AS cart_version,
     carts.guest_id,
     carts.store_id,
 
@@ -23,10 +24,10 @@ SELECT
     toppings.sold_out AS topping_sold_out,
     toppings.deleted_at AS topping_deleted_at
 FROM carts
-INNER JOIN cart_items
+LEFT JOIN cart_items
     ON cart_items.cart_id = carts.id
     AND cart_items.store_id = carts.store_id
-INNER JOIN menus
+LEFT JOIN menus
     ON menus.id = cart_items.menu_id
     AND menus.store_id = cart_items.store_id
 LEFT JOIN cart_item_toppings

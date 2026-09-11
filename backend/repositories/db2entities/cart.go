@@ -17,6 +17,7 @@ func ToCart(raw []sqlc.GetCartByGuestIDAndStoreIDRow) carts.Cart {
 
 	cart := carts.Cart{
 		ID:      raw[0].CartID, // 全ての行で同じ値なので、最初の行から取得
+		Version: raw[0].CartVersion,
 		GuestID: raw[0].GuestID,
 		StoreID: raw[0].StoreID,
 		Items:   make([]carts.CartItem, 0, len(raw)),
@@ -24,22 +25,28 @@ func ToCart(raw []sqlc.GetCartByGuestIDAndStoreIDRow) carts.Cart {
 	itemIndexByID := make(map[uuid.UUID]int, len(raw))
 
 	for _, row := range raw {
-		itemIndex, exists := itemIndexByID[row.CartItemID]
+		// LEFT JOIN により、保存済みの空カートではカート項目が NULL になる。
+		if row.CartItemID == nil {
+			continue
+		}
+
+		itemID := *row.CartItemID
+		itemIndex, exists := itemIndexByID[itemID]
 		if !exists {
 			// 初めて見たCartItemIDの場合、新しいCartItemを作成して追加
 			itemIndex = len(cart.Items)
-			itemIndexByID[row.CartItemID] = itemIndex
+			itemIndexByID[itemID] = itemIndex
 			cart.Items = append(cart.Items, carts.CartItem{
-				ID:             row.CartItemID,
+				ID:             itemID,
 				CartID:         row.CartID,
-				MenuID:         row.MenuID,
-				Name:           row.MenuName,
-				ImageObjectKey: menus.MenuImageObjectKey(row.MenuImageObjectKey),
-				Soldout:        row.MenuSoldOut,
+				MenuID:         *row.MenuID,
+				Name:           *row.MenuName,
+				ImageObjectKey: menus.MenuImageObjectKey(*row.MenuImageObjectKey),
+				Soldout:        *row.MenuSoldOut,
 				DeletedAt:      timestampPointer(row.MenuDeletedAt),
 				StoreID:        row.StoreID,
-				Quantity:       row.CartItemQuantity,
-				UnitPrice:      row.MenuUnitPrice,
+				Quantity:       *row.CartItemQuantity,
+				UnitPrice:      *row.MenuUnitPrice,
 				Toppings:       []carts.CartItemTopping{},
 			})
 		}
@@ -57,8 +64,8 @@ func ToCart(raw []sqlc.GetCartByGuestIDAndStoreIDRow) carts.Cart {
 			cart.Items[itemIndex].Toppings,
 			carts.CartItemTopping{
 				ID:         *row.CartItemToppingID,
-				CartItemID: row.CartItemID,
-				MenuID:     row.MenuID,
+				CartItemID: itemID,
+				MenuID:     *row.MenuID,
 				ToppingID:  *row.ToppingID,
 				Name:       *row.ToppingName,
 				UnitPrice:  *row.ToppingUnitPrice,

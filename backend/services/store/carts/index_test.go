@@ -101,6 +101,39 @@ func TestGetCartReturnsEmptyCartWhenRepositoryHasNoRows(t *testing.T) {
 	}
 }
 
+func TestGetCartReturnsSavedEmptyCart(t *testing.T) {
+	storeID := uuid.New()
+	cartRepository := &stubCartRepository{
+		cart: cartentities.Cart{
+			ID:      uuid.New(),
+			Version: 4,
+			StoreID: storeID,
+			Items:   []cartentities.CartItem{},
+		},
+	}
+	storeRepository := &stubCartStoreRepository{}
+	guestResolver := &stubCartGuestResolver{guestID: uuid.New(), found: true}
+	service := NewCartService(
+		cartRepository,
+		storeRepository,
+		guestResolver,
+		nil,
+	)
+
+	got, err := service.GetCart(t.Context(), storeID)
+	if err != nil {
+		t.Fatalf("GetCart() error = %v, want nil", err)
+	}
+	if got.Version != 4 {
+		t.Errorf("GetCart().Version = %d, want 4", got.Version)
+	}
+	if got.Items == nil {
+		t.Error("GetCart().Items = nil, want empty slice")
+	} else if len(got.Items) != 0 {
+		t.Errorf("len(GetCart().Items) = %d, want 0", len(got.Items))
+	}
+}
+
 func TestGetCartReturnsNotFoundBeforeResolvingGuestWhenStoreDoesNotExist(t *testing.T) {
 	cartRepository := &stubCartRepository{}
 	storeRepository := &stubCartStoreRepository{err: pgx.ErrNoRows}
