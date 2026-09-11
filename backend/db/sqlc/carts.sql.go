@@ -38,10 +38,10 @@ SELECT
     toppings.sold_out AS topping_sold_out,
     toppings.deleted_at AS topping_deleted_at
 FROM carts
-INNER JOIN cart_items
+LEFT JOIN cart_items
     ON cart_items.cart_id = carts.id
     AND cart_items.store_id = carts.store_id
-INNER JOIN menus
+LEFT JOIN menus
     ON menus.id = cart_items.menu_id
     AND menus.store_id = cart_items.store_id
 LEFT JOIN cart_item_toppings
@@ -67,14 +67,14 @@ type GetCartByGuestIDAndStoreIDRow struct {
 	CartVersion        int32              `json:"cart_version"`
 	GuestID            uuid.UUID          `json:"guest_id"`
 	StoreID            uuid.UUID          `json:"store_id"`
-	CartItemID         uuid.UUID          `json:"cart_item_id"`
-	CartItemQuantity   int32              `json:"cart_item_quantity"`
+	CartItemID         *uuid.UUID         `json:"cart_item_id"`
+	CartItemQuantity   *int32             `json:"cart_item_quantity"`
 	CartItemCreatedAt  pgtype.Timestamptz `json:"cart_item_created_at"`
-	MenuID             uuid.UUID          `json:"menu_id"`
-	MenuName           string             `json:"menu_name"`
-	MenuUnitPrice      int32              `json:"menu_unit_price"`
-	MenuImageObjectKey string             `json:"menu_image_object_key"`
-	MenuSoldOut        bool               `json:"menu_sold_out"`
+	MenuID             *uuid.UUID         `json:"menu_id"`
+	MenuName           *string            `json:"menu_name"`
+	MenuUnitPrice      *int32             `json:"menu_unit_price"`
+	MenuImageObjectKey *string            `json:"menu_image_object_key"`
+	MenuSoldOut        *bool              `json:"menu_sold_out"`
 	MenuDeletedAt      pgtype.Timestamptz `json:"menu_deleted_at"`
 	CartItemToppingID  *uuid.UUID         `json:"cart_item_topping_id"`
 	ToppingID          *uuid.UUID         `json:"topping_id"`
