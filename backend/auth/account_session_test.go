@@ -15,10 +15,11 @@ import (
 // これによりcallbackのリプレイを防ぐ単回使用であることをテストする。
 func TestConsumeOAuthWithValidStateConsumesFlow(t *testing.T) {
 	sessions, ctx := newTestAccountSession(t)
+	redirectTo := "/invites/example-id?key=value"
 
-	want, err := sessions.BeginOAuth(ctx)
+	want, err := sessions.BeginOAuth(ctx, redirectTo)
 	if err != nil {
-		t.Fatalf("BeginOAuth() error = %v", err)
+		t.Fatalf("BeginOAuth()で予期しないエラー: %v", err)
 	}
 
 	// Googleへリダイレクトした後、callbackで別リクエストとして戻る状況を再現する。
@@ -26,24 +27,49 @@ func TestConsumeOAuthWithValidStateConsumesFlow(t *testing.T) {
 
 	got, err := sessions.ConsumeOAuth(ctx, want.State)
 	if err != nil {
-		t.Fatalf("ConsumeOAuth() error = %v", err)
+		t.Fatalf("ConsumeOAuth()で予期しないエラー: %v", err)
 	}
 
 	if got.State != want.State {
-		t.Errorf("State = %q, want %q", got.State, want.State)
+		t.Errorf("State = %q、期待値 %q", got.State, want.State)
 	}
 	if got.Nonce != want.Nonce {
-		t.Errorf("Nonce = %q, want %q", got.Nonce, want.Nonce)
+		t.Errorf("Nonce = %q、期待値 %q", got.Nonce, want.Nonce)
 	}
 	if got.PKCEVerifier != want.PKCEVerifier {
 		t.Errorf(
-			"PKCEVerifier = %q, want %q",
+			"PKCEVerifier = %q、期待値 %q",
 			got.PKCEVerifier,
 			want.PKCEVerifier,
 		)
 	}
 	if !got.StartedAt.Equal(want.StartedAt) {
-		t.Errorf("StartedAt = %v, want %v", got.StartedAt, want.StartedAt)
+		t.Errorf("StartedAt = %v、期待値 %v", got.StartedAt, want.StartedAt)
+	}
+	if got.RedirectTo != redirectTo {
+		t.Errorf("RedirectTo = %q、期待値 %q", got.RedirectTo, redirectTo)
+	}
+
+	statePayload, err := decodeOAuthState(got.State)
+	if err != nil {
+		t.Fatalf("decodeOAuthState()で予期しないエラー: %v", err)
+	}
+	if statePayload.CSRFToken == "" {
+		t.Error("CSRFTokenが空です")
+	}
+	if statePayload.RedirectTo != redirectTo {
+		t.Errorf(
+			"state内のRedirectTo = %q、期待値 %q",
+			statePayload.RedirectTo,
+			redirectTo,
+		)
+	}
+	secondState, err := newOAuthState(redirectTo)
+	if err != nil {
+		t.Fatalf("newOAuthState()で予期しないエラー: %v", err)
+	}
+	if secondState == got.State {
+		t.Error("newOAuthState()が同じランダムstateを2回生成しました")
 	}
 
 	// ConsumeOAuthによる削除もDB相当のStoreへ保存し、次のリクエストで確認する。
@@ -52,7 +78,7 @@ func TestConsumeOAuthWithValidStateConsumesFlow(t *testing.T) {
 	_, err = sessions.ConsumeOAuth(ctx, want.State)
 	if !errors.Is(err, ErrOAuthFlowMissing) {
 		t.Fatalf(
-			"second ConsumeOAuth() error = %v, want %v",
+			"2回目のConsumeOAuth()のエラー = %v、期待値 %v",
 			err,
 			ErrOAuthFlowMissing,
 		)
@@ -64,9 +90,9 @@ func TestConsumeOAuthWithValidStateConsumesFlow(t *testing.T) {
 func TestConsumeOAuthWithInvalidStatePreservesFlow(t *testing.T) {
 	sessions, ctx := newTestAccountSession(t)
 
-	flow, err := sessions.BeginOAuth(ctx)
+	flow, err := sessions.BeginOAuth(ctx, "/")
 	if err != nil {
-		t.Fatalf("BeginOAuth() error = %v", err)
+		t.Fatalf("BeginOAuth()で予期しないエラー: %v", err)
 	}
 
 	ctx = commitAndReloadSession(t, sessions, ctx)
@@ -74,7 +100,7 @@ func TestConsumeOAuthWithInvalidStatePreservesFlow(t *testing.T) {
 	_, err = sessions.ConsumeOAuth(ctx, "invalid-state")
 	if !errors.Is(err, ErrInvalidOAuthState) {
 		t.Fatalf(
-			"ConsumeOAuth() error = %v, want %v",
+			"ConsumeOAuth()のエラー = %v、期待値 %v",
 			err,
 			ErrInvalidOAuthState,
 		)
@@ -83,9 +109,45 @@ func TestConsumeOAuthWithInvalidStatePreservesFlow(t *testing.T) {
 	// 不正なcallbackでフローが破棄されていないことを確認する。
 	if _, err := sessions.ConsumeOAuth(ctx, flow.State); err != nil {
 		t.Fatalf(
-			"ConsumeOAuth() after invalid state error = %v",
+			"不正なstateを受け取った後のConsumeOAuth()で予期しないエラー: %v",
 			err,
 		)
+	}
+}
+
+// state内の復帰先だけを改ざんしても、セッションに保存したstateとの
+// 完全一致検証によって拒否されることを確認する。
+func TestConsumeOAuthRejectsTamperedRedirectTo(t *testing.T) {
+	sessions, ctx := newTestAccountSession(t)
+
+	flow, err := sessions.BeginOAuth(ctx, "/invites/example-id")
+	if err != nil {
+		t.Fatalf("BeginOAuth()で予期しないエラー: %v", err)
+	}
+
+	payload, err := decodeOAuthState(flow.State)
+	if err != nil {
+		t.Fatalf("decodeOAuthState()で予期しないエラー: %v", err)
+	}
+	payload.RedirectTo = "https://attacker.example"
+	tamperedState, err := encodeOAuthState(payload)
+	if err != nil {
+		t.Fatalf("encodeOAuthState()で予期しないエラー: %v", err)
+	}
+
+	ctx = commitAndReloadSession(t, sessions, ctx)
+
+	_, err = sessions.ConsumeOAuth(ctx, tamperedState)
+	if !errors.Is(err, ErrInvalidOAuthState) {
+		t.Fatalf(
+			"ConsumeOAuth()のエラー = %v、期待値 %v",
+			err,
+			ErrInvalidOAuthState,
+		)
+	}
+
+	if _, err := sessions.ConsumeOAuth(ctx, flow.State); err != nil {
+		t.Fatalf("state改ざん後のConsumeOAuth()で予期しないエラー: %v", err)
 	}
 }
 
@@ -94,9 +156,9 @@ func TestConsumeOAuthWithInvalidStatePreservesFlow(t *testing.T) {
 func TestConsumeOAuthRejectsAndConsumesExpiredFlow(t *testing.T) {
 	sessions, ctx := newTestAccountSession(t)
 
-	flow, err := sessions.BeginOAuth(ctx)
+	flow, err := sessions.BeginOAuth(ctx, "/")
 	if err != nil {
-		t.Fatalf("BeginOAuth() error = %v", err)
+		t.Fatalf("BeginOAuth()で予期しないエラー: %v", err)
 	}
 
 	// 待ち時間のあるテストにせず、保存時刻を直接期限切れへ変更する。
@@ -111,7 +173,7 @@ func TestConsumeOAuthRejectsAndConsumesExpiredFlow(t *testing.T) {
 	_, err = sessions.ConsumeOAuth(ctx, flow.State)
 	if !errors.Is(err, ErrOAuthFlowExpired) {
 		t.Fatalf(
-			"ConsumeOAuth() error = %v, want %v",
+			"ConsumeOAuth()のエラー = %v、期待値 %v",
 			err,
 			ErrOAuthFlowExpired,
 		)
@@ -122,7 +184,7 @@ func TestConsumeOAuthRejectsAndConsumesExpiredFlow(t *testing.T) {
 	_, err = sessions.ConsumeOAuth(ctx, flow.State)
 	if !errors.Is(err, ErrOAuthFlowMissing) {
 		t.Fatalf(
-			"second ConsumeOAuth() error = %v, want %v",
+			"2回目のConsumeOAuth()のエラー = %v、期待値 %v",
 			err,
 			ErrOAuthFlowMissing,
 		)
@@ -136,17 +198,17 @@ func TestSignInPersistsAccountID(t *testing.T) {
 	want := uuid.New()
 
 	if err := sessions.SignIn(ctx, want); err != nil {
-		t.Fatalf("SignIn() error = %v", err)
+		t.Fatalf("SignIn()で予期しないエラー: %v", err)
 	}
 
 	ctx = commitAndReloadSession(t, sessions, ctx)
 
 	got, err := sessions.AccountID(ctx)
 	if err != nil {
-		t.Fatalf("AccountID() error = %v", err)
+		t.Fatalf("AccountID()で予期しないエラー: %v", err)
 	}
 	if got != want {
-		t.Errorf("AccountID() = %v, want %v", got, want)
+		t.Errorf("AccountID() = %v、期待値 %v", got, want)
 	}
 }
 
@@ -157,7 +219,7 @@ func TestAccountIDWithoutSignIn(t *testing.T) {
 	_, err := sessions.AccountID(ctx)
 	if !errors.Is(err, ErrNotAuthenticated) {
 		t.Fatalf(
-			"AccountID() error = %v, want %v",
+			"AccountID()のエラー = %v、期待値 %v",
 			err,
 			ErrNotAuthenticated,
 		)
@@ -188,20 +250,20 @@ func TestConfigureSessionCookieDomain(t *testing.T) {
 
 			if manager.Cookie.Domain != test.domain {
 				t.Errorf(
-					"Cookie.Domain = %q, want %q",
+					"Cookie.Domain = %q、期待値 %q",
 					manager.Cookie.Domain,
 					test.domain,
 				)
 			}
 			if !manager.Cookie.Secure {
-				t.Error("Cookie.Secure = false, want true")
+				t.Error("Cookie.Secure = false、期待値 true")
 			}
 			if !manager.Cookie.HttpOnly {
-				t.Error("Cookie.HttpOnly = false, want true")
+				t.Error("Cookie.HttpOnly = false、期待値 true")
 			}
 			if manager.Cookie.SameSite != http.SameSiteLaxMode {
 				t.Errorf(
-					"Cookie.SameSite = %v, want %v",
+					"Cookie.SameSite = %v、期待値 %v",
 					manager.Cookie.SameSite,
 					http.SameSiteLaxMode,
 				)
@@ -221,7 +283,7 @@ func newTestAccountSession(t *testing.T) (*AccountSession, context.Context) {
 
 	ctx, err := manager.Load(context.Background(), "")
 	if err != nil {
-		t.Fatalf("load test session: %v", err)
+		t.Fatalf("テストセッションの読み込みに失敗: %v", err)
 	}
 
 	return &AccountSession{manager: manager}, ctx
@@ -239,12 +301,12 @@ func commitAndReloadSession(
 
 	token, _, err := sessions.manager.Commit(ctx)
 	if err != nil {
-		t.Fatalf("commit test session: %v", err)
+		t.Fatalf("テストセッションの保存に失敗: %v", err)
 	}
 
 	nextCtx, err := sessions.manager.Load(context.Background(), token)
 	if err != nil {
-		t.Fatalf("reload test session: %v", err)
+		t.Fatalf("テストセッションの再読み込みに失敗: %v", err)
 	}
 
 	return nextCtx
