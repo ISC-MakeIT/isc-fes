@@ -9,6 +9,8 @@ type StoreKitchenViewProps = {
 };
 
 export function StoreKitchenView({ storeId }: StoreKitchenViewProps) {
+  // TODO: 現状はステータス、更新順を考慮せずに適当に注文を表示している
+  //       具体的な仕様、APIが固まり次第ちゃんとする
   const orders = fetchStoreOrders({ storeId });
   return (
     <div className="flex flex-1 items-start overflow-x-auto pt-24">
