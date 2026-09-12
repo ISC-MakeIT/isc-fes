@@ -17,6 +17,11 @@ export function StoreKitchenView({ storeId }: StoreKitchenViewProps) {
           <OrderCard key={order.id} order={order} />
         ))}
       </div>
+
+      <div className="absolute right-3 bottom-3 grid grid-cols-[minmax(0,1fr)_5rem] text-[2.5rem] font-bold">
+        <p>注文数：</p>
+        <p className="text-right">{orders.length}</p>
+      </div>
     </div>
   );
 }
