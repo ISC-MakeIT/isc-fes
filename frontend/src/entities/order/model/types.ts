@@ -15,6 +15,7 @@ const OrderItemTopping = v.object({
 const OrderItem = v.object({
   id: v.string(),
   name: v.string(),
+  quantity: v.number(),
   toppings: v.array(OrderItemTopping),
 });
 

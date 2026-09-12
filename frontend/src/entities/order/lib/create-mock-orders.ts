@@ -8,25 +8,45 @@ import { Order, OrderStatus } from "../model/types";
 export function createMockOrders(storeId: string): Order[] {
   return [
     {
-      id: `${storeId}-order-1`,
+      id: `1`,
       storeId,
       status: OrderStatus.Placed,
       items: [
         {
           id: `${storeId}-order-1-item-1`,
           name: "たこ焼き",
+          quantity: 2,
+          toppings: [],
+        },
+        {
+          id: `${storeId}-order-1-item-2`,
+          name: "たこ焼き",
+          quantity: 2,
+          toppings: [],
+        },
+        {
+          id: `${storeId}-order-1-item-3`,
+          name: "たこ焼き",
+          quantity: 2,
+          toppings: [],
+        },
+        {
+          id: `${storeId}-order-1-item-4`,
+          name: "たこ焼き",
+          quantity: 2,
           toppings: [],
         },
       ],
     },
     {
-      id: `${storeId}-order-2`,
+      id: `2`,
       storeId,
       status: OrderStatus.Placed,
       items: [
         {
           id: `${storeId}-order-2-item-1`,
           name: "焼きそば",
+          quantity: 1,
           toppings: [
             {
               id: `${storeId}-order-2-item-1-topping-1`,
@@ -37,6 +57,7 @@ export function createMockOrders(storeId: string): Order[] {
         {
           id: `${storeId}-order-2-item-2`,
           name: "カレー",
+          quantity: 99,
           toppings: [
             {
               id: `${storeId}-order-2-item-2-topping-1`,
@@ -51,13 +72,14 @@ export function createMockOrders(storeId: string): Order[] {
       ],
     },
     {
-      id: `${storeId}-order-3`,
+      id: `3`,
       storeId,
       status: OrderStatus.Cooked,
       items: [
         {
           id: `${storeId}-order-3-item-1`,
           name: "フランクフルト",
+          quantity: 30,
           toppings: [
             {
               id: `${storeId}-order-3-item-1-topping-1`,
@@ -72,13 +94,14 @@ export function createMockOrders(storeId: string): Order[] {
       ],
     },
     {
-      id: `${storeId}-order-4`,
+      id: `4`,
       storeId,
       status: OrderStatus.PickedUp,
       items: [
         {
           id: `${storeId}-order-4-item-1`,
           name: "唐揚げ",
+          quantity: 22,
           toppings: [
             {
               id: `${storeId}-order-4-item-1-topping-1`,
