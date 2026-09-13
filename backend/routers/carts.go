@@ -19,6 +19,33 @@ func (s *Server) GetStoreCart(c *gin.Context, storeID uuid.UUID) {
 	c.JSON(http.StatusOK, toCartResponse(cart))
 }
 
+func (s *Server) UpdateStoreCart(c *gin.Context, storeID uuid.UUID) {
+	var input UpdateCartInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		s.handleCommonServiceErrors(c, err)
+		return
+	}
+
+	cart, err := s.cart.UpdateCartByStoreID(c.Request.Context(), servicecarts.UpdateCartInput{
+		ExpectedVersion: input.ExpectedVersion,
+		StoreID:         storeID,
+		Items: utils.Map(input.Items, func(i UpdateCartItemInput) servicecarts.UpdateCartItemInput {
+			return servicecarts.UpdateCartItemInput{
+				ID:         i.Id,
+				MenuID:     i.MenuId,
+				Quantity:   i.Quantity,
+				ToppingIds: i.ToppingIds,
+			}
+		}),
+	})
+	if err != nil {
+		s.handleCommonServiceErrors(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, toCartResponse(cart))
+}
+
 func toCartResponse(cart servicecarts.CartOutput) Cart {
 	return Cart{
 		CanCheckout: cart.CanCheckout,

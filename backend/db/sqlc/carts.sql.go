@@ -12,6 +12,33 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const bumpCartVersion = `-- name: BumpCartVersion :one
+UPDATE carts
+SET version = version + 1
+WHERE guest_id = $1
+  AND store_id = $2
+  AND version = $3
+RETURNING id, version
+`
+
+type BumpCartVersionParams struct {
+	GuestID         uuid.UUID `json:"guest_id"`
+	StoreID         uuid.UUID `json:"store_id"`
+	ExpectedVersion int32     `json:"expected_version"`
+}
+
+type BumpCartVersionRow struct {
+	ID      uuid.UUID `json:"id"`
+	Version int32     `json:"version"`
+}
+
+func (q *Queries) BumpCartVersion(ctx context.Context, arg BumpCartVersionParams) (BumpCartVersionRow, error) {
+	row := q.db.QueryRow(ctx, bumpCartVersion, arg.GuestID, arg.StoreID, arg.ExpectedVersion)
+	var i BumpCartVersionRow
+	err := row.Scan(&i.ID, &i.Version)
+	return i, err
+}
+
 const createCart = `-- name: CreateCart :one
 INSERT INTO carts (guest_id, store_id)
 VALUES ($1, $2)
@@ -33,6 +60,58 @@ func (q *Queries) CreateCart(ctx context.Context, arg CreateCartParams) (Cart, e
 		&i.Version,
 	)
 	return i, err
+}
+
+const deleteCartItemToppingsNotIn = `-- name: DeleteCartItemToppingsNotIn :exec
+DELETE FROM cart_item_toppings AS cit
+USING cart_items AS ci
+WHERE ci.id = cit.cart_item_id
+  AND ci.cart_id = $1
+  AND ci.store_id = $2
+  AND NOT EXISTS (
+      SELECT 1
+      FROM ROWS FROM (
+          unnest($3::uuid[]),
+          unnest($4::uuid[])
+      ) AS desired(cart_item_id, topping_id)
+      WHERE desired.cart_item_id = cit.cart_item_id
+        AND desired.topping_id = cit.topping_id
+  )
+`
+
+type DeleteCartItemToppingsNotInParams struct {
+	CartID      uuid.UUID   `json:"cart_id"`
+	StoreID     uuid.UUID   `json:"store_id"`
+	CartItemIds []uuid.UUID `json:"cart_item_ids"`
+	ToppingIds  []uuid.UUID `json:"topping_ids"`
+}
+
+func (q *Queries) DeleteCartItemToppingsNotIn(ctx context.Context, arg DeleteCartItemToppingsNotInParams) error {
+	_, err := q.db.Exec(ctx, deleteCartItemToppingsNotIn,
+		arg.CartID,
+		arg.StoreID,
+		arg.CartItemIds,
+		arg.ToppingIds,
+	)
+	return err
+}
+
+const deleteCartItemsNotIn = `-- name: DeleteCartItemsNotIn :exec
+DELETE FROM cart_items
+WHERE cart_id = $1
+  AND NOT (
+      id = ANY($2::uuid[])
+  )
+`
+
+type DeleteCartItemsNotInParams struct {
+	CartID           uuid.UUID   `json:"cart_id"`
+	RemainingItemIds []uuid.UUID `json:"remaining_item_ids"`
+}
+
+func (q *Queries) DeleteCartItemsNotIn(ctx context.Context, arg DeleteCartItemsNotInParams) error {
+	_, err := q.db.Exec(ctx, deleteCartItemsNotIn, arg.CartID, arg.RemainingItemIds)
+	return err
 }
 
 const getCartByGuestIDAndStoreID = `-- name: GetCartByGuestIDAndStoreID :many
@@ -145,4 +224,90 @@ func (q *Queries) GetCartByGuestIDAndStoreID(ctx context.Context, arg GetCartByG
 		return nil, err
 	}
 	return items, nil
+}
+
+const insertCartItemToppingsIfNotExists = `-- name: InsertCartItemToppingsIfNotExists :exec
+INSERT INTO cart_item_toppings (
+    cart_item_id,
+    menu_id,
+    topping_id
+)
+SELECT DISTINCT
+    ci.id,
+    ci.menu_id,
+    desired.topping_id
+FROM ROWS FROM (
+    unnest($1::uuid[]),
+    unnest($2::uuid[])
+) AS desired(cart_item_id, topping_id)
+INNER JOIN cart_items AS ci
+    ON ci.id = desired.cart_item_id
+WHERE ci.cart_id = $3
+  AND ci.store_id = $4
+ON CONFLICT (cart_item_id, topping_id) DO NOTHING
+`
+
+type InsertCartItemToppingsIfNotExistsParams struct {
+	CartItemIds []uuid.UUID `json:"cart_item_ids"`
+	ToppingIds  []uuid.UUID `json:"topping_ids"`
+	CartID      uuid.UUID   `json:"cart_id"`
+	StoreID     uuid.UUID   `json:"store_id"`
+}
+
+func (q *Queries) InsertCartItemToppingsIfNotExists(ctx context.Context, arg InsertCartItemToppingsIfNotExistsParams) error {
+	_, err := q.db.Exec(ctx, insertCartItemToppingsIfNotExists,
+		arg.CartItemIds,
+		arg.ToppingIds,
+		arg.CartID,
+		arg.StoreID,
+	)
+	return err
+}
+
+const upsertCartItems = `-- name: UpsertCartItems :execrows
+INSERT INTO cart_items (
+    id,
+    cart_id,
+    menu_id,
+    store_id,
+    quantity
+)
+SELECT
+    input.id,
+    $1,
+    input.menu_id,
+    $2,
+    input.quantity
+FROM ROWS FROM (
+    unnest($3::uuid[]),
+    unnest($4::uuid[]),
+    unnest($5::integer[])
+) AS input(id, menu_id, quantity)
+ON CONFLICT (id) DO UPDATE SET
+    quantity = EXCLUDED.quantity
+WHERE cart_items.cart_id = EXCLUDED.cart_id
+  AND cart_items.store_id = EXCLUDED.store_id
+  AND cart_items.menu_id = EXCLUDED.menu_id
+`
+
+type UpsertCartItemsParams struct {
+	CartID     uuid.UUID   `json:"cart_id"`
+	StoreID    uuid.UUID   `json:"store_id"`
+	ItemIds    []uuid.UUID `json:"item_ids"`
+	MenuIds    []uuid.UUID `json:"menu_ids"`
+	Quantities []int32     `json:"quantities"`
+}
+
+func (q *Queries) UpsertCartItems(ctx context.Context, arg UpsertCartItemsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, upsertCartItems,
+		arg.CartID,
+		arg.StoreID,
+		arg.ItemIds,
+		arg.MenuIds,
+		arg.Quantities,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }

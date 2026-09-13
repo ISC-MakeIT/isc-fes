@@ -273,7 +273,8 @@ export interface paths {
     };
     /** 店舗の自分のカートを取得する（Guest セッションがない場合は空カートが返る） */
     get: operations["getStoreCart"];
-    put?: never;
+    /** 店舗の自分のカートを更新する（Guestセッションがない場合、カートがない場合はそれぞれが新規作成される） */
+    put: operations["updateStoreCart"];
     post?: never;
     delete?: never;
     options?: never;
@@ -445,6 +446,26 @@ export interface components {
       storeId: string;
       role: components["schemas"]["StoreMemberRole"];
     };
+    UpdateCartInput: {
+      /**
+       * Format: int32
+       * @description カートの更新前のバージョン。カートの更新時に、この値と現在のカートのバージョンが一致しない場合は409 Conflict
+       */
+      expectedVersion: number;
+      items: components["schemas"]["UpdateCartItemInput"][];
+    };
+    UpdateCartItemInput: {
+      /**
+       * Format: uuid
+       * @description カートアイテムのID。新規追加の場合は省略する。既存のカートアイテムを更新する場合は指定する。
+       */
+      id?: string;
+      /** Format: uuid */
+      menuId: string;
+      /** Format: int32 */
+      quantity: number;
+      toppingIds: string[];
+    };
     Cart: {
       /** Format: uuid */
       storeId: string;
@@ -464,8 +485,6 @@ export interface components {
       imageUrl: string;
       /** @description メニューが現在利用可能かどうか。店舗がメニューを削除した場合や売り切れはfalseになる。 */
       available: boolean;
-      /** Format: uuid */
-      storeId?: string;
       /** Format: int32 */
       quantity: number;
       /** Format: int32 */
@@ -474,11 +493,9 @@ export interface components {
     };
     CartItemTopping: {
       /** Format: uuid */
-      id?: string;
+      id: string;
       /** Format: uuid */
-      cartItemId?: string;
-      /** Format: uuid */
-      menuId: string;
+      cartItemId: string;
       /** Format: uuid */
       toppingId: string;
       name: string;
@@ -1877,6 +1894,68 @@ export interface operations {
       };
       /** @description 店舗が存在しない、または承認済みではない */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  updateStoreCart: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateCartInput"];
+      };
+    };
+    responses: {
+      /** @description 店舗のカートを更新した */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Cart"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない、または承認済みではない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description expectedVersion が一致しない（カートの更新競合） */
+      409: {
         headers: {
           [name: string]: unknown;
         };

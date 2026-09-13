@@ -1014,6 +1014,37 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateCartInput"
+      responses:
+        "200":
+          description: 店舗のカートを更新した
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない、または承認済みではない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: expectedVersion が一致しない（カートの更新競合）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /store-invitations/{invitation_id}/accept:
     post:
@@ -1385,6 +1416,10 @@ components:
         - quantity
         - toppingIds
       properties:
+        id:
+          type: string
+          description: カートアイテムのID。新規追加の場合は省略する。既存のカートアイテムを更新する場合は指定する。
+          format: uuid
         menuId:
           type: string
           format: uuid
