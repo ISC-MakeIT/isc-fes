@@ -9,7 +9,6 @@ type LoginButtonProps = {
 };
 
 export function LoginButton({ redirectTo }: LoginButtonProps) {
-  console.log(googleLoginUrl(redirectTo));
   return (
     <LinkButton
       href={googleLoginUrl(redirectTo)}
