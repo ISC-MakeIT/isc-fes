@@ -10,8 +10,6 @@ export async function GET(
   const { id: invitationId } = await context.params;
   const account = await fetchCurrentAccount();
 
-  // TODO: ログイン後にここに戻ってくるようにする
-  //       いまはバックエンドの実装待ち
   if (!account) {
     const redirectTo = storeInvitationsUrl(invitationId);
     redirect(loginUrl(redirectTo));
