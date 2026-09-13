@@ -6,7 +6,11 @@ export const loginUrl = (redirectTo?: string) => {
   if (redirectTo === undefined) {
     return "/login";
   }
-  return `/login?redirect_to=${redirectTo}`;
+  const searchParams = new URLSearchParams({
+    redirect_to: redirectTo,
+  });
+
+  return `/login?${searchParams.toString()}`;
 };
 export const googleLoginUrl = (redirectTo?: string) => {
   const url = new URL("/auth/google/login", getApiBaseUrl());
