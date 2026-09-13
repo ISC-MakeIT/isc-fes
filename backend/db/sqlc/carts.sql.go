@@ -12,6 +12,29 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createCart = `-- name: CreateCart :one
+INSERT INTO carts (guest_id, store_id)
+VALUES ($1, $2)
+RETURNING id, guest_id, store_id, version
+`
+
+type CreateCartParams struct {
+	GuestID uuid.UUID `json:"guest_id"`
+	StoreID uuid.UUID `json:"store_id"`
+}
+
+func (q *Queries) CreateCart(ctx context.Context, arg CreateCartParams) (Cart, error) {
+	row := q.db.QueryRow(ctx, createCart, arg.GuestID, arg.StoreID)
+	var i Cart
+	err := row.Scan(
+		&i.ID,
+		&i.GuestID,
+		&i.StoreID,
+		&i.Version,
+	)
+	return i, err
+}
+
 const getCartByGuestIDAndStoreID = `-- name: GetCartByGuestIDAndStoreID :many
 SELECT
     carts.id AS cart_id,
