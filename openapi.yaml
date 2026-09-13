@@ -998,6 +998,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateStoreCart
+      summary: 店舗の自分のカートを更新する（Guestセッションがない場合、カートがない場合はそれぞれが新規作成される）
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCartInput"
 
   /store-invitations/{invitation_id}/accept:
     post:
@@ -1347,6 +1363,39 @@ components:
           format: uuid
         role:
           $ref: "#/components/schemas/StoreMemberRole"
+    UpdateCartInput:
+      type: object
+      required:
+        - expectedVersion
+        - items
+      properties:
+        expectedVersion:
+          type: integer
+          format: int32
+          description: |
+            カートの更新前のバージョン。カートの更新時に、この値と現在のカートのバージョンが一致しない場合は409 Conflict
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/UpdateCartItemInput"
+    UpdateCartItemInput:
+      type: object
+      required:
+        - menuId
+        - quantity
+        - toppingIds
+      properties:
+        menuId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          format: int32
+        toppingIds:
+          type: array
+          items:
+            type: string
+            format: uuid
     Cart:
       type: object
       required:
