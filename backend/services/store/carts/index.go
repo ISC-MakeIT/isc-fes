@@ -61,7 +61,7 @@ func (s *CartService) GetCart(c context.Context, storeID uuid.UUID) (CartOutput,
 func emptyCartOutput(storeID uuid.UUID) CartOutput {
 	return CartOutput{
 		StoreID:     storeID,
-		Version:     0,
+		Version:     1, // CreateCart される時の初期バージョンは 1 なので、空のカートも同じく 1 にするとカートが存在しない時の初回PUTリクエストでバージョン不一致にならない
 		Items:       []CartItemOutput{},
 		TotalAmount: 0,
 		CanCheckout: false,

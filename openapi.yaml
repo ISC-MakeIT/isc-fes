@@ -998,6 +998,53 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateStoreCart
+      summary: 店舗の自分のカートを更新する（Guestセッションがない場合、カートがない場合はそれぞれが新規作成される）
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCartInput"
+      responses:
+        "200":
+          description: 店舗のカートを更新した
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない、または承認済みではない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: expectedVersion が一致しない（カートの更新競合）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /store-invitations/{invitation_id}/accept:
     post:
@@ -1347,6 +1394,43 @@ components:
           format: uuid
         role:
           $ref: "#/components/schemas/StoreMemberRole"
+    UpdateCartInput:
+      type: object
+      required:
+        - expectedVersion
+        - items
+      properties:
+        expectedVersion:
+          type: integer
+          format: int32
+          description: |
+            カートの更新前のバージョン。カートの更新時に、この値と現在のカートのバージョンが一致しない場合は409 Conflict
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/UpdateCartItemInput"
+    UpdateCartItemInput:
+      type: object
+      required:
+        - menuId
+        - quantity
+        - toppingIds
+      properties:
+        id:
+          type: string
+          description: カートアイテムのID。新規追加の場合は省略する。既存のカートアイテムを更新する場合は指定する。
+          format: uuid
+        menuId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          format: int32
+        toppingIds:
+          type: array
+          items:
+            type: string
+            format: uuid
     Cart:
       type: object
       required:
@@ -1395,9 +1479,6 @@ components:
         available:
           type: boolean
           description: メニューが現在利用可能かどうか。店舗がメニューを削除した場合や売り切れはfalseになる。
-        storeId:
-          type: string
-          format: uuid
         quantity:
           type: integer
           format: int32
@@ -1411,7 +1492,8 @@ components:
     CartItemTopping:
       type: object
       required:
-        - menuId
+        - id
+        - cartItemId
         - toppingId
         - name
         - unitPrice
@@ -1421,9 +1503,6 @@ components:
           type: string
           format: uuid
         cartItemId:
-          type: string
-          format: uuid
-        menuId:
           type: string
           format: uuid
         toppingId:

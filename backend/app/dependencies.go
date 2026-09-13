@@ -143,7 +143,7 @@ func buildDependencies(
 	imageService := services.NewImageService(imageProcessor, imageRepository)
 	menuService := menus.NewMenuService(menuRepository, imgGenerator, storeRepository, storeMemberRepository, imageRepository)
 	toppingsService := toppings.NewToppingsService(toppingsRepository, storeMemberRepository, storeRepository)
-	cartsRepository := carts.NewCartRepository(queries)
+	cartsRepository := carts.NewCartRepository(queries, pool)
 	cartService := carts_service.NewCartService(cartsRepository, storeRepository, guestResolver, imgGenerator)
 	roomsRepository := rooms.NewRoomsRepository(queries)
 	roomsService := rooms_service.NewRoomsService(roomsRepository)

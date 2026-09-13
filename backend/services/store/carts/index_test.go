@@ -23,6 +23,16 @@ func (r *stubCartRepository) GetCartByGuestIDAndStoreID(context.Context, uuid.UU
 	return r.cart, r.err
 }
 
+func (r *stubCartRepository) CreateCart(context.Context, uuid.UUID, uuid.UUID) (cartentities.Cart, error) {
+	r.calls++
+	return r.cart, r.err
+}
+
+func (r *stubCartRepository) UpdateCart(context.Context, UpdateCartRepositoryInput) (cartentities.Cart, error) {
+	r.calls++
+	return r.cart, r.err
+}
+
 type stubCartStoreRepository struct {
 	err   error
 	calls int
@@ -43,6 +53,11 @@ type stubCartGuestResolver struct {
 func (r *stubCartGuestResolver) ResolveGuest(context.Context) (uuid.UUID, bool, error) {
 	r.calls++
 	return r.guestID, r.found, r.err
+}
+
+func (r *stubCartGuestResolver) ResolveOrCreateGuest(context.Context) (uuid.UUID, error) {
+	r.calls++
+	return r.guestID, r.err
 }
 
 func TestGetCartReturnsEmptyCartWithoutGuestSession(t *testing.T) {
