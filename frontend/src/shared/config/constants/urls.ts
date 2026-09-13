@@ -1,6 +1,19 @@
+import { getApiBaseUrl } from "./env";
+
 export const homeUrl = () => "/";
 export const ordersUrl = () => "/orders";
-export const loginUrl = () => "/login";
+export const loginUrl = (redirectTo?: string) => {
+  if (redirectTo === undefined) {
+    return "/login";
+  }
+  return `/login?redirect_to=${redirectTo}`;
+};
+export const googleLoginUrl = (redirectTo?: string) => {
+  if (redirectTo === undefined) {
+    return `${getApiBaseUrl()}/auth/google/login`;
+  }
+  return `${getApiBaseUrl()}/auth/google/login?redirect_to=${redirectTo}`;
+};
 export const storeInvitationsUrl = (invitationId: string) =>
   `/invites/${invitationId}`;
 
