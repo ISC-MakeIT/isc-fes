@@ -9,10 +9,13 @@ export const loginUrl = (redirectTo?: string) => {
   return `/login?redirect_to=${redirectTo}`;
 };
 export const googleLoginUrl = (redirectTo?: string) => {
-  if (redirectTo === undefined) {
-    return `${getApiBaseUrl()}/auth/google/login`;
+  const url = new URL("/auth/google/login", getApiBaseUrl());
+
+  if (redirectTo !== undefined) {
+    url.searchParams.set("redirect_to", redirectTo);
   }
-  return `${getApiBaseUrl()}/auth/google/login?redirect_to=${redirectTo}`;
+
+  return url.toString();
 };
 export const storeInvitationsUrl = (invitationId: string) =>
   `/invites/${invitationId}`;
