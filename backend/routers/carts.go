@@ -44,9 +44,8 @@ func toCartItemResponse(item servicecarts.CartItemOutput) CartItem {
 
 func toCartItemToppingResponse(topping servicecarts.CartItemToppingOutput) CartItemTopping {
 	return CartItemTopping{
-		Id:         &topping.ID,
-		CartItemId: &topping.CartItemID,
-		MenuId:     topping.MenuID,
+		Id:         topping.ID,
+		CartItemId: topping.CartItemID,
 		ToppingId:  topping.ToppingID,
 		Name:       topping.Name,
 		Available:  topping.Available,

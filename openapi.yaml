@@ -1444,9 +1444,6 @@ components:
         available:
           type: boolean
           description: メニューが現在利用可能かどうか。店舗がメニューを削除した場合や売り切れはfalseになる。
-        storeId:
-          type: string
-          format: uuid
         quantity:
           type: integer
           format: int32
@@ -1460,7 +1457,8 @@ components:
     CartItemTopping:
       type: object
       required:
-        - menuId
+        - id
+        - cartItemId
         - toppingId
         - name
         - unitPrice
@@ -1470,9 +1468,6 @@ components:
           type: string
           format: uuid
         cartItemId:
-          type: string
-          format: uuid
-        menuId:
           type: string
           format: uuid
         toppingId:
