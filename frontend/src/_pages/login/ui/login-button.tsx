@@ -1,15 +1,17 @@
-import { getApiBaseUrl } from "@/shared/config";
+import { googleLoginUrl } from "@/shared/config";
 import { cn } from "@/shared/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
 import { DotText } from "@/shared/ui/dot-text";
 import { LinkButton } from "@/shared/ui/link-button";
 
-const GOOGLE_LOGIN_ENDPOINT = getApiBaseUrl() + "/auth/google/login";
+type LoginButtonProps = {
+  redirectTo?: string;
+};
 
-export function LoginButton() {
+export function LoginButton({ redirectTo }: LoginButtonProps) {
   return (
     <LinkButton
-      href={GOOGLE_LOGIN_ENDPOINT}
+      href={googleLoginUrl(redirectTo)}
       className={cn(buttonVariants({ size: "lg" }), "h-16 px-8 text-2xl")}
     >
       <DotText>ログイン</DotText>

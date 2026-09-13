@@ -1,5 +1,5 @@
 import { fetchCurrentAccount } from "@/entities/account";
-import { loginUrl, storeHomeUrl } from "@/shared/config";
+import { loginUrl, storeHomeUrl, storeInvitationsUrl } from "@/shared/config";
 import { redirect } from "next/navigation";
 import { storeInvitationAccept } from "./_api/store-invitation-accept";
 
@@ -10,9 +10,10 @@ export async function GET(
   const { id: invitationId } = await context.params;
   const account = await fetchCurrentAccount();
 
-  // TODO: ログイン後にここに戻ってくるようにする
-  //       いまはバックエンドの実装待ち
-  if (!account) redirect(loginUrl());
+  if (!account) {
+    const redirectTo = storeInvitationsUrl(invitationId);
+    redirect(loginUrl(redirectTo));
+  }
 
   const { storeId } = await storeInvitationAccept(invitationId);
 

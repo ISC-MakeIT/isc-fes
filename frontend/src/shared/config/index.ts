@@ -6,6 +6,7 @@ export { getApiBaseUrl } from "./constants/env";
 export {
   homeUrl,
   loginUrl,
+  googleLoginUrl,
   registerStoreUrl,
   storeListUrl,
   storeHomeUrl,
