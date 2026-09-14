@@ -20,7 +20,7 @@ export async function StoreMenusView({ storeId }: StoreMenusViewProps) {
   return (
     <HydrationBoundary state={dehydrate(client)}>
       <MenuEditorProvider>
-        <div className="md:grid md:grid-cols-[1fr_25rem]">
+        <div className="lg:grid lg:grid-cols-[1fr_25rem]">
           <MenuCatalog />
           <MenuEditor />
         </div>

@@ -14,7 +14,7 @@ export function MenuCatalog() {
     <div
       className={cn(
         "mx-4 space-y-20 py-18",
-        isOpen ? "hidden md:block" : "block",
+        isOpen ? "hidden lg:block" : "block",
       )}
     >
       <MenuList />
