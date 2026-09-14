@@ -20,7 +20,7 @@ export function MenuList() {
   const { data: menus } = useSuspenseQuery(storeMenusQueryOptions(storeId));
 
   return (
-    <section className="border-primary border-b px-4">
+    <section className="border-primary border-b">
       <HeadingCard className="px-8 py-4">メニュー</HeadingCard>
       <div className="space-y-6 py-8">
         <div className="grid grid-cols-[minmax(0,1fr)_4.375rem] gap-x-6 gap-y-6">
