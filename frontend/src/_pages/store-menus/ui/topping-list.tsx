@@ -22,14 +22,14 @@ export function ToppingList() {
   return (
     <section className="space-y-6">
       <HeadingCard className="px-8 py-4">カスタマイズ</HeadingCard>
-      <ul className="grid grid-cols-[minmax(0,1fr)_4.375rem] gap-x-6 gap-y-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_4.375rem] gap-x-6 gap-y-6">
         {toppings.map((topping) => (
           <Fragment key={topping.id}>
             <ToppingCard topping={topping} />
             <div></div>
           </Fragment>
         ))}
-      </ul>
+      </div>
       <ActionButton
         className="px-6 py-4 text-lg font-bold"
         isDot={false}
