@@ -8,7 +8,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { storeToppingsQueryOptions } from "../api/fetch-store-toppings";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { Fragment } from "react/jsx-runtime";
-import { Card } from "@/shared/ui/card";
 import { Topping } from "@/entities/topping";
 import { Button } from "@/shared/ui/button";
 

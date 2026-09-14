@@ -7,7 +7,6 @@ import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { storeMenusQueryOptions } from "@/entities/menu";
 import { Menu } from "@/entities/menu";
-import { Card } from "@/shared/ui/card";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { MENU_IMAGE_ASPECT } from "@/shared/config";
 import { useStoreId } from "../model/hooks/use-store-id";
