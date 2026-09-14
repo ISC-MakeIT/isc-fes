@@ -10,6 +10,7 @@ import { HeadingCard } from "@/shared/ui/heading-card";
 import { Fragment } from "react/jsx-runtime";
 import { Card } from "@/shared/ui/card";
 import { Topping } from "@/entities/topping";
+import { Button } from "@/shared/ui/button";
 
 export function ToppingList() {
   const storeId = useStoreId();
@@ -49,14 +50,17 @@ type ToppingCardProps = {
 export function ToppingCard({ topping }: ToppingCardProps) {
   const { setMenuEditor } = useMenuEditor();
   return (
-    <Card
-      className="border-foreground shadow-primary flex cursor-pointer flex-row items-center gap-4 rounded-sm border px-6 py-4 font-bold shadow-[4px_4px_0]"
+    // Buttonタグ
+    <Button
+      type="button"
+      variant="outline"
+      className="border-foreground shadow-primary flex h-auto w-full cursor-pointer flex-row items-center gap-4 rounded-sm border px-6 py-4 font-bold shadow-[4px_4px_0]"
       onClick={() => setMenuEditor([EditorType.EditTopping, topping.id])}
     >
-      <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-3">
-        <p className="truncate">{topping.name}</p>
-        <p>￥{topping.unitPrice}</p>
-      </div>
-    </Card>
+      <span className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-3">
+        <span className="truncate">{topping.name}</span>
+        <span>￥{topping.unitPrice}</span>
+      </span>
+    </Button>
   );
 }
