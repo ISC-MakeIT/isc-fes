@@ -5,6 +5,7 @@ import { MenuList } from "./menu-list";
 import { createQueryClient } from "@/shared/api";
 import { MenuEditorProvider } from "../model/menu-editor-context";
 import { ToppingList } from "./topping-list";
+import { storeToppingsQueryOptions } from "../api/fetch-store-toppings";
 
 type StoreMenusViewProps = {
   storeId: string;
@@ -12,13 +13,16 @@ type StoreMenusViewProps = {
 
 export async function StoreMenusView({ storeId }: StoreMenusViewProps) {
   const client = createQueryClient();
-  await client.prefetchQuery(storeMenusQueryOptions(storeId));
+  await Promise.all([
+    client.prefetchQuery(storeMenusQueryOptions(storeId)),
+    client.prefetchQuery(storeToppingsQueryOptions(storeId)),
+  ]);
 
   return (
     <HydrationBoundary state={dehydrate(client)}>
       <MenuEditorProvider>
         <div className="grid grid-cols-[1fr_25rem]">
-          <div className="px-4 pt-18">
+          <div className="space-y-20 px-4 py-18">
             <MenuList />
             <ToppingList />
           </div>
