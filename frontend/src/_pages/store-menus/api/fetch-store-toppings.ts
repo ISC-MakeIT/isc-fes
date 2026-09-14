@@ -34,5 +34,6 @@ export function storeToppingsQueryOptions(storeId: string) {
   return queryOptions({
     queryKey: storeToppingsKey(storeId),
     queryFn: () => fetchStoreToppings({ storeId }),
+    staleTime: 60 * 1000,
   });
 }
