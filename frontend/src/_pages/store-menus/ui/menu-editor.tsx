@@ -16,6 +16,7 @@ export function MenuEditor() {
         <button
           type="button"
           className="cursor-pointer"
+          aria-label="一覧に戻る"
           onClick={() => setMenuEditor([EditorType.Closed])}
         >
           <ChevronLeftIcon size={50} strokeWidth={1} />
