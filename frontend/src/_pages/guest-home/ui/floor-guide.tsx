@@ -19,6 +19,7 @@ import { PreviewImage } from "@/shared/ui/preview-image";
 import { STORE_IMAGE_ASPECT } from "@/shared/config";
 import { ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
+import { guestStoreDetailUrl } from "@/shared/config/constants/urls";
 
 export type Floors = {
   level: Floor;
@@ -108,8 +109,7 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
     <div className="flex w-full flex-col items-center px-4">
       {storesByFloor.map((store) => (
         <Link
-          // TODO: 店舗のページへ飛ばす
-          href=""
+          href={guestStoreDetailUrl(store.id)}
           key={store.id}
           className="border-foreground flex w-full flex-row items-center gap-2 border-b border-dashed px-2 py-4 lg:max-w-115.5"
         >

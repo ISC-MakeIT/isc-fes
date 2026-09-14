@@ -1,6 +1,5 @@
 import { getApiBaseUrl } from "./env";
 
-export const homeUrl = () => "/";
 export const ordersUrl = () => "/orders";
 export const loginUrl = (redirectTo?: string) => {
   if (redirectTo === undefined) {
@@ -36,3 +35,7 @@ export const storeMenusUrl = (id: string) => `/member/stores/${id}/menus`;
 
 // 管理者ページ
 export const storeApplicationsUrl = () => "/admin/store-applications";
+
+// ゲスト用のページ
+export const homeUrl = () => "/";
+export const guestStoreDetailUrl = (storeId: string) => `/stores/${storeId}`;
