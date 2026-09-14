@@ -20,7 +20,7 @@ export function ToppingList() {
   );
 
   return (
-    <section className="space-y-6 px-4">
+    <section className="space-y-6">
       <HeadingCard className="px-8 py-4">カスタマイズ</HeadingCard>
       <ul className="grid grid-cols-[minmax(0,1fr)_4.375rem] gap-x-6 gap-y-6">
         {toppings.map((topping) => (
