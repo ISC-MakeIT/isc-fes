@@ -17,6 +17,7 @@ export {
   storeApplicationsUrl,
   storeInvitationsUrl,
   ordersUrl,
+  guestStoreDetailUrl,
 } from "./constants/urls";
 
 export {
