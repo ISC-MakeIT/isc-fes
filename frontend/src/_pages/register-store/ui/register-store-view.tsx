@@ -2,7 +2,7 @@ import { HeadingCard } from "@/shared/ui/heading-card";
 import { RegisterStoreForm } from "./register-store-form";
 import { CenterLayout } from "@/shared/ui/center-layout";
 import { createQueryClient } from "@/shared/api";
-import { activeRoomsQueryOptions } from "@/entities/room";
+import { activeRoomsQueryOptions } from "@/entities/store";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 export async function RegisterStoreView() {

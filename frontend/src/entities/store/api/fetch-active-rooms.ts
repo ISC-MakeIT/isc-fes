@@ -2,7 +2,7 @@ import { roomsKey, getStatusMessage } from "@/shared/config";
 import { queryOptions } from "@tanstack/react-query";
 import { createApiClient } from "@/shared/api";
 import { v } from "@/shared/lib/valibot";
-import { Room } from "../model/types";
+import { StoreRoom } from "../model/types";
 
 export async function fetchActiveRooms() {
   const client = await createApiClient();
@@ -13,7 +13,7 @@ export async function fetchActiveRooms() {
   }
 
   return v.parse(
-    v.array(Room),
+    v.array(StoreRoom),
     data.data.map((room) => room.name),
   );
 }

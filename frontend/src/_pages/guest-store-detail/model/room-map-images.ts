@@ -1,5 +1,5 @@
 import type { StaticImageData } from "next/image";
-import type { Room } from "@/entities/room";
+import type { StoreRoom } from "@/entities/store";
 import room501Image from "./assets/501.svg";
 import room502Image from "./assets/502.svg";
 import room503Image from "./assets/503.svg";
@@ -20,7 +20,7 @@ import room707Image from "./assets/707.svg";
 import iCrossImage from "./assets/iCross.svg";
 
 // TODO: 1Fの画像は出来次第配備
-export const roomMapImages: Partial<Record<Room, StaticImageData>> = {
+export const roomMapImages: Partial<Record<StoreRoom, StaticImageData>> = {
   "501": room501Image,
   "502": room502Image,
   "503": room503Image,

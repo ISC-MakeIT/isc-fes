@@ -1,6 +1,7 @@
 export {
   Store,
   StoreName,
+  storeRoomNames,
   StoreRoom,
   StoreDescription,
   StoreReviewStatus,
@@ -10,3 +11,8 @@ export {
   fetchVisibleStores,
   visibleStoresQueryOptions,
 } from "./api/fetch-visible-stores";
+
+export {
+  activeRoomsQueryOptions,
+  fetchActiveRooms,
+} from "./api/fetch-active-rooms";
