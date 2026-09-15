@@ -80,6 +80,7 @@ func (s *Server) UpdateMenuByStoreIDAndMenuID(c *gin.Context, storeID uuid.UUID,
 		Description:    body.Description,
 		UnitPrice:      body.UnitPrice,
 		ToppingIds:     toppingIDs,
+		SoldOut:        body.SoldOut,
 		ImageObjectKey: imageObjectKey,
 	})
 	if err != nil {

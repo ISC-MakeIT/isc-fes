@@ -156,13 +156,14 @@ SET
     name = COALESCE($1, name),
     description = COALESCE($2, description),
     unit_price = COALESCE($3, unit_price),
+    sold_out = COALESCE($4, sold_out),
     image_object_key = COALESCE(
-        $4,
+        $5,
         image_object_key
     ),
     updated_at = now()
-WHERE store_id = $5
-  AND id = $6
+WHERE store_id = $6
+  AND id = $7
   AND deleted_at IS NULL
 RETURNING id, store_id, name, description, unit_price, image_object_key, sold_out, deleted_at, updated_at, created_at
 `
@@ -171,6 +172,7 @@ type UpdateMenuParams struct {
 	Name           *string   `json:"name"`
 	Description    *string   `json:"description"`
 	UnitPrice      *int32    `json:"unit_price"`
+	SoldOut        *bool     `json:"sold_out"`
 	ImageObjectKey *string   `json:"image_object_key"`
 	StoreID        uuid.UUID `json:"store_id"`
 	ID             uuid.UUID `json:"id"`
@@ -181,6 +183,7 @@ func (q *Queries) UpdateMenu(ctx context.Context, arg UpdateMenuParams) (Menu, e
 		arg.Name,
 		arg.Description,
 		arg.UnitPrice,
+		arg.SoldOut,
 		arg.ImageObjectKey,
 		arg.StoreID,
 		arg.ID,

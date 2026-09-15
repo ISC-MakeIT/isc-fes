@@ -563,7 +563,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
   /stores/{store_id}/menus/{menu_id}:
-    put:
+    patch:
       operationId: updateMenuByStoreIDAndMenuID
       summary: 店舗のメニューを更新する
       security:
@@ -1737,6 +1737,8 @@ components:
             type: string
             format: uuid
           uniqueItems: true
+        soldOut:
+          type: boolean
         imageObjectKey:
           $ref: "#/components/schemas/ImageObjectKey"
     Topping:

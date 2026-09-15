@@ -201,14 +201,14 @@ export interface paths {
       cookie?: never;
     };
     get?: never;
-    /** 店舗のメニューを更新する */
-    put: operations["updateMenuByStoreIDAndMenuID"];
+    put?: never;
     post?: never;
     /** 店舗のメニューを削除する */
     delete: operations["deleteMenuByStoreIDAndMenuID"];
     options?: never;
     head?: never;
-    patch?: never;
+    /** 店舗のメニューを更新する */
+    patch: operations["updateMenuByStoreIDAndMenuID"];
     trace?: never;
   };
   "/stores/{store_id}/toppings": {
@@ -600,6 +600,7 @@ export interface components {
       unitPrice?: number;
       /** @description 対象のメニューにトッピング可能なトッピングのID一覧。空配列も可。 */
       toppingIds?: string[];
+      soldOut?: boolean;
       imageObjectKey?: components["schemas"]["ImageObjectKey"];
     };
     Topping: {
@@ -1370,6 +1371,72 @@ export interface operations {
       };
     };
   };
+  deleteMenuByStoreIDAndMenuID: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+        menu_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 店舗のメニューを削除した */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 権限不足（店舗のメンバーでない、または店舗マネージャーでない） */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない（未承認の店舗はメニューを削除できない）、またはメニューが存在しない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
   updateMenuByStoreIDAndMenuID: {
     parameters: {
       query?: never;
@@ -1423,72 +1490,6 @@ export interface operations {
         };
       };
       /** @description 店舗が存在しない（未承認の店舗はメニューを更新できない）、またはメニューが存在しない */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description サーバーエラー */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  deleteMenuByStoreIDAndMenuID: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        store_id: string;
-        menu_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description 店舗のメニューを削除した */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description リクエスト形式が不正 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 未ログイン */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 権限不足（店舗のメンバーでない、または店舗マネージャーでない） */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 店舗が存在しない（未承認の店舗はメニューを削除できない）、またはメニューが存在しない */
       404: {
         headers: {
           [name: string]: unknown;

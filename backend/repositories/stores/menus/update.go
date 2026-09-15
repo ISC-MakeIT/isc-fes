@@ -24,6 +24,7 @@ func (r *MenuRepository) UpdateMenuWithToppings(c context.Context, input menu_se
 		Name:           input.Name,
 		Description:    input.Description,
 		UnitPrice:      input.UnitPrice,
+		SoldOut:        input.SoldOut,
 		ImageObjectKey: (*string)(input.ImageObjectKey),
 	})
 	if err != nil {

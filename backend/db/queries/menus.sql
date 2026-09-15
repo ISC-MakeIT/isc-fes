@@ -31,6 +31,7 @@ SET
     name = COALESCE(sqlc.narg(name), name),
     description = COALESCE(sqlc.narg(description), description),
     unit_price = COALESCE(sqlc.narg(unit_price), unit_price),
+    sold_out = COALESCE(sqlc.narg(sold_out), sold_out),
     image_object_key = COALESCE(
         sqlc.narg(image_object_key),
         image_object_key
