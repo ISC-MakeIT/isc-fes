@@ -53,14 +53,12 @@ export async function GuestStoreDetailView({
 
         <section className="flex flex-col items-center gap-8 px-6 pt-8 pb-16">
           <HeadingCard className="px-14 py-2">マップ</HeadingCard>
-          {mapImage ? (
+          {mapImage && (
             <Image
               alt={`${store.room}教室のマップ`}
               src={mapImage}
               className="w-75"
             />
-          ) : (
-            <p>この教室のマップは準備中です</p>
           )}
         </section>
       </div>
