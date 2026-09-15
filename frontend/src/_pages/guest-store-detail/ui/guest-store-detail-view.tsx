@@ -1,4 +1,4 @@
-import { fetchStoreDetail } from "@/entities/store";
+import { storeDetailQueryOptions } from "@/entities/store";
 import { STORE_IMAGE_ASPECT } from "@/shared/config";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { Card } from "@/shared/ui/card";
@@ -19,7 +19,7 @@ export async function GuestStoreDetailView({
 }: GuestStoreDetailViewProps) {
   const queryClient = createQueryClient();
   const [store] = await Promise.all([
-    fetchStoreDetail(storeId),
+    queryClient.fetchQuery(storeDetailQueryOptions(storeId)),
     queryClient.prefetchQuery(storeMenusQueryOptions(storeId)),
   ]);
 

@@ -1,12 +1,12 @@
 import { Store } from "@/entities/store";
-import { createPublicApiClient } from "@/shared/api";
+import { createApiClient } from "@/shared/api";
 import { getStatusMessage, STATUS, storeDetailKey } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { queryOptions } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
 
 export async function fetchStoreDetail(storeId: string): Promise<Store> {
-  const client = createPublicApiClient();
+  const client = await createApiClient();
   const { data, error, response } = await client.GET("/stores/{store_id}", {
     params: { path: { store_id: storeId } },
   });

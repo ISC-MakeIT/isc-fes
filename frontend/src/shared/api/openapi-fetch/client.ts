@@ -12,14 +12,6 @@ export async function createApiClient() {
 }
 
 /**
- * 認証不要のAPIを叩くためのクライアント
- * Cookieを読まないので動的レンダリングを強制せず、Next.jsのキャッシュが効く
- */
-export function createPublicApiClient() {
-  return createOpenApiClient<paths>({ baseUrl: getApiBaseUrl() });
-}
-
-/**
  * ブラウザから使用する用のOpenAPI Fetchクライアント
  * @returns
  */
