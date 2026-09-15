@@ -26,6 +26,7 @@ type UpdateMenuRepositoryInput struct {
 	Description    *string
 	UnitPrice      *int32
 	ToppingIds     *[]uuid.UUID
+	SoldOut        *bool
 	ImageObjectKey *menus.MenuImageObjectKey
 }
 type MenuRepository interface {

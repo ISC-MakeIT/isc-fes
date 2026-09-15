@@ -17,6 +17,7 @@ type UpdateMenuInput struct {
 	Description    *string
 	UnitPrice      *int32
 	ToppingIds     []uuid.UUID
+	SoldOut        *bool
 	ImageObjectKey *menus.MenuImageObjectKey
 }
 
@@ -77,6 +78,7 @@ func (s *MenuService) UpdateMenuByStoreIDAndMenuID(c context.Context, storeID uu
 		Description:    input.Description,
 		UnitPrice:      input.UnitPrice,
 		ToppingIds:     toppingIDs,
+		SoldOut:        input.SoldOut,
 		ImageObjectKey: input.ImageObjectKey,
 	})
 	if err != nil {
@@ -90,5 +92,5 @@ func (s *MenuService) UpdateMenuByStoreIDAndMenuID(c context.Context, storeID uu
 }
 
 func (i *UpdateMenuInput) IsAllNil() bool {
-	return i.Name == nil && i.Description == nil && i.UnitPrice == nil && i.ToppingIds == nil && i.ImageObjectKey == nil
+	return i.Name == nil && i.Description == nil && i.UnitPrice == nil && i.ToppingIds == nil && i.ImageObjectKey == nil && i.SoldOut == nil
 }

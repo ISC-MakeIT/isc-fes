@@ -39,7 +39,7 @@ export async function editMenu({
   }
 
   const client = await createApiClient();
-  const { data, error, response } = await client.PUT(
+  const { data, error, response } = await client.PATCH(
     "/stores/{store_id}/menus/{menu_id}",
     {
       body: {
