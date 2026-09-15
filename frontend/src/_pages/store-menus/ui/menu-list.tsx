@@ -7,12 +7,12 @@ import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { storeMenusQueryOptions } from "@/entities/menu";
 import { Menu } from "@/entities/menu";
-import { Card } from "@/shared/ui/card";
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { MENU_IMAGE_ASPECT } from "@/shared/config";
 import { useStoreId } from "../model/hooks/use-store-id";
 import { SoldOutSwitch } from "./sold-out-switch";
 import { Fragment } from "react/jsx-runtime";
+import { Button } from "@/shared/ui/button";
 
 export function MenuList() {
   const storeId = useStoreId();
@@ -20,7 +20,7 @@ export function MenuList() {
   const { data: menus } = useSuspenseQuery(storeMenusQueryOptions(storeId));
 
   return (
-    <section className="border-primary border-b px-4">
+    <section className="border-primary border-b">
       <HeadingCard className="px-8 py-4">メニュー</HeadingCard>
       <div className="space-y-6 py-8">
         <div className="grid grid-cols-[minmax(0,1fr)_4.375rem] gap-x-6 gap-y-6">
@@ -60,8 +60,10 @@ type MenuCard = {
 function MenuCard({ menu }: MenuCard) {
   const { setMenuEditor } = useMenuEditor();
   return (
-    <Card
-      className="border-foreground shadow-primary flex cursor-pointer flex-row items-center gap-4 rounded-sm border px-6 py-4 font-bold shadow-[8px_8px_0_0]"
+    <Button
+      type="button"
+      variant="outline"
+      className="border-foreground shadow-primary flex h-auto w-full cursor-pointer flex-row items-center gap-4 rounded-sm border px-6 py-4 font-bold shadow-[8px_8px_0_0]"
       onClick={() => setMenuEditor([EditorType.EditMenu, menu.id])}
     >
       <PreviewImage
@@ -70,10 +72,10 @@ function MenuCard({ menu }: MenuCard) {
         imagePath={menu.imageUrl}
         className="w-12.5"
       />
-      <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-3">
-        <p className="truncate">{menu.name}</p>
-        <p>￥{menu.unitPrice}</p>
-      </div>
-    </Card>
+      <span className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-3">
+        <span className="truncate">{menu.name}</span>
+        <span>￥{menu.unitPrice}</span>
+      </span>
+    </Button>
   );
 }

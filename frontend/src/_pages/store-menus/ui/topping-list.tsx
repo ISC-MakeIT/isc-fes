@@ -3,11 +3,33 @@
 import { ActionButton } from "@/shared/ui/action-button";
 import { PlusIcon } from "lucide-react";
 import { EditorType, useMenuEditor } from "../model/menu-editor-context";
+import { useStoreId } from "../model/hooks/use-store-id";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { storeToppingsQueryOptions } from "../api/fetch-store-toppings";
+import { HeadingCard } from "@/shared/ui/heading-card";
+import { Fragment } from "react/jsx-runtime";
+import { Topping } from "@/entities/topping";
+import { Button } from "@/shared/ui/button";
 
 export function ToppingList() {
+  const storeId = useStoreId();
   const { setMenuEditor } = useMenuEditor();
+
+  const { data: toppings } = useSuspenseQuery(
+    storeToppingsQueryOptions(storeId),
+  );
+
   return (
-    <div>
+    <section className="space-y-6">
+      <HeadingCard className="px-8 py-4">カスタマイズ</HeadingCard>
+      <div className="grid grid-cols-[minmax(0,1fr)_4.375rem] gap-x-6 gap-y-6">
+        {toppings.map((topping) => (
+          <Fragment key={topping.id}>
+            <ToppingCard topping={topping} />
+            <div></div>
+          </Fragment>
+        ))}
+      </div>
       <ActionButton
         className="px-6 py-4 text-lg font-bold"
         isDot={false}
@@ -16,6 +38,28 @@ export function ToppingList() {
         <PlusIcon className="size-6" />
         カスタマイズの追加
       </ActionButton>
-    </div>
+    </section>
+  );
+}
+
+type ToppingCardProps = {
+  topping: Topping;
+};
+
+export function ToppingCard({ topping }: ToppingCardProps) {
+  const { setMenuEditor } = useMenuEditor();
+  return (
+    // Buttonタグ
+    <Button
+      type="button"
+      variant="outline"
+      className="border-foreground shadow-primary flex h-auto w-full cursor-pointer flex-row items-center gap-4 rounded-sm border px-6 py-4 font-bold shadow-[4px_4px_0]"
+      onClick={() => setMenuEditor([EditorType.EditTopping, topping.id])}
+    >
+      <span className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-3">
+        <span className="truncate">{topping.name}</span>
+        <span>￥{topping.unitPrice}</span>
+      </span>
+    </Button>
   );
 }

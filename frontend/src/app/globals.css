@@ -60,6 +60,7 @@
   --color-switch-track-checked: var(--sky-blue);
   --color-switch-track-unchecked: var(--foreground);
   --color-switch-thumb: var(--secondary);
+  --shadow-editor-header: 0 2px 4px var(--editor-header);
 }
 
 :root {
@@ -99,6 +100,7 @@
   --sidebar-header: var(--primary);
   --close-button: #ea6082;
   --dialog-overlay: #3e3e3ebf;
+  --editor-header: #e2851b80;
 
   /* primitive token */
   --black-soft: #575757;
