@@ -19,7 +19,8 @@ export function MenuList({ storeId }: MenuListProps) {
     <section className="space-y-8 px-6 py-8">
       <HeadingCard className="px-14 py-2">メニュー</HeadingCard>
 
-      <div className="grid grid-cols-[repeat(auto-fit,11.375rem)] justify-center gap-4">
+      {/* NOTE: カードを2列表示には画面幅428px必要で、ほとんどのスマホだと1列になってしまうかもなので、メニューカードを可変にして最小2列を維持 */}
+      <div className="grid grid-cols-[repeat(2,minmax(0,11.375rem))] justify-center gap-4 md:grid-cols-[repeat(auto-fit,11.375rem)]">
         {menus.map((menu) => (
           <MenuCard menu={menu} key={menu.id} />
         ))}
@@ -39,7 +40,7 @@ function MenuCard({ menu }: MenuCardProps) {
         ratio={MENU_IMAGE_ASPECT}
         alt=""
         src={menu.imageUrl}
-        className="w-38.5"
+        className="max-w-38.5"
       />
       <div className="text-left">
         <p className="line-clamp-2 h-[2lh] font-bold">{menu.name}</p>
