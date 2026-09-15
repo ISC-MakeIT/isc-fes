@@ -1,4 +1,4 @@
-import { Room } from "@/entities/room";
+import { StoreRoom } from "@/entities/store";
 import { Store, StoreReviewStatus } from "@/entities/store";
 import { describe, expect, test } from "vitest";
 import { selectApprovedStoresByFloor } from "./select-approved-stores-by-floor";
@@ -44,7 +44,7 @@ describe("selectApprovedStoresByFloor", () => {
   });
 });
 
-function createStore(room: Room, reviewStatus: StoreReviewStatus) {
+function createStore(room: StoreRoom, reviewStatus: StoreReviewStatus) {
   const store: Store = {
     id: "test",
     name: "test",

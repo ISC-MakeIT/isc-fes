@@ -20,7 +20,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/shared/ui/combobox";
-import { activeRoomsQueryOptions } from "@/entities/room";
+import { activeRoomsQueryOptions } from "@/entities/store";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",

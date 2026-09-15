@@ -1,4 +1,4 @@
-import { Room } from "@/entities/room";
+import { StoreRoom } from "@/entities/store";
 
 export type Floor = 1 | 5 | 6 | 7 | 8;
 
@@ -24,4 +24,4 @@ export const roomFloorMap = {
   "707": 7,
   iCrossArena: 7,
   "8Fステージ": 8,
-} as const satisfies Record<Room, Floor>;
+} as const satisfies Record<StoreRoom, Floor>;

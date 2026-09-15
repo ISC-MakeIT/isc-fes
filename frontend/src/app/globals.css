@@ -61,6 +61,7 @@
   --color-switch-track-unchecked: var(--foreground);
   --color-switch-thumb: var(--secondary);
   --shadow-editor-header: 0 2px 4px var(--editor-header);
+  --color-allergen-card: var(--orange);
 }
 
 :root {

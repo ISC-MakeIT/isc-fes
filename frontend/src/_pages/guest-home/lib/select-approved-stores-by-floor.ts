@@ -1,6 +1,5 @@
 import { Floor, roomFloorMap } from "../model/types";
-import { roomNames } from "@/entities/room";
-import { Store, StoreReviewStatus } from "@/entities/store";
+import { Store, StoreReviewStatus, storeRoomNames } from "@/entities/store";
 
 /**
  * 指定されたフロアかつ承認済みの店舗のみを返す
@@ -13,7 +12,7 @@ export function selectApprovedStoresByFloor(
   floor: Floor,
 ): Store[] {
   const targetRooms = new Set<string>(
-    roomNames.filter((room) => roomFloorMap[room] === floor),
+    storeRoomNames.filter((room) => roomFloorMap[room] === floor),
   );
   return stores.filter(
     (store) =>
