@@ -57,7 +57,7 @@ export function ToppingCard({ topping }: ToppingCardProps) {
       onClick={() => setMenuEditor([EditorType.EditTopping, topping.id])}
     >
       <span className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-3">
-        <span className="truncate">{topping.name}</span>
+        <span className="truncate text-left">{topping.name}</span>
         <span>￥{topping.unitPrice}</span>
       </span>
     </Button>
