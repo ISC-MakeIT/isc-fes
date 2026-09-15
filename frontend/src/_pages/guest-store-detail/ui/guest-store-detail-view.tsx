@@ -1,4 +1,4 @@
-import { fetchStoreDetail } from "@/entities/store/api/fetch-store-detail";
+import { fetchStoreDetail } from "@/entities/store";
 import { STORE_IMAGE_ASPECT } from "@/shared/config";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { Card } from "@/shared/ui/card";

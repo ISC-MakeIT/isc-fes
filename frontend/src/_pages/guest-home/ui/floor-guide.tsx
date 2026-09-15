@@ -19,7 +19,7 @@ import { PreviewImage } from "@/shared/ui/preview-image";
 import { STORE_IMAGE_ASPECT } from "@/shared/config";
 import { ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
-import { guestStoreDetailUrl } from "@/shared/config/constants/urls";
+import { guestStoreDetailUrl } from "@/shared/config";
 
 export type Floors = {
   level: Floor;
