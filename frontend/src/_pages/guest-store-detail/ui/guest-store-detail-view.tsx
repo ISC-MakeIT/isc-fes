@@ -17,11 +17,13 @@ type GuestStoreDetailViewProps = {
 export async function GuestStoreDetailView({
   storeId,
 }: GuestStoreDetailViewProps) {
-  const store = await fetchStoreDetail(storeId);
-  const mapImage = roomMapImages[store.room];
-
   const queryClient = createQueryClient();
-  await queryClient.prefetchQuery(storeMenusQueryOptions(storeId));
+  const [store] = await Promise.all([
+    fetchStoreDetail(storeId),
+    queryClient.prefetchQuery(storeMenusQueryOptions(storeId)),
+  ]);
+
+  const mapImage = roomMapImages[store.room];
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
