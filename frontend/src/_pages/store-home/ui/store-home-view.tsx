@@ -1,4 +1,4 @@
-import { storeDetailQueryOptions } from "../api/fetch-store-detail";
+import { storeDetailQueryOptions } from "@/entities/store";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { StoreInfo } from "./store-info";

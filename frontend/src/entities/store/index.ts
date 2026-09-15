@@ -9,3 +9,8 @@ export {
   fetchVisibleStores,
   visibleStoresQueryOptions,
 } from "./api/fetch-visible-stores";
+
+export {
+  fetchStoreDetail,
+  storeDetailQueryOptions,
+} from "./api/fetch-store-detail";
