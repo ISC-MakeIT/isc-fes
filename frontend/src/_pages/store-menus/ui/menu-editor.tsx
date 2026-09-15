@@ -5,6 +5,7 @@ import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { CreateMenuForm } from "./create-menu-form";
 import { CreateToppingForm } from "./create-topping-form";
 import { EditMenuForm } from "./edit-menu-form";
+import { EditToppingForm } from "./edit-topping-form";
 
 export function MenuEditor() {
   const { menuEditor, setMenuEditor } = useMenuEditor();
@@ -33,6 +34,10 @@ export function MenuEditor() {
           )}
 
           {type === EditorType.CreateTopping && <CreateToppingForm />}
+
+          {type === EditorType.EditTopping && (
+            <EditToppingForm key={id} toppingId={id} />
+          )}
         </div>
       </div>
     </div>
