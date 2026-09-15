@@ -20,7 +20,8 @@ import room707Image from "./assets/707.svg";
 import iCrossImage from "./assets/iCross.svg";
 
 // TODO: 1Fの画像は出来次第配備
-export const roomMapImages: Partial<Record<Room, StaticImageData>> = {
+export const roomMapImages = {
+  "1F": null,
   "501": room501Image,
   "502": room502Image,
   "503": room503Image,
@@ -33,10 +34,12 @@ export const roomMapImages: Partial<Record<Room, StaticImageData>> = {
   "601": room601Image,
   "602": room602Image,
   "603": room603Image,
+  "604": null,
   "605": room605Image,
   "606": room606Image,
   "607": room607Image,
   "608": room608Image,
   "707": room707Image,
   iCrossArena: iCrossImage,
-};
+  "8Fステージ": null,
+} satisfies Record<Room, StaticImageData | null>;
