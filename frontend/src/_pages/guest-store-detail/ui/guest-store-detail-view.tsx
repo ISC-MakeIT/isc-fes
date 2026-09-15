@@ -1,7 +1,10 @@
 import { fetchStoreDetail } from "@/_pages/store-home/api/fetch-store-detail";
 import { STORE_IMAGE_ASPECT } from "@/shared/config";
+import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { Card } from "@/shared/ui/card";
-import { PreviewImage } from "@/shared/ui/preview-image";
+import { HeadingCard } from "@/shared/ui/heading-card";
+import { MenuList } from "./menu-list";
+import { roomMapImages } from "../model/room-map-images";
 
 type GuestStoreDetailViewProps = {
   storeId: string;
@@ -11,12 +14,13 @@ export async function GuestStoreDetailView({
   storeId,
 }: GuestStoreDetailViewProps) {
   const store = await fetchStoreDetail(storeId);
+  const mapImage = roomMapImages[store.room];
 
   return (
     <div>
-      <PreviewImage
+      <AspectRatioImage
         ratio={STORE_IMAGE_ASPECT}
-        imagePath={store.imageUrl}
+        src={store.imageUrl}
         className="md:w-77"
         alt="店舗のバナー画像"
       />
@@ -33,6 +37,12 @@ export async function GuestStoreDetailView({
             ))}
           </div>
         </div>
+
+        <MenuList storeId={storeId} />
+
+        <section className="space-y-8 px-6 pt-8 pb-16">
+          <HeadingCard className="px-14 py-2">マップ</HeadingCard>
+        </section>
       </section>
     </div>
   );

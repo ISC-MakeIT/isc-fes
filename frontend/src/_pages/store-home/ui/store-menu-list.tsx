@@ -2,7 +2,7 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { storeMenusQueryOptions } from "@/entities/menu";
-import { formatYen } from "../lib/formatYen";
+import { formatYen } from "@/shared/lib/formatYen";
 import { Card } from "@/shared/ui/card";
 import { Menu } from "@/entities/menu";
 import { HeadingCard } from "@/shared/ui/heading-card";
