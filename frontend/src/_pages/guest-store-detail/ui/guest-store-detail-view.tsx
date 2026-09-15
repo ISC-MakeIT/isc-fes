@@ -1,7 +1,6 @@
 import { storeDetailQueryOptions } from "@/entities/store";
 import { STORE_IMAGE_ASPECT } from "@/shared/config";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
-import { Card } from "@/shared/ui/card";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { MenuList } from "./menu-list";
 import { roomMapImages } from "../model/room-map-images";
@@ -9,6 +8,7 @@ import Image from "next/image";
 import { createQueryClient } from "@/shared/api";
 import { storeMenusQueryOptions } from "@/entities/menu";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { Badge } from "@/shared/ui/badge";
 
 type GuestStoreDetailViewProps = {
   storeId: string;
@@ -43,7 +43,7 @@ export async function GuestStoreDetailView({
             <p>アレルギー対象8品目</p>
             <div className="flex flex-row flex-wrap justify-center gap-2">
               {store.allergens.map((allergen) => (
-                <AllergenCard allergenName={allergen.name} key={allergen.id} />
+                <AllergenBadge allergenName={allergen.name} key={allergen.id} />
               ))}
             </div>
           </div>
@@ -68,14 +68,17 @@ export async function GuestStoreDetailView({
   );
 }
 
-type AllergenCardProps = {
+type AllergenBadgeProps = {
   allergenName: string;
 };
 
-function AllergenCard({ allergenName }: AllergenCardProps) {
+function AllergenBadge({ allergenName }: AllergenBadgeProps) {
   return (
-    <Card className="border-allergen-card rounded-sm border px-4 py-2 text-sm">
+    <Badge
+      variant="outline"
+      className="border-allergen-card h-auto rounded-sm px-4 py-2 text-sm"
+    >
       {allergenName}
-    </Card>
+    </Badge>
   );
 }
