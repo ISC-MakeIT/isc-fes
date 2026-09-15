@@ -1,11 +1,11 @@
 import { Menu } from "@/entities/menu";
-import { createPublicApiClient } from "@/shared/api";
+import { createApiClient } from "@/shared/api";
 import { getStatusMessage, storeMenusKey } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { queryOptions } from "@tanstack/react-query";
 
 export async function fetchStoreMenus(storeId: string): Promise<Menu[]> {
-  const client = createPublicApiClient();
+  const client = await createApiClient();
   const { data, error, response } = await client.GET(
     "/stores/{store_id}/menus",
     {
