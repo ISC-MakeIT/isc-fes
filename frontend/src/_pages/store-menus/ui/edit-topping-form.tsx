@@ -16,6 +16,7 @@ import { v } from "@/shared/lib/valibot";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { ToppingFormFields } from "./topping-form-fields";
 import { ActionButton } from "@/shared/ui/action-button";
+import { Topping } from "@/entities/topping";
 
 type EditToppingFormProps = {
   toppingId: string;
@@ -23,11 +24,29 @@ type EditToppingFormProps = {
 
 export function EditToppingForm({ toppingId }: EditToppingFormProps) {
   const storeId = useStoreId();
-  const { setMenuEditor } = useMenuEditor();
 
   const { data: toppings } = useSuspenseQuery(
     storeToppingsQueryOptions(storeId),
   );
+  const topping = toppings.find((i) => i.id === toppingId);
+  if (!topping) {
+    throw new Error("カスタマイズは削除されたか利用できなくなりました。");
+  }
+
+  // 条件つきフックを回避するために別コンポーネントに分けている
+  return <EditToppingFormContent storeId={storeId} topping={topping} />;
+}
+
+type EditToppingFormContentProps = {
+  storeId: string;
+  topping: Topping;
+};
+
+function EditToppingFormContent({
+  storeId,
+  topping,
+}: EditToppingFormContentProps) {
+  const { setMenuEditor } = useMenuEditor();
 
   const queryClient = useQueryClient();
   const mutation = useMutation({
@@ -37,11 +56,6 @@ export function EditToppingForm({ toppingId }: EditToppingFormProps) {
       setMenuEditor([EditorType.Closed]);
     },
   });
-
-  const topping = toppings.find((i) => i.id === toppingId);
-  if (!topping) {
-    throw new Error("カスタマイズは削除されたか利用できなくなりました。");
-  }
 
   const initialValues: ToppingFormValues = {
     name: topping.name,
