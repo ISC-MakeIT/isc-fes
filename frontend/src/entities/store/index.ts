@@ -16,3 +16,8 @@ export {
   activeRoomsQueryOptions,
   fetchActiveRooms,
 } from "./api/fetch-active-rooms";
+
+export {
+  fetchStoreDetail,
+  storeDetailQueryOptions,
+} from "./api/fetch-store-detail";

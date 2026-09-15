@@ -1,7 +1,7 @@
 "use client";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { storeDetailQueryOptions } from "../api/fetch-store-detail";
+import { storeDetailQueryOptions } from "@/entities/store";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { STORE_IMAGE_ASPECT } from "@/shared/config";
 
