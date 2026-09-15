@@ -71,7 +71,7 @@ function EditToppingFormContent({
 
       const editToppingInput = v.parse(EditToppingInput, {
         ...value,
-        // API側は必須で要求しているので今の状態をそのまま詰めて渡す
+        // NOTE: 今はAPI側は必須で要求しているので、今の状態をそのまま詰めて渡している
         soldOut: topping.soldOut,
       });
       await mutation.mutateAsync({
