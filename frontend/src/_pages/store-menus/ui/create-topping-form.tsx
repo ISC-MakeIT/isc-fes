@@ -22,10 +22,6 @@ export function CreateToppingForm() {
 
   const form = useAppForm({
     ...toppingFormOptions,
-    validators: {
-      ...toppingFormOptions.validators,
-      onSubmit: CreateToppingInput,
-    },
 
     onSubmit: async ({ value }) => {
       const createToppingInput = v.parse(CreateToppingInput, value);
