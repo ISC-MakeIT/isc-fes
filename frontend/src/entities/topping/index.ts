@@ -1,1 +1,6 @@
-export { Topping, ToppingName, ToppingUnitPrice } from "./model/types";
+export {
+  Topping,
+  ToppingName,
+  ToppingUnitPrice,
+  ToppingSoldOut,
+} from "./model/types";

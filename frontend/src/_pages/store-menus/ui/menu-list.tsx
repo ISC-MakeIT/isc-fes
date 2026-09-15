@@ -73,7 +73,7 @@ function MenuCard({ menu }: MenuCard) {
         className="w-12.5"
       />
       <span className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-3">
-        <span className="truncate">{menu.name}</span>
+        <span className="truncate text-left">{menu.name}</span>
         <span>￥{menu.unitPrice}</span>
       </span>
     </Button>
