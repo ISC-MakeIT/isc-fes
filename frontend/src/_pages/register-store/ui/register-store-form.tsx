@@ -219,7 +219,7 @@ export function RegisterStoreForm() {
           <ActionButton
             type="submit"
             disabled={!canSubmit || isPristine || isSubmitting}
-            className="px-14 py-4 text-lg"
+            className="rounded-lg px-14 py-4 text-lg"
           >
             {isSubmitting ? "送信中" : "この内容で申請する"}
           </ActionButton>

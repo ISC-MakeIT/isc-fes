@@ -11,7 +11,7 @@ export async function RegisterStoreView() {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <CenterLayout className="text-center">
-        <HeadingCard>店舗登録</HeadingCard>
+        <HeadingCard className="px-8 py-4">店舗登録</HeadingCard>
         <p className="text-sm">
           この情報は、モバイルオーダーの画面にも使用されます
         </p>
