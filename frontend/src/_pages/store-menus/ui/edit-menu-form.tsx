@@ -106,31 +106,34 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
           </p>
         )}
 
-        <form.Subscribe selector={(state) => [state.isDefaultValue]}>
-          {([isDefaultValue]) => (
-            <ActionButton
-              disabled={editMenuMutation.isPending || isDefaultValue}
-              type="submit"
-              className="px-14 py-4 text-xl"
-            >
-              保存する
-            </ActionButton>
-          )}
-        </form.Subscribe>
+        <div className="flex flex-col items-center gap-8">
+          <form.Subscribe selector={(state) => [state.isDefaultValue]}>
+            {([isDefaultValue]) => (
+              <ActionButton
+                disabled={editMenuMutation.isPending || isDefaultValue}
+                type="submit"
+                className="px-14 py-4 text-xl"
+              >
+                保存する
+              </ActionButton>
+            )}
+          </form.Subscribe>
 
-        <DeleteItemButton
-          dialogContent={
-            <>
-              上記のメニューを<span className="text-notice">削除</span>
-              しますか？
-            </>
-          }
-          buttonLabel="メニューを削除"
-          deleteFunction={() =>
-            deleteMenuMutation.mutate({ menuId: menu.id, storeId })
-          }
-          itemName={menu.name}
-        />
+          <DeleteItemButton
+            dialogContent={
+              <>
+                上記のメニューを<span className="text-notice">削除</span>
+                しますか？
+              </>
+            }
+            errroMessage={deleteMenuMutation.error?.message}
+            buttonLabel="メニューを削除"
+            deleteFunction={() =>
+              deleteMenuMutation.mutate({ menuId: menu.id, storeId })
+            }
+            itemName={menu.name}
+          />
+        </div>
       </form>
     </div>
   );

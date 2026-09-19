@@ -17,6 +17,8 @@ import { HeadingCard } from "@/shared/ui/heading-card";
 import { ToppingFormFields } from "./topping-form-fields";
 import { ActionButton } from "@/shared/ui/action-button";
 import { Topping } from "@/entities/topping";
+import { DeleteItemButton } from "./delete-item-button";
+import { deleteTopping } from "../api/delete-topping";
 
 type EditToppingFormProps = {
   toppingId: string;
@@ -49,8 +51,16 @@ function EditToppingFormContent({
   const { setMenuEditor } = useMenuEditor();
 
   const queryClient = useQueryClient();
-  const mutation = useMutation({
+  const editToppingMutation = useMutation({
     mutationFn: editTopping,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: storeToppingsKey(storeId) });
+      setMenuEditor([EditorType.Closed]);
+    },
+  });
+
+  const deleteToppingMutation = useMutation({
+    mutationFn: deleteTopping,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: storeToppingsKey(storeId) });
       setMenuEditor([EditorType.Closed]);
@@ -74,7 +84,7 @@ function EditToppingFormContent({
         // NOTE: 今はAPI側は必須で要求しているので、今の状態をそのまま詰めて渡している
         soldOut: topping.soldOut,
       });
-      await mutation.mutateAsync({
+      await editToppingMutation.mutateAsync({
         storeId,
         toppingId: topping.id,
         editToppingInput,
@@ -96,23 +106,39 @@ function EditToppingFormContent({
       >
         <ToppingFormFields form={form} />
 
-        {mutation.error && (
+        {editToppingMutation.error && (
           <p role="alert" className="text-notice">
-            {mutation.error.message}
+            {editToppingMutation.error.message}
           </p>
         )}
 
-        <form.Subscribe selector={(state) => [state.isDefaultValue]}>
-          {([isDefaultValue]) => (
-            <ActionButton
-              disabled={mutation.isPending || isDefaultValue}
-              type="submit"
-              className="px-14 py-4 text-xl"
-            >
-              保存する
-            </ActionButton>
-          )}
-        </form.Subscribe>
+        <div className="flex flex-col items-center gap-8">
+          <form.Subscribe selector={(state) => [state.isDefaultValue]}>
+            {([isDefaultValue]) => (
+              <ActionButton
+                disabled={editToppingMutation.isPending || isDefaultValue}
+                type="submit"
+                className="px-14 py-4 text-xl"
+              >
+                保存する
+              </ActionButton>
+            )}
+          </form.Subscribe>
+          <DeleteItemButton
+            dialogContent={
+              <>
+                上記のカスタマイズを<span className="text-notice">削除</span>
+                しますか？
+              </>
+            }
+            buttonLabel="カスタマイズを削除"
+            errroMessage={deleteToppingMutation.error?.message}
+            deleteFunction={() =>
+              deleteToppingMutation.mutate({ toppingId: topping.id, storeId })
+            }
+            itemName={topping.name}
+          />
+        </div>
       </form>
     </div>
   );
