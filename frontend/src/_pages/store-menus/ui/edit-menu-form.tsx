@@ -127,7 +127,7 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
                 しますか？
               </>
             }
-            errroMessage={deleteMenuMutation.error?.message}
+            errorMessage={deleteMenuMutation.error?.message}
             buttonLabel="メニューを削除"
             deleteFunction={() =>
               deleteMenuMutation.mutate({ menuId: menu.id, storeId })

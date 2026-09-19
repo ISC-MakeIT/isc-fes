@@ -133,7 +133,7 @@ function EditToppingFormContent({
               </>
             }
             buttonLabel="カスタマイズを削除"
-            errroMessage={deleteToppingMutation.error?.message}
+            errorMessage={deleteToppingMutation.error?.message}
             deleteFunction={() =>
               deleteToppingMutation.mutate({ toppingId: topping.id, storeId })
             }

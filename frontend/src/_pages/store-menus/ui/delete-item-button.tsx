@@ -8,7 +8,7 @@ type DeleteItemButtonProps = {
   itemName: string;
   dialogContent: ReactNode;
   buttonLabel: string;
-  errroMessage?: string;
+  errorMessage?: string;
   disabled?: boolean;
 };
 
@@ -17,7 +17,7 @@ export function DeleteItemButton({
   itemName,
   buttonLabel,
   dialogContent,
-  errroMessage,
+  errorMessage,
   disabled,
 }: DeleteItemButtonProps) {
   return (
@@ -38,7 +38,7 @@ export function DeleteItemButton({
           <p>{dialogContent}</p>
         </div>
 
-        {errroMessage && <p className="text-notice text-sm">{errroMessage}</p>}
+        {errorMessage && <p className="text-notice text-sm">{errorMessage}</p>}
 
         <ActionButton
           disabled={disabled}
