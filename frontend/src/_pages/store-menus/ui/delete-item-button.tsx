@@ -38,7 +38,11 @@ export function DeleteItemButton({
           <p>{dialogContent}</p>
         </div>
 
-        {errorMessage && <p className="text-notice text-sm">{errorMessage}</p>}
+        {errorMessage && (
+          <p className="text-notice text-sm" role="alert">
+            {errorMessage}
+          </p>
+        )}
 
         <ActionButton
           disabled={disabled}
