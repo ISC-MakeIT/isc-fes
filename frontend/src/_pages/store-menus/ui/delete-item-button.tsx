@@ -1,6 +1,12 @@
 import { ActionButton } from "@/shared/ui/action-button";
 import { Button } from "@/shared/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/shared/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shared/ui/dialog";
 import { ReactNode } from "react";
 
 type DeleteItemButtonProps = {
@@ -33,9 +39,11 @@ export function DeleteItemButton({
         }
       />
       <DialogContent className="shadow-dialog-primary flex flex-col items-center gap-6 px-8 pt-18 pb-8">
-        <div className="space-y-4 text-center text-xl font-medium">
-          <p>{itemName}</p>
-          <p>{dialogContent}</p>
+        <div className="space-y-4 text-center">
+          <DialogTitle className="text-xl font-medium">{itemName}</DialogTitle>
+          <DialogDescription className="text-xl font-medium">
+            {dialogContent}
+          </DialogDescription>
         </div>
 
         {errorMessage && (
