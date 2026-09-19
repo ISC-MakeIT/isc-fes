@@ -125,6 +125,7 @@ function EditToppingFormContent({
             )}
           </form.Subscribe>
           <DeleteItemButton
+            disabled={deleteToppingMutation.isPending}
             dialogContent={
               <>
                 上記のカスタマイズを<span className="text-notice">削除</span>

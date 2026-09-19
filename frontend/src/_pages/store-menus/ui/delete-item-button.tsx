@@ -9,6 +9,7 @@ type DeleteItemButtonProps = {
   dialogContent: ReactNode;
   buttonLabel: string;
   errroMessage?: string;
+  disabled?: boolean;
 };
 
 export function DeleteItemButton({
@@ -17,6 +18,7 @@ export function DeleteItemButton({
   buttonLabel,
   dialogContent,
   errroMessage,
+  disabled,
 }: DeleteItemButtonProps) {
   return (
     <Dialog>
@@ -39,6 +41,7 @@ export function DeleteItemButton({
         {errroMessage && <p className="text-notice text-sm">{errroMessage}</p>}
 
         <ActionButton
+          disabled={disabled}
           variant="destructive"
           onClick={deleteFunction}
           className="rounded-xl px-14 py-4 shadow-none"

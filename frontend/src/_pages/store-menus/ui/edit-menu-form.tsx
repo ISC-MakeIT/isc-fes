@@ -120,6 +120,7 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
           </form.Subscribe>
 
           <DeleteItemButton
+            disabled={deleteMenuMutation.isPending}
             dialogContent={
               <>
                 上記のメニューを<span className="text-notice">削除</span>
