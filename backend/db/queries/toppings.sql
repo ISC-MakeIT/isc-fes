@@ -5,6 +5,13 @@ WHERE store_id = $1
   AND deleted_at IS NULL
 ORDER BY created_at DESC;
 
+-- name: GetToppingByToppingIDAndStoreID :one
+SELECT *
+FROM toppings
+WHERE id = $1
+  AND store_id = $2
+  AND deleted_at IS NULL;
+
 -- name: CreateTopping :one
 INSERT INTO toppings (
     store_id,
@@ -25,9 +32,9 @@ WHERE id = $1
 -- name: UpdateToppingByToppingIDAndStoreID :one
 UPDATE toppings
 SET
-  name = sqlc.arg(name),
-  unit_price = sqlc.arg(unit_price), 
-  sold_out = sqlc.arg(sold_out),
+  name = COALESCE(sqlc.narg(name), name),
+  unit_price = COALESCE(sqlc.narg(unit_price), unit_price),
+  sold_out = COALESCE(sqlc.narg(sold_out), sold_out),
   updated_at = NOW()
 WHERE id = sqlc.arg(topping_id)
   AND store_id = sqlc.arg(store_id)

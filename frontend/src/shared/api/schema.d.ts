@@ -237,14 +237,14 @@ export interface paths {
       cookie?: never;
     };
     get?: never;
-    /** 店舗のトッピングを更新する */
-    put: operations["updateToppingByStoreIDAndToppingID"];
+    put?: never;
     post?: never;
     /** 店舗のトッピングを削除する（紐づけられているメニューのトッピングも削除される） */
     delete: operations["deleteToppingByStoreIDAndToppingID"];
     options?: never;
     head?: never;
-    patch?: never;
+    /** 店舗のトッピングを更新する */
+    patch: operations["updateToppingByStoreIDAndToppingID"];
     trace?: never;
   };
   "/stores/{store_id}/invitations": {
@@ -566,13 +566,13 @@ export interface components {
     };
     UpdateToppingInput: {
       /** @example チーズ */
-      name: string;
+      name?: string;
       /**
        * Format: int32
        * @example 100
        */
-      unitPrice: number;
-      soldOut: boolean;
+      unitPrice?: number;
+      soldOut?: boolean;
     };
     CreateMenuInput: {
       /** @example たこ焼き */
@@ -1647,6 +1647,72 @@ export interface operations {
       };
     };
   };
+  deleteToppingByStoreIDAndToppingID: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+        topping_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 店舗のトッピングを削除した */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 権限不足（店舗のメンバーでない、または店舗マネージャーでない） */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない（未承認の店舗はトッピングを削除できない）、またはトッピングが存在しない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
   updateToppingByStoreIDAndToppingID: {
     parameters: {
       query?: never;
@@ -1700,72 +1766,6 @@ export interface operations {
         };
       };
       /** @description 店舗が存在しない（未承認の店舗はトッピングを更新できない）、またはトッピングが存在しない */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description サーバーエラー */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  deleteToppingByStoreIDAndToppingID: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        store_id: string;
-        topping_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description 店舗のトッピングを削除した */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description リクエスト形式が不正 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 未ログイン */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 権限不足（店舗のメンバーでない、または店舗マネージャーでない） */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description 店舗が存在しない（未承認の店舗はトッピングを削除できない）、またはトッピングが存在しない */
       404: {
         headers: {
           [name: string]: unknown;

@@ -65,6 +65,35 @@ func (q *Queries) DeleteTopping(ctx context.Context, arg DeleteToppingParams) (i
 	return result.RowsAffected(), nil
 }
 
+const getToppingByToppingIDAndStoreID = `-- name: GetToppingByToppingIDAndStoreID :one
+SELECT id, store_id, name, unit_price, sold_out, deleted_at, updated_at, created_at
+FROM toppings
+WHERE id = $1
+  AND store_id = $2
+  AND deleted_at IS NULL
+`
+
+type GetToppingByToppingIDAndStoreIDParams struct {
+	ID      uuid.UUID `json:"id"`
+	StoreID uuid.UUID `json:"store_id"`
+}
+
+func (q *Queries) GetToppingByToppingIDAndStoreID(ctx context.Context, arg GetToppingByToppingIDAndStoreIDParams) (Topping, error) {
+	row := q.db.QueryRow(ctx, getToppingByToppingIDAndStoreID, arg.ID, arg.StoreID)
+	var i Topping
+	err := row.Scan(
+		&i.ID,
+		&i.StoreID,
+		&i.Name,
+		&i.UnitPrice,
+		&i.SoldOut,
+		&i.DeletedAt,
+		&i.UpdatedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getToppingsByStoreID = `-- name: GetToppingsByStoreID :many
 SELECT id, store_id, name, unit_price, sold_out, deleted_at, updated_at, created_at
 FROM toppings
@@ -105,9 +134,9 @@ func (q *Queries) GetToppingsByStoreID(ctx context.Context, storeID uuid.UUID) (
 const updateToppingByToppingIDAndStoreID = `-- name: UpdateToppingByToppingIDAndStoreID :one
 UPDATE toppings
 SET
-  name = $1,
-  unit_price = $2, 
-  sold_out = $3,
+  name = COALESCE($1, name),
+  unit_price = COALESCE($2, unit_price),
+  sold_out = COALESCE($3, sold_out),
   updated_at = NOW()
 WHERE id = $4
   AND store_id = $5
@@ -116,9 +145,9 @@ RETURNING id, store_id, name, unit_price, sold_out, deleted_at, updated_at, crea
 `
 
 type UpdateToppingByToppingIDAndStoreIDParams struct {
-	Name      string    `json:"name"`
-	UnitPrice int32     `json:"unit_price"`
-	SoldOut   bool      `json:"sold_out"`
+	Name      *string   `json:"name"`
+	UnitPrice *int32    `json:"unit_price"`
+	SoldOut   *bool     `json:"sold_out"`
 	ToppingID uuid.UUID `json:"topping_id"`
 	StoreID   uuid.UUID `json:"store_id"`
 }
