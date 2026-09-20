@@ -61,6 +61,7 @@
   --color-switch-track-unchecked: var(--foreground);
   --color-switch-thumb: var(--secondary);
   --shadow-editor-header: 0 2px 4px var(--editor-header);
+  --shadow-button-destructive: 4px 4px 0 var(--pink-strong);
 }
 
 :root {
@@ -115,6 +116,7 @@
   --orange: #e2851b;
 
   --pink: #ea6082;
+  --pink-strong: #a75267;
 
   --sky-blue: #c0e4ff;
 }

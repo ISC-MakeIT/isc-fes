@@ -16,6 +16,8 @@ import { ActionButton } from "@/shared/ui/action-button";
 import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { useAppForm } from "@/shared/lib/form-hook";
 import { menuFormOptions, MenuFormValues } from "../model/menu-form";
+import { deleteMenu } from "../api/delete-menu";
+import { DeleteItemButton } from "./delete-item-button";
 
 type EditMenuFormProps = {
   menuId: string;
@@ -42,8 +44,16 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
   const { setMenuEditor } = useMenuEditor();
 
   const queryClient = useQueryClient();
-  const mutation = useMutation({
+  const editMenuMutation = useMutation({
     mutationFn: editMenu,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) });
+      setMenuEditor([EditorType.Closed]);
+    },
+  });
+
+  const deleteMenuMutation = useMutation({
+    mutationFn: deleteMenu,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) });
       setMenuEditor([EditorType.Closed]);
@@ -68,7 +78,11 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
       if (formApi.state.isDefaultValue) return;
 
       const editMenuInput = v.parse(EditMenuInput, value);
-      await mutation.mutateAsync({ storeId, menuId: menu.id, editMenuInput });
+      await editMenuMutation.mutateAsync({
+        storeId,
+        menuId: menu.id,
+        editMenuInput,
+      });
     },
   });
 
@@ -86,23 +100,41 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
       >
         <MenuFormFields form={form} initialImageUrl={menu.imageUrl} />
 
-        {mutation.error && (
+        {editMenuMutation.error && (
           <p role="alert" className="text-notice">
-            {mutation.error.message}
+            {editMenuMutation.error.message}
           </p>
         )}
 
-        <form.Subscribe selector={(state) => [state.isDefaultValue]}>
-          {([isDefaultValue]) => (
-            <ActionButton
-              disabled={mutation.isPending || isDefaultValue}
-              type="submit"
-              className="px-14 py-4 text-xl"
-            >
-              保存する
-            </ActionButton>
-          )}
-        </form.Subscribe>
+        <div className="flex flex-col items-center gap-8">
+          <form.Subscribe selector={(state) => [state.isDefaultValue]}>
+            {([isDefaultValue]) => (
+              <ActionButton
+                disabled={editMenuMutation.isPending || isDefaultValue}
+                type="submit"
+                className="px-14 py-4 text-xl"
+              >
+                保存する
+              </ActionButton>
+            )}
+          </form.Subscribe>
+
+          <DeleteItemButton
+            disabled={deleteMenuMutation.isPending}
+            dialogContent={
+              <>
+                上記のメニューを<span className="text-notice">削除</span>
+                しますか？
+              </>
+            }
+            errorMessage={deleteMenuMutation.error?.message}
+            buttonLabel="メニューを削除"
+            deleteFunction={() =>
+              deleteMenuMutation.mutate({ menuId: menu.id, storeId })
+            }
+            itemName={menu.name}
+          />
+        </div>
       </form>
     </div>
   );
