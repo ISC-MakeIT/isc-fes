@@ -1,9 +1,10 @@
 import { createApiClient } from "@/shared/api";
-import { getStatusMessage } from "@/shared/config";
+import { allergensKey, getStatusMessage } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { Allergen } from "../model/types";
+import { queryOptions } from "@tanstack/react-query";
 
-export async function fetchAllergens() {
+async function fetchAllergens() {
   const client = await createApiClient();
   const { data, error, response } = await client.GET("/allergens");
 
@@ -12,4 +13,11 @@ export async function fetchAllergens() {
   }
 
   return v.parse(Allergen, data.data);
+}
+
+export async function allergenQueryOptions() {
+  return queryOptions({
+    queryFn: fetchAllergens,
+    queryKey: allergensKey(),
+  });
 }
