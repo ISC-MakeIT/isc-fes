@@ -11,13 +11,14 @@ export const ToppingUnitPrice = v.pipe(
   v.minValue(0, "0円以上で入力してください"),
   v.maxValue(10000, "10,000円以下で入力してください"),
 );
+export const ToppingSoldOut = v.boolean();
 
 export const Topping = v.object({
   id: v.string(),
   storeId: v.string(),
   name: ToppingName,
   unitPrice: ToppingUnitPrice,
-  soldOut: v.boolean(),
+  soldOut: ToppingSoldOut,
   createdAt: v.pipe(v.string(), v.toDate()),
   updatedAt: v.pipe(v.string(), v.toDate()),
 });

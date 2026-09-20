@@ -23,6 +23,7 @@ const defaultMenuFormValues: MenuFormValues = {
 export const menuFormOptions = formOptions({
   defaultValues: defaultMenuFormValues,
   validators: {
+    onChange: MenuFormValues,
     onMount: MenuFormValues,
   },
 });
