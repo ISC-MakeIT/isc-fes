@@ -4,7 +4,7 @@ type PickChangedFieldsParams<T extends Record<string, unknown>> = {
 };
 
 /**
- * フォームの値と前回の値を比較し、未変更のフィールドはundefinedにする純粋関数
+ * フォームの値と前回の値を比較し、変更されたフィールドだけを返す純粋関数
  * @param initialValues
  * @param currentValues
  * @returns
