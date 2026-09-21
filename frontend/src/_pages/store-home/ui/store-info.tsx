@@ -31,7 +31,7 @@ export function StoreInfo({ storeId }: StoreInfoProps) {
               {store.allergens.map((allergen) => (
                 <AllergenBadge
                   key={allergen.id}
-                  className="w-19 px-0 text-sm"
+                  className="w-19 text-sm"
                   allergen={allergen}
                 />
               ))}
