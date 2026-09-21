@@ -8,13 +8,14 @@ import (
 )
 
 type UpdateToppingRepositoryInput struct {
-	Name      string
-	UnitPrice int32
-	SoldOut   bool
+	Name      *string
+	UnitPrice *int32
+	SoldOut   *bool
 }
 
 type ToppingsRepository interface {
 	GetToppingsByStoreID(c context.Context, storeID uuid.UUID) ([]toppings.Topping, error)
+	GetToppingByToppingIDAndStoreID(c context.Context, toppingID, storeID uuid.UUID) (toppings.Topping, error)
 	CreateTopping(c context.Context, storeID uuid.UUID, name string, unitPrice int32) (toppings.Topping, error)
 	UpdateToppingByToppingIDAndStoreID(c context.Context, toppingID, storeID uuid.UUID, input UpdateToppingRepositoryInput) (toppings.Topping, error)
 	// 指定されたトッピングを削除する（論理削除）

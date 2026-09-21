@@ -79,11 +79,7 @@ function EditToppingFormContent({
     onSubmit: async ({ value, formApi }) => {
       if (formApi.state.isDefaultValue) return;
 
-      const editToppingInput = v.parse(EditToppingInput, {
-        ...value,
-        // NOTE: 今はAPI側は必須で要求しているので、今の状態をそのまま詰めて渡している
-        soldOut: topping.soldOut,
-      });
+      const editToppingInput = v.parse(EditToppingInput, value);
       await editToppingMutation.mutateAsync({
         storeId,
         toppingId: topping.id,

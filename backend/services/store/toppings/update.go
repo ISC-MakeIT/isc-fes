@@ -11,9 +11,9 @@ import (
 )
 
 type UpdateToppingInput struct {
-	Name      string
-	UnitPrice int32
-	SoldOut   bool
+	Name      *string
+	UnitPrice *int32
+	SoldOut   *bool
 }
 
 func (s *ToppingsService) UpdateToppingByStoreIDAndToppingID(c context.Context, storeID, toppingID uuid.UUID, input UpdateToppingInput) (toppings.Topping, error) {
@@ -40,6 +40,13 @@ func (s *ToppingsService) UpdateToppingByStoreIDAndToppingID(c context.Context, 
 	if !membership.IsMenuManagementAllowed() {
 		return toppings.Topping{}, services.ErrForbidden
 	}
+	if input.IsAllNil() {
+		topping, err := s.toppingsRepository.GetToppingByToppingIDAndStoreID(c, toppingID, storeID)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return toppings.Topping{}, services.ErrNotFound
+		}
+		return topping, err
+	}
 
 	topping, err := s.toppingsRepository.UpdateToppingByToppingIDAndStoreID(c, toppingID, storeID, UpdateToppingRepositoryInput{
 		Name:      input.Name,
@@ -50,4 +57,8 @@ func (s *ToppingsService) UpdateToppingByStoreIDAndToppingID(c context.Context, 
 		return toppings.Topping{}, services.ErrNotFound
 	}
 	return topping, err
+}
+
+func (i UpdateToppingInput) IsAllNil() bool {
+	return i.Name == nil && i.UnitPrice == nil && i.SoldOut == nil
 }

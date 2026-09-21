@@ -1,9 +1,4 @@
-import {
-  Topping,
-  ToppingName,
-  ToppingSoldOut,
-  ToppingUnitPrice,
-} from "@/entities/topping";
+import { Topping, ToppingName, ToppingUnitPrice } from "@/entities/topping";
 import { createApiClient } from "@/shared/api";
 import { getStatusMessage } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
@@ -11,7 +6,6 @@ import { v } from "@/shared/lib/valibot";
 export const EditToppingInput = v.object({
   name: ToppingName,
   unitPrice: ToppingUnitPrice,
-  soldOut: ToppingSoldOut,
 });
 export type EditToppingInput = v.InferOutput<typeof EditToppingInput>;
 
@@ -27,7 +21,7 @@ export async function editTopping({
   toppingId,
 }: EditToppingParams) {
   const apiClient = await createApiClient();
-  const { data, error, response } = await apiClient.PUT(
+  const { data, error, response } = await apiClient.PATCH(
     "/stores/{store_id}/toppings/{topping_id}",
     {
       params: {
