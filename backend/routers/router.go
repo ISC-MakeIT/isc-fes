@@ -73,13 +73,19 @@ func NewRouter(s *Server, corsAllowedOrigins []string) (*gin.Engine, error) {
 	openAPIRoutes.Use(limitRequestBody(maxRequestBodySize))
 	openAPIRoutes.Use(openAPIValidator)
 	openAPIRoutes.Use(resolveRequiredGuestSession(s.guestResolver, handleAuthenticationError))
-	RegisterHandlers(openAPIRoutes, s)
+	RegisterHandlersWithOptions(openAPIRoutes, s, GinServerOptions{
+		ErrorHandler: handleOpenAPIBindingError,
+	})
 
 	// OAuth のログイン・コールバックは OpenAPI の管理対象外なので、
 	// OpenAPI 検証 Middleware を適用しない。
 	RegisterAuthRoutes(router, s)
 
 	return router, nil
+}
+
+func handleOpenAPIBindingError(c *gin.Context, err error, statusCode int) {
+	c.JSON(statusCode, ErrorResponse{Message: err.Error()})
 }
 
 func limitRequestBody(maxBytes int64) gin.HandlerFunc {

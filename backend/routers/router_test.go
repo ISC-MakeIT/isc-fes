@@ -2,6 +2,7 @@ package routers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -226,7 +227,9 @@ func TestGetToppingsByStoreIDAndMenuIDIsPublicAndAcceptsUUIDs(t *testing.T) {
 
 func TestGetToppingsByStoreIDAndMenuIDRejectsInvalidUUID(t *testing.T) {
 	router := gin.New()
-	RegisterHandlers(router, &Server{})
+	RegisterHandlersWithOptions(router, &Server{}, GinServerOptions{
+		ErrorHandler: handleOpenAPIBindingError,
+	})
 
 	request := httptest.NewRequestWithContext(
 		t.Context(),
@@ -245,6 +248,32 @@ func TestGetToppingsByStoreIDAndMenuIDRejectsInvalidUUID(t *testing.T) {
 	}
 	if got := strings.TrimSpace(response.Body.String()); strings.Contains(got, `"msg":`) {
 		t.Errorf("body = %s, must not contain legacy msg field", got)
+	}
+}
+
+func TestHandleOpenAPIBindingErrorUsesMessageField(t *testing.T) {
+	response := httptest.NewRecorder()
+	context, _ := gin.CreateTestContext(response)
+	wantErr := errors.New("invalid path parameter")
+
+	handleOpenAPIBindingError(context, wantErr, http.StatusBadRequest)
+
+	if response.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusBadRequest)
+	}
+
+	var body map[string]string
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+		t.Fatalf("response body is not valid JSON: %v", err)
+	}
+	if got := body["message"]; got != wantErr.Error() {
+		t.Errorf("message = %q, want %q", got, wantErr.Error())
+	}
+	if _, exists := body["msg"]; exists {
+		t.Errorf("legacy msg field exists in response: %s", response.Body.String())
+	}
+	if len(body) != 1 {
+		t.Errorf("response fields = %v, want only message", body)
 	}
 }
 
