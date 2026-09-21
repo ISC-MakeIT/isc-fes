@@ -70,10 +70,6 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
   const form = useAppForm({
     ...menuFormOptions,
     defaultValues: initialValues,
-    validators: {
-      ...menuFormOptions.validators,
-      onSubmit: EditMenuInput,
-    },
     onSubmit: async ({ value, formApi }) => {
       if (formApi.state.isDefaultValue) return;
 

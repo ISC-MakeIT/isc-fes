@@ -10,7 +10,6 @@ export const MenuFormValues = v.object({
   description: MenuDescription,
   // TODO: トッピング
 });
-
 export type MenuFormValues = v.InferOutput<typeof MenuFormValues>;
 
 const defaultMenuFormValues: MenuFormValues = {
@@ -20,10 +19,21 @@ const defaultMenuFormValues: MenuFormValues = {
   description: "",
 };
 
+export const CompleteMenuFormValues = v.object({
+  name: MenuName,
+  image: v.optional(UploadImage),
+  unitPrice: MenuUnitPrice,
+  description: MenuDescription,
+});
+export type CompleteMenuFormValues = v.InferOutput<
+  typeof CompleteMenuFormValues
+>;
+
 export const menuFormOptions = formOptions({
   defaultValues: defaultMenuFormValues,
   validators: {
-    onChange: MenuFormValues,
-    onMount: MenuFormValues,
+    onChange: CompleteMenuFormValues,
+    onMount: CompleteMenuFormValues,
+    onSubmit: CompleteMenuFormValues,
   },
 });
