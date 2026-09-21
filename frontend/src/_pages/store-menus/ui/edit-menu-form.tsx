@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-query";
 import { useStoreId } from "../model/hooks/use-store-id";
 import { Menu, storeMenusQueryOptions } from "@/entities/menu";
-import { editMenu, EditMenuInput } from "../api/edit-menu";
+import { editMenu } from "../api/edit-menu";
 import { v } from "@/shared/lib/valibot";
 import { storeMenusKey } from "@/shared/config";
 import { HeadingCard } from "@/shared/ui/heading-card";
@@ -15,9 +15,14 @@ import { MenuFormFields } from "./menu-form-fields";
 import { ActionButton } from "@/shared/ui/action-button";
 import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { useAppForm } from "@/shared/lib/form-hook";
-import { menuFormOptions, MenuFormValues } from "../model/menu-form";
+import {
+  CompleteMenuFormValues,
+  menuFormOptions,
+  MenuFormValues,
+} from "../model/menu-form";
 import { deleteMenu } from "../api/delete-menu";
 import { DeleteItemButton } from "./delete-item-button";
+import { pickChangedFields } from "../lib/pick-changed-fields";
 
 type EditMenuFormProps = {
   menuId: string;
@@ -73,11 +78,12 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
     onSubmit: async ({ value, formApi }) => {
       if (formApi.state.isDefaultValue) return;
 
-      const editMenuInput = v.parse(EditMenuInput, value);
+      const currentValues = v.parse(CompleteMenuFormValues, value);
+
       await editMenuMutation.mutateAsync({
         storeId,
         menuId: menu.id,
-        editMenuInput,
+        editMenuInput: pickChangedFields({ initialValues, currentValues }),
       });
     },
   });
