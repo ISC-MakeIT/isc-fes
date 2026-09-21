@@ -19,21 +19,26 @@ const defaultMenuFormValues: MenuFormValues = {
   description: "",
 };
 
-export const CompleteMenuFormValues = v.object({
+export const CompleteCreateMenuFormValues = v.object({
   name: MenuName,
   image: v.optional(UploadImage),
   unitPrice: MenuUnitPrice,
   description: MenuDescription,
 });
-export type CompleteMenuFormValues = v.InferOutput<
-  typeof CompleteMenuFormValues
+export type CompleteCreateMenuFormValues = v.InferOutput<
+  typeof CompleteCreateMenuFormValues
+>;
+
+export const CompleteEditMenuFormValues = v.object({
+  name: MenuName,
+  image: v.optional(UploadImage),
+  unitPrice: MenuUnitPrice,
+  description: MenuDescription,
+});
+export type CompleteEditMenuFormValues = v.InferOutput<
+  typeof CompleteEditMenuFormValues
 >;
 
 export const menuFormOptions = formOptions({
   defaultValues: defaultMenuFormValues,
-  validators: {
-    onChange: CompleteMenuFormValues,
-    onMount: CompleteMenuFormValues,
-    onSubmit: CompleteMenuFormValues,
-  },
 });

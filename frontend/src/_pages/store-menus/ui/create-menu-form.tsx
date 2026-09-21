@@ -26,7 +26,8 @@ export function CreateMenuForm() {
     ...menuFormOptions,
 
     validators: {
-      ...menuFormOptions.validators,
+      onChange: CreateMenuInput,
+      onMount: CreateMenuInput,
       onSubmit: CreateMenuInput,
     },
 

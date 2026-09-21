@@ -16,7 +16,7 @@ import { ActionButton } from "@/shared/ui/action-button";
 import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { useAppForm } from "@/shared/lib/form-hook";
 import {
-  CompleteMenuFormValues,
+  CompleteEditMenuFormValues,
   menuFormOptions,
   MenuFormValues,
 } from "../model/menu-form";
@@ -75,11 +75,16 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
 
   const form = useAppForm({
     ...menuFormOptions,
+    validators: {
+      onMount: CompleteEditMenuFormValues,
+      onChange: CompleteEditMenuFormValues,
+      onSubmit: CompleteEditMenuFormValues,
+    },
     defaultValues: initialValues,
     onSubmit: async ({ value, formApi }) => {
       if (formApi.state.isDefaultValue) return;
 
-      const currentValues = v.parse(CompleteMenuFormValues, value);
+      const currentValues = v.parse(CompleteEditMenuFormValues, value);
 
       await editMenuMutation.mutateAsync({
         storeId,
