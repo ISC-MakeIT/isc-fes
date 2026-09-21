@@ -19,6 +19,8 @@ export const MenuUnitPrice = v.pipe(
   v.maxValue(10000, "1万円以内で入力してください"),
 );
 
+export const MenuSoldOut = v.boolean();
+
 export const Menu = v.object({
   id: v.pipe(v.string()),
   storeId: v.pipe(v.string()),
@@ -26,7 +28,7 @@ export const Menu = v.object({
   description: MenuDescription,
   unitPrice: MenuUnitPrice,
   imageUrl: v.pipe(v.string()),
-  soldOut: v.pipe(v.boolean()),
+  soldOut: MenuSoldOut,
   updatedAt: v.pipe(v.string(), v.toDate()),
   createdAt: v.pipe(v.string(), v.toDate()),
 });
