@@ -23,7 +23,7 @@ import {
 import { deleteMenu } from "../api/delete-menu";
 import { DeleteItemButton } from "./delete-item-button";
 import { pickChangedFields } from "../lib/pick-changed-fields";
-import { useState } from "react";
+import { useRef } from "react";
 
 type EditMenuFormProps = {
   menuId: string;
@@ -66,7 +66,7 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
     },
   });
 
-  const [initialValues] = useState<MenuFormValues>({
+  const initialValues = useRef<MenuFormValues>({
     name: menu.name,
     image: undefined,
     unitPrice: menu.unitPrice,
@@ -80,7 +80,7 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
       onChange: CompleteEditMenuFormValues,
       onSubmit: CompleteEditMenuFormValues,
     },
-    defaultValues: initialValues,
+    defaultValues: initialValues.current,
     onSubmit: async ({ value, formApi }) => {
       if (formApi.state.isDefaultValue) return;
 
@@ -89,7 +89,10 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
       await editMenuMutation.mutateAsync({
         storeId,
         menuId: menu.id,
-        editMenuInput: pickChangedFields({ initialValues, currentValues }),
+        editMenuInput: pickChangedFields({
+          initialValues: initialValues.current,
+          currentValues,
+        }),
       });
     },
   });
