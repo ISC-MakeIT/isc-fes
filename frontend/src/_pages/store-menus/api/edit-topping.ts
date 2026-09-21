@@ -3,11 +3,11 @@ import { createApiClient } from "@/shared/api";
 import { getStatusMessage } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 
-export const EditToppingInput = v.object({
+const EditToppingInput = v.object({
   name: v.optional(ToppingName),
   unitPrice: v.optional(ToppingUnitPrice),
 });
-export type EditToppingInput = v.InferOutput<typeof EditToppingInput>;
+type EditToppingInput = v.InferOutput<typeof EditToppingInput>;
 
 type EditToppingParams = {
   storeId: string;
