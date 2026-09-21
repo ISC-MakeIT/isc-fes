@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,22 @@ func (s *Server) GetVisibleStores(c *gin.Context) {
 
 func (s *Server) GetApprovedStoreByID(c *gin.Context, storeID uuid.UUID) {
 	store, err := s.store.GetApprovedStoreByID(c.Request.Context(), storeID)
+	if err != nil {
+		s.handleCommonServiceErrors(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, toStoreResponse(store))
+}
+
+func (s *Server) UpdateStore(c *gin.Context, storeID uuid.UUID) {
+	var input UpdateStoreJSONRequestBody
+	if err := c.ShouldBindJSON(&input); err != nil {
+		s.handleCommonServiceErrors(c, fmt.Errorf("ミドルウェアで検証しているはずのボディのシリアライズに失敗: %w", err))
+		return
+	}
+
+	store, err := s.store.UpdateStore(c.Request.Context(), storeID, input.Closed)
 	if err != nil {
 		s.handleCommonServiceErrors(c, err)
 		return

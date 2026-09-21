@@ -149,6 +149,7 @@ func buildDependencies(
 	roomsService := rooms_service.NewRoomsService(roomsRepository)
 	storeService := services.NewStoreService(
 		storeRepository,
+		storeMemberRepository,
 		allergensRepository,
 		accountSession,
 		imgGenerator,

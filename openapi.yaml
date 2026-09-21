@@ -325,6 +325,61 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateStore
+      summary: 店舗の閉店状態を更新する
+      security:
+        - AccountSession: []
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStoreInput"
+      responses:
+        "200":
+          description: 更新後の店舗情報
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Store"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 未ログイン
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 店舗の管理権限がない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない、または承認済みではない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /stores/{store_id}/members:
     get:
@@ -1557,6 +1612,14 @@ components:
           type: string
           format: date-time
           nullable: true
+    UpdateStoreInput:
+      type: object
+      required:
+        - closed
+      properties:
+        closed:
+          type: boolean
+          description: trueで閉店、falseで営業再開する
     StoreMember:
       type: object
       required:

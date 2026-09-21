@@ -126,3 +126,9 @@ func (m *StoreMembership) IsMenuManagementAllowed() bool {
 func (m *StoreMembership) IsMemberManagementAllowed() bool {
 	return m.Role == StoreMemberRoleManager
 }
+
+// IsStoreManagementAllowed は、店舗メンバーが店舗情報の管理を行えるかどうかを判定する。
+// 店舗メンバーのロールが manager の場合のみ、店舗情報の管理を行える。
+func (m *StoreMembership) IsStoreManagementAllowed() bool {
+	return m.Role == StoreMemberRoleManager
+}

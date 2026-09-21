@@ -119,6 +119,18 @@ func (r *StoreRepository) GetStoreByID(ctx context.Context, storeID uuid.UUID) (
 	return r.toStore(dbStore), nil
 }
 
+func (r *StoreRepository) UpdateStoreClosed(ctx context.Context, storeID uuid.UUID, closed bool) (entities.Store, error) {
+	dbStore, err := r.queries.UpdateStoreClosed(ctx, sqlc.UpdateStoreClosedParams{
+		Closed:  closed,
+		StoreID: storeID,
+	})
+	if err != nil {
+		return entities.Store{}, err
+	}
+
+	return r.toStore(dbStore), nil
+}
+
 func (r *StoreRepository) UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error {
 	return r.queries.UpdateStoreReviewStatusById(ctx, sqlc.UpdateStoreReviewStatusByIdParams{
 		ID:           storeID,

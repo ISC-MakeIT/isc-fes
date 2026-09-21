@@ -5,10 +5,12 @@ import (
 	"errors"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	menuentities "github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
+	"github.com/jackc/pgx/v5"
 )
 
 type stubAllergenRepository struct {
@@ -46,6 +48,45 @@ type recordingStoreRepository struct {
 	StoreRepository
 	createInput CreateStoreApplicationInput
 	createCalls int
+}
+
+type updateStoreRepositoryStub struct {
+	StoreRepository
+	approvedStore entities.Store
+	updatedStore  entities.Store
+	getErr        error
+	updateErr     error
+	getCalls      int
+	updateCalls   int
+	updatedID     uuid.UUID
+	updatedClosed bool
+}
+
+func (r *updateStoreRepositoryStub) GetApprovedStoreByID(_ context.Context, _ uuid.UUID) (entities.Store, error) {
+	r.getCalls++
+	return r.approvedStore, r.getErr
+}
+
+func (r *updateStoreRepositoryStub) UpdateStoreClosed(_ context.Context, storeID uuid.UUID, closed bool) (entities.Store, error) {
+	r.updateCalls++
+	r.updatedID = storeID
+	r.updatedClosed = closed
+	return r.updatedStore, r.updateErr
+}
+
+type storeMembershipRepositoryStub struct {
+	membership entities.StoreMembership
+	err        error
+	calls      int
+	accountID  uuid.UUID
+	storeID    uuid.UUID
+}
+
+func (r *storeMembershipRepositoryStub) GetStoreMembershipByAccountIDAndStoreID(_ context.Context, accountID uuid.UUID, storeID uuid.UUID) (entities.StoreMembership, error) {
+	r.calls++
+	r.accountID = accountID
+	r.storeID = storeID
+	return r.membership, r.err
 }
 
 func (r *recordingStoreRepository) CreateStoreApplication(_ context.Context, input CreateStoreApplicationInput) (entities.Store, error) {
@@ -273,5 +314,185 @@ func TestStoreServiceToStoreOutputsIncludesAllergens(t *testing.T) {
 	}
 	if len(outputs[1].Allergens) != 0 {
 		t.Errorf("allergens length = %d, want 0", len(outputs[1].Allergens))
+	}
+}
+
+func TestUpdateStoreUpdatesClosedState(t *testing.T) {
+	closedAt := time.Now()
+	tests := []struct {
+		name          string
+		closed        bool
+		currentClosed *time.Time
+		updatedClosed *time.Time
+	}{
+		{name: "close store", closed: true, updatedClosed: &closedAt},
+		{name: "reopen store", closed: false, currentClosed: &closedAt},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			accountID := uuid.New()
+			storeID := uuid.New()
+			imageObjectKey := entities.NewStoreImageObjectKey(uuid.New())
+			storeRepository := &updateStoreRepositoryStub{
+				approvedStore: entities.Store{
+					ID:             storeID,
+					ImageObjectKey: imageObjectKey,
+					ReviewStatus:   entities.StoreReviewStatusApproved,
+					ClosedAt:       test.currentClosed,
+				},
+				updatedStore: entities.Store{
+					ID:             storeID,
+					ImageObjectKey: imageObjectKey,
+					ReviewStatus:   entities.StoreReviewStatusApproved,
+					ClosedAt:       test.updatedClosed,
+				},
+			}
+			membershipRepository := &storeMembershipRepositoryStub{
+				membership: entities.StoreMembership{Role: entities.StoreMemberRoleManager},
+			}
+			service := &StoreService{
+				storeRepository:           storeRepository,
+				storeMembershipRepository: membershipRepository,
+				allergenRepository:        &stubAllergenRepository{},
+				imgGenerator:              stubStoreImageURLGenerator{},
+			}
+			ctx := WithAuthenticatedAccount(t.Context(), entities.Account{ID: accountID})
+
+			store, err := service.UpdateStore(ctx, storeID, test.closed)
+			if err != nil {
+				t.Fatalf("UpdateStore() error = %v", err)
+			}
+
+			if storeRepository.updateCalls != 1 {
+				t.Fatalf("UpdateStoreClosed() calls = %d, want 1", storeRepository.updateCalls)
+			}
+			if storeRepository.updatedID != storeID {
+				t.Errorf("updated store ID = %v, want %v", storeRepository.updatedID, storeID)
+			}
+			if storeRepository.updatedClosed != test.closed {
+				t.Errorf("updated closed = %t, want %t", storeRepository.updatedClosed, test.closed)
+			}
+			if !reflect.DeepEqual(store.ClosedAt, test.updatedClosed) {
+				t.Errorf("output closedAt = %v, want %v", store.ClosedAt, test.updatedClosed)
+			}
+			if membershipRepository.accountID != accountID || membershipRepository.storeID != storeID {
+				t.Errorf("membership lookup = (%v, %v), want (%v, %v)", membershipRepository.accountID, membershipRepository.storeID, accountID, storeID)
+			}
+		})
+	}
+}
+
+func TestUpdateStoreDelegatesUnchangedStateToAtomicUpdate(t *testing.T) {
+	closedAt := time.Now()
+	tests := []struct {
+		name     string
+		closed   bool
+		closedAt *time.Time
+	}{
+		{name: "already closed", closed: true, closedAt: &closedAt},
+		{name: "already open", closed: false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			storeID := uuid.New()
+			currentStore := entities.Store{
+				ID:             storeID,
+				ImageObjectKey: entities.NewStoreImageObjectKey(uuid.New()),
+				ReviewStatus:   entities.StoreReviewStatusApproved,
+				ClosedAt:       test.closedAt,
+			}
+			storeRepository := &updateStoreRepositoryStub{
+				approvedStore: currentStore,
+				updatedStore:  currentStore,
+			}
+			service := &StoreService{
+				storeRepository: storeRepository,
+				storeMembershipRepository: &storeMembershipRepositoryStub{
+					membership: entities.StoreMembership{Role: entities.StoreMemberRoleManager},
+				},
+				allergenRepository: &stubAllergenRepository{},
+				imgGenerator:       stubStoreImageURLGenerator{},
+			}
+			ctx := WithAuthenticatedAccount(t.Context(), entities.Account{ID: uuid.New()})
+
+			store, err := service.UpdateStore(ctx, storeID, test.closed)
+			if err != nil {
+				t.Fatalf("UpdateStore() error = %v", err)
+			}
+
+			if storeRepository.updateCalls != 1 {
+				t.Errorf("UpdateStoreClosed() calls = %d, want 1", storeRepository.updateCalls)
+			}
+			if !reflect.DeepEqual(store.ClosedAt, test.closedAt) {
+				t.Errorf("output closedAt = %v, want %v", store.ClosedAt, test.closedAt)
+			}
+		})
+	}
+}
+
+func TestUpdateStoreRejectsUnauthorizedOrInvalidTargets(t *testing.T) {
+	storeLookupErr := errors.New("store lookup failed")
+	membershipLookupErr := errors.New("membership lookup failed")
+	updateErr := errors.New("update failed")
+	tests := []struct {
+		name            string
+		authenticated   bool
+		getErr          error
+		membershipRole  entities.StoreMemberRole
+		membershipErr   error
+		updateErr       error
+		wantErr         error
+		wantGetCalls    int
+		wantMemberCalls int
+		wantUpdateCalls int
+	}{
+		{name: "unauthenticated", wantErr: ErrUnauthenticated},
+		{name: "store missing or unapproved", authenticated: true, getErr: pgx.ErrNoRows, membershipRole: entities.StoreMemberRoleManager, wantErr: ErrNotFound, wantGetCalls: 1},
+		{name: "store lookup failure", authenticated: true, getErr: storeLookupErr, membershipRole: entities.StoreMemberRoleManager, wantErr: storeLookupErr, wantGetCalls: 1},
+		{name: "not a store member", authenticated: true, membershipErr: pgx.ErrNoRows, membershipRole: entities.StoreMemberRoleManager, wantErr: ErrForbidden, wantGetCalls: 1, wantMemberCalls: 1},
+		{name: "membership lookup failure", authenticated: true, membershipErr: membershipLookupErr, membershipRole: entities.StoreMemberRoleManager, wantErr: membershipLookupErr, wantGetCalls: 1, wantMemberCalls: 1},
+		{name: "staff", authenticated: true, membershipRole: entities.StoreMemberRoleStaff, wantErr: ErrForbidden, wantGetCalls: 1, wantMemberCalls: 1},
+		{name: "store disappeared before update", authenticated: true, membershipRole: entities.StoreMemberRoleManager, updateErr: pgx.ErrNoRows, wantErr: ErrNotFound, wantGetCalls: 1, wantMemberCalls: 1, wantUpdateCalls: 1},
+		{name: "update failure", authenticated: true, membershipRole: entities.StoreMemberRoleManager, updateErr: updateErr, wantErr: updateErr, wantGetCalls: 1, wantMemberCalls: 1, wantUpdateCalls: 1},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			accountID := uuid.New()
+			storeID := uuid.New()
+			storeRepository := &updateStoreRepositoryStub{
+				approvedStore: entities.Store{ID: storeID},
+				getErr:        test.getErr,
+				updateErr:     test.updateErr,
+			}
+			membershipRepository := &storeMembershipRepositoryStub{
+				membership: entities.StoreMembership{Role: test.membershipRole},
+				err:        test.membershipErr,
+			}
+			service := &StoreService{
+				storeRepository:           storeRepository,
+				storeMembershipRepository: membershipRepository,
+			}
+			ctx := t.Context()
+			if test.authenticated {
+				ctx = WithAuthenticatedAccount(ctx, entities.Account{ID: accountID})
+			}
+
+			_, err := service.UpdateStore(ctx, storeID, true)
+			if !errors.Is(err, test.wantErr) {
+				t.Fatalf("UpdateStore() error = %v, want %v", err, test.wantErr)
+			}
+			if storeRepository.getCalls != test.wantGetCalls {
+				t.Errorf("GetApprovedStoreByID() calls = %d, want %d", storeRepository.getCalls, test.wantGetCalls)
+			}
+			if membershipRepository.calls != test.wantMemberCalls {
+				t.Errorf("GetStoreMembershipByAccountIDAndStoreID() calls = %d, want %d", membershipRepository.calls, test.wantMemberCalls)
+			}
+			if storeRepository.updateCalls != test.wantUpdateCalls {
+				t.Errorf("UpdateStoreClosed() calls = %d, want %d", storeRepository.updateCalls, test.wantUpdateCalls)
+			}
+		})
 	}
 }

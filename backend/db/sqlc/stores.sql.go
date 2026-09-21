@@ -250,6 +250,47 @@ func (q *Queries) GetVisibleStoresByAccountID(ctx context.Context, accountID uui
 	return items, nil
 }
 
+const updateStoreClosed = `-- name: UpdateStoreClosed :one
+UPDATE stores
+SET
+    closed_at = CASE
+        WHEN $1::boolean THEN COALESCE(closed_at, now())
+        ELSE NULL
+    END,
+    updated_at = CASE
+        WHEN ($1::boolean AND closed_at IS NULL)
+          OR (NOT $1::boolean AND closed_at IS NOT NULL)
+        THEN now()
+        ELSE updated_at
+    END
+WHERE id = $2
+    AND review_status = 'approved'
+RETURNING id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
+`
+
+type UpdateStoreClosedParams struct {
+	Closed  bool      `json:"closed"`
+	StoreID uuid.UUID `json:"store_id"`
+}
+
+func (q *Queries) UpdateStoreClosed(ctx context.Context, arg UpdateStoreClosedParams) (Store, error) {
+	row := q.db.QueryRow(ctx, updateStoreClosed, arg.Closed, arg.StoreID)
+	var i Store
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Room,
+		&i.Description,
+		&i.ImageObjectKey,
+		&i.ReviewStatus,
+		&i.SubmittedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ClosedAt,
+	)
+	return i, err
+}
+
 const updateStoreReviewStatusById = `-- name: UpdateStoreReviewStatusById :exec
 UPDATE stores
 SET

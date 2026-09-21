@@ -414,6 +414,46 @@ func TestOpenAPIRequestValidatorValidatesStoreMemberRole(t *testing.T) {
 	}
 }
 
+func TestOpenAPIRequestValidatorValidatesUpdateStoreInput(t *testing.T) {
+	tests := []struct {
+		name       string
+		body       string
+		wantStatus int
+	}{
+		{name: "close store", body: `{"closed":true}`, wantStatus: http.StatusNoContent},
+		{name: "reopen store", body: `{"closed":false}`, wantStatus: http.StatusNoContent},
+		{name: "closed is required", body: `{}`, wantStatus: http.StatusBadRequest},
+		{name: "closed must be boolean", body: `{"closed":"true"}`, wantStatus: http.StatusBadRequest},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			validator := mustOpenAPIRequestValidator(t, &stubCurrentAccountLoader{
+				account: entities.Account{ID: uuid.New()},
+			})
+			router := gin.New()
+			router.PUT("/stores/:store_id", validator, func(c *gin.Context) {
+				c.Status(http.StatusNoContent)
+			})
+
+			request := httptest.NewRequestWithContext(
+				t.Context(),
+				http.MethodPut,
+				"/stores/00000000-0000-0000-0000-000000000000",
+				strings.NewReader(test.body),
+			)
+			request.Header.Set("Content-Type", "application/json")
+			response := httptest.NewRecorder()
+
+			router.ServeHTTP(response, request)
+
+			if response.Code != test.wantStatus {
+				t.Errorf("status = %d, want %d", response.Code, test.wantStatus)
+			}
+		})
+	}
+}
+
 func TestLimitRequestBodyRejectsOversizedBody(t *testing.T) {
 	router := gin.New()
 	handlerCalled := false

@@ -3,6 +3,7 @@ package routers
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
@@ -11,8 +12,10 @@ import (
 func TestStoreResponsesIncludeAllergens(t *testing.T) {
 	storeID := uuid.New()
 	allergenID := uuid.New()
+	closedAt := time.Now()
 	store := entities.StoreOutput{
-		ID: storeID,
+		ID:       storeID,
+		ClosedAt: &closedAt,
 		Allergens: []entities.Allergen{
 			{ID: allergenID, Name: "卵"},
 		},
@@ -22,6 +25,9 @@ func TestStoreResponsesIncludeAllergens(t *testing.T) {
 	storeResponse := toStoreResponse(store)
 	if !reflect.DeepEqual(storeResponse.Allergens, want) {
 		t.Errorf("Store allergens = %v, want %v", storeResponse.Allergens, want)
+	}
+	if storeResponse.ClosedAt != store.ClosedAt {
+		t.Errorf("Store closedAt = %v, want %v", storeResponse.ClosedAt, store.ClosedAt)
 	}
 
 	applicationResponse := toStoreApplicationResponse(store)
