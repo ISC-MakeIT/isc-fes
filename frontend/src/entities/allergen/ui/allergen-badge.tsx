@@ -18,7 +18,7 @@ export function AllergenBadge({
   ...props
 }: AllergenCardProps) {
   return (
-    <Card className={cn(allergenBadgeVariants, className)} {...props}>
+    <Card className={cn(allergenBadgeVariants(), className)} {...props}>
       {allergen.name}
     </Card>
   );
