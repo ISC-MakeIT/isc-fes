@@ -24,6 +24,7 @@ import { Topping } from "@/entities/topping";
 import { DeleteItemButton } from "./delete-item-button";
 import { deleteTopping } from "../api/delete-topping";
 import { pickChangedFields } from "../lib/pick-changed-fields";
+import { useState } from "react";
 
 type EditToppingFormProps = {
   toppingId: string;
@@ -72,10 +73,10 @@ function EditToppingFormContent({
     },
   });
 
-  const initialValues: ToppingFormValues = {
+  const [initialValues] = useState<ToppingFormValues>({
     name: topping.name,
     unitPrice: topping.unitPrice,
-  };
+  });
 
   const form = useAppForm({
     ...toppingFormOptions,

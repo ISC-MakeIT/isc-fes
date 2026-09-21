@@ -23,6 +23,7 @@ import {
 import { deleteMenu } from "../api/delete-menu";
 import { DeleteItemButton } from "./delete-item-button";
 import { pickChangedFields } from "../lib/pick-changed-fields";
+import { useState } from "react";
 
 type EditMenuFormProps = {
   menuId: string;
@@ -65,12 +66,12 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
     },
   });
 
-  const initialValues: MenuFormValues = {
+  const [initialValues] = useState<MenuFormValues>({
     name: menu.name,
     image: undefined,
     unitPrice: menu.unitPrice,
     description: menu.description,
-  };
+  });
 
   const form = useAppForm({
     ...menuFormOptions,
