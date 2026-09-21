@@ -24,9 +24,9 @@ export function StoreInfo({ storeId }: StoreInfoProps) {
       <div className="flex flex-col space-y-6 py-4">
         <h1 className="text-xl font-bold">{store.name}</h1>
         <p>{store.description}</p>
-        {store.allergens.length !== 0 && (
-          <div className="space-y-2">
-            <p className="font-medium">アレルギー対象8品目</p>
+        <div className="space-y-2">
+          <p className="font-semibold">アレルギー対象8品目</p>
+          {store.allergens.length !== 0 ? (
             <div className="flex flex-row flex-wrap gap-2">
               {store.allergens.map((allergen) => (
                 <AllergenBadge
@@ -36,8 +36,10 @@ export function StoreInfo({ storeId }: StoreInfoProps) {
                 />
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <p>該当なし</p>
+          )}
+        </div>
       </div>
     </div>
   );
