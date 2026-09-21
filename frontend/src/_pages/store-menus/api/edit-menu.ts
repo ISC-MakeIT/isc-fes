@@ -12,11 +12,11 @@ import { UploadImage } from "@/shared/model";
 // API送信時の型
 // TODO: このAPI内ではOpenAPIの自動生成の型を使った方が綺麗かも
 export const EditMenuInput = v.object({
-  name: MenuName,
+  name: v.optional(MenuName),
   // 編集時は画像を選択しなかったら今の画像が維持される
   image: v.optional(UploadImage),
-  unitPrice: MenuUnitPrice,
-  description: MenuDescription,
+  unitPrice: v.optional(MenuUnitPrice),
+  description: v.optional(MenuDescription),
   // TODO: トッピング
 });
 export type EditMenuInput = v.InferOutput<typeof EditMenuInput>;

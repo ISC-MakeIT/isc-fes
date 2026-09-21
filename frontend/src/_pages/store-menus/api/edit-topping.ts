@@ -4,8 +4,8 @@ import { getStatusMessage } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 
 export const EditToppingInput = v.object({
-  name: ToppingName,
-  unitPrice: ToppingUnitPrice,
+  name: v.optional(ToppingName),
+  unitPrice: v.optional(ToppingUnitPrice),
 });
 export type EditToppingInput = v.InferOutput<typeof EditToppingInput>;
 
