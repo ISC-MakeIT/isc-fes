@@ -8,7 +8,7 @@ import Image from "next/image";
 import { createQueryClient } from "@/shared/api";
 import { storeMenusQueryOptions } from "@/entities/menu";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { Badge } from "@/shared/ui/badge";
+import { AllergenBadge } from "@/entities/allergen";
 
 type GuestStoreDetailViewProps = {
   storeId: string;
@@ -40,12 +40,20 @@ export async function GuestStoreDetailView({
           <p className="text-[1.375rem] font-bold">{store.room}</p>
           <p className="text-lg">{store.description}</p>
           <div className="space-y-4">
-            <p>アレルギー対象8品目</p>
-            <div className="flex flex-row flex-wrap justify-center gap-2">
-              {store.allergens.map((allergen) => (
-                <AllergenBadge allergenName={allergen.name} key={allergen.id} />
-              ))}
-            </div>
+            <p className="font-semibold">アレルギー対象8品目</p>
+            {store.allergens.length === 0 ? (
+              <p>該当なし</p>
+            ) : (
+              <div className="flex flex-row flex-wrap justify-center gap-2">
+                {store.allergens.map((allergen) => (
+                  <AllergenBadge
+                    key={allergen.id}
+                    allergen={allergen}
+                    className="w-19"
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -63,20 +71,5 @@ export async function GuestStoreDetailView({
         </section>
       </div>
     </HydrationBoundary>
-  );
-}
-
-type AllergenBadgeProps = {
-  allergenName: string;
-};
-
-function AllergenBadge({ allergenName }: AllergenBadgeProps) {
-  return (
-    <Badge
-      variant="outline"
-      className="border-allergen-card h-auto rounded-sm px-4 py-2 text-sm"
-    >
-      {allergenName}
-    </Badge>
   );
 }
