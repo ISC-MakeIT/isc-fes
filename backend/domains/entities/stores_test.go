@@ -85,6 +85,9 @@ func TestStoreMembershipPermissions(t *testing.T) {
 			if got := membership.IsMemberManagementAllowed(); got != test.allowed {
 				t.Errorf("IsMemberManagementAllowed() = %t, want %t", got, test.allowed)
 			}
+			if got := membership.IsStoreManagementAllowed(); got != test.allowed {
+				t.Errorf("IsStoreManagementAllowed() = %t, want %t", got, test.allowed)
+			}
 			if got := CanCreateStoreInvitation(membership); got != test.allowed {
 				t.Errorf("CanCreateStoreInvitation() = %t, want %t", got, test.allowed)
 			}

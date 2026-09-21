@@ -132,7 +132,8 @@ export interface paths {
     };
     /** 承認済みの店舗を取得する */
     get: operations["getApprovedStoreByID"];
-    put?: never;
+    /** 店舗の閉店状態を更新する */
+    put: operations["updateStore"];
     post?: never;
     delete?: never;
     options?: never;
@@ -517,6 +518,10 @@ export interface components {
       allergens: components["schemas"]["Allergen"][];
       /** Format: date-time */
       closedAt: string | null;
+    };
+    UpdateStoreInput: {
+      /** @description trueで閉店、falseで営業再開する */
+      closed: boolean;
     };
     StoreMember: {
       /** Format: uuid */
@@ -1043,6 +1048,77 @@ export interface operations {
       };
       /** @description リクエスト形式が不正 */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない、または承認済みではない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  updateStore: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateStoreInput"];
+      };
+    };
+    responses: {
+      /** @description 更新後の店舗情報 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Store"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗の管理権限がない */
+      403: {
         headers: {
           [name: string]: unknown;
         };

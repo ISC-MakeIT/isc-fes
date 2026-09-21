@@ -17,8 +17,13 @@ type StoreRepository interface {
 	GetApprovedStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error)
 	GetVisibleStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error)
 	GetStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error)
+	UpdateStoreClosed(ctx context.Context, storeID uuid.UUID, closed bool) (entities.Store, error)
 	UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error
 	GetStoreApplications(ctx context.Context) ([]entities.Store, error)
+}
+
+type StoreMembershipRepository interface {
+	GetStoreMembershipByAccountIDAndStoreID(ctx context.Context, accountID uuid.UUID, storeID uuid.UUID) (entities.StoreMembership, error)
 }
 
 type RoomsRepository interface {
@@ -50,26 +55,29 @@ type CreateStoreApplicationServiceInput struct {
 }
 
 type StoreService struct {
-	storeRepository    StoreRepository
-	allergenRepository allergens_service.AllergenRepository
-	imgGenerator       ImageURLGenerator
-	accountSession     CurrentAccountSession
-	roomsRepository    RoomsRepository
+	storeRepository           StoreRepository
+	storeMembershipRepository StoreMembershipRepository
+	allergenRepository        allergens_service.AllergenRepository
+	imgGenerator              ImageURLGenerator
+	accountSession            CurrentAccountSession
+	roomsRepository           RoomsRepository
 }
 
 func NewStoreService(
 	storeRepository StoreRepository,
+	storeMembershipRepository StoreMembershipRepository,
 	allergenRepository allergens_service.AllergenRepository,
 	accountSession CurrentAccountSession,
 	imgGenerator ImageURLGenerator,
 	roomsRepository RoomsRepository,
 ) *StoreService {
 	return &StoreService{
-		storeRepository:    storeRepository,
-		allergenRepository: allergenRepository,
-		imgGenerator:       imgGenerator,
-		accountSession:     accountSession,
-		roomsRepository:    roomsRepository,
+		storeRepository:           storeRepository,
+		storeMembershipRepository: storeMembershipRepository,
+		allergenRepository:        allergenRepository,
+		imgGenerator:              imgGenerator,
+		accountSession:            accountSession,
+		roomsRepository:           roomsRepository,
 	}
 }
 
@@ -222,6 +230,42 @@ func (s *StoreService) GetApprovedStoreByID(ctx context.Context, storeID uuid.UU
 
 	if store.ReviewStatus != entities.StoreReviewStatusApproved {
 		return entities.StoreOutput{}, ErrNotFound
+	}
+
+	return s.toStoreOutput(ctx, store)
+}
+
+func (s *StoreService) UpdateStore(ctx context.Context, storeID uuid.UUID, closed bool) (entities.StoreOutput, error) {
+	account, err := RequireAuthenticatedAccount(ctx)
+	if err != nil {
+		return entities.StoreOutput{}, err
+	}
+
+	_, err = s.storeRepository.GetApprovedStoreByID(ctx, storeID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return entities.StoreOutput{}, ErrNotFound
+	}
+	if err != nil {
+		return entities.StoreOutput{}, fmt.Errorf("failed to get approved store by store id: %w", err)
+	}
+
+	membership, err := s.storeMembershipRepository.GetStoreMembershipByAccountIDAndStoreID(ctx, account.ID, storeID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return entities.StoreOutput{}, ErrForbidden
+	}
+	if err != nil {
+		return entities.StoreOutput{}, fmt.Errorf("failed to get store membership: %w", err)
+	}
+	if !membership.IsStoreManagementAllowed() {
+		return entities.StoreOutput{}, ErrForbidden
+	}
+
+	store, err := s.storeRepository.UpdateStoreClosed(ctx, storeID, closed)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return entities.StoreOutput{}, ErrNotFound
+	}
+	if err != nil {
+		return entities.StoreOutput{}, fmt.Errorf("failed to update store closed state: %w", err)
 	}
 
 	return s.toStoreOutput(ctx, store)

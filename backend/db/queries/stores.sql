@@ -46,6 +46,23 @@ SELECT *
 FROM stores
 WHERE id = $1;
 
+-- name: UpdateStoreClosed :one
+UPDATE stores
+SET
+    closed_at = CASE
+        WHEN sqlc.arg(closed)::boolean THEN COALESCE(closed_at, now())
+        ELSE NULL
+    END,
+    updated_at = CASE
+        WHEN (sqlc.arg(closed)::boolean AND closed_at IS NULL)
+          OR (NOT sqlc.arg(closed)::boolean AND closed_at IS NOT NULL)
+        THEN now()
+        ELSE updated_at
+    END
+WHERE id = sqlc.arg(store_id)
+    AND review_status = 'approved'
+RETURNING *;
+
 -- name: UpdateStoreReviewStatusById :exec
 UPDATE stores
 SET
