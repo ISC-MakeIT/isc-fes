@@ -318,6 +318,66 @@ func TestOpenAPIRequestValidatorRejectsInvalidRequest(t *testing.T) {
 	}
 }
 
+func TestOpenAPIRequestValidatorValidatesStoreApplicationAllergenIDs(t *testing.T) {
+	allergenID := uuid.New().String()
+	tests := []struct {
+		name       string
+		body       string
+		wantStatus int
+	}{
+		{
+			name:       "空配列を受け付ける",
+			body:       `{"name":"test","room":"605","description":"test","allergenIds":[],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			wantStatus: http.StatusNoContent,
+		},
+		{
+			name:       "フィールドの省略を拒否する",
+			body:       `{"name":"test","room":"605","description":"test","imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			wantStatus: http.StatusBadRequest,
+		},
+		{
+			name:       "不正なUUIDを拒否する",
+			body:       `{"name":"test","room":"605","description":"test","allergenIds":["invalid"],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			wantStatus: http.StatusBadRequest,
+		},
+		{
+			name:       "重複したIDを拒否する",
+			body:       `{"name":"test","room":"605","description":"test","allergenIds":["` + allergenID + `","` + allergenID + `"],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			wantStatus: http.StatusBadRequest,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			validator := mustOpenAPIRequestValidator(t, &stubCurrentAccountLoader{})
+			router := gin.New()
+			router.POST("/store-applications", validator, func(c *gin.Context) {
+				var input CreateStoreApplicationInput
+				if err := c.ShouldBindJSON(&input); err != nil {
+					c.Status(http.StatusBadRequest)
+					return
+				}
+				c.Status(http.StatusNoContent)
+			})
+
+			request := httptest.NewRequestWithContext(
+				t.Context(),
+				http.MethodPost,
+				"/store-applications",
+				strings.NewReader(tt.body),
+			)
+			request.Header.Set("Content-Type", "application/json")
+			response := httptest.NewRecorder()
+
+			router.ServeHTTP(response, request)
+
+			if response.Code != tt.wantStatus {
+				t.Errorf("HTTPステータス = %d、期待値 %d", response.Code, tt.wantStatus)
+			}
+		})
+	}
+}
+
 func TestOpenAPIRequestValidatorValidatesStoreMemberRole(t *testing.T) {
 	tests := []struct {
 		name       string

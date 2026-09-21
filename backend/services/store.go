@@ -37,6 +37,7 @@ type CreateStoreApplicationInput struct {
 	Name           string
 	Room           string
 	Description    string
+	AllergenIds    []uuid.UUID
 	ImageObjectKey entities.ImageObjectKey
 }
 
@@ -44,6 +45,7 @@ type CreateStoreApplicationServiceInput struct {
 	Name           string
 	Room           string
 	Description    string
+	AllergenIds    []uuid.UUID
 	ImageObjectKey entities.ImageObjectKey
 }
 
@@ -110,6 +112,9 @@ func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateS
 	if !input.ImageObjectKey.IsValid() {
 		return entities.Store{}, ErrInvalidInput
 	}
+	if err := s.validateAllergenIDs(ctx, input.AllergenIds); err != nil {
+		return entities.Store{}, err
+	}
 
 	storeID, err := uuid.NewRandom()
 	if err != nil {
@@ -121,6 +126,7 @@ func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateS
 		Name:           input.Name,
 		Room:           input.Room,
 		Description:    input.Description,
+		AllergenIds:    input.AllergenIds,
 		ImageObjectKey: input.ImageObjectKey,
 	})
 	if err != nil {
@@ -128,6 +134,36 @@ func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateS
 	}
 
 	return store, nil
+}
+
+func (s *StoreService) validateAllergenIDs(ctx context.Context, allergenIDs []uuid.UUID) error {
+	if len(allergenIDs) == 0 {
+		return nil
+	}
+
+	allergens, err := s.allergenRepository.GetAllergens(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get allergens: %w", err)
+	}
+
+	registeredAllergenIDs := make(map[uuid.UUID]struct{}, len(allergens))
+	for _, allergen := range allergens {
+		registeredAllergenIDs[allergen.ID] = struct{}{}
+	}
+
+	seenAllergenIDs := make(map[uuid.UUID]struct{}, len(allergenIDs))
+	for _, allergenID := range allergenIDs {
+		if _, duplicated := seenAllergenIDs[allergenID]; duplicated {
+			return ErrInvalidInput
+		}
+		seenAllergenIDs[allergenID] = struct{}{}
+
+		if _, registered := registeredAllergenIDs[allergenID]; !registered {
+			return ErrInvalidInput
+		}
+	}
+
+	return nil
 }
 
 var (

@@ -60,6 +60,7 @@ func (s *Server) CreateStoreApplication(c *gin.Context) {
 		Name:           body.Name,
 		Description:    body.Description,
 		Room:           body.Room,
+		AllergenIds:    body.AllergenIds,
 		ImageObjectKey: entities.ImageObjectKey(body.ImageObjectKey),
 	})
 	if err != nil {

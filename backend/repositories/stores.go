@@ -48,6 +48,15 @@ func (r *StoreRepository) CreateStoreApplication(ctx context.Context, input serv
 		return entities.Store{}, err
 	}
 
+	// 店舗にアレルゲンを関連付ける
+	err = qtx.AddAllergensToStore(ctx, sqlc.AddAllergensToStoreParams{
+		StoreID:     store.ID,
+		AllergenIds: input.AllergenIds,
+	})
+	if err != nil {
+		return entities.Store{}, err
+	}
+
 	// TODO: 状態変更履歴の要件が有効なら、初期 pending イベントを store_status_events へ同じトランザクション内で記録する。
 
 	// アカウントに店舗IDを紐付ける
