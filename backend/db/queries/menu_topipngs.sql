@@ -10,6 +10,17 @@ SELECT
     sqlc.arg(store_id)
 FROM unnest(sqlc.arg(topping_ids)::uuid[]) AS ids(topping_id);
 
+-- name: GetToppingsByStoreIDAndMenuID :many
+SELECT toppings.*
+FROM menu_toppings
+INNER JOIN toppings
+    ON toppings.id = menu_toppings.topping_id
+    AND toppings.store_id = menu_toppings.store_id
+WHERE menu_toppings.store_id = $1
+  AND menu_toppings.menu_id = $2
+  AND toppings.deleted_at IS NULL
+ORDER BY toppings.created_at DESC, toppings.id ASC;
+
 -- name: DeleteAllMenuToppingsByMenuID :exec
 DELETE FROM menu_toppings
 WHERE menu_id = $1;

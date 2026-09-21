@@ -188,6 +188,60 @@ func TestOpenAPIRequestValidatorAcceptsValidRequest(t *testing.T) {
 	}
 }
 
+func TestGetToppingsByStoreIDAndMenuIDIsPublicAndAcceptsUUIDs(t *testing.T) {
+	accountLoader := &stubCurrentAccountLoader{err: services.ErrUnauthenticated}
+	validator := mustOpenAPIRequestValidator(t, accountLoader)
+
+	router := gin.New()
+	router.GET(
+		"/stores/:store_id/menus/:menu_id/toppings",
+		validator,
+		func(c *gin.Context) {
+			c.JSON(http.StatusOK, GetToppingsByStoreIDAndMenuIDResponse{
+				Total: 0,
+				Data:  []Topping{},
+			})
+		},
+	)
+
+	request := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodGet,
+		"/stores/00000000-0000-0000-0000-000000000001/menus/00000000-0000-0000-0000-000000000002/toppings",
+		nil,
+	)
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+
+	if response.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusOK)
+	}
+	if got := strings.TrimSpace(response.Body.String()); got != `{"data":[],"total":0}` {
+		t.Errorf("body = %s, want empty toppings response", got)
+	}
+	if accountLoader.calls != 0 {
+		t.Errorf("GetCurrentAccount() calls = %d, want 0", accountLoader.calls)
+	}
+}
+
+func TestGetToppingsByStoreIDAndMenuIDRejectsInvalidUUID(t *testing.T) {
+	router := gin.New()
+	RegisterHandlers(router, &Server{})
+
+	request := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodGet,
+		"/stores/not-a-uuid/menus/00000000-0000-0000-0000-000000000002/toppings",
+		nil,
+	)
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+
+	if response.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusBadRequest)
+	}
+}
+
 func TestOpenAPIRequestValidatorStoresAuthenticatedAccount(t *testing.T) {
 	want := entities.Account{ID: uuid.New()}
 	accountLoader := &stubCurrentAccountLoader{account: want}

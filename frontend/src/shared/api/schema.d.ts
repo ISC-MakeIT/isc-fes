@@ -212,6 +212,23 @@ export interface paths {
     patch: operations["updateMenuByStoreIDAndMenuID"];
     trace?: never;
   };
+  "/stores/{store_id}/menus/{menu_id}/toppings": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 店舗のメニューで選択可能なトッピング一覧を取得する */
+    get: operations["getToppingsByStoreIDAndMenuID"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/stores/{store_id}/toppings": {
     parameters: {
       query?: never;
@@ -412,6 +429,11 @@ export interface components {
     };
     GetToppingsByStoreIDResponse: {
       /** @description 店舗トッピングの総数 */
+      total: number;
+      data: components["schemas"]["Topping"][];
+    };
+    GetToppingsByStoreIDAndMenuIDResponse: {
+      /** @description メニューで選択可能なトッピングの総数 */
       total: number;
       data: components["schemas"]["Topping"][];
     };
@@ -1568,6 +1590,56 @@ export interface operations {
         };
       };
       /** @description 店舗が存在しない（未承認の店舗はメニューを更新できない）、またはメニューが存在しない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getToppingsByStoreIDAndMenuID: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+        menu_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 店舗のメニューで選択可能なトッピング一覧 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetToppingsByStoreIDAndMenuIDResponse"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない、承認済みではない、またはメニューが存在しない */
       404: {
         headers: {
           [name: string]: unknown;

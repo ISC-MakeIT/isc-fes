@@ -23,6 +23,19 @@ func (s *Server) GetMenusByStoreID(c *gin.Context, storeID uuid.UUID) {
 	})
 }
 
+func (s *Server) GetToppingsByStoreIDAndMenuID(c *gin.Context, storeID uuid.UUID, menuID uuid.UUID) {
+	toppings, err := s.menu.GetToppingsByStoreIDAndMenuID(c.Request.Context(), storeID, menuID)
+	if err != nil {
+		s.handleCommonServiceErrors(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, GetToppingsByStoreIDAndMenuIDResponse{
+		Total: len(toppings),
+		Data:  utils.Map(toppings, toToppingResponse),
+	})
+}
+
 func (s *Server) CreateMenu(c *gin.Context, storeID uuid.UUID) {
 	ctx := c.Request.Context()
 

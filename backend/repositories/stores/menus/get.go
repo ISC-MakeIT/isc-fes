@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities/toppings"
 	"github.com/isc-makeit/isc-fes/backend/repositories/db2entities"
 )
 
@@ -16,4 +17,13 @@ func (r *MenuRepository) GetMenuByStoreIDAndMenuID(c context.Context, storeID uu
 	})
 
 	return db2entities.ToMenu(dbMenus), err
+}
+
+func (r *MenuRepository) GetToppingsByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID) ([]toppings.Topping, error) {
+	dbToppings, err := r.queries.GetToppingsByStoreIDAndMenuID(c, sqlc.GetToppingsByStoreIDAndMenuIDParams{
+		StoreID: storeID,
+		MenuID:  menuID,
+	})
+
+	return db2entities.ToToppings(dbToppings), err
 }
