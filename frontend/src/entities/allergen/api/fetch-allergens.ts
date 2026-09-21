@@ -9,15 +9,16 @@ async function fetchAllergens() {
   const { data, error, response } = await client.GET("/allergens");
 
   if (error) {
-    return getStatusMessage(response.status);
+    throw new Error(getStatusMessage(response.status));
   }
 
-  return v.parse(Allergen, data.data);
+  return v.parse(v.array(Allergen), data.data);
 }
 
-export async function allergenQueryOptions() {
+export function allergenQueryOptions() {
   return queryOptions({
     queryFn: fetchAllergens,
     queryKey: allergensKey(),
+    staleTime: Infinity,
   });
 }

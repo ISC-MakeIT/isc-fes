@@ -21,17 +21,25 @@ import {
   ComboboxList,
 } from "@/shared/ui/combobox";
 import { activeRoomsQueryOptions } from "@/entities/room";
+import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
+import {
+  allergenBadgeVariants,
+  allergenQueryOptions,
+} from "@/entities/allergen";
+import { cn } from "@/shared/lib/utils";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
   room: undefined,
   description: "",
+  allergenIds: [],
   image: undefined,
 };
 
 export function RegisterStoreForm() {
   const router = useRouter();
 
+  const { data: allergens } = useSuspenseQuery(allergenQueryOptions());
   const { data: activeRooms } = useSuspenseQuery(activeRoomsQueryOptions());
 
   const mutation = useMutation({
@@ -198,6 +206,45 @@ export function RegisterStoreForm() {
                 {field.state.meta.isTouched && (
                   <FieldError errors={field.state.meta.errors} />
                 )}
+              </FieldContent>
+            </Field>
+          )}
+        />
+
+        <form.Field
+          name="allergenIds"
+          children={(field) => (
+            <Field className="contents">
+              <FieldLabel htmlFor={field.name}>アレルギー</FieldLabel>
+              <FieldContent>
+                <ToggleGroup
+                  multiple
+                  value={field.state.value}
+                  onValueChange={(allergenIds) =>
+                    field.handleChange(allergenIds)
+                  }
+                  onBlur={field.handleBlur}
+                  className="grid w-full grid-cols-4 gap-4"
+                >
+                  {allergens.map((allergen) => (
+                    <ToggleGroupItem
+                      key={allergen.id}
+                      value={allergen.id}
+                      className="h-auto p-0"
+                      render={
+                        <button
+                          type="button"
+                          className={cn(
+                            allergenBadgeVariants(),
+                            "data-pressed:bg-allergen-card data-pressed:text-primary-foreground",
+                          )}
+                        >
+                          {allergen.name}
+                        </button>
+                      }
+                    />
+                  ))}
+                </ToggleGroup>
               </FieldContent>
             </Field>
           )}

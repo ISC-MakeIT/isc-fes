@@ -7,6 +7,7 @@ export const CreateStoreForm = v.object({
   name: StoreName,
   description: StoreDescription,
   room: v.optional(Room),
+  allergenIds: v.array(v.string()),
   // Inputの初期値用にundefinedを許容する
   image: v.optional(UploadImage),
 });
@@ -17,6 +18,7 @@ export const CreateStoreInput = v.object({
   name: StoreName,
   room: Room,
   description: StoreDescription,
+  allergenIds: v.array(v.string()),
   image: UploadImage,
 });
 export type CreateStoreInput = v.InferOutput<typeof CreateStoreInput>;

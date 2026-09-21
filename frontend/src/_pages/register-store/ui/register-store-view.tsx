@@ -4,10 +4,14 @@ import { CenterLayout } from "@/shared/ui/center-layout";
 import { createQueryClient } from "@/shared/api";
 import { activeRoomsQueryOptions } from "@/entities/room";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { allergenQueryOptions } from "@/entities/allergen";
 
 export async function RegisterStoreView() {
   const queryClient = createQueryClient();
-  await queryClient.prefetchQuery(activeRoomsQueryOptions());
+  await Promise.all([
+    queryClient.prefetchQuery(activeRoomsQueryOptions()),
+    queryClient.prefetchQuery(allergenQueryOptions()),
+  ]);
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <CenterLayout className="text-center">
