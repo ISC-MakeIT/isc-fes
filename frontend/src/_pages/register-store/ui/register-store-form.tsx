@@ -231,19 +231,13 @@ export function RegisterStoreForm() {
                     <ToggleGroupItem
                       key={allergen.id}
                       value={allergen.id}
-                      className="h-auto p-0"
-                      render={
-                        <Button
-                          type="button"
-                          className={cn(
-                            allergenBadgeVariants(),
-                            "data-pressed:bg-allergen-card data-pressed:text-primary-foreground",
-                          )}
-                        >
-                          {allergen.name}
-                        </Button>
-                      }
-                    />
+                      className={cn(
+                        allergenBadgeVariants(),
+                        "data-pressed:bg-allergen-card data-pressed:text-primary-foreground rounded-sm",
+                      )}
+                    >
+                      {allergen.name}
+                    </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
               </FieldContent>
