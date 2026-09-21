@@ -22,6 +22,7 @@ export async function createStoreApplication({
   const client = await createApiClient();
   const { data, error, response } = await client.POST("/store-applications", {
     body: {
+      // TODO: allergenIdsを渡しているがバックエンド側のパラメータには存在しないので無視される。バックエンド側が出来次第適切な型に直す
       ...storeApplication,
       imageObjectKey: uploadResult.data.imageObjectKey,
     },
