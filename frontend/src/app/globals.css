@@ -62,6 +62,7 @@
   --color-switch-thumb: var(--secondary);
   --shadow-editor-header: 0 2px 4px var(--editor-header);
   --shadow-button-destructive: 4px 4px 0 var(--pink-strong);
+  --color-allergen-card: var(--orange);
 }
 
 :root {

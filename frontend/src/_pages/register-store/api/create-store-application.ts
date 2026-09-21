@@ -22,7 +22,6 @@ export async function createStoreApplication({
   const client = await createApiClient();
   const { data, error, response } = await client.POST("/store-applications", {
     body: {
-      allergenIds: [], // TODO: アレルゲン選択UIからの入力を受け取るようにする
       ...storeApplication,
       imageObjectKey: uploadResult.data.imageObjectKey,
     },
