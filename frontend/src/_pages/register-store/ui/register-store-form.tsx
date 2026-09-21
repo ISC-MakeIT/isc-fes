@@ -215,7 +215,7 @@ export function RegisterStoreForm() {
           name="allergenIds"
           children={(field) => (
             <Field className="contents">
-              <FieldLabel htmlFor={field.name}>アレルギー</FieldLabel>
+              <FieldLabel>アレルギー</FieldLabel>
               <FieldContent>
                 <ToggleGroup
                   multiple
