@@ -367,6 +367,8 @@ export interface components {
       room: string;
       /** @example 外はカリカリ、中はトロトロのたこ焼きです。 */
       description: string;
+      /** @description 店舗で使用するアレルゲンのID一覧。該当するアレルゲンがない場合は空配列。 */
+      allergenIds: string[];
       imageObjectKey: components["schemas"]["ImageObjectKey"];
     };
     CreateStoreApplicationResponse: {

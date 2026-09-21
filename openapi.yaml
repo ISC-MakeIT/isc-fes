@@ -1210,6 +1210,7 @@ components:
         - name
         - room
         - description
+        - allergenIds
         - imageObjectKey
       properties:
         name:
@@ -1227,6 +1228,13 @@ components:
           minLength: 1
           maxLength: 1000
           example: 外はカリカリ、中はトロトロのたこ焼きです。
+        allergenIds:
+          type: array
+          description: 店舗で使用するアレルゲンのID一覧。該当するアレルゲンがない場合は空配列。
+          items:
+            type: string
+            format: uuid
+          uniqueItems: true
         imageObjectKey:
           $ref: "#/components/schemas/ImageObjectKey"
     CreateStoreApplicationResponse:
