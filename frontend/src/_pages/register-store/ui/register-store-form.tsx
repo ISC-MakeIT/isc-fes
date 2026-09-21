@@ -27,7 +27,6 @@ import {
   allergenQueryOptions,
 } from "@/entities/allergen";
 import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
