@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities/toppings"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/services/entity2display"
 	repositoryinterfaces "github.com/isc-makeit/isc-fes/backend/services/repository_interfaces"
@@ -49,4 +50,27 @@ func (s *MenuService) GetMenusByStoreID(c context.Context, storeID uuid.UUID) ([
 	}
 
 	return entity2display.ToMenuDisplays(c, entityMenus, s.imageURLGenerator)
+}
+
+func (s *MenuService) GetToppingsByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID) ([]toppings.Topping, error) {
+	store, err := s.storeRepository.GetStoreByID(c, storeID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, services.ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	if store.ReviewStatus != entities.StoreReviewStatusApproved {
+		return nil, services.ErrNotFound
+	}
+
+	_, err = s.menuRepository.GetMenuByStoreIDAndMenuID(c, storeID, menuID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, services.ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return s.menuRepository.GetToppingsByStoreIDAndMenuID(c, storeID, menuID)
 }

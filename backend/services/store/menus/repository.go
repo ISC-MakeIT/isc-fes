@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities/toppings"
 )
 
 type CreateMenuRepositoryInput struct {
@@ -32,6 +33,7 @@ type UpdateMenuRepositoryInput struct {
 type MenuRepository interface {
 	GetMenusByStoreID(c context.Context, storeID uuid.UUID) ([]menus.Menu, error)
 	GetMenuByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID) (menus.Menu, error)
+	GetToppingsByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID) ([]toppings.Topping, error)
 	CreateMenuWithToppings(c context.Context, input CreateMenuRepositoryInput) (menus.Menu, error)
 	UpdateMenuWithToppings(c context.Context, input UpdateMenuRepositoryInput) (menus.Menu, error)
 	DeleteMenuByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID) (int64, error)

@@ -730,6 +730,48 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /stores/{store_id}/menus/{menu_id}/toppings:
+    get:
+      operationId: getToppingsByStoreIDAndMenuID
+      summary: 店舗のメニューで選択可能なトッピング一覧を取得する
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: menu_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 店舗のメニューで選択可能なトッピング一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetToppingsByStoreIDAndMenuIDResponse"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない、承認済みではない、またはメニューが存在しない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /stores/{store_id}/toppings:
     get:
       operationId: getToppingsByStoreID
@@ -1384,6 +1426,19 @@ components:
         total:
           type: integer
           description: 店舗トッピングの総数
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Topping"
+    GetToppingsByStoreIDAndMenuIDResponse:
+      type: object
+      required:
+        - data
+        - total
+      properties:
+        total:
+          type: integer
+          description: メニューで選択可能なトッピングの総数
         data:
           type: array
           items:

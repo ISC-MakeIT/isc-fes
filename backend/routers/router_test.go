@@ -2,6 +2,7 @@ package routers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -185,6 +186,94 @@ func TestOpenAPIRequestValidatorAcceptsValidRequest(t *testing.T) {
 	}
 	if accountLoader.calls != 0 {
 		t.Errorf("GetCurrentAccount() calls = %d, want 0", accountLoader.calls)
+	}
+}
+
+func TestGetToppingsByStoreIDAndMenuIDIsPublicAndAcceptsUUIDs(t *testing.T) {
+	accountLoader := &stubCurrentAccountLoader{err: services.ErrUnauthenticated}
+	validator := mustOpenAPIRequestValidator(t, accountLoader)
+
+	router := gin.New()
+	router.GET(
+		"/stores/:store_id/menus/:menu_id/toppings",
+		validator,
+		func(c *gin.Context) {
+			c.JSON(http.StatusOK, GetToppingsByStoreIDAndMenuIDResponse{
+				Total: 0,
+				Data:  []Topping{},
+			})
+		},
+	)
+
+	request := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodGet,
+		"/stores/00000000-0000-0000-0000-000000000001/menus/00000000-0000-0000-0000-000000000002/toppings",
+		nil,
+	)
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+
+	if response.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusOK)
+	}
+	if got := strings.TrimSpace(response.Body.String()); got != `{"data":[],"total":0}` {
+		t.Errorf("body = %s, want empty toppings response", got)
+	}
+	if accountLoader.calls != 0 {
+		t.Errorf("GetCurrentAccount() calls = %d, want 0", accountLoader.calls)
+	}
+}
+
+func TestGetToppingsByStoreIDAndMenuIDRejectsInvalidUUID(t *testing.T) {
+	router := gin.New()
+	RegisterHandlersWithOptions(router, &Server{}, GinServerOptions{
+		ErrorHandler: handleOpenAPIBindingError,
+	})
+
+	request := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodGet,
+		"/stores/not-a-uuid/menus/00000000-0000-0000-0000-000000000002/toppings",
+		nil,
+	)
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+
+	if response.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusBadRequest)
+	}
+	if got := strings.TrimSpace(response.Body.String()); !strings.Contains(got, `"message":`) {
+		t.Errorf("body = %s, want ErrorResponse with message field", got)
+	}
+	if got := strings.TrimSpace(response.Body.String()); strings.Contains(got, `"msg":`) {
+		t.Errorf("body = %s, must not contain legacy msg field", got)
+	}
+}
+
+func TestHandleOpenAPIBindingErrorUsesMessageField(t *testing.T) {
+	response := httptest.NewRecorder()
+	context, _ := gin.CreateTestContext(response)
+	wantErr := errors.New("invalid path parameter")
+
+	handleOpenAPIBindingError(context, wantErr, http.StatusBadRequest)
+
+	if response.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusBadRequest)
+	}
+
+	var body map[string]string
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+		t.Fatalf("response body is not valid JSON: %v", err)
+	}
+	if got := body["message"]; got != wantErr.Error() {
+		t.Errorf("message = %q, want %q", got, wantErr.Error())
+	}
+	if _, exists := body["msg"]; exists {
+		t.Errorf("legacy msg field exists in response: %s", response.Body.String())
+	}
+	if len(body) != 1 {
+		t.Errorf("response fields = %v, want only message", body)
 	}
 }
 

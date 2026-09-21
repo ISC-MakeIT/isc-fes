@@ -54,3 +54,49 @@ func (q *Queries) DeleteMenuToppingsByToppingID(ctx context.Context, toppingID u
 	_, err := q.db.Exec(ctx, deleteMenuToppingsByToppingID, toppingID)
 	return err
 }
+
+const getToppingsByStoreIDAndMenuID = `-- name: GetToppingsByStoreIDAndMenuID :many
+SELECT toppings.id, toppings.store_id, toppings.name, toppings.unit_price, toppings.sold_out, toppings.deleted_at, toppings.updated_at, toppings.created_at
+FROM menu_toppings
+INNER JOIN toppings
+    ON toppings.id = menu_toppings.topping_id
+    AND toppings.store_id = menu_toppings.store_id
+WHERE menu_toppings.store_id = $1
+  AND menu_toppings.menu_id = $2
+  AND toppings.deleted_at IS NULL
+ORDER BY toppings.created_at DESC, toppings.id ASC
+`
+
+type GetToppingsByStoreIDAndMenuIDParams struct {
+	StoreID uuid.UUID `json:"store_id"`
+	MenuID  uuid.UUID `json:"menu_id"`
+}
+
+func (q *Queries) GetToppingsByStoreIDAndMenuID(ctx context.Context, arg GetToppingsByStoreIDAndMenuIDParams) ([]Topping, error) {
+	rows, err := q.db.Query(ctx, getToppingsByStoreIDAndMenuID, arg.StoreID, arg.MenuID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Topping{}
+	for rows.Next() {
+		var i Topping
+		if err := rows.Scan(
+			&i.ID,
+			&i.StoreID,
+			&i.Name,
+			&i.UnitPrice,
+			&i.SoldOut,
+			&i.DeletedAt,
+			&i.UpdatedAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
