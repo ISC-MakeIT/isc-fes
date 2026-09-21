@@ -1224,7 +1224,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	errorHandler := options.ErrorHandler
 	if errorHandler == nil {
 		errorHandler = func(c *gin.Context, err error, statusCode int) {
-			c.JSON(statusCode, gin.H{"msg": err.Error()})
+			c.JSON(statusCode, ErrorResponse{Message: err.Error()})
 		}
 	}
 

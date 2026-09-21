@@ -240,6 +240,12 @@ func TestGetToppingsByStoreIDAndMenuIDRejectsInvalidUUID(t *testing.T) {
 	if response.Code != http.StatusBadRequest {
 		t.Errorf("status = %d, want %d", response.Code, http.StatusBadRequest)
 	}
+	if got := strings.TrimSpace(response.Body.String()); !strings.Contains(got, `"message":`) {
+		t.Errorf("body = %s, want ErrorResponse with message field", got)
+	}
+	if got := strings.TrimSpace(response.Body.String()); strings.Contains(got, `"msg":`) {
+		t.Errorf("body = %s, must not contain legacy msg field", got)
+	}
 }
 
 func TestOpenAPIRequestValidatorStoresAuthenticatedAccount(t *testing.T) {
