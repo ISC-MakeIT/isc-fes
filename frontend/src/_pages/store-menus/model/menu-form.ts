@@ -19,16 +19,6 @@ const defaultMenuFormValues: MenuFormValues = {
   description: "",
 };
 
-export const CompleteCreateMenuFormValues = v.object({
-  name: MenuName,
-  image: v.optional(UploadImage),
-  unitPrice: MenuUnitPrice,
-  description: MenuDescription,
-});
-export type CompleteCreateMenuFormValues = v.InferOutput<
-  typeof CompleteCreateMenuFormValues
->;
-
 export const CompleteEditMenuFormValues = v.object({
   name: MenuName,
   image: v.optional(UploadImage),
