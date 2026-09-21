@@ -27,6 +27,7 @@ import {
   allergenQueryOptions,
 } from "@/entities/allergen";
 import { cn } from "@/shared/lib/utils";
+import { Button } from "@/shared/ui/button";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -232,7 +233,7 @@ export function RegisterStoreForm() {
                       value={allergen.id}
                       className="h-auto p-0"
                       render={
-                        <button
+                        <Button
                           type="button"
                           className={cn(
                             allergenBadgeVariants(),
@@ -240,7 +241,7 @@ export function RegisterStoreForm() {
                           )}
                         >
                           {allergen.name}
-                        </button>
+                        </Button>
                       }
                     />
                   ))}
