@@ -38,7 +38,7 @@ function MenuCard({ menu }: MenuCardProps) {
     <Card className="shadow-primary border-foreground space-y-2 rounded-sm border px-4 py-6 shadow-[4px_4px_0]">
       <AspectRatioImage
         ratio={MENU_IMAGE_ASPECT}
-        alt=""
+        alt={`${menu.name}の画像`}
         src={menu.imageUrl}
         className="max-w-38.5"
       />
