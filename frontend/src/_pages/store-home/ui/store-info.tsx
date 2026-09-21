@@ -24,18 +24,20 @@ export function StoreInfo({ storeId }: StoreInfoProps) {
       <div className="flex flex-col space-y-6 py-4">
         <h1 className="text-xl font-bold">{store.name}</h1>
         <p>{store.description}</p>
-        <div className="space-y-2">
-          <p className="font-medium">アレルギー対象8品目</p>
-          <div className="flex flex-row flex-wrap gap-2">
-            {store.allergens.map((allergen) => (
-              <AllergenBadge
-                key={allergen.id}
-                className="w-19 px-0 text-sm"
-                allergen={allergen}
-              />
-            ))}
+        {store.allergens.length !== 0 && (
+          <div className="space-y-2">
+            <p className="font-medium">アレルギー対象8品目</p>
+            <div className="flex flex-row flex-wrap gap-2">
+              {store.allergens.map((allergen) => (
+                <AllergenBadge
+                  key={allergen.id}
+                  className="w-19 px-0 text-sm"
+                  allergen={allergen}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
