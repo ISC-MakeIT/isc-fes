@@ -1,6 +1,6 @@
 import { Store } from "@/entities/store";
 import { createApiClient } from "@/shared/api";
-import { getStatusMessage, STATUS, storeDetailKey } from "@/shared/config";
+import { getStatusMessage, HTTP_STATUS, storeDetailKey } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { queryOptions } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
@@ -12,7 +12,7 @@ export async function fetchStoreDetail(storeId: string): Promise<Store> {
   });
 
   if (error) {
-    if (response.status === STATUS.NOT_FOUND.code) notFound();
+    if (response.status === HTTP_STATUS.NOT_FOUND.code) notFound();
     throw new Error(getStatusMessage(response.status));
   }
 

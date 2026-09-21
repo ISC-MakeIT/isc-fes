@@ -3,7 +3,7 @@ import {
   currentAccountKey,
   getStatusMessage,
   ACCOUNT_SESSION_COOKIE_NAME,
-  STATUS,
+  HTTP_STATUS,
 } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { Account } from "../model/types";
@@ -29,7 +29,7 @@ export async function fetchCurrentAccount(): FetchCurrentAccountResult {
   const { data, error, response } = await client.GET("/me");
 
   if (error) {
-    if (response.status === STATUS.UNAUTHORIZED.code) return null;
+    if (response.status === HTTP_STATUS.UNAUTHORIZED.code) return null;
     throw new Error(getStatusMessage(response.status));
   }
 

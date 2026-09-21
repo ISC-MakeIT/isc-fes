@@ -21,7 +21,7 @@ export {
 } from "./constants/urls";
 
 export {
-  STATUS,
+  HTTP_STATUS,
   isClientError,
   getStatusMessage,
 } from "./constants/status-codes";

@@ -1,4 +1,4 @@
-export const STATUS = {
+export const HTTP_STATUS = {
   BAD_REQUEST: {
     code: 400,
     message: "入力内容に誤りがあります。内容をご確認ください。",
@@ -44,7 +44,7 @@ export const STATUS = {
  * @returns
  */
 export function getStatusMessage(status: number): string {
-  const entry = Object.values(STATUS).find((s) => s.code === status);
+  const entry = Object.values(HTTP_STATUS).find((s) => s.code === status);
 
   return (
     entry?.message ?? "エラーが発生しました。時間を置いて再度試してください。"
