@@ -1,8 +1,9 @@
 import { Store } from "@/entities/store";
 import { createApiClient } from "@/shared/api";
-import { getStatusMessage, storeDetailKey } from "@/shared/config";
+import { getStatusMessage, HTTP_STATUS, storeDetailKey } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { queryOptions } from "@tanstack/react-query";
+import { notFound } from "next/navigation";
 
 export async function fetchStoreDetail(storeId: string): Promise<Store> {
   const client = await createApiClient();
@@ -10,7 +11,10 @@ export async function fetchStoreDetail(storeId: string): Promise<Store> {
     params: { path: { store_id: storeId } },
   });
 
-  if (error) throw new Error(getStatusMessage(response.status));
+  if (error) {
+    if (response.status === HTTP_STATUS.NOT_FOUND.code) notFound();
+    throw new Error(getStatusMessage(response.status));
+  }
 
   return v.parse(Store, data);
 }
