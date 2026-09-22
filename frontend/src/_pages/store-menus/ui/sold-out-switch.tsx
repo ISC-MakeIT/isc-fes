@@ -2,27 +2,30 @@
 
 import { Dialog, DialogContent, DialogTrigger } from "@/shared/ui/dialog";
 import { Switch } from "@/shared/ui/switch";
-import { useMutation } from "@tanstack/react-query";
-import { updateMenuSoldOutStatus } from "../api/update-menu-sold-out-status";
 import { useState } from "react";
-import { Menu } from "@/entities/menu";
 import { ActionButton } from "@/shared/ui/action-button";
 
 type SoldOutSwitch = {
-  menu: Menu;
+  submitFunction: () => void;
+  itemName: string;
+  isDisabledButton: boolean;
+  isSoldOut: boolean;
+  errorMessage?: string;
 };
 
-export function SoldOutSwitch({ menu }: SoldOutSwitch) {
+export function SoldOutSwitch({
+  submitFunction,
+  isDisabledButton,
+  isSoldOut,
+  itemName,
+  errorMessage,
+}: SoldOutSwitch) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  // 検証用のステート
-  const [isSoldOut, setIsSoldOut] = useState(menu.soldOut);
-  const mutation = useMutation({
-    mutationFn: updateMenuSoldOutStatus,
-    onSuccess: (value) => {
-      setIsDialogOpen(false);
-      setIsSoldOut(value);
-    },
-  });
+
+  function handleSubmit() {
+    setIsDialogOpen(false);
+    submitFunction();
+  }
 
   return (
     <Dialog
@@ -37,14 +40,14 @@ export function SoldOutSwitch({ menu }: SoldOutSwitch) {
           <Switch
             checked={isSoldOut}
             size="lg"
-            aria-label={`${menu.name}の販売状態を変更`}
+            aria-label={`${itemName}の販売状態を変更`}
           />
         }
       />
 
       <DialogContent className="shadow-dialog-primary flex flex-col items-center justify-center gap-5 px-8 pt-18 pb-8 data-closed:hidden">
         <div className="space-y-4 text-center text-xl font-bold">
-          <p>{menu.name}</p>
+          <p>{itemName}</p>
           {isSoldOut ? (
             <p>
               の<span className="text-notice">完売状態を解除</span>しますか？
@@ -56,18 +59,18 @@ export function SoldOutSwitch({ menu }: SoldOutSwitch) {
           )}
         </div>
 
-        {mutation.isError && (
-          <p className="text-notice text-sm">{mutation.error.message}</p>
+        {errorMessage && (
+          <p className="text-notice text-sm" role="alert">
+            {errorMessage}
+          </p>
         )}
 
         <ActionButton
-          disabled={mutation.isPending}
+          disabled={isDisabledButton}
           // TODO: variantのdestructiveをfigmaのデザインに寄せる。影響範囲が大きいので別PRで
           variant={isSoldOut ? "destructive" : "default"}
           className="shadow-none"
-          onClick={() =>
-            mutation.mutate({ soldOutStatus: isSoldOut ? false : true })
-          }
+          onClick={handleSubmit}
         >
           {isSoldOut ? "完売解除" : "完売した！"}
         </ActionButton>

@@ -18,7 +18,7 @@ const EditMenuInput = v.object({
   image: v.optional(UploadImage),
   unitPrice: v.optional(MenuUnitPrice),
   description: v.optional(MenuDescription),
-  soldOut: MenuSoldOut,
+  soldOut: v.optional(MenuSoldOut),
   // TODO: トッピング
 });
 type EditMenuInput = v.InferOutput<typeof EditMenuInput>;

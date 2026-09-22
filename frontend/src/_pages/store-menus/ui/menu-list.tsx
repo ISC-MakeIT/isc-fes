@@ -4,20 +4,33 @@ import { ActionButton } from "@/shared/ui/action-button";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { PlusIcon } from "lucide-react";
 import { EditorType, useMenuEditor } from "../model/menu-editor-context";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { storeMenusQueryOptions } from "@/entities/menu";
 import { Menu } from "@/entities/menu";
 import { PreviewImage } from "@/shared/ui/preview-image";
-import { MENU_IMAGE_ASPECT } from "@/shared/config";
+import { MENU_IMAGE_ASPECT, storeMenusKey } from "@/shared/config";
 import { useStoreId } from "../model/hooks/use-store-id";
 import { SoldOutSwitch } from "./sold-out-switch";
 import { Fragment } from "react/jsx-runtime";
 import { Button } from "@/shared/ui/button";
+import { editMenu } from "../api/edit-menu";
 
 export function MenuList() {
   const storeId = useStoreId();
   const { setMenuEditor } = useMenuEditor();
   const { data: menus } = useSuspenseQuery(storeMenusQueryOptions(storeId));
+
+  const queryClient = useQueryClient();
+  const editMenuMutation = useMutation({
+    mutationFn: editMenu,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) });
+    },
+  });
 
   return (
     <section className="border-primary border-b">
@@ -34,7 +47,19 @@ export function MenuList() {
             <Fragment key={menu.id}>
               <MenuCard menu={menu} />
               <div className="flex items-center justify-center">
-                <SoldOutSwitch menu={menu} />
+                <SoldOutSwitch
+                  itemName={menu.name}
+                  errorMessage={editMenuMutation.error?.message}
+                  isSoldOut={menu.soldOut}
+                  isDisabledButton={editMenuMutation.isPending}
+                  submitFunction={() =>
+                    editMenuMutation.mutate({
+                      storeId,
+                      menuId: menu.id,
+                      editMenuInput: { soldOut: !menu.soldOut },
+                    })
+                  }
+                />
               </div>
             </Fragment>
           ))}
