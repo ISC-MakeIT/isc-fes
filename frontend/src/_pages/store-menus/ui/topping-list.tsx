@@ -4,16 +4,31 @@ import { ActionButton } from "@/shared/ui/action-button";
 import { PlusIcon } from "lucide-react";
 import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { useStoreId } from "../model/hooks/use-store-id";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { storeToppingsQueryOptions } from "../api/fetch-store-toppings";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { Fragment } from "react/jsx-runtime";
 import { Topping } from "@/entities/topping";
 import { Button } from "@/shared/ui/button";
+import { SoldOutSwitch } from "./sold-out-switch";
+import { editTopping } from "../api/edit-topping";
+import { storeToppingsKey } from "@/shared/config";
 
 export function ToppingList() {
   const storeId = useStoreId();
   const { setMenuEditor } = useMenuEditor();
+
+  const queryClient = useQueryClient();
+  const editToppingMutation = useMutation({
+    mutationFn: editTopping,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: storeToppingsKey(storeId) });
+    },
+  });
 
   const { data: toppings } = useSuspenseQuery(
     storeToppingsQueryOptions(storeId),
@@ -22,11 +37,24 @@ export function ToppingList() {
   return (
     <section className="space-y-6">
       <HeadingCard className="px-8 py-4">カスタマイズ</HeadingCard>
-      <div className="grid grid-cols-[minmax(0,1fr)_4.375rem] gap-x-6 gap-y-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_4.375rem] items-center justify-items-center gap-x-6 gap-y-6">
         {toppings.map((topping) => (
           <Fragment key={topping.id}>
             <ToppingCard topping={topping} />
-            <div></div>
+            <SoldOutSwitch
+              submitFunction={() => {
+                editToppingMutation.mutate({
+                  storeId,
+                  toppingId: topping.id,
+                  editToppingInput: {
+                    soldOut: !topping.soldOut,
+                  },
+                });
+              }}
+              itemName={topping.name}
+              isDisabledButton={editToppingMutation.isPending}
+              isSoldOut={topping.soldOut}
+            />
           </Fragment>
         ))}
       </div>
@@ -49,7 +77,6 @@ type ToppingCardProps = {
 export function ToppingCard({ topping }: ToppingCardProps) {
   const { setMenuEditor } = useMenuEditor();
   return (
-    // Buttonタグ
     <Button
       type="button"
       variant="outline"
