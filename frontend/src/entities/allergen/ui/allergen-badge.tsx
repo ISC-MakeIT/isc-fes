@@ -5,7 +5,7 @@ import { cn } from "@/shared/lib/utils";
 import { cva } from "class-variance-authority";
 
 export const allergenBadgeVariants = cva(
-  "border-allergen-card rounded-sm border-2 px-4 py-2",
+  "border-allergen-card rounded-sm border-2 py-2 text-center",
 );
 
 type AllergenCardProps = {

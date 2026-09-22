@@ -4,6 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { storeDetailQueryOptions } from "../api/fetch-store-detail";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { STORE_IMAGE_ASPECT } from "@/shared/config";
+import { AllergenBadge } from "@/entities/allergen";
 
 type StoreInfoProps = {
   storeId: string;
@@ -22,7 +23,23 @@ export function StoreInfo({ storeId }: StoreInfoProps) {
 
       <div className="flex flex-col space-y-6 py-4">
         <h1 className="text-xl font-bold">{store.name}</h1>
-        <p className="">{store.description}</p>
+        <p>{store.description}</p>
+        <div className="space-y-2">
+          <p className="font-semibold">アレルギー対象8品目</p>
+          {store.allergens.length !== 0 ? (
+            <div className="flex flex-row flex-wrap gap-2">
+              {store.allergens.map((allergen) => (
+                <AllergenBadge
+                  key={allergen.id}
+                  className="w-19 text-sm"
+                  allergen={allergen}
+                />
+              ))}
+            </div>
+          ) : (
+            <p>該当なし</p>
+          )}
+        </div>
       </div>
     </div>
   );
