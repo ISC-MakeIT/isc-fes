@@ -4,11 +4,7 @@ import { ActionButton } from "@/shared/ui/action-button";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { PlusIcon } from "lucide-react";
 import { EditorType, useMenuEditor } from "../model/menu-editor-context";
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { storeMenusQueryOptions } from "@/entities/menu";
 import { Menu } from "@/entities/menu";
 import { PreviewImage } from "@/shared/ui/preview-image";
@@ -25,12 +21,6 @@ export function MenuList() {
   const { data: menus } = useSuspenseQuery(storeMenusQueryOptions(storeId));
 
   const queryClient = useQueryClient();
-  const editMenuMutation = useMutation({
-    mutationFn: editMenu,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) });
-    },
-  });
 
   return (
     <section className="border-primary border-b">
@@ -48,16 +38,17 @@ export function MenuList() {
               <MenuCard menu={menu} />
               <SoldOutSwitch
                 itemName={menu.name}
-                errorMessage={editMenuMutation.error?.message}
                 isSoldOut={menu.soldOut}
-                isDisabledButton={editMenuMutation.isPending}
-                submitFunction={() =>
-                  editMenuMutation.mutate({
+                onConfirm={async () => {
+                  await editMenu({
                     storeId,
                     menuId: menu.id,
                     editMenuInput: { soldOut: !menu.soldOut },
-                  })
-                }
+                  });
+                  await queryClient.invalidateQueries({
+                    queryKey: storeMenusKey(storeId),
+                  });
+                }}
               />
             </Fragment>
           ))}

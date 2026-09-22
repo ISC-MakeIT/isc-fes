@@ -4,11 +4,7 @@ import { ActionButton } from "@/shared/ui/action-button";
 import { PlusIcon } from "lucide-react";
 import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { useStoreId } from "../model/hooks/use-store-id";
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { storeToppingsQueryOptions } from "../api/fetch-store-toppings";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { Fragment } from "react/jsx-runtime";
@@ -23,12 +19,6 @@ export function ToppingList() {
   const { setMenuEditor } = useMenuEditor();
 
   const queryClient = useQueryClient();
-  const editToppingMutation = useMutation({
-    mutationFn: editTopping,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: storeToppingsKey(storeId) });
-    },
-  });
 
   const { data: toppings } = useSuspenseQuery(
     storeToppingsQueryOptions(storeId),
@@ -42,18 +32,18 @@ export function ToppingList() {
           <Fragment key={topping.id}>
             <ToppingCard topping={topping} />
             <SoldOutSwitch
-              submitFunction={() => {
-                editToppingMutation.mutate({
+              itemName={topping.name}
+              isSoldOut={topping.soldOut}
+              onConfirm={async () => {
+                await editTopping({
                   storeId,
                   toppingId: topping.id,
-                  editToppingInput: {
-                    soldOut: !topping.soldOut,
-                  },
+                  editToppingInput: { soldOut: !topping.soldOut },
+                });
+                await queryClient.invalidateQueries({
+                  queryKey: storeToppingsKey(storeId),
                 });
               }}
-              itemName={topping.name}
-              isDisabledButton={editToppingMutation.isPending}
-              isSoldOut={topping.soldOut}
             />
           </Fragment>
         ))}

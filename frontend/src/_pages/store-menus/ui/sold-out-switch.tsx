@@ -4,36 +4,34 @@ import { Dialog, DialogContent, DialogTrigger } from "@/shared/ui/dialog";
 import { Switch } from "@/shared/ui/switch";
 import { useState } from "react";
 import { ActionButton } from "@/shared/ui/action-button";
+import { useMutation } from "@tanstack/react-query";
 
 type SoldOutSwitch = {
-  submitFunction: () => void;
+  onConfirm: () => Promise<unknown>;
   itemName: string;
-  isDisabledButton: boolean;
   isSoldOut: boolean;
-  errorMessage?: string;
 };
 
 export function SoldOutSwitch({
-  submitFunction,
-  isDisabledButton,
+  onConfirm,
   isSoldOut,
   itemName,
-  errorMessage,
 }: SoldOutSwitch) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  function handleSubmit() {
-    setIsDialogOpen(false);
-    submitFunction();
+  const mutation = useMutation({
+    mutationFn: onConfirm,
+    onSuccess: () => setIsDialogOpen(false),
+  });
+
+  function handleOpenChange(open: boolean) {
+    // 前回の失敗表示を消す
+    if (open) mutation.reset();
+    setIsDialogOpen(open);
   }
 
   return (
-    <Dialog
-      open={isDialogOpen}
-      onOpenChange={(open) => {
-        setIsDialogOpen(open);
-      }}
-    >
+    <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger
         nativeButton={false}
         render={
@@ -59,18 +57,17 @@ export function SoldOutSwitch({
           )}
         </div>
 
-        {errorMessage && (
+        {mutation.isError && (
           <p className="text-notice text-sm" role="alert">
-            {errorMessage}
+            {mutation.error.message}
           </p>
         )}
 
         <ActionButton
-          disabled={isDisabledButton}
-          // TODO: variantのdestructiveをfigmaのデザインに寄せる。影響範囲が大きいので別PRで
+          disabled={mutation.isPending}
           variant={isSoldOut ? "destructive" : "default"}
           className="shadow-none"
-          onClick={handleSubmit}
+          onClick={() => mutation.mutate()}
         >
           {isSoldOut ? "完売解除" : "完売した！"}
         </ActionButton>
