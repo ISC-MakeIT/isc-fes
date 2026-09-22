@@ -7,10 +7,14 @@ import {
 } from "@tanstack/react-query";
 import { useStoreId } from "../model/hooks/use-store-id";
 import { storeToppingsQueryOptions } from "../api/fetch-store-toppings";
-import { editTopping, EditToppingInput } from "../api/edit-topping";
+import { editTopping } from "../api/edit-topping";
 import { storeToppingsKey } from "@/shared/config";
 import { EditorType, useMenuEditor } from "../model/menu-editor-context";
-import { toppingFormOptions, ToppingFormValues } from "../model/topping-form";
+import {
+  CompleteToppingFormValues,
+  toppingFormOptions,
+  ToppingFormValues,
+} from "../model/topping-form";
 import { useAppForm } from "@/shared/lib/form-hook";
 import { v } from "@/shared/lib/valibot";
 import { HeadingCard } from "@/shared/ui/heading-card";
@@ -19,6 +23,8 @@ import { ActionButton } from "@/shared/ui/action-button";
 import { Topping } from "@/entities/topping";
 import { DeleteItemButton } from "./delete-item-button";
 import { deleteTopping } from "../api/delete-topping";
+import { pickChangedFields } from "../lib/pick-changed-fields";
+import { useState } from "react";
 
 type EditToppingFormProps = {
   toppingId: string;
@@ -67,10 +73,10 @@ function EditToppingFormContent({
     },
   });
 
-  const initialValues: ToppingFormValues = {
+  const [initialValues] = useState<ToppingFormValues>({
     name: topping.name,
     unitPrice: topping.unitPrice,
-  };
+  });
 
   const form = useAppForm({
     ...toppingFormOptions,
@@ -79,11 +85,12 @@ function EditToppingFormContent({
     onSubmit: async ({ value, formApi }) => {
       if (formApi.state.isDefaultValue) return;
 
-      const editToppingInput = v.parse(EditToppingInput, value);
+      const currentValues = v.parse(CompleteToppingFormValues, value);
+
       await editToppingMutation.mutateAsync({
         storeId,
         toppingId: topping.id,
-        editToppingInput,
+        editToppingInput: pickChangedFields({ initialValues, currentValues }),
       });
     },
   });

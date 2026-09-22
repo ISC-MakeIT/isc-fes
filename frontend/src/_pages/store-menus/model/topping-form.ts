@@ -13,10 +13,13 @@ const defaultToppingFormValues: ToppingFormValues = {
   unitPrice: undefined,
 };
 
-const CompleteToppingFormValues = v.object({
+export const CompleteToppingFormValues = v.object({
   name: ToppingName,
   unitPrice: ToppingUnitPrice,
 });
+export type CompleteToppingFormValues = v.InferOutput<
+  typeof CompleteToppingFormValues
+>;
 
 export const toppingFormOptions = formOptions({
   defaultValues: defaultToppingFormValues,
