@@ -36,8 +36,8 @@ export function MenuList() {
     <section className="border-primary border-b">
       <HeadingCard className="px-8 py-4">メニュー</HeadingCard>
       <div className="space-y-6 py-8">
-        <div className="grid grid-cols-[minmax(0,1fr)_4.375rem] gap-x-6 gap-y-6">
-          <p className="border-foreground border-b text-center text-lg">
+        <div className="grid grid-cols-[minmax(0,1fr)_4.375rem] items-center justify-items-center gap-x-6 gap-y-6">
+          <p className="border-foreground w-full border-b text-center text-lg">
             メニュー名
           </p>
           <p className="border-foreground border-b text-center text-lg">
@@ -46,21 +46,19 @@ export function MenuList() {
           {menus.map((menu) => (
             <Fragment key={menu.id}>
               <MenuCard menu={menu} />
-              <div className="flex items-center justify-center">
-                <SoldOutSwitch
-                  itemName={menu.name}
-                  errorMessage={editMenuMutation.error?.message}
-                  isSoldOut={menu.soldOut}
-                  isDisabledButton={editMenuMutation.isPending}
-                  submitFunction={() =>
-                    editMenuMutation.mutate({
-                      storeId,
-                      menuId: menu.id,
-                      editMenuInput: { soldOut: !menu.soldOut },
-                    })
-                  }
-                />
-              </div>
+              <SoldOutSwitch
+                itemName={menu.name}
+                errorMessage={editMenuMutation.error?.message}
+                isSoldOut={menu.soldOut}
+                isDisabledButton={editMenuMutation.isPending}
+                submitFunction={() =>
+                  editMenuMutation.mutate({
+                    storeId,
+                    menuId: menu.id,
+                    editMenuInput: { soldOut: !menu.soldOut },
+                  })
+                }
+              />
             </Fragment>
           ))}
         </div>
