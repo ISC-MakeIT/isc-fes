@@ -18,3 +18,7 @@
 # 構成図
 
 ![アーキテクチャ](assets/infra-architecture.png)
+
+# 開発ドキュメント
+
+- [Observability](docs/observability.md)

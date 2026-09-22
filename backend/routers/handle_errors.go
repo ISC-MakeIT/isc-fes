@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/isc-makeit/isc-fes/backend/services"
 )
@@ -84,14 +85,17 @@ func (s *Server) handleCommonServiceErrors(c *gin.Context, err error, options ..
 		})
 		return
 	default:
-		log.Printf("%s", err.Error())
-		if notifyErr := s.errorNotifier.Critical(c.Request.Context(), err.Error()); notifyErr != nil {
-			log.Printf("failed to notify unexpected error: %v", notifyErr)
-		}
-		// TODO: 致命的なエラーは discord に通知するようにする
+		captureUnexpectedError(c, err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: messages.Internal,
 		})
 		return
+	}
+}
+
+func captureUnexpectedError(c *gin.Context, err error) {
+	log.Printf("%s", err.Error())
+	if hub := sentrygin.GetHubFromContext(c); hub != nil {
+		hub.CaptureException(err)
 	}
 }

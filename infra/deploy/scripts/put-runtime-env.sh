@@ -16,26 +16,40 @@ for required_command in aws docker git terraform; do
   fi
 done
 
-env_file="${1:-infra/deploy/.env}"
+env_source="${1:-infra/deploy/.env}"
+env_file="$env_source"
+temporary_env_file=""
 
-if [[ ! -f "$env_file" ]]; then
-  echo "Runtime環境変数ファイルがありません: ${env_file}" >&2
+cleanup() {
+  if [[ -n "$temporary_env_file" ]]; then
+    rm -f "$temporary_env_file"
+  fi
+}
+trap cleanup EXIT
+
+if [[ -p "$env_source" ]]; then
+  temporary_env_file="$(mktemp "${TMPDIR:-/tmp}/isc-fes-runtime-env.XXXXXX")"
+  chmod 600 "$temporary_env_file"
+  cat "$env_source" > "$temporary_env_file"
+  env_file="$temporary_env_file"
+elif [[ ! -f "$env_source" ]]; then
+  echo "Runtime環境変数ファイルがありません: ${env_source}" >&2
   echo "infra/deploy/.env.exampleをもとに作成してください。" >&2
   exit 1
 fi
 
 if [[ ! -s "$env_file" ]]; then
-  echo "Runtime環境変数ファイルが空です: ${env_file}" >&2
+  echo "Runtime環境変数ファイルが空です: ${env_source}" >&2
   exit 1
 fi
 
-if git ls-files --error-unmatch "$env_file" >/dev/null 2>&1; then
-  echo "Secretを含むファイルがGitで追跡されています: ${env_file}" >&2
+if git ls-files --error-unmatch "$env_source" >/dev/null 2>&1; then
+  echo "Secretを含むファイルがGitで追跡されています: ${env_source}" >&2
   exit 1
 fi
 
-if ! git check-ignore --quiet "$env_file"; then
-  echo "Secretを含むファイルが.gitignoreの対象ではありません: ${env_file}" >&2
+if ! git check-ignore --quiet "$env_source"; then
+  echo "Secretを含むファイルが.gitignoreの対象ではありません: ${env_source}" >&2
   exit 1
 fi
 
@@ -54,6 +68,9 @@ readonly required_keys=(
   AWS_REGION
   S3_BUCKET
   STORE_IMAGE_BASE_URL
+  SENTRY_DSN
+  SENTRY_ENVIRONMENT
+  SENTRY_TRACES_SAMPLE_RATE
 )
 
 for key in "${required_keys[@]}"; do
@@ -81,6 +98,11 @@ fi
 
 if ! grep -Fxq "SESSION_COOKIE_DOMAIN=fes.iwasaki.ac.jp" "$env_file"; then
   echo "SESSION_COOKIE_DOMAINにはfes.iwasaki.ac.jpを設定してください。" >&2
+  exit 1
+fi
+
+if ! grep -Fxq "SENTRY_ENVIRONMENT=prod" "$env_file"; then
+  echo "SENTRY_ENVIRONMENTには本番用のprodを設定してください。" >&2
   exit 1
 fi
 
