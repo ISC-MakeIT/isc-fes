@@ -1,5 +1,6 @@
 export {
   Topping,
+  ToppingId,
   ToppingName,
   ToppingUnitPrice,
   ToppingSoldOut,
