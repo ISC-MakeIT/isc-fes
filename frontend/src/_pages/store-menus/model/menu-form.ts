@@ -26,6 +26,7 @@ export const CompleteEditMenuFormValues = v.object({
   image: v.optional(UploadImage),
   unitPrice: MenuUnitPrice,
   description: MenuDescription,
+  toppingIds: v.array(ToppingId),
 });
 export type CompleteEditMenuFormValues = v.InferOutput<
   typeof CompleteEditMenuFormValues

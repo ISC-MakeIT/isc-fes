@@ -21,3 +21,10 @@ export const currentAccountKey = () => ["account", "me"];
 export const storeApplicationsKey = () => ["store-applications"];
 export const roomsKey = () => ["rooms"];
 export const allergensKey = () => ["allergens"];
+export const menuToppingsKey = (storeId: string, menuId: string) => [
+  "store",
+  storeId,
+  "menu",
+  menuId,
+  "toppings",
+];

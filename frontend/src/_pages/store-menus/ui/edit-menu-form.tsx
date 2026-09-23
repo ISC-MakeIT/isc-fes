@@ -24,6 +24,7 @@ import { DeleteItemButton } from "./delete-item-button";
 import { pickChangedFields } from "../lib/pick-changed-fields";
 import { useRef } from "react";
 import { useMenuEditor } from "../model/hooks/use-menu-editor";
+import { menuToppingsQueryOptions } from "@/entities/topping/api/fetch-menu-toppings";
 
 type EditMenuFormProps = {
   menuId: string;
@@ -52,6 +53,13 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
   const { closeEditor } = useMenuEditor();
 
   const queryClient = useQueryClient();
+
+  const { data: menuToppingIds } = useSuspenseQuery({
+    ...menuToppingsQueryOptions({ storeId, menuId: menu.id }),
+    // ToppingIdsしか使わないのでidだけを取り出す。キャッシュも効く
+    select: (toppings) => toppings.map((topping) => topping.id),
+  });
+
   const editMenuMutation = useMutation({
     mutationFn: editMenu,
     onSuccess: () => {
@@ -73,6 +81,7 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
     image: undefined,
     unitPrice: menu.unitPrice,
     description: menu.description,
+    toppingIds: menuToppingIds,
   });
 
   const form = useAppForm({
