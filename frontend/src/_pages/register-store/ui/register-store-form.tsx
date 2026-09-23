@@ -255,14 +255,22 @@ export function RegisterStoreForm() {
           state.canSubmit,
           state.isPristine,
           state.isSubmitting,
+          state.isSubmitSuccessful,
         ]}
-        children={([canSubmit, isPristine, isSubmitting]) => (
+        children={([
+          canSubmit,
+          isPristine,
+          isSubmitting,
+          isSubmitSuccessful,
+        ]) => (
           <ActionButton
             type="submit"
-            disabled={!canSubmit || isPristine || isSubmitting}
+            disabled={
+              !canSubmit || isPristine || isSubmitting || isSubmitSuccessful
+            }
             className="rounded-lg px-14 py-4 text-lg"
           >
-            {isSubmitting ? "送信中" : "この内容で申請する"}
+            この内容で申請する
           </ActionButton>
         )}
       />
