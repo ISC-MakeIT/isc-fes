@@ -4,6 +4,7 @@ import {
   Menu,
   MenuDescription,
   MenuName,
+  MenuSoldOut,
   MenuUnitPrice,
 } from "@/entities/menu";
 import { getStatusMessage } from "@/shared/config";
@@ -17,6 +18,7 @@ const EditMenuInput = v.object({
   image: v.optional(UploadImage),
   unitPrice: v.optional(MenuUnitPrice),
   description: v.optional(MenuDescription),
+  soldOut: v.optional(MenuSoldOut),
   // TODO: トッピング
 });
 type EditMenuInput = v.InferOutput<typeof EditMenuInput>;

@@ -4,27 +4,30 @@ import { ActionButton } from "@/shared/ui/action-button";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { PlusIcon } from "lucide-react";
 import { EditorType, useMenuEditor } from "../model/menu-editor-context";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { storeMenusQueryOptions } from "@/entities/menu";
 import { Menu } from "@/entities/menu";
 import { PreviewImage } from "@/shared/ui/preview-image";
-import { MENU_IMAGE_ASPECT } from "@/shared/config";
+import { MENU_IMAGE_ASPECT, storeMenusKey } from "@/shared/config";
 import { useStoreId } from "../model/hooks/use-store-id";
 import { SoldOutSwitch } from "./sold-out-switch";
 import { Fragment } from "react/jsx-runtime";
 import { Button } from "@/shared/ui/button";
+import { editMenu } from "../api/edit-menu";
 
 export function MenuList() {
   const storeId = useStoreId();
   const { setMenuEditor } = useMenuEditor();
   const { data: menus } = useSuspenseQuery(storeMenusQueryOptions(storeId));
 
+  const queryClient = useQueryClient();
+
   return (
     <section className="border-primary border-b">
       <HeadingCard className="px-8 py-4">メニュー</HeadingCard>
       <div className="space-y-6 py-8">
-        <div className="grid grid-cols-[minmax(0,1fr)_4.375rem] gap-x-6 gap-y-6">
-          <p className="border-foreground border-b text-center text-lg">
+        <div className="grid grid-cols-[minmax(0,1fr)_4.375rem] items-center justify-items-center gap-x-6 gap-y-6">
+          <p className="border-foreground w-full border-b text-center text-lg">
             メニュー名
           </p>
           <p className="border-foreground border-b text-center text-lg">
@@ -33,9 +36,20 @@ export function MenuList() {
           {menus.map((menu) => (
             <Fragment key={menu.id}>
               <MenuCard menu={menu} />
-              <div className="flex items-center justify-center">
-                <SoldOutSwitch menu={menu} />
-              </div>
+              <SoldOutSwitch
+                itemName={menu.name}
+                isSoldOut={menu.soldOut}
+                onConfirm={async () => {
+                  await editMenu({
+                    storeId,
+                    menuId: menu.id,
+                    editMenuInput: { soldOut: !menu.soldOut },
+                  });
+                  await queryClient.invalidateQueries({
+                    queryKey: storeMenusKey(storeId),
+                  });
+                }}
+              />
             </Fragment>
           ))}
         </div>
