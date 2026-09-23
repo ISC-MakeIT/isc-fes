@@ -6,4 +6,4 @@ export {
   ToppingSoldOut,
 } from "./model/types";
 
-export { fetchMenuToppings } from "./api/fetch-menu-toppings";
+export { menuToppingsQueryOptions } from "./api/fetch-menu-toppings";

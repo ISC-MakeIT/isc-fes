@@ -24,7 +24,7 @@ import { DeleteItemButton } from "./delete-item-button";
 import { pickChangedFields } from "../lib/pick-changed-fields";
 import { useRef } from "react";
 import { useMenuEditor } from "../model/hooks/use-menu-editor";
-import { menuToppingsQueryOptions } from "@/entities/topping/api/fetch-menu-toppings";
+import { menuToppingsQueryOptions } from "@/entities/topping";
 
 type EditMenuFormProps = {
   menuId: string;
