@@ -20,8 +20,10 @@ export async function StoreMenusView({ storeId }: StoreMenusViewProps) {
   return (
     <HydrationBoundary state={dehydrate(client)}>
       <MenuEditorProvider>
-        <div className="lg:grid lg:grid-cols-[1fr_25rem]">
-          <MenuCatalog />
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_25rem] lg:justify-center">
+          <div className="w-full max-w-150 justify-self-center">
+            <MenuCatalog />
+          </div>
           <MenuEditor />
         </div>
       </MenuEditorProvider>
