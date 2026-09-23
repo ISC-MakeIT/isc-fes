@@ -31,7 +31,7 @@ export function useMenuEditor() {
   }
 
   function closeEditor() {
-    return setEditor(null);
+    return setEditor(null, { history: "replace" });
   }
 
   return {
