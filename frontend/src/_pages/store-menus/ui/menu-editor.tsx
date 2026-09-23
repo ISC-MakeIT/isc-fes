@@ -1,16 +1,15 @@
 "use client";
 
 import { ChevronLeftIcon } from "lucide-react";
-import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { CreateMenuForm } from "./create-menu-form";
 import { CreateToppingForm } from "./create-topping-form";
 import { EditMenuForm } from "./edit-menu-form";
 import { EditToppingForm } from "./edit-topping-form";
+import { EditorTarget, useMenuEditor } from "../model/hooks/use-menu-editor";
 
 export function MenuEditor() {
-  const { menuEditor, setMenuEditor } = useMenuEditor();
-  const [type, id] = menuEditor;
-  const isOpen = type !== EditorType.Closed;
+  const { editorTarget, itemId, isOpen, closeEditor } = useMenuEditor();
+
   return (
     <div className={isOpen ? "block" : "hidden lg:block"}>
       <header className="shadow-editor-header bg-background px-4 py-1 lg:hidden">
@@ -18,7 +17,7 @@ export function MenuEditor() {
           type="button"
           className="cursor-pointer"
           aria-label="一覧に戻る"
-          onClick={() => setMenuEditor([EditorType.Closed])}
+          onClick={closeEditor}
         >
           <ChevronLeftIcon size={50} strokeWidth={1} />
         </button>
@@ -26,17 +25,19 @@ export function MenuEditor() {
 
       <div className="flex h-full min-h-dvh flex-col py-18">
         <div className="lg:border-primary h-full px-6 py-4 lg:border-l">
-          {type === EditorType.CreateMenu && <CreateMenuForm />}
+          {editorTarget === EditorTarget.Menu && !itemId && <CreateMenuForm />}
 
           {/* keyを渡すことで、メニューのidが変わった時に再レンダリングを起こしている */}
-          {type === EditorType.EditMenu && (
-            <EditMenuForm key={id} menuId={id} />
+          {editorTarget === EditorTarget.Menu && itemId && (
+            <EditMenuForm key={itemId} menuId={itemId} />
           )}
 
-          {type === EditorType.CreateTopping && <CreateToppingForm />}
+          {editorTarget === EditorTarget.Topping && !itemId && (
+            <CreateToppingForm />
+          )}
 
-          {type === EditorType.EditTopping && (
-            <EditToppingForm key={id} toppingId={id} />
+          {editorTarget === EditorTarget.Topping && itemId && (
+            <EditToppingForm key={itemId} toppingId={itemId} />
           )}
         </div>
       </div>

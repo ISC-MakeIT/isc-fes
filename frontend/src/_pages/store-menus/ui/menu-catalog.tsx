@@ -1,14 +1,12 @@
 "use client";
 
 import { cn } from "@/shared/lib/utils";
-import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { MenuList } from "./menu-list";
 import { ToppingList } from "./topping-list";
+import { useMenuEditor } from "../model/hooks/use-menu-editor";
 
 export function MenuCatalog() {
-  const { menuEditor } = useMenuEditor();
-  const [type] = menuEditor;
-  const isOpen = type !== EditorType.Closed;
+  const { isOpen } = useMenuEditor();
 
   return (
     <div

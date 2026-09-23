@@ -13,7 +13,6 @@ import { storeMenusKey } from "@/shared/config";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { MenuFormFields } from "./menu-form-fields";
 import { ActionButton } from "@/shared/ui/action-button";
-import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { useAppForm } from "@/shared/lib/form-hook";
 import {
   CompleteEditMenuFormValues,
@@ -24,6 +23,7 @@ import { deleteMenu } from "../api/delete-menu";
 import { DeleteItemButton } from "./delete-item-button";
 import { pickChangedFields } from "../lib/pick-changed-fields";
 import { useRef } from "react";
+import { useMenuEditor } from "../model/hooks/use-menu-editor";
 
 type EditMenuFormProps = {
   menuId: string;
@@ -47,14 +47,14 @@ type EditMenuFormContentProps = {
 };
 
 function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
-  const { setMenuEditor } = useMenuEditor();
+  const { closeEditor } = useMenuEditor();
 
   const queryClient = useQueryClient();
   const editMenuMutation = useMutation({
     mutationFn: editMenu,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) });
-      setMenuEditor([EditorType.Closed]);
+      closeEditor();
     },
   });
 
@@ -62,7 +62,7 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
     mutationFn: deleteMenu,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) });
-      setMenuEditor([EditorType.Closed]);
+      closeEditor();
     },
   });
 

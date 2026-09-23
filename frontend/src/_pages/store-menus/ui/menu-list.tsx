@@ -3,7 +3,6 @@
 import { ActionButton } from "@/shared/ui/action-button";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { PlusIcon } from "lucide-react";
-import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { storeMenusQueryOptions } from "@/entities/menu";
 import { Menu } from "@/entities/menu";
@@ -14,10 +13,11 @@ import { SoldOutSwitch } from "./sold-out-switch";
 import { Fragment } from "react/jsx-runtime";
 import { Button } from "@/shared/ui/button";
 import { editMenu } from "../api/edit-menu";
+import { EditorTarget, useMenuEditor } from "../model/hooks/use-menu-editor";
 
 export function MenuList() {
   const storeId = useStoreId();
-  const { setMenuEditor } = useMenuEditor();
+  const { openEditor } = useMenuEditor();
   const { data: menus } = useSuspenseQuery(storeMenusQueryOptions(storeId));
 
   const queryClient = useQueryClient();
@@ -57,7 +57,7 @@ export function MenuList() {
         <ActionButton
           className="px-6 py-4 text-lg font-bold"
           isDot={false}
-          onClick={() => setMenuEditor([EditorType.CreateMenu])}
+          onClick={() => openEditor(EditorTarget.Menu)}
         >
           <PlusIcon className="size-6" />
           メニューの追加
@@ -72,13 +72,13 @@ type MenuCard = {
 };
 
 function MenuCard({ menu }: MenuCard) {
-  const { setMenuEditor } = useMenuEditor();
+  const { openEditor } = useMenuEditor();
   return (
     <Button
       type="button"
       variant="outline"
       className="border-foreground shadow-primary flex h-auto w-full cursor-pointer flex-row items-center gap-4 rounded-sm border px-6 py-4 font-bold shadow-[8px_8px_0_0]"
-      onClick={() => setMenuEditor([EditorType.EditMenu, menu.id])}
+      onClick={() => openEditor(EditorTarget.Menu, menu.id)}
     >
       <PreviewImage
         ratio={MENU_IMAGE_ASPECT}
