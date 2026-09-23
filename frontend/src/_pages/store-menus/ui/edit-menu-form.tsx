@@ -35,7 +35,9 @@ export function EditMenuForm({ menuId }: EditMenuFormProps) {
   const { data: menus } = useSuspenseQuery(storeMenusQueryOptions(storeId));
   const menu = menus.find((menu) => menu.id === menuId);
   if (!menu) {
-    throw new Error("このメニューは削除されたか、利用できなくなりました。");
+    return (
+      <p role="alert">このメニューは削除されたか、利用できなくなりました。</p>
+    );
   }
 
   return <EditMenuFormContent menu={menu} storeId={storeId} />;

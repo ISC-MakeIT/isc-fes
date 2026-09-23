@@ -38,7 +38,9 @@ export function EditToppingForm({ toppingId }: EditToppingFormProps) {
   );
   const topping = toppings.find((i) => i.id === toppingId);
   if (!topping) {
-    throw new Error("カスタマイズは削除されたか利用できなくなりました。");
+    return (
+      <p role="alert">このメニューは削除されたか、利用できなくなりました。</p>
+    );
   }
 
   // 条件つきフックを回避するために別コンポーネントに分けている
