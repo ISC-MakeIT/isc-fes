@@ -69,7 +69,7 @@ export const MenuFormFields = withForm({
                   onBlur={field.handleBlur}
                 />
                 <PreviewImage
-                  className={cn(inputStyle, "w-37.5")}
+                  className={cn(inputStyle, "w-37.5 md:w-75")}
                   ratio={MENU_IMAGE_ASPECT}
                   imageFile={field.state.value}
                   imagePath={initialImageUrl}
