@@ -9,7 +9,7 @@ import { useStoreId } from "../model/hooks/use-store-id";
 import { Menu, storeMenusQueryOptions } from "@/entities/menu";
 import { editMenu } from "../api/edit-menu";
 import { v } from "@/shared/lib/valibot";
-import { storeMenusKey } from "@/shared/config";
+import { menuToppingsKeys, storeMenusKey } from "@/shared/config";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { MenuFormFields } from "./menu-form-fields";
 import { ActionButton } from "@/shared/ui/action-button";
@@ -62,16 +62,27 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
 
   const editMenuMutation = useMutation({
     mutationFn: editMenu,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) }),
+        queryClient.invalidateQueries({
+          queryKey: menuToppingsKeys.detail(storeId, menu.id),
+        }),
+      ]);
       closeEditor();
     },
   });
 
   const deleteMenuMutation = useMutation({
     mutationFn: deleteMenu,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) }),
+        queryClient.removeQueries({
+          queryKey: menuToppingsKeys.detail(storeId, menu.id),
+          exact: true,
+        }),
+      ]);
       closeEditor();
     },
   });

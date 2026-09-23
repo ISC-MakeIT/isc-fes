@@ -37,7 +37,7 @@ export {
   roomsKey,
   storeToppingsKey,
   allergensKey,
-  menuToppingsKey,
+  menuToppingsKeys,
 } from "./constants/query-keys";
 
 export {

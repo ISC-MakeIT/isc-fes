@@ -1,8 +1,8 @@
 import { createApiClient } from "@/shared/api";
 import { Topping } from "../model/types";
-import { getStatusMessage, menuToppingsKey } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { queryOptions } from "@tanstack/react-query";
+import { getStatusMessage, menuToppingsKeys } from "@/shared/config";
 
 type FetchMenuToppingsParams = {
   storeId: string;
@@ -38,7 +38,7 @@ export function menuToppingsQueryOptions({
   storeId,
 }: FetchMenuToppingsParams) {
   return queryOptions({
-    queryKey: menuToppingsKey(storeId, menuId),
+    queryKey: menuToppingsKeys.detail(storeId, menuId),
     queryFn: () => fetchMenuToppings({ storeId, menuId }),
   });
 }
