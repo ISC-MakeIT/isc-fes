@@ -12,7 +12,7 @@ export function GuestFooter() {
         <div className="space-y-10">
           <div className="flex flex-row items-center justify-center">
             <Image src={appLogo} alt={"アプリのロゴ"} />
-            <DotText className="text-[1.375rem]">アプリ名</DotText>
+            <DotText className="text-[1.375rem]">ふぇすNavi</DotText>
           </div>
           <nav className="flex flex-col items-center gap-4">
             <Link className={linkStyle} href={homeUrl()}>
