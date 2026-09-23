@@ -2,6 +2,7 @@
 
 import {
   useMutation,
+  useQuery,
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
@@ -54,6 +55,7 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
 
   const queryClient = useQueryClient();
 
+  // SSCの実行時点ではどのメニューを編集するか未確定なので、上位のSSCでのprefetchはしない
   const { data: menuToppingIds } = useSuspenseQuery({
     ...menuToppingsQueryOptions({ storeId, menuId: menu.id }),
     // ToppingIdsしか使わないのでidだけを取り出す。キャッシュも効く
