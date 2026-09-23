@@ -7,6 +7,7 @@ import { Textarea } from "@/shared/ui/textarea";
 import { MENU_IMAGE_ASPECT } from "@/shared/config";
 import { withForm } from "@/shared/lib/form-hook";
 import { menuFormOptions, MenuFormValues } from "../model/menu-form";
+import { cn } from "@/shared/lib/utils";
 
 type MenuFormFieldsProps = {
   initialImageUrl?: string;
@@ -68,7 +69,7 @@ export const MenuFormFields = withForm({
                   onBlur={field.handleBlur}
                 />
                 <PreviewImage
-                  className={inputStyle}
+                  className={cn(inputStyle, "w-37.5")}
                   ratio={MENU_IMAGE_ASPECT}
                   imageFile={field.state.value}
                   imagePath={initialImageUrl}
@@ -94,7 +95,7 @@ export const MenuFormFields = withForm({
             </FieldLabel>
             <FieldContent>
               <Input
-                className={inputStyle}
+                className={cn(inputStyle, "w-37.5")}
                 type="number"
                 id={field.name}
                 name={field.name}
