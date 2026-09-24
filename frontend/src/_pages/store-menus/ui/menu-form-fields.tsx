@@ -153,19 +153,15 @@ export const MenuFormFields = withForm({
           children={(field) => (
             <Field>
               <FieldLabel className="text-xl">カスタマイズ</FieldLabel>
-              <p>
-                {toppings.length === 0 ? (
-                  <p>
-                    カスタマイズが登録されていません
-                    <br />
-                    「カスタマイズの追加」から登録してください。
-                  </p>
-                ) : (
-                  <p>
-                    このメニューに適用可能なカスタマイズを選択してください。
-                  </p>
-                )}
-              </p>
+              {toppings.length === 0 ? (
+                <p>
+                  カスタマイズが登録されていません
+                  <br />
+                  「カスタマイズの追加」から登録してください。
+                </p>
+              ) : (
+                <p>このメニューに適用可能なカスタマイズを選択してください。</p>
+              )}
               <FieldContent>
                 <ToggleGroup
                   multiple
