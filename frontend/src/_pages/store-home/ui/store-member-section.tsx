@@ -13,7 +13,7 @@ import { Button } from "@/shared/ui/button";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { ICON_IMAGE_ASPECT, storeMembersKey } from "@/shared/config";
 import { StoreInvitationDialog } from "./store-invitation-dialog";
-import { storeMemberByAccountIdQueryOptions } from "../api/fetch-store-member-by-id";
+import { storeMemberByAccountIdQueryOptions } from "@/entities/store-member";
 import { canDeleteMember } from "../lib/can-delete-member";
 import { deleteStoreMemberById } from "../api/delete-store-member-by-id";
 import { XIcon } from "lucide-react";
