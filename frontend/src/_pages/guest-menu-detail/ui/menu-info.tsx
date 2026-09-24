@@ -28,6 +28,7 @@ export function MenuInfo({ storeId, menuId }: MenuInfoProps) {
   return (
     <section className="space-y-8">
       <AspectRatioImage
+        src={menu.imageUrl}
         ratio={MENU_IMAGE_ASPECT}
         alt={`${menu.name}の画像`}
         className="mx-auto w-full rounded-sm md:max-w-75"
