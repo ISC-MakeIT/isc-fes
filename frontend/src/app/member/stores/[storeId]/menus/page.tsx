@@ -23,7 +23,7 @@ export default async function StoreMenusPage({
     storeMemberByAccountIdQueryOptions(storeId, account.id),
   );
 
-  if (currentMember.role === StoreMemberRole.Staff) {
+  if (currentMember.role !== StoreMemberRole.Manager) {
     notFound();
   }
 
