@@ -1,30 +1,13 @@
-"use client";
-
-import { storeMenusQueryOptions } from "@/entities/menu";
+import { Menu } from "@/entities/menu";
 import { MENU_IMAGE_ASPECT } from "@/shared/config";
 import { formatYen } from "@/shared/lib/formatYen";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
-import { useSuspenseQuery } from "@tanstack/react-query";
 
 type MenuInfoProps = {
-  storeId: string;
-  menuId: string;
+  menu: Menu;
 };
 
-export function MenuInfo({ storeId, menuId }: MenuInfoProps) {
-  const { data: menu } = useSuspenseQuery({
-    ...storeMenusQueryOptions(storeId),
-    select: (menus) => menus.find((menu) => menu.id === menuId),
-  });
-
-  if (!menu) {
-    return (
-      <p className="flex flex-1 justify-center text-xl">
-        メニューが見つかりませんでした
-      </p>
-    );
-  }
-
+export function MenuInfo({ menu }: MenuInfoProps) {
   return (
     <section className="space-y-8">
       <AspectRatioImage

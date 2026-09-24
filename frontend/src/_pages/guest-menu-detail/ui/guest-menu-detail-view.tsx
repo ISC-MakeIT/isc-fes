@@ -4,6 +4,7 @@ import { createQueryClient } from "@/shared/api";
 import { MenuInfo } from "./menu-info";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ToppingSelector } from "./topping-selector";
+import { notFound } from "next/navigation";
 
 type GuestMenuDetailViewProps = {
   storeId: string;
@@ -16,16 +17,22 @@ export async function GuestMenuDetailView({
 }: GuestMenuDetailViewProps) {
   const queryClient = createQueryClient();
 
-  await Promise.all([
-    queryClient.prefetchQuery(storeMenusQueryOptions(storeId)),
+  const [menus] = await Promise.all([
+    queryClient.fetchQuery(storeMenusQueryOptions(storeId)),
     queryClient.prefetchQuery(menuToppingsQueryOptions({ storeId, menuId })),
   ]);
+
+  const menu = menus.find((menu) => menu.id === menuId);
+
+  if (!menu) {
+    notFound();
+  }
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <div className="px-6 py-8 pb-32">
         <div className="justify-center gap-8 space-y-8 md:grid md:grid-cols-[minmax(0,35rem)_27.5rem]">
-          <MenuInfo storeId={storeId} menuId={menuId} />
+          <MenuInfo menu={menu} />
           <div className="md:border-primary/50 py-8 md:border-l-2 md:pt-0">
             <ToppingSelector storeId={storeId} menuId={menuId} />
           </div>
