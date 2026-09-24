@@ -22,7 +22,11 @@ export function ToppingSelector({ storeId, menuId }: ToppingSelectorType) {
       <h2 className="border-foreground w-full border-b text-xl">
         カスタマイズ
       </h2>
-      <ToggleGroup multiple className="flex w-full flex-col gap-4">
+      <ToggleGroup
+        multiple
+        orientation="vertical"
+        className="flex w-full flex-col gap-4"
+      >
         {toppings.map((topping) => (
           <ToggleGroupItem
             key={topping.id}
