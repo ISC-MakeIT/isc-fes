@@ -1,4 +1,4 @@
-import { storeMemberByAccountIdQueryOptions } from "@/entities/store-member/api/fetch-store-member-by-id";
+import { storeMemberByAccountIdQueryOptions } from "@/entities/store-member";
 import { currentAccountQueryOptions } from "@/entities/account";
 import { createQueryClient } from "@/shared/api";
 import { loginUrl, storeListUrl } from "@/shared/config";
