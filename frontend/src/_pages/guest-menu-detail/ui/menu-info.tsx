@@ -2,6 +2,7 @@
 
 import { storeMenusQueryOptions } from "@/entities/menu";
 import { MENU_IMAGE_ASPECT } from "@/shared/config";
+import { formatYen } from "@/shared/lib/formatYen";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
@@ -35,7 +36,9 @@ export function MenuInfo({ storeId, menuId }: MenuInfoProps) {
         <h1 className="text-[1.375rem] font-bold md:text-center">
           {menu.name}
         </h1>
-        <h2 className="text-[1.375rem] font-bold">{menu.unitPrice}</h2>
+        <h2 className="text-[1.375rem] font-bold">
+          {formatYen(menu.unitPrice)}
+        </h2>
         <p className="text-lg">{menu.description}</p>
       </div>
     </section>

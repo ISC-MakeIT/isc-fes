@@ -1,6 +1,7 @@
 "use client";
 
 import { menuToppingsQueryOptions } from "@/entities/topping";
+import { formatYen } from "@/shared/lib/formatYen";
 import { cn } from "@/shared/lib/utils";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -41,9 +42,9 @@ export function ToppingSelector({ storeId, menuId }: ToppingSelectorType) {
                 className="hidden size-5 group-data-pressed/toggle:block"
               />
             </span>
-            <div className="min-w-0 gap-3 text-left text-lg">
+            <div className="min-w-0 gap-3 space-y-3 text-left text-lg">
               <p className="truncate">{topping.name}</p>
-              <p>{topping.unitPrice}</p>
+              <p>{formatYen(topping.unitPrice)}</p>
             </div>
           </ToggleGroupItem>
         ))}
