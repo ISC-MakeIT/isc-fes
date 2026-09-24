@@ -17,7 +17,7 @@ export function ToppingSelector({ storeId, menuId }: ToppingSelectorType) {
   );
 
   return (
-    <div className="space-y-4.5 py-8">
+    <div className="space-y-4.5">
       <h2 className="border-foreground w-full border-b text-xl">
         カスタマイズ
       </h2>

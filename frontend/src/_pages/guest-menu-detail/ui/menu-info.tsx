@@ -25,15 +25,19 @@ export function MenuInfo({ storeId, menuId }: MenuInfoProps) {
   }
 
   return (
-    <>
+    <section className="space-y-8">
       <AspectRatioImage
         ratio={MENU_IMAGE_ASPECT}
         alt={`${menu.name}の画像`}
-        className="w-full rounded-sm"
+        className="mx-auto w-full rounded-sm md:max-w-75"
       />
-      <h1 className="text-[1.375rem] font-bold">{menu.name}</h1>
-      <h2 className="text-[1.375rem] font-bold">{menu.unitPrice}</h2>
-      <p className="text-lg">{menu.description}</p>
-    </>
+      <div className="space-y-8 md:space-y-6">
+        <h1 className="text-[1.375rem] font-bold md:text-center">
+          {menu.name}
+        </h1>
+        <h2 className="text-[1.375rem] font-bold">{menu.unitPrice}</h2>
+        <p className="text-lg">{menu.description}</p>
+      </div>
+    </section>
   );
 }
