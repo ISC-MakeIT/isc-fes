@@ -2,7 +2,6 @@
 
 import { ActionButton } from "@/shared/ui/action-button";
 import { PlusIcon } from "lucide-react";
-import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { useStoreId } from "../model/hooks/use-store-id";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { storeToppingsQueryOptions } from "../api/fetch-store-toppings";
@@ -13,10 +12,11 @@ import { Button } from "@/shared/ui/button";
 import { SoldOutSwitch } from "./sold-out-switch";
 import { editTopping } from "../api/edit-topping";
 import { storeToppingsKey } from "@/shared/config";
+import { EditorTarget, useMenuEditor } from "../model/hooks/use-menu-editor";
 
 export function ToppingList() {
   const storeId = useStoreId();
-  const { setMenuEditor } = useMenuEditor();
+  const { openEditor } = useMenuEditor();
 
   const queryClient = useQueryClient();
 
@@ -51,7 +51,7 @@ export function ToppingList() {
       <ActionButton
         className="px-6 py-4 text-lg font-bold"
         isDot={false}
-        onClick={() => setMenuEditor([EditorType.CreateTopping])}
+        onClick={() => openEditor(EditorTarget.Topping)}
       >
         <PlusIcon className="size-6" />
         カスタマイズの追加
@@ -65,13 +65,13 @@ type ToppingCardProps = {
 };
 
 export function ToppingCard({ topping }: ToppingCardProps) {
-  const { setMenuEditor } = useMenuEditor();
+  const { openEditor } = useMenuEditor();
   return (
     <Button
       type="button"
       variant="outline"
       className="border-foreground shadow-primary flex h-auto w-full cursor-pointer flex-row items-center gap-4 rounded-sm border px-6 py-4 font-bold shadow-[4px_4px_0]"
-      onClick={() => setMenuEditor([EditorType.EditTopping, topping.id])}
+      onClick={() => openEditor(EditorTarget.Topping, topping.id)}
     >
       <span className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-3">
         <span className="truncate text-left">{topping.name}</span>

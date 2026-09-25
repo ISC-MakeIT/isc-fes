@@ -9,7 +9,6 @@ import { useStoreId } from "../model/hooks/use-store-id";
 import { storeToppingsQueryOptions } from "../api/fetch-store-toppings";
 import { editTopping } from "../api/edit-topping";
 import { storeToppingsKey } from "@/shared/config";
-import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import {
   CompleteToppingFormValues,
   toppingFormOptions,
@@ -25,6 +24,7 @@ import { DeleteItemButton } from "./delete-item-button";
 import { deleteTopping } from "../api/delete-topping";
 import { pickChangedFields } from "../lib/pick-changed-fields";
 import { useState } from "react";
+import { useMenuEditor } from "../model/hooks/use-menu-editor";
 
 type EditToppingFormProps = {
   toppingId: string;
@@ -38,7 +38,9 @@ export function EditToppingForm({ toppingId }: EditToppingFormProps) {
   );
   const topping = toppings.find((i) => i.id === toppingId);
   if (!topping) {
-    throw new Error("カスタマイズは削除されたか利用できなくなりました。");
+    return (
+      <p role="alert">このメニューは削除されたか、利用できなくなりました。</p>
+    );
   }
 
   // 条件つきフックを回避するために別コンポーネントに分けている
@@ -54,14 +56,14 @@ function EditToppingFormContent({
   storeId,
   topping,
 }: EditToppingFormContentProps) {
-  const { setMenuEditor } = useMenuEditor();
+  const { closeEditor } = useMenuEditor();
 
   const queryClient = useQueryClient();
   const editToppingMutation = useMutation({
     mutationFn: editTopping,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: storeToppingsKey(storeId) });
-      setMenuEditor([EditorType.Closed]);
+      closeEditor();
     },
   });
 
@@ -69,7 +71,7 @@ function EditToppingFormContent({
     mutationFn: deleteTopping,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: storeToppingsKey(storeId) });
-      setMenuEditor([EditorType.Closed]);
+      closeEditor();
     },
   });
 
