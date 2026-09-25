@@ -27,35 +27,37 @@ export async function GuestStoreDetailView({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <div>
-        <AspectRatioImage
-          ratio={STORE_IMAGE_ASPECT}
-          src={store.imageUrl}
-          className="md:w-77"
-          alt="店舗のバナー画像"
-        />
+      <div className="mx-auto flex flex-col md:max-w-200">
+        <div className="md:flex md:flex-row md:items-start md:gap-1.5 md:px-6 md:pt-10 md:pb-8">
+          <AspectRatioImage
+            ratio={STORE_IMAGE_ASPECT}
+            src={store.imageUrl}
+            className="md:w-77 md:shrink-0"
+            alt="店舗のバナー画像"
+          />
 
-        <section className="space-y-8 px-8 py-8 text-center">
-          <h1 className="text-[1.375rem] font-bold">{store.name}</h1>
-          <p className="text-[1.375rem] font-bold">{store.room}</p>
-          <p className="text-lg">{store.description}</p>
-          <div className="space-y-4">
-            <p className="font-semibold">アレルギー対象8品目</p>
-            {store.allergens.length === 0 ? (
-              <p>該当なし</p>
-            ) : (
-              <div className="flex flex-row flex-wrap justify-center gap-2">
-                {store.allergens.map((allergen) => (
-                  <AllergenBadge
-                    key={allergen.id}
-                    allergen={allergen}
-                    className="w-19"
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
+          <section className="min-w-0 flex-1 space-y-8 px-8 py-8 text-left">
+            <h1 className="text-[1.375rem] font-bold">{store.name}</h1>
+            <p className="text-[1.375rem] font-bold">{store.room}</p>
+            <p className="text-lg">{store.description}</p>
+            <div className="space-y-4">
+              <p className="font-semibold">アレルギー対象8品目</p>
+              {store.allergens.length === 0 ? (
+                <p>該当なし</p>
+              ) : (
+                <div className="flex flex-row flex-wrap justify-start gap-2">
+                  {store.allergens.map((allergen) => (
+                    <AllergenBadge
+                      key={allergen.id}
+                      allergen={allergen}
+                      className="w-19"
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
 
         <MenuList storeId={storeId} />
 
