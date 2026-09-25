@@ -5,6 +5,8 @@ import { MenuInfo } from "./menu-info";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ToppingSelector } from "./topping-selector";
 import { notFound } from "next/navigation";
+import { MenuOrderActions } from "./menu-order-actions";
+import { fetchCartQueryOptions } from "@/feature/fetch-cart/api/fetch-cart";
 
 type GuestMenuDetailViewProps = {
   storeId: string;
@@ -19,6 +21,7 @@ export async function GuestMenuDetailView({
 
   const [menus] = await Promise.all([
     queryClient.fetchQuery(storeMenusQueryOptions(storeId)),
+    queryClient.prefetchQuery(fetchCartQueryOptions(storeId)),
     queryClient.prefetchQuery(menuToppingsQueryOptions({ storeId, menuId })),
   ]);
 
@@ -36,6 +39,7 @@ export async function GuestMenuDetailView({
           <div className="md:border-primary/50 py-8 md:border-l-2 md:pt-0">
             <ToppingSelector storeId={storeId} menuId={menuId} />
           </div>
+          <MenuOrderActions storeId={storeId} menu={menu} />
         </div>
       </div>
     </HydrationBoundary>

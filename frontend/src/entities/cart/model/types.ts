@@ -11,6 +11,13 @@ export const CartItemTopping = v.object({
 });
 export type CartItemTopping = v.InferOutput<typeof CartItemTopping>;
 
+export const CartItemQuantity = v.pipe(
+  v.number(),
+  v.minValue(1),
+  v.maxValue(99),
+);
+export type CartItemQuantity = v.InferOutput<typeof CartItemQuantity>;
+
 export const CartItem = v.object({
   id: v.string(),
   menuId: v.string(),

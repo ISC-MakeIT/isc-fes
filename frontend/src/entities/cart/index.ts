@@ -1,1 +1,6 @@
-export { Cart, CartItem, CartItemTopping } from "./model/types";
+export {
+  Cart,
+  CartItem,
+  CartItemTopping,
+  CartItemQuantity,
+} from "./model/types";
