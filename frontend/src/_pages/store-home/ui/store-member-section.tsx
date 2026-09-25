@@ -53,6 +53,13 @@ function StoreMemberList({ storeId, accountId }: StoreMemberListProps) {
   const { data: currentMember } = useSuspenseQuery(
     storeMemberByAccountIdQueryOptions(storeId, accountId),
   );
+
+  // SSC側でcurrentMemberが取得できなければ店舗一覧へ遷移させてるので基本的にはここは表示されない
+  // 未所属で店舗一覧への遷移中にのみ表示される想定
+  if (!currentMember) {
+    return <p>この店舗にはアクセスできません。店舗一覧へ移動します。</p>;
+  }
+
   return (
     <>
       <div className="space-y-5">

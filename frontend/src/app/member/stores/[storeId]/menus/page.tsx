@@ -22,6 +22,9 @@ export default async function StoreMenusPage({
   const currentMember = await queryClient.fetchQuery(
     storeMemberByAccountIdQueryOptions(storeId, account.id),
   );
+  if (!currentMember) {
+    notFound();
+  }
 
   if (currentMember.role !== StoreMemberRole.Manager) {
     notFound();

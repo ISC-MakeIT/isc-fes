@@ -9,7 +9,7 @@ import {
   MobileAppHeader,
   storeNavigationItems,
 } from "@/widgets/app-sidebar";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export default async function StoreManagerLayout(
   props: LayoutProps<"/member/stores/[storeId]">,
@@ -25,6 +25,10 @@ export default async function StoreManagerLayout(
   const currentMember = await queryClient.fetchQuery(
     storeMemberByAccountIdQueryOptions(storeId, account.id),
   );
+
+  if (!currentMember) {
+    notFound();
+  }
 
   return (
     <SidebarProvider
