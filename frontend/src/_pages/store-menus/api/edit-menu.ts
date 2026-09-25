@@ -20,7 +20,6 @@ const EditMenuInput = v.object({
   unitPrice: v.optional(MenuUnitPrice),
   description: v.optional(MenuDescription),
   soldOut: v.optional(MenuSoldOut),
-  // TODO: トッピング
   toppingIds: v.optional(v.array(ToppingId)),
 });
 type EditMenuInput = v.InferOutput<typeof EditMenuInput>;
