@@ -7,7 +7,7 @@ import { registerStoreUrl } from "@/shared/config";
 export function StoresView() {
   return (
     <div className="mx-auto flex max-w-141.5 flex-col items-center justify-center space-y-9 px-6 py-18">
-      <HeadingCard className="rounded-md px-8 py-4 text-xl">
+      <HeadingCard className="rounded-md px-8 py-2 text-xl md:py-4">
         店舗一覧
       </HeadingCard>
       <p>
@@ -20,7 +20,11 @@ export function StoresView() {
       </p>
       <StoreList />
 
-      <LinkButton href={registerStoreUrl()} className="px-14 py-4 text-xl">
+      <LinkButton
+        href={registerStoreUrl()}
+        className="px-14 py-4 text-xl"
+        variant="secondary"
+      >
         <PlusIcon className="size-6" />
         新規店舗申請
       </LinkButton>
