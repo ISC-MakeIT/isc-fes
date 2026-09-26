@@ -38,7 +38,7 @@ export function MenuOrderActions({ menu }: MenuOrderActionsProps) {
           >
             <MinusIcon />
           </Button>
-          <span className="text-xl font-semibold text-black">{quantity}</span>
+          <span className="text-xl font-semibold">{quantity}</span>
           <Button
             variant="tertiary"
             size="icon-xs"
