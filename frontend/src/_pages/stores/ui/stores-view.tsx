@@ -1,15 +1,15 @@
 import { Plus as PlusIcon } from "lucide-react";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { LinkButton } from "@/shared/ui/link-button";
-import { StoreCardSkelton, StoreList } from "./store-list";
-import { Suspense } from "react";
-import { CenterLayout } from "@/shared/ui/center-layout";
+import { StoreList } from "./store-list";
 import { registerStoreUrl } from "@/shared/config";
 
 export function StoresView() {
   return (
-    <CenterLayout>
-      <HeadingCard>店舗一覧</HeadingCard>
+    <div className="mx-auto flex max-w-141.5 flex-col items-center justify-center space-y-9 px-6 py-18">
+      <HeadingCard className="rounded-md px-8 py-4 text-xl">
+        店舗一覧
+      </HeadingCard>
       <p>
         店舗を選んでください。
         <br />
@@ -18,14 +18,12 @@ export function StoresView() {
         をもらうか、<span className="text-notice">新規店舗申請</span>
         をして新しく店舗を登録してください。
       </p>
-      <Suspense fallback={<StoreCardSkelton />}>
-        <StoreList />
-      </Suspense>
+      <StoreList />
 
-      <LinkButton href={registerStoreUrl()}>
-        <PlusIcon />
+      <LinkButton href={registerStoreUrl()} className="px-14 py-4 text-xl">
+        <PlusIcon className="size-6" />
         新規店舗申請
       </LinkButton>
-    </CenterLayout>
+    </div>
   );
 }

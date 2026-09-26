@@ -1,87 +1,55 @@
 import { Card } from "@/shared/ui/card";
 import { fetchVisibleStores } from "@/entities/store";
-import { PreviewImage } from "@/shared/ui/preview-image";
 import { Store, StoreReviewStatus } from "@/entities/store";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { Mask } from "@/shared/ui/mask";
-import { AspectRatio } from "@/shared/ui/aspect-ratio";
 import Link from "next/link";
 import { STORE_IMAGE_ASPECT, storeHomeUrl } from "@/shared/config";
+import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 
 export async function StoreList() {
   const stores = await fetchVisibleStores();
 
-  return stores.map((store) => <StoreCard key={store.id} store={store} />);
+  return (
+    <ul className="w-full space-y-6">
+      {stores.map((store) => (
+        <li key={store.id}>
+          <StoreCard store={store} />
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 type StoreCardProps = {
   store: Store;
 };
 
-// TODO: 他でも使うようになったらentities/storesに切り出す
-export function StoreCard({ store }: StoreCardProps) {
-  const isPending = store.reviewStatus === StoreReviewStatus.Pending;
+function StoreCard({ store }: StoreCardProps) {
   return (
-    <div className="border-primary overflow-hidden rounded-xl border-2">
-      <Mask active={isPending} label="申請中">
+    <Card className="border-primary w-full overflow-hidden rounded-sm border-2 p-0">
+      <Mask
+        active={store.reviewStatus === StoreReviewStatus.Pending}
+        label="申請中"
+      >
         <Link href={storeHomeUrl(store.id)}>
-          <StoreCardShell
-            image={
-              <PreviewImage
-                ratio={STORE_IMAGE_ASPECT}
-                imagePath={store.imageUrl}
-                alt={`${store.name}の店舗画像`}
-              />
-            }
-            title={store.name}
-            description={store.description}
-          />
+          <div className="flex flex-row gap-4 p-4">
+            <AspectRatioImage
+              ratio={STORE_IMAGE_ASPECT}
+              src={store.imageUrl}
+              alt={`${store.name}の店舗画像`}
+              className="w-40 shrink-0"
+            />
+            <div className="flex min-w-0 flex-1 flex-col justify-center space-y-2">
+              <h3 className="line-clamp-3 text-xl md:line-clamp-1">
+                {store.name}
+              </h3>
+              <div className="text-muted-foreground line-clamp-2 hidden text-sm md:flex">
+                {store.description}
+              </div>
+            </div>
+          </div>
         </Link>
       </Mask>
-    </div>
-  );
-}
-
-export function StoreCardSkelton() {
-  return (
-    <StoreCardShell
-      image={
-        <AspectRatio ratio={STORE_IMAGE_ASPECT}>
-          <Skeleton className="h-full w-full" />
-        </AspectRatio>
-      }
-      title={<Skeleton className="h-4 w-full" />}
-      description={<Skeleton className="h-4 w-full" />}
-    />
-  );
-}
-
-type StoreCardShellProps = {
-  image: React.ReactNode;
-  title: React.ReactNode | string;
-  description: React.ReactNode | string;
-};
-
-function StoreCardShell({ image, title, description }: StoreCardShellProps) {
-  const titleStyle = "line-clamp-2 text-lg";
-  const descriptionStyle = "text-muted-foreground line-clamp-3 text-sm";
-
-  return (
-    <Card className="flex h-36 flex-row items-center p-6 sm:h-44">
-      <div className="w-32 shrink-0 sm:w-56">{image}</div>
-      <div className="flex min-w-0 flex-1 flex-col justify-center space-y-1">
-        {typeof title === "string" ? (
-          <h3 className={titleStyle}>{title}</h3>
-        ) : (
-          <div className={titleStyle}>{title}</div>
-        )}
-
-        {typeof description === "string" ? (
-          <p className={descriptionStyle}>{description}</p>
-        ) : (
-          <div className={descriptionStyle}>{description}</div>
-        )}
-      </div>
     </Card>
   );
 }
