@@ -37,6 +37,8 @@ export function ToppingSelector({
         onValueChange={onValueChange}
         value={value}
       >
+        {/* TODO: 仮でトッピングない時の表示を置いてる。デザインが出来次第置き換える */}
+        {toppings.length === 0 && <p>選択できるカスタマイズはありません</p>}
         {toppings.map((topping) => (
           <ToggleGroupItem
             key={topping.id}

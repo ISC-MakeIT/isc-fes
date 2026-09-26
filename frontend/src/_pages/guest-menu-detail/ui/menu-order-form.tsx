@@ -34,6 +34,9 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
 
   const { data: cart } = useSuspenseQuery(fetchCartQueryOptions(storeId));
 
+  // NOTE:
+  //  カート追加時のエラーはここではあえて処理しない。注文確認前にエラー処理を集約させる。
+  //  売り切れ済みのアイテムなどキャッシュ次第でカートに入りうる & ここではエラーをどこに出すのかが難しい
   const updateCartMutation = useMutation({
     mutationFn: updateCart,
     onSuccess: async () => {
@@ -75,6 +78,7 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
         value={selectedToppingIds}
       />
       <MenuOrderActions
+        disabledSubmit={updateCartMutation.isPending}
         storeId={storeId}
         menu={menu}
         quantity={quantity}
