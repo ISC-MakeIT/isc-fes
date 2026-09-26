@@ -4,6 +4,7 @@ import {
   MenuName,
   MenuUnitPrice,
 } from "@/entities/menu";
+import { ToppingId } from "@/entities/topping";
 import { createApiClient, uploadImage } from "@/shared/api";
 import { getStatusMessage } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
@@ -16,7 +17,7 @@ export const CreateMenuInput = v.object({
   image: UploadImage,
   unitPrice: MenuUnitPrice,
   description: MenuDescription,
-  // TODO: トッピング
+  toppingIds: v.array(ToppingId),
 });
 export type CreateMenuInput = v.InferOutput<typeof CreateMenuInput>;
 

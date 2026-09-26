@@ -9,6 +9,7 @@ import {
 } from "@/entities/menu";
 import { getStatusMessage } from "@/shared/config";
 import { UploadImage } from "@/shared/model";
+import { ToppingId } from "@/entities/topping";
 
 // API送信時の型
 // TODO: このAPI内ではOpenAPIの自動生成の型を使った方が綺麗かも
@@ -19,7 +20,7 @@ const EditMenuInput = v.object({
   unitPrice: v.optional(MenuUnitPrice),
   description: v.optional(MenuDescription),
   soldOut: v.optional(MenuSoldOut),
-  // TODO: トッピング
+  toppingIds: v.optional(v.array(ToppingId)),
 });
 type EditMenuInput = v.InferOutput<typeof EditMenuInput>;
 

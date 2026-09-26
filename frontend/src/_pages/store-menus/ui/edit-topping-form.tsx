@@ -8,7 +8,6 @@ import {
 import { useStoreId } from "../model/hooks/use-store-id";
 import { storeToppingsQueryOptions } from "../api/fetch-store-toppings";
 import { editTopping } from "../api/edit-topping";
-import { storeToppingsKey } from "@/shared/config";
 import {
   CompleteToppingFormValues,
   toppingFormOptions,
@@ -25,6 +24,7 @@ import { deleteTopping } from "../api/delete-topping";
 import { pickChangedFields } from "../lib/pick-changed-fields";
 import { useState } from "react";
 import { useMenuEditor } from "../model/hooks/use-menu-editor";
+import { menuToppingsKeys, storeToppingsKey } from "@/shared/config";
 
 type EditToppingFormProps = {
   toppingId: string;
@@ -61,16 +61,30 @@ function EditToppingFormContent({
   const queryClient = useQueryClient();
   const editToppingMutation = useMutation({
     mutationFn: editTopping,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: storeToppingsKey(storeId) });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: storeToppingsKey(storeId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: menuToppingsKeys.all(storeId),
+        }),
+      ]);
       closeEditor();
     },
   });
 
   const deleteToppingMutation = useMutation({
     mutationFn: deleteTopping,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: storeToppingsKey(storeId) });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: storeToppingsKey(storeId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: menuToppingsKeys.all(storeId),
+        }),
+      ]);
       closeEditor();
     },
   });
