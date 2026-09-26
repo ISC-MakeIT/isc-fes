@@ -39,6 +39,11 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
   //  売り切れ済みのアイテムなどキャッシュ次第でカートに入りうる & ここではエラーをどこに出すのかが難しい
   const updateCartMutation = useMutation({
     mutationFn: updateCart,
+    onError: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: cartKey(storeId),
+      });
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: cartKey(storeId),
