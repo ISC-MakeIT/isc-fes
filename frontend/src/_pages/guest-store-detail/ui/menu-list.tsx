@@ -2,11 +2,12 @@
 
 import { formatYen } from "@/shared/lib/formatYen";
 import { Menu, storeMenusQueryOptions } from "@/entities/menu";
-import { MENU_IMAGE_ASPECT } from "@/shared/config";
+import { guestMenuDetailUrl, MENU_IMAGE_ASPECT } from "@/shared/config";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { Card } from "@/shared/ui/card";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import Link from "next/link";
 
 type MenuListProps = {
   storeId: string;
@@ -22,7 +23,9 @@ export function MenuList({ storeId }: MenuListProps) {
       {/* NOTE: カードを2列表示には画面幅428px必要で、ほとんどのスマホだと1列になってしまうかもなので、メニューカードを可変にして最小2列を維持 */}
       <div className="grid grid-cols-[repeat(2,minmax(0,11.375rem))] justify-center gap-4 md:grid-cols-[repeat(auto-fit,11.375rem)]">
         {menus.map((menu) => (
-          <MenuCard menu={menu} key={menu.id} />
+          <Link href={guestMenuDetailUrl(storeId, menu.id)} key={menu.id}>
+            <MenuCard menu={menu} />
+          </Link>
         ))}
       </div>
     </section>
