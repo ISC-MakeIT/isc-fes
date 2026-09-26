@@ -6,19 +6,27 @@ import { cn } from "@/shared/lib/utils";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { MinusIcon, PlusIcon } from "lucide-react";
+import { Dispatch, SetStateAction } from "react";
 
 type ToppingSelectorType = {
   storeId: string;
   menuId: string;
+  onValueChange: Dispatch<SetStateAction<string[]>>;
+  value: string[];
 };
 
-export function ToppingSelector({ storeId, menuId }: ToppingSelectorType) {
+export function ToppingSelector({
+  storeId,
+  menuId,
+  onValueChange,
+  value,
+}: ToppingSelectorType) {
   const { data: toppings } = useSuspenseQuery(
     menuToppingsQueryOptions({ storeId, menuId }),
   );
 
   return (
-    <div className="space-y-4.5 md:px-6">
+    <div className="space-y-4.5 py-8 md:px-6 md:pt-0">
       <h2 className="border-foreground w-full border-b text-xl">
         カスタマイズ
       </h2>
@@ -26,7 +34,11 @@ export function ToppingSelector({ storeId, menuId }: ToppingSelectorType) {
         multiple
         orientation="vertical"
         className="flex w-full flex-col gap-4"
+        onValueChange={onValueChange}
+        value={value}
       >
+        {/* TODO: 仮でトッピングない時の表示を置いてる。デザインが出来次第置き換える */}
+        {toppings.length === 0 && <p>選択できるカスタマイズはありません</p>}
         {toppings.map((topping) => (
           <ToggleGroupItem
             key={topping.id}

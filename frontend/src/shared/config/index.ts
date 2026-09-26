@@ -39,6 +39,7 @@ export {
   storeToppingsKey,
   allergensKey,
   menuToppingsKeys,
+  cartKey,
 } from "./constants/query-keys";
 
 export {

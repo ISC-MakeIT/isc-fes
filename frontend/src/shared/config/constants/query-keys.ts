@@ -29,3 +29,5 @@ export const menuToppingsKeys = {
   detail: (storeId: string, menuId: string) =>
     [...menuToppingsKeys.all(storeId), menuId] as const,
 };
+
+export const cartKey = (storeId: string) => ["store", storeId, "cart"];
