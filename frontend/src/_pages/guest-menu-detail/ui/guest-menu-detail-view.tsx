@@ -3,9 +3,7 @@ import { menuToppingsQueryOptions } from "@/entities/topping";
 import { createQueryClient } from "@/shared/api";
 import { MenuInfo } from "./menu-info";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { ToppingSelector } from "./topping-selector";
 import { notFound } from "next/navigation";
-import { MenuOrderActions } from "./menu-order-actions";
 import { fetchCartQueryOptions } from "@/entities/cart";
 import { MenuOrderForm } from "./menu-order-form";
 
