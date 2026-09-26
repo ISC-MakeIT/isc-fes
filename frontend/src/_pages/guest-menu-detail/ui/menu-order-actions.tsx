@@ -23,7 +23,7 @@ export function MenuOrderActions({ menu }: MenuOrderActionsProps) {
   }
 
   return (
-    <div className="bg-background fixed inset-x-0 bottom-0 shadow-[0_-4px_4px] shadow-black/25">
+    <div className="bg-background shadow-foreground/25 md:border-primary/50 fixed inset-x-0 bottom-0 shadow-[0_-4px_4px] md:static md:border-t-2 md:shadow-none">
       <div className="flex w-full flex-row justify-between px-10 py-4">
         <span className="text-xl font-semibold">
           {formatYen(menu.unitPrice)}
@@ -54,11 +54,11 @@ export function MenuOrderActions({ menu }: MenuOrderActionsProps) {
       <div className="grid grid-cols-[repeat(2,minmax(0,11rem))] justify-between gap-[1.94rem] px-6 py-4">
         <Button
           variant="outline"
-          className="border-secondary min-w-0 truncate rounded-sm p-2"
+          className="border-secondary h-auto min-w-0 truncate rounded-sm p-2 md:text-xl"
         >
           注文に進む
         </Button>
-        <Button className="min-w-0 truncate rounded-sm p-2">
+        <Button className="h-auto min-w-0 truncate rounded-sm p-2 md:text-xl">
           カートに入れる
         </Button>
       </div>

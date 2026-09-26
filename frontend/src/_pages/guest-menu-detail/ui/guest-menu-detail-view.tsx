@@ -6,7 +6,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ToppingSelector } from "./topping-selector";
 import { notFound } from "next/navigation";
 import { MenuOrderActions } from "./menu-order-actions";
-import { fetchCartQueryOptions } from "@/feature/fetch-cart/api/fetch-cart";
+import { fetchCartQueryOptions } from "@/entities/cart";
 
 type GuestMenuDetailViewProps = {
   storeId: string;
@@ -36,10 +36,10 @@ export async function GuestMenuDetailView({
       <div className="px-6 py-8 pb-32">
         <div className="justify-center gap-8 space-y-8 md:grid md:grid-cols-[minmax(0,35rem)_27.5rem]">
           <MenuInfo menu={menu} />
-          <div className="md:border-primary/50 py-8 md:border-l-2 md:pt-0">
+          <div className="md:border-primary/50 flex flex-col md:border-l-2">
             <ToppingSelector storeId={storeId} menuId={menuId} />
+            <MenuOrderActions storeId={storeId} menu={menu} />
           </div>
-          <MenuOrderActions storeId={storeId} menu={menu} />
         </div>
       </div>
     </HydrationBoundary>
