@@ -3,9 +3,9 @@ import { getStatusMessage } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { Cart } from "../model/types";
 
-type UpdateCartInput = components["schemas"]["UpdateCartInput"];
+export type UpdateCartInput = components["schemas"]["UpdateCartInput"];
 
-type UpdateCartParam = {
+type UpdateCartParams = {
   updateCartInput: UpdateCartInput;
   storeId: string;
 };
@@ -13,7 +13,7 @@ type UpdateCartParam = {
 export async function updateCart({
   updateCartInput,
   storeId,
-}: UpdateCartParam) {
+}: UpdateCartParams) {
   const client = await createApiClient();
   const { data, error, response } = await client.PUT(
     "/stores/{store_id}/carts",
