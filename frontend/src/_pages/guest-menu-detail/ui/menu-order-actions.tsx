@@ -1,27 +1,25 @@
 "use client";
 
-import { CartItemQuantity } from "@/entities/cart";
 import { Menu } from "@/entities/menu";
 import { formatYen } from "@/shared/lib/formatYen";
-import { v } from "@/shared/lib/valibot";
 import { Button } from "@/shared/ui/button";
 import { MinusIcon, PlusIcon } from "lucide-react";
-import { useState } from "react";
 
 type MenuOrderActionsProps = {
   storeId: string;
   menu: Menu;
+  quantity: number;
+  onIncrease: () => void;
+  onDecrease: () => void;
+  onAddToCart: () => void;
 };
-export function MenuOrderActions({ menu }: MenuOrderActionsProps) {
-  const [quantity, setQuantity] = useState(1);
-
-  function changeQuantity(amount: -1 | 1) {
-    setQuantity((currentValue) => {
-      const result = v.safeParse(CartItemQuantity, currentValue + amount);
-      return result.success ? result.output : currentValue;
-    });
-  }
-
+export function MenuOrderActions({
+  menu,
+  quantity,
+  onDecrease,
+  onIncrease,
+  onAddToCart,
+}: MenuOrderActionsProps) {
   return (
     <div className="bg-background shadow-foreground/25 md:border-primary/50 fixed inset-x-0 bottom-0 shadow-[0_-4px_4px] md:static md:border-t-2 md:shadow-none">
       <div className="flex w-full flex-row justify-between px-10 py-4">
@@ -30,7 +28,7 @@ export function MenuOrderActions({ menu }: MenuOrderActionsProps) {
         </span>
         <div className="flex min-w-35.75 flex-row items-center justify-between">
           <Button
-            onClick={() => changeQuantity(-1)}
+            onClick={onDecrease}
             aria-label="数量を減らす"
             variant="tertiary"
             size="icon-xs"
@@ -43,7 +41,7 @@ export function MenuOrderActions({ menu }: MenuOrderActionsProps) {
             variant="tertiary"
             size="icon-xs"
             aria-label="数量を増やす"
-            onClick={() => changeQuantity(1)}
+            onClick={onIncrease}
             className="rounded-full"
           >
             <PlusIcon aria-hidden />
@@ -58,7 +56,10 @@ export function MenuOrderActions({ menu }: MenuOrderActionsProps) {
         >
           注文に進む
         </Button>
-        <Button className="h-auto min-w-0 truncate rounded-sm p-2 md:text-xl">
+        <Button
+          className="h-auto min-w-0 truncate rounded-sm p-2 md:text-xl"
+          onClick={onAddToCart}
+        >
           カートに入れる
         </Button>
       </div>
