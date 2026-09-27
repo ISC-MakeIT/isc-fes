@@ -416,22 +416,22 @@ func TestOpenAPIRequestValidatorValidatesStoreApplicationAllergenIDs(t *testing.
 	}{
 		{
 			name:       "空配列を受け付ける",
-			body:       `{"name":"test","room":"605","description":"test","allergenIds":[],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			body:       `{"name":"test","room":"605教室","description":"test","allergenIds":[],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
 			wantStatus: http.StatusNoContent,
 		},
 		{
 			name:       "フィールドの省略を拒否する",
-			body:       `{"name":"test","room":"605","description":"test","imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			body:       `{"name":"test","room":"605教室","description":"test","imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
 			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "不正なUUIDを拒否する",
-			body:       `{"name":"test","room":"605","description":"test","allergenIds":["invalid"],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			body:       `{"name":"test","room":"605教室","description":"test","allergenIds":["invalid"],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
 			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "重複したIDを拒否する",
-			body:       `{"name":"test","room":"605","description":"test","allergenIds":["` + allergenID + `","` + allergenID + `"],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			body:       `{"name":"test","room":"605教室","description":"test","allergenIds":["` + allergenID + `","` + allergenID + `"],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
 			wantStatus: http.StatusBadRequest,
 		},
 	}

@@ -381,7 +381,7 @@ export interface components {
     CreateStoreApplicationInput: {
       /** @example たこ焼き屋 */
       name: string;
-      /** @example 605 */
+      /** @example 605教室 */
       room: string;
       /** @example 外はカリカリ、中はトロトロのたこ焼きです。 */
       description: string;

@@ -118,7 +118,7 @@ func TestCreateStoreApplicationUsesUploadedImageObjectKey(t *testing.T) {
 
 	store, err := service.CreateStoreApplication(ctx, CreateStoreApplicationServiceInput{
 		Name:           "たこ焼き屋",
-		Room:           "605",
+		Room:           "605教室",
 		Description:    "外はカリカリ、中はトロトロです。",
 		ImageObjectKey: imageObjectKey,
 	})
@@ -144,7 +144,7 @@ func TestCreateStoreApplicationRejectsInvalidImageObjectKey(t *testing.T) {
 
 	_, err := service.CreateStoreApplication(ctx, CreateStoreApplicationServiceInput{
 		Name:           "たこ焼き屋",
-		Room:           "605",
+		Room:           "605教室",
 		Description:    "外はカリカリ、中はトロトロです。",
 		ImageObjectKey: "stores/not-an-image-id",
 	})
@@ -171,7 +171,7 @@ func TestCreateStoreApplicationPassesAllergenIDsToRepository(t *testing.T) {
 
 	_, err := service.CreateStoreApplication(ctx, CreateStoreApplicationServiceInput{
 		Name:           "たこ焼き屋",
-		Room:           "605",
+		Room:           "605教室",
 		Description:    "外はカリカリ、中はトロトロです。",
 		AllergenIds:    allergenIDs,
 		ImageObjectKey: entities.NewImageObjectKey(uuid.New()),
@@ -202,7 +202,7 @@ func TestCreateStoreApplicationAcceptsEmptyAllergenIDs(t *testing.T) {
 
 	_, err := service.CreateStoreApplication(ctx, CreateStoreApplicationServiceInput{
 		Name:           "たこ焼き屋",
-		Room:           "605",
+		Room:           "605教室",
 		Description:    "外はカリカリ、中はトロトロです。",
 		AllergenIds:    []uuid.UUID{},
 		ImageObjectKey: entities.NewImageObjectKey(uuid.New()),
@@ -233,7 +233,7 @@ func TestCreateStoreApplicationRejectsUnknownAllergenID(t *testing.T) {
 
 	_, err := service.CreateStoreApplication(ctx, CreateStoreApplicationServiceInput{
 		Name:           "たこ焼き屋",
-		Room:           "605",
+		Room:           "605教室",
 		Description:    "外はカリカリ、中はトロトロです。",
 		AllergenIds:    []uuid.UUID{registeredAllergenID, uuid.New()},
 		ImageObjectKey: entities.NewImageObjectKey(uuid.New()),
@@ -260,7 +260,7 @@ func TestCreateStoreApplicationPropagatesAllergenLookupError(t *testing.T) {
 
 	_, err := service.CreateStoreApplication(ctx, CreateStoreApplicationServiceInput{
 		Name:           "たこ焼き屋",
-		Room:           "605",
+		Room:           "605教室",
 		Description:    "外はカリカリ、中はトロトロです。",
 		AllergenIds:    []uuid.UUID{uuid.New()},
 		ImageObjectKey: entities.NewImageObjectKey(uuid.New()),

@@ -1319,7 +1319,7 @@ components:
           type: string
           minLength: 1
           maxLength: 50
-          example: 605
+          example: 605教室
         description:
           type: string
           minLength: 1
