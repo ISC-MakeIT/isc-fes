@@ -22,7 +22,9 @@ export function Mask({
         {children}
       </div>
       <div className="bg-primary/70 absolute inset-0 flex items-center justify-center">
-        <DotText className="text-xl text-white">{label}</DotText>
+        <DotText className="text-secondary-foreground text-2xl">
+          {label}
+        </DotText>
       </div>
     </div>
   );
