@@ -4,7 +4,9 @@
   "private": true,
   "packageManager": "pnpm@10.34.5",
   "pnpm": {
-    "onlyBuiltDependencies": ["@sentry/cli"]
+    "onlyBuiltDependencies": [
+      "@sentry/cli"
+    ]
   },
   "scripts": {
     "dev": "next dev",
