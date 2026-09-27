@@ -31,6 +31,7 @@
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
+  --color-tertiary: var(--orange);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
@@ -62,6 +63,7 @@
   --color-switch-thumb: var(--secondary);
   --shadow-editor-header: 0 2px 4px var(--editor-header);
   --shadow-button-destructive: 4px 4px 0 var(--pink-strong);
+  /* TODO: サブカラー2を定義したのでそっち使うようにしたい */
   --color-allergen-card: var(--orange);
 }
 

@@ -9,11 +9,10 @@ import { useStoreId } from "../model/hooks/use-store-id";
 import { Menu, storeMenusQueryOptions } from "@/entities/menu";
 import { editMenu } from "../api/edit-menu";
 import { v } from "@/shared/lib/valibot";
-import { storeMenusKey } from "@/shared/config";
+import { menuToppingsKeys, storeMenusKey } from "@/shared/config";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { MenuFormFields } from "./menu-form-fields";
 import { ActionButton } from "@/shared/ui/action-button";
-import { EditorType, useMenuEditor } from "../model/menu-editor-context";
 import { useAppForm } from "@/shared/lib/form-hook";
 import {
   CompleteEditMenuFormValues,
@@ -24,6 +23,8 @@ import { deleteMenu } from "../api/delete-menu";
 import { DeleteItemButton } from "./delete-item-button";
 import { pickChangedFields } from "../lib/pick-changed-fields";
 import { useRef } from "react";
+import { useMenuEditor } from "../model/hooks/use-menu-editor";
+import { menuToppingsQueryOptions } from "@/entities/topping";
 
 type EditMenuFormProps = {
   menuId: string;
@@ -35,7 +36,9 @@ export function EditMenuForm({ menuId }: EditMenuFormProps) {
   const { data: menus } = useSuspenseQuery(storeMenusQueryOptions(storeId));
   const menu = menus.find((menu) => menu.id === menuId);
   if (!menu) {
-    throw new Error("このメニューは削除されたか、利用できなくなりました。");
+    return (
+      <p role="alert">このメニューは削除されたか、利用できなくなりました。</p>
+    );
   }
 
   return <EditMenuFormContent menu={menu} storeId={storeId} />;
@@ -47,22 +50,41 @@ type EditMenuFormContentProps = {
 };
 
 function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
-  const { setMenuEditor } = useMenuEditor();
+  const { closeEditor } = useMenuEditor();
 
   const queryClient = useQueryClient();
+
+  // SSCの実行時点ではどのメニューを編集するか未確定なので、上位のSSCでのprefetchはしない
+  const { data: menuToppingIds } = useSuspenseQuery({
+    ...menuToppingsQueryOptions({ storeId, menuId: menu.id }),
+    // ToppingIdsしか使わないのでidだけを取り出す。キャッシュも効く
+    select: (toppings) => toppings.map((topping) => topping.id),
+  });
+
   const editMenuMutation = useMutation({
     mutationFn: editMenu,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) });
-      setMenuEditor([EditorType.Closed]);
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) }),
+        queryClient.invalidateQueries({
+          queryKey: menuToppingsKeys.detail(storeId, menu.id),
+        }),
+      ]);
+      closeEditor();
     },
   });
 
   const deleteMenuMutation = useMutation({
     mutationFn: deleteMenu,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) });
-      setMenuEditor([EditorType.Closed]);
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) }),
+        queryClient.removeQueries({
+          queryKey: menuToppingsKeys.detail(storeId, menu.id),
+          exact: true,
+        }),
+      ]);
+      closeEditor();
     },
   });
 
@@ -71,6 +93,7 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
     image: undefined,
     unitPrice: menu.unitPrice,
     description: menu.description,
+    toppingIds: menuToppingIds,
   });
 
   const form = useAppForm({

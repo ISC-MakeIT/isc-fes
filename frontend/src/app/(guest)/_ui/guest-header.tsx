@@ -19,7 +19,7 @@ export async function GuestHeader() {
           alt={"アプリのロゴ"}
           className="justify-self-end"
         />
-        <DotText className="text-[1.375rem]">アプリ名</DotText>
+        <DotText className="text-[1.375rem]">ふぇすNavi</DotText>
       </div>
 
       {hasAccountSession && (

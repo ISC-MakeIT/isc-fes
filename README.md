@@ -4,7 +4,7 @@
   </picture>
 </p>
 
-<h1 align="center">isc-fes</h1>
+<h1 align="center">ふぇすNavi</h1>
 
 <p align="center">
   <em>情報科学専門学校 学園祭 2026 アプリ</em>

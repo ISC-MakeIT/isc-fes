@@ -6,8 +6,8 @@ import { selectApprovedStoresByFloor } from "./select-approved-stores-by-floor";
 describe("selectApprovedStoresByFloor", () => {
   test("指定した階かつ承認済み店舗のみを返す", () => {
     const approvedStoresOnFifthFloor = [
-      createStore("501", StoreReviewStatus.Approved),
-      createStore("506", StoreReviewStatus.Approved),
+      createStore("501教室", StoreReviewStatus.Approved),
+      createStore("506教室", StoreReviewStatus.Approved),
     ];
 
     const excludedStores = [
@@ -17,7 +17,7 @@ describe("selectApprovedStoresByFloor", () => {
       // 承認済みだが別の階
       createStore("iCrossArena", StoreReviewStatus.Approved),
       createStore("1F", StoreReviewStatus.Approved),
-      createStore("707", StoreReviewStatus.Approved),
+      createStore("707教室", StoreReviewStatus.Approved),
     ];
     const stores: Store[] = [...approvedStoresOnFifthFloor, ...excludedStores];
 
@@ -34,7 +34,7 @@ describe("selectApprovedStoresByFloor", () => {
 
   test("7階の店舗として707とiCrossArenaを返す", () => {
     const seventhFloorStores = [
-      createStore("707", StoreReviewStatus.Approved),
+      createStore("707教室", StoreReviewStatus.Approved),
       createStore("iCrossArena", StoreReviewStatus.Approved),
     ];
 

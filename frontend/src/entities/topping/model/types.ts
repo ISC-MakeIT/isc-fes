@@ -1,5 +1,7 @@
 import { v } from "@/shared/lib/valibot";
 
+export const ToppingId = v.string();
+
 export const ToppingName = v.pipe(
   v.string(),
   v.minLength(1, "1文字以上で入力してください"),
@@ -14,7 +16,7 @@ export const ToppingUnitPrice = v.pipe(
 export const ToppingSoldOut = v.boolean();
 
 export const Topping = v.object({
-  id: v.string(),
+  id: ToppingId,
   storeId: v.string(),
   name: ToppingName,
   unitPrice: ToppingUnitPrice,

@@ -1,4 +1,9 @@
-import { Topping, ToppingName, ToppingUnitPrice } from "@/entities/topping";
+import {
+  Topping,
+  ToppingName,
+  ToppingSoldOut,
+  ToppingUnitPrice,
+} from "@/entities/topping";
 import { createApiClient } from "@/shared/api";
 import { getStatusMessage } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
@@ -6,6 +11,7 @@ import { v } from "@/shared/lib/valibot";
 const EditToppingInput = v.object({
   name: v.optional(ToppingName),
   unitPrice: v.optional(ToppingUnitPrice),
+  soldOut: v.optional(ToppingSoldOut),
 });
 type EditToppingInput = v.InferOutput<typeof EditToppingInput>;
 

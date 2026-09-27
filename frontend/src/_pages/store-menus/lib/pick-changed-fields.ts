@@ -1,3 +1,5 @@
+import { hasSameMultiSet } from "./has-same-multi-set";
+
 type PickChangedFieldsParams<T extends Record<string, unknown>> = {
   initialValues: T;
   currentValues: T;
@@ -17,8 +19,20 @@ export function pickChangedFields<T extends Record<string, unknown>>({
 
   // Object.keysはstring[]を返すので、Tに含まれるキーだけにするようキャスト
   for (const key of Object.keys(currentValues) as Array<keyof T>) {
-    if (!Object.is(initialValues[key], currentValues[key])) {
-      changedValues[key] = currentValues[key];
+    const initialValue = initialValues[key];
+    const currentValue = currentValues[key];
+
+    const isArray = Array.isArray(initialValue) && Array.isArray(currentValue);
+
+    const hasChanged = isArray
+      ? !hasSameMultiSet({
+          initialValues: initialValue,
+          currentValues: currentValue,
+        })
+      : !Object.is(initialValue, currentValue);
+
+    if (hasChanged) {
+      changedValues[key] = currentValue;
     }
   }
 

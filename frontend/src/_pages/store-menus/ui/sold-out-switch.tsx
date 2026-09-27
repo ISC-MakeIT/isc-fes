@@ -2,49 +2,50 @@
 
 import { Dialog, DialogContent, DialogTrigger } from "@/shared/ui/dialog";
 import { Switch } from "@/shared/ui/switch";
-import { useMutation } from "@tanstack/react-query";
-import { updateMenuSoldOutStatus } from "../api/update-menu-sold-out-status";
 import { useState } from "react";
-import { Menu } from "@/entities/menu";
 import { ActionButton } from "@/shared/ui/action-button";
+import { useMutation } from "@tanstack/react-query";
 
 type SoldOutSwitch = {
-  menu: Menu;
+  onConfirm: () => Promise<unknown>;
+  itemName: string;
+  isSoldOut: boolean;
 };
 
-export function SoldOutSwitch({ menu }: SoldOutSwitch) {
+export function SoldOutSwitch({
+  onConfirm,
+  isSoldOut,
+  itemName,
+}: SoldOutSwitch) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  // 検証用のステート
-  const [isSoldOut, setIsSoldOut] = useState(menu.soldOut);
+
   const mutation = useMutation({
-    mutationFn: updateMenuSoldOutStatus,
-    onSuccess: (value) => {
-      setIsDialogOpen(false);
-      setIsSoldOut(value);
-    },
+    mutationFn: onConfirm,
+    onSuccess: () => setIsDialogOpen(false),
   });
 
+  function handleOpenChange(open: boolean) {
+    // 前回の失敗表示を消す
+    if (open) mutation.reset();
+    setIsDialogOpen(open);
+  }
+
   return (
-    <Dialog
-      open={isDialogOpen}
-      onOpenChange={(open) => {
-        setIsDialogOpen(open);
-      }}
-    >
+    <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger
         nativeButton={false}
         render={
           <Switch
             checked={isSoldOut}
             size="lg"
-            aria-label={`${menu.name}の販売状態を変更`}
+            aria-label={`${itemName}の販売状態を変更`}
           />
         }
       />
 
       <DialogContent className="shadow-dialog-primary flex flex-col items-center justify-center gap-5 px-8 pt-18 pb-8 data-closed:hidden">
         <div className="space-y-4 text-center text-xl font-bold">
-          <p>{menu.name}</p>
+          <p>{itemName}</p>
           {isSoldOut ? (
             <p>
               の<span className="text-notice">完売状態を解除</span>しますか？
@@ -57,17 +58,16 @@ export function SoldOutSwitch({ menu }: SoldOutSwitch) {
         </div>
 
         {mutation.isError && (
-          <p className="text-notice text-sm">{mutation.error.message}</p>
+          <p className="text-notice text-sm" role="alert">
+            {mutation.error.message}
+          </p>
         )}
 
         <ActionButton
           disabled={mutation.isPending}
-          // TODO: variantのdestructiveをfigmaのデザインに寄せる。影響範囲が大きいので別PRで
           variant={isSoldOut ? "destructive" : "default"}
           className="shadow-none"
-          onClick={() =>
-            mutation.mutate({ soldOutStatus: isSoldOut ? false : true })
-          }
+          onClick={() => mutation.mutate()}
         >
           {isSoldOut ? "完売解除" : "完売した！"}
         </ActionButton>
