@@ -65,7 +65,7 @@ export async function GuestStoreDetailView({
           <HeadingCard className="px-14 py-2">マップ</HeadingCard>
           {mapImage && (
             <Image
-              alt={`${store.room}教室のマップ`}
+              alt={`${store.room}のマップ`}
               src={mapImage}
               className="w-75"
             />
