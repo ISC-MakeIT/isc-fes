@@ -1,10 +1,20 @@
 import { QueryClient } from "@tanstack/react-query";
 import { getServerQueryClient } from "./server-client";
 
+let browserQueryClient: QueryClient | undefined;
+
 // server側でprefetchするようにサーバー側のclientも用意している
 export function createQueryClient(): QueryClient {
   const isServer = typeof window === "undefined";
-  return isServer ? getServerQueryClient() : createClient();
+  if (isServer) {
+    return getServerQueryClient();
+  }
+
+  if (!browserQueryClient) {
+    browserQueryClient = createClient();
+  }
+
+  return browserQueryClient;
 }
 
 export function createClient() {
