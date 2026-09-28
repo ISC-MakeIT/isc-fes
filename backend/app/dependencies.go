@@ -134,10 +134,6 @@ func buildDependencies(
 	)
 	storeMemberService := members.NewStoreMemberService(storeMemberRepository)
 	storeInvitationService := invitations.NewStoreInvitationService(storeMemberRepository, storeInvitationRepository)
-	errorNotifier := services.NewErrorNotifier(
-		cfg.DiscordNotifier.WebhookURL,
-		cfg.DiscordNotifier.MentionUserIDs,
-	)
 	allergenService := allergens_service.NewAllergenService(allergensRepository)
 	imageProcessor := media.NewImageProcessor()
 	imageService := services.NewImageService(imageProcessor, imageRepository)
@@ -172,7 +168,6 @@ func buildDependencies(
 		toppingsService,
 		cartService,
 		roomsService,
-		errorNotifier,
 	)
 
 	return &dependencies{

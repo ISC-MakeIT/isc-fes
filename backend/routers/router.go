@@ -11,6 +11,7 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
+	"github.com/getsentry/sentry-go/gin"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
@@ -38,6 +39,10 @@ func NewRouter(s *Server, corsAllowedOrigins []string) (*gin.Engine, error) {
 	router.Use(gin.LoggerWithConfig(gin.LoggerConfig{SkipQueryString: true}))
 
 	router.Use(gin.Recovery())
+	router.Use(sentrygin.New(sentrygin.Options{
+		Repanic:         true,
+		WaitForDelivery: false,
+	}))
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: corsAllowedOrigins,
@@ -53,6 +58,8 @@ func NewRouter(s *Server, corsAllowedOrigins []string) (*gin.Engine, error) {
 			"Origin",
 			"Content-Type",
 			"Accept",
+			"sentry-trace",
+			"baggage",
 		},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
@@ -85,6 +92,9 @@ func NewRouter(s *Server, corsAllowedOrigins []string) (*gin.Engine, error) {
 }
 
 func handleOpenAPIBindingError(c *gin.Context, err error, statusCode int) {
+	if statusCode >= http.StatusInternalServerError {
+		captureUnexpectedError(c, err)
+	}
 	c.JSON(statusCode, ErrorResponse{Message: err.Error()})
 }
 

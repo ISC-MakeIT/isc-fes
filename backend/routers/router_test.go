@@ -136,6 +136,7 @@ func TestRouterCORSAllowedOrigins(t *testing.T) {
 			request := httptest.NewRequestWithContext(t.Context(), http.MethodOptions, "/health", nil)
 			request.Header.Set("Origin", origin)
 			request.Header.Set("Access-Control-Request-Method", http.MethodPut)
+			request.Header.Set("Access-Control-Request-Headers", "sentry-trace,baggage")
 			response := httptest.NewRecorder()
 
 			router.ServeHTTP(response, request)
@@ -145,6 +146,12 @@ func TestRouterCORSAllowedOrigins(t *testing.T) {
 			}
 			if got := response.Header().Get("Access-Control-Allow-Origin"); got != origin {
 				t.Errorf("Access-Control-Allow-Origin = %q, want %q", got, origin)
+			}
+			allowedHeaders := response.Header().Get("Access-Control-Allow-Headers")
+			for _, header := range []string{"Sentry-Trace", "Baggage"} {
+				if !strings.Contains(allowedHeaders, header) {
+					t.Errorf("Access-Control-Allow-Headers = %q, want %q", allowedHeaders, header)
+				}
 			}
 		})
 	}

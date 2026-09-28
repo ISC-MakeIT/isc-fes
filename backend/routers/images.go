@@ -63,6 +63,7 @@ func (s *Server) handleImageUploadError(c *gin.Context, err error) {
 			Message: "画像の内容が不正です。",
 		})
 	case errors.Is(err, services.ErrFailedToStoreImage):
+		captureUnexpectedError(c, err)
 		c.JSON(http.StatusServiceUnavailable, ErrorResponse{
 			Message: "画像ストレージが一時的に利用できません。",
 		})
