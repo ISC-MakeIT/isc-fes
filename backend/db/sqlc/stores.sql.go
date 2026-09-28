@@ -144,6 +144,45 @@ func (q *Queries) GetApprovedStores(ctx context.Context) ([]Store, error) {
 	return items, nil
 }
 
+const getMemberStoresByAccountID = `-- name: GetMemberStoresByAccountID :many
+SELECT stores.id, stores.name, stores.room, stores.description, stores.image_object_key, stores.review_status, stores.submitted_at, stores.created_at, stores.updated_at, stores.closed_at
+FROM stores
+JOIN store_members ON store_members.store_id = stores.id
+WHERE store_members.account_id = $1
+ORDER BY stores.created_at DESC
+`
+
+func (q *Queries) GetMemberStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]Store, error) {
+	rows, err := q.db.Query(ctx, getMemberStoresByAccountID, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Store{}
+	for rows.Next() {
+		var i Store
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Room,
+			&i.Description,
+			&i.ImageObjectKey,
+			&i.ReviewStatus,
+			&i.SubmittedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ClosedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getStoreApplications = `-- name: GetStoreApplications :many
 SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
 FROM stores

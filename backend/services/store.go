@@ -16,6 +16,7 @@ type StoreRepository interface {
 	GetApprovedStores(ctx context.Context) ([]entities.Store, error)
 	GetApprovedStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error)
 	GetVisibleStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error)
+	GetMemberStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error)
 	GetStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error)
 	UpdateStoreClosed(ctx context.Context, storeID uuid.UUID, closed bool) (entities.Store, error)
 	UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error
@@ -272,10 +273,15 @@ func (s *StoreService) UpdateStore(ctx context.Context, storeID uuid.UUID, close
 }
 
 // GetVisibleStores は、ユーザーが閲覧可能な店舗一覧を取得する。
-// 承認済みの店舗はすべて返し、申請中・却下済みの店舗は、ユーザーがその店舗の管理者である場合のみ返す。
-func (s *StoreService) GetVisibleStores(ctx context.Context) ([]entities.StoreOutput, error) {
+// memberOnly が true の場合は、審査状態やロールに関係なく所属店舗のみ返す。
+// false の場合は承認済みの店舗をすべて返し、申請中・却下済みの店舗は管理者にのみ返す。
+func (s *StoreService) GetVisibleStores(ctx context.Context, memberOnly bool) ([]entities.StoreOutput, error) {
 	accountID, err := s.accountSession.AccountID(ctx)
 	if err != nil {
+		if memberOnly {
+			return nil, ErrUnauthenticated
+		}
+
 		rawStores, err := s.storeRepository.GetApprovedStores(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get approved stores: %w", err)
@@ -289,9 +295,14 @@ func (s *StoreService) GetVisibleStores(ctx context.Context) ([]entities.StoreOu
 		return stores, nil
 	}
 
-	rawStores, err := s.storeRepository.GetVisibleStoresByAccountID(ctx, accountID)
+	var rawStores []entities.Store
+	if memberOnly {
+		rawStores, err = s.storeRepository.GetMemberStoresByAccountID(ctx, accountID)
+	} else {
+		rawStores, err = s.storeRepository.GetVisibleStoresByAccountID(ctx, accountID)
+	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to get visible stores by account id: %w", err)
+		return nil, fmt.Errorf("failed to get stores by account id: %w", err)
 	}
 
 	stores, err := s.toStoreOutputs(ctx, rawStores)

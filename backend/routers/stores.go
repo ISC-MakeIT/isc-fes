@@ -10,8 +10,8 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/utils"
 )
 
-func (s *Server) GetVisibleStores(c *gin.Context) {
-	stores, err := s.store.GetVisibleStores(c.Request.Context())
+func (s *Server) GetVisibleStores(c *gin.Context, params GetVisibleStoresParams) {
+	stores, err := s.store.GetVisibleStores(c.Request.Context(), params.MemberOnly != nil && *params.MemberOnly)
 	if err != nil {
 		s.handleCommonServiceErrors(c, err)
 		return
