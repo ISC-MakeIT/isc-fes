@@ -35,6 +35,13 @@ WHERE review_status = 'approved'
    )
 ORDER BY created_at DESC;
 
+-- name: GetMemberStoresByAccountID :many
+SELECT stores.*
+FROM stores
+JOIN store_members ON store_members.store_id = stores.id
+WHERE store_members.account_id = $1
+ORDER BY stores.created_at DESC;
+
 -- name: GetStoreApplications :many
 SELECT *
 FROM stores
