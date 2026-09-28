@@ -1022,7 +1022,7 @@ export interface operations {
   getVisibleStores: {
     parameters: {
       query?: {
-        /** @description true の場合、ログイン中のアカウントが所属する店舗を審査状態に関係なく取得する */
+        /** @description true の場合、ログイン中のアカウントが所属する承認済み・申請中の店舗を取得する */
         member_only?: boolean;
       };
       header?: never;
@@ -1031,7 +1031,7 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description 店舗一覧。member_only が false の場合は承認済みの店舗と自分が管理者である申請中・却下済みの店舗 */
+      /** @description 店舗一覧。member_only が false の場合は承認済みの店舗と自分が管理者である申請中の店舗 */
       200: {
         headers: {
           [name: string]: unknown;
