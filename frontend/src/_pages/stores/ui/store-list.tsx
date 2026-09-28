@@ -1,13 +1,13 @@
 import { Card } from "@/shared/ui/card";
-import { fetchVisibleStores } from "@/entities/store";
 import { Store, StoreReviewStatus } from "@/entities/store";
 import { Mask } from "@/shared/ui/mask";
 import Link from "next/link";
 import { STORE_IMAGE_ASPECT, storeHomeUrl } from "@/shared/config";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
+import { fetchCurrentAccountStores } from "../api/fetch-current-account-stores";
 
 export async function StoreList() {
-  const stores = await fetchVisibleStores();
+  const stores = await fetchCurrentAccountStores();
 
   return (
     <ul className="w-full space-y-6">
