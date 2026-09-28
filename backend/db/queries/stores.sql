@@ -27,11 +27,14 @@ WHERE review_status = 'approved'
 SELECT *
 FROM stores
 WHERE review_status = 'approved'
-   OR id IN (
-       SELECT store_id
-       FROM store_members
-       WHERE account_id = $1
-         AND role = 'manager'
+   OR (
+       review_status = 'pending'
+       AND id IN (
+           SELECT store_id
+           FROM store_members
+           WHERE account_id = $1
+             AND role = 'manager'
+       )
    )
 ORDER BY created_at DESC;
 
@@ -40,6 +43,7 @@ SELECT stores.*
 FROM stores
 JOIN store_members ON store_members.store_id = stores.id
 WHERE store_members.account_id = $1
+  AND stores.review_status IN ('approved', 'pending')
 ORDER BY stores.created_at DESC;
 
 -- name: GetStoreApplications :many

@@ -149,6 +149,7 @@ SELECT stores.id, stores.name, stores.room, stores.description, stores.image_obj
 FROM stores
 JOIN store_members ON store_members.store_id = stores.id
 WHERE store_members.account_id = $1
+  AND stores.review_status IN ('approved', 'pending')
 ORDER BY stores.created_at DESC
 `
 
@@ -249,11 +250,14 @@ const getVisibleStoresByAccountID = `-- name: GetVisibleStoresByAccountID :many
 SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
 FROM stores
 WHERE review_status = 'approved'
-   OR id IN (
-       SELECT store_id
-       FROM store_members
-       WHERE account_id = $1
-         AND role = 'manager'
+   OR (
+       review_status = 'pending'
+       AND id IN (
+           SELECT store_id
+           FROM store_members
+           WHERE account_id = $1
+             AND role = 'manager'
+       )
    )
 ORDER BY created_at DESC
 `
