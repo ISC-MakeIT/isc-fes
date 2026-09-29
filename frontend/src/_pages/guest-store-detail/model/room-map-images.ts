@@ -1,5 +1,6 @@
 import type { StaticImageData } from "next/image";
 import type { Room } from "@/entities/room";
+import room1FImage from "./assets/1f.svg";
 import room501Image from "./assets/501.svg";
 import room502Image from "./assets/502.svg";
 import room503Image from "./assets/503.svg";
@@ -21,7 +22,7 @@ import iCrossImage from "./assets/iCross.svg";
 
 // TODO: 1Fの画像は出来次第配備
 export const roomMapImages = {
-  "1F": null,
+  "1F": room1FImage,
   "501教室": room501Image,
   "502教室": room502Image,
   "503教室": room503Image,
