@@ -273,8 +273,8 @@ func (s *StoreService) UpdateStore(ctx context.Context, storeID uuid.UUID, close
 }
 
 // GetVisibleStores は、ユーザーが閲覧可能な店舗一覧を取得する。
-// memberOnly が true の場合は、審査状態やロールに関係なく所属店舗のみ返す。
-// false の場合は承認済みの店舗をすべて返し、申請中・却下済みの店舗は管理者にのみ返す。
+// memberOnly が true の場合は、承認済み・申請中の所属店舗のみ返す。
+// false の場合は承認済みの店舗をすべて返し、申請中の店舗は管理者にのみ返す。
 func (s *StoreService) GetVisibleStores(ctx context.Context, memberOnly bool) ([]entities.StoreOutput, error) {
 	accountID, err := s.accountSession.AccountID(ctx)
 	if err != nil {
