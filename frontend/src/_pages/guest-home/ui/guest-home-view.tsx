@@ -4,6 +4,7 @@ import { createQueryClient } from "@/shared/api";
 import { visibleStoresQueryOptions } from "@/entities/store";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
+import { EventBanners } from "./event-banners";
 
 export async function GuestHomeView() {
   const queryClient = createQueryClient();
@@ -11,15 +12,25 @@ export async function GuestHomeView() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <div className="flex flex-col gap-y-8 lg:flex-row">
-        {/* TODO: キービジュアルができしだい配備 */}
-        <AspectRatioImage
-          ratio={HERO_IMAGE_ASPECT}
-          src=""
-          alt="キービジュアル"
-          className="bg-gray-300 lg:w-140 lg:shrink-0"
-        />
-        <FloorGuide />
+      <div className="flex flex-col gap-y-8 lg:grid lg:grid-cols-[37.5rem_minmax(0,42.5rem)] lg:justify-center">
+        <div>
+          {/* TODO: キービジュアルができしだい配備 */}
+          <AspectRatioImage
+            ratio={HERO_IMAGE_ASPECT}
+            src=""
+            alt="キービジュアル"
+            className="bg-gray-300 lg:w-140 lg:shrink-0"
+          />
+          <div className="lg:hidden">
+            <EventBanners />
+          </div>
+        </div>
+        <div>
+          <FloorGuide />
+          <div className="hidden lg:flex">
+            <EventBanners />
+          </div>
+        </div>
       </div>
     </HydrationBoundary>
   );
