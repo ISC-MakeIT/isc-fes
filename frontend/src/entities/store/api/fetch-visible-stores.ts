@@ -1,18 +1,18 @@
 import { Store } from "../model/types";
 import { createApiClient } from "@/shared/api";
-import { storesKey } from "@/shared/config";
+import { getStatusMessage, storeListKeys } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { queryOptions } from "@tanstack/react-query";
 
 /**
- * 承認済みの全店舗と自分が申請した店舗を返す
+ * 現在のアカウントから閲覧可能な店舗一覧を返す
  * @returns
  */
 export async function fetchVisibleStores(): Promise<Store[]> {
   const client = await createApiClient();
-  const { data, error } = await client.GET("/stores");
+  const { data, error, response } = await client.GET("/stores");
 
-  if (error) throw new Error(`データの取得に失敗しました`);
+  if (error) throw new Error(getStatusMessage(response.status));
 
   const parsed = v.parse(v.array(Store), data.data);
 
@@ -22,6 +22,6 @@ export async function fetchVisibleStores(): Promise<Store[]> {
 export function visibleStoresQueryOptions() {
   return queryOptions({
     queryFn: fetchVisibleStores,
-    queryKey: storesKey(),
+    queryKey: storeListKeys.visible(),
   });
 }

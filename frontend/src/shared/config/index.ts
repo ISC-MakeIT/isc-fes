@@ -27,7 +27,6 @@ export {
 } from "./constants/status-codes";
 
 export {
-  storesKey,
   storeDetailKey,
   storeMembersKey,
   storeMenusKey,
@@ -38,6 +37,7 @@ export {
   storeToppingsKey,
   allergensKey,
   menuToppingsKeys,
+  storeListKeys,
 } from "./constants/query-keys";
 
 export {
