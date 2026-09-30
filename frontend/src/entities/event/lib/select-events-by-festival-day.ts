@@ -1,8 +1,4 @@
-import {
-  FestivalDayKey,
-  FestivalSchedule,
-  ScheduledEvent,
-} from "../model/types";
+import { FestivalDay, FestivalSchedule, ScheduledEvent } from "../model/types";
 
 /**
  * 指定した開催日のイベントを返す純粋関数
@@ -12,7 +8,7 @@ import {
  */
 export function selectEventsByFestivalDay(
   schedule: FestivalSchedule,
-  dayKey: FestivalDayKey,
+  dayKey: FestivalDay,
 ): ScheduledEvent[] {
   const selectedDate = schedule.dates[dayKey];
   return schedule.events.filter((event) =>
