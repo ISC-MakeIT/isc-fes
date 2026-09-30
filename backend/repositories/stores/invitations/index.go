@@ -47,12 +47,12 @@ func (r *StoreInvitationRepository) AcceptStoreInvitation(ctx context.Context, i
 
 	qtx := r.queries.WithTx(tx)
 
-	inv, err := qtx.IncrementStoreInvitationUseCount(ctx, invitationID)
+	inv, err := qtx.GetStoreInvitationByID(ctx, invitationID)
 	if err != nil {
 		return entities.StoreInvitation{}, err
 	}
 
-	_, err = qtx.CreateStoreMemberIfNotExists(ctx, sqlc.CreateStoreMemberIfNotExistsParams{
+	_, err = qtx.CreateOrUpgradeStoreMember(ctx, sqlc.CreateOrUpgradeStoreMemberParams{
 		StoreID:   inv.StoreID,
 		AccountID: accountID,
 		Role:      inv.Role,
@@ -60,6 +60,11 @@ func (r *StoreInvitationRepository) AcceptStoreInvitation(ctx context.Context, i
 	if errors.Is(err, pgx.ErrNoRows) {
 		return entities.StoreInvitation{}, repositoryinterfaces.ErrStoreMemberAlreadyExists
 	}
+	if err != nil {
+		return entities.StoreInvitation{}, err
+	}
+
+	inv, err = qtx.IncrementStoreInvitationUseCount(ctx, invitationID)
 	if err != nil {
 		return entities.StoreInvitation{}, err
 	}

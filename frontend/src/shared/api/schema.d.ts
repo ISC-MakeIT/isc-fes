@@ -2199,7 +2199,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description すでに店舗のメンバーである */
+      /** @description すでに招待された権限以上で店舗のメンバーである */
       409: {
         headers: {
           [name: string]: unknown;
