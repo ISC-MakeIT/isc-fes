@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   analyticsArea,
   analyticsEventPayload,
@@ -60,5 +60,42 @@ describe("GA4 に送る URL", () => {
       page_location: "https://fes.example/member/stores/:storeId",
       debug_mode: true,
     });
+  });
+});
+
+describe("GA4 の初期化", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it("gtag のコマンドを Arguments として dataLayer に積む", async () => {
+    vi.stubEnv("NEXT_PUBLIC_GA_MEASUREMENT_ID", "G-TEST123");
+    vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", "production");
+    vi.stubGlobal("window", {
+      location: {
+        href: "https://fes.example/",
+        origin: "https://fes.example",
+        pathname: "/",
+      },
+    });
+    vi.stubGlobal("document", { referrer: "" });
+    vi.resetModules();
+
+    const { trackPageView } = await import("./analytics");
+    trackPageView();
+
+    const commands = window.dataLayer ?? [];
+    expect(commands).toHaveLength(5);
+    expect(
+      commands.every(
+        (command) =>
+          Object.prototype.toString.call(command) === "[object Arguments]",
+      ),
+    ).toBe(true);
+    expect(Array.from(commands[4] as IArguments).slice(0, 2)).toEqual([
+      "event",
+      "page_view",
+    ]);
   });
 });
