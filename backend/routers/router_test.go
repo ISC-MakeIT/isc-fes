@@ -518,8 +518,10 @@ func TestOpenAPIRequestValidatorValidatesUpdateStoreInput(t *testing.T) {
 	}{
 		{name: "close store", body: `{"closed":true}`, wantStatus: http.StatusNoContent},
 		{name: "reopen store", body: `{"closed":false}`, wantStatus: http.StatusNoContent},
-		{name: "closed is required", body: `{}`, wantStatus: http.StatusBadRequest},
+		{name: "empty update", body: `{}`, wantStatus: http.StatusNoContent},
+		{name: "description only", body: `{"description":"新しい説明"}`, wantStatus: http.StatusNoContent},
 		{name: "closed must be boolean", body: `{"closed":"true"}`, wantStatus: http.StatusBadRequest},
+		{name: "description must not be empty", body: `{"description":""}`, wantStatus: http.StatusBadRequest},
 	}
 
 	for _, test := range tests {
@@ -528,13 +530,13 @@ func TestOpenAPIRequestValidatorValidatesUpdateStoreInput(t *testing.T) {
 				account: entities.Account{ID: uuid.New()},
 			})
 			router := gin.New()
-			router.PUT("/stores/:store_id", validator, func(c *gin.Context) {
+			router.PATCH("/stores/:store_id", validator, func(c *gin.Context) {
 				c.Status(http.StatusNoContent)
 			})
 
 			request := httptest.NewRequestWithContext(
 				t.Context(),
-				http.MethodPut,
+				http.MethodPatch,
 				"/stores/00000000-0000-0000-0000-000000000000",
 				strings.NewReader(test.body),
 			)

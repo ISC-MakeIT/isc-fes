@@ -10,6 +10,7 @@ export {
   registerStoreUrl,
   storeListUrl,
   storeHomeUrl,
+  storeEditUrl,
   storeKitchenUrl,
   storeCallUrl,
   storeMenusUrl,
