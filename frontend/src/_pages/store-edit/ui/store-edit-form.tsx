@@ -13,6 +13,7 @@ import {
   storeListKeys,
 } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
+import { trackEvent } from "@/shared/lib/analytics";
 import { cn } from "@/shared/lib/utils";
 import { ActionButton } from "@/shared/ui/action-button";
 import {
@@ -77,6 +78,7 @@ export function StoreEditForm({ storeId, initialStore }: StoreEditFormProps) {
         input,
         image: current.image,
       });
+      trackEvent("store_profile_updated", { store_id: storeId });
       queryClient.setQueryData(storeDetailKey(storeId), updated);
       await queryClient.invalidateQueries({ queryKey: storeListKeys.all() });
       router.push(storeHomeUrl(storeId));

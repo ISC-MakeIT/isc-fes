@@ -8,6 +8,8 @@ import { Card } from "@/shared/ui/card";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { trackEvent } from "@/shared/lib/analytics";
+import { useEffect, useRef } from "react";
 
 type MenuListProps = {
   storeId: string;
@@ -15,6 +17,24 @@ type MenuListProps = {
 
 export function MenuList({ storeId }: MenuListProps) {
   const { data: menus } = useSuspenseQuery(storeMenusQueryOptions(storeId));
+  const lastTrackedList = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (menus.length === 0) return;
+    const listKey = `${storeId}:${menus.map((menu) => menu.id).join(",")}`;
+    if (lastTrackedList.current === listKey) return;
+    lastTrackedList.current = listKey;
+    trackEvent("view_item_list", {
+      item_list_id: `store:${storeId}`,
+      store_id: storeId,
+      items: menus.map((menu, index) => ({
+        item_id: menu.id,
+        price: menu.unitPrice,
+        affiliation: storeId,
+        index,
+      })),
+    });
+  }, [storeId, menus]);
 
   return (
     <section className="space-y-8 px-6 py-8">
@@ -23,7 +43,23 @@ export function MenuList({ storeId }: MenuListProps) {
       {/* NOTE: カードを2列表示には画面幅428px必要で、ほとんどのスマホだと1列になってしまうかもなので、メニューカードを可変にして最小2列を維持 */}
       <div className="grid grid-cols-[repeat(2,minmax(0,11.375rem))] justify-center gap-4 md:grid-cols-[repeat(auto-fit,11.375rem)]">
         {menus.map((menu) => (
-          <Link href={guestMenuDetailUrl(storeId, menu.id)} key={menu.id}>
+          <Link
+            href={guestMenuDetailUrl(storeId, menu.id)}
+            key={menu.id}
+            onClick={() =>
+              trackEvent("select_item", {
+                item_list_id: `store:${storeId}`,
+                store_id: storeId,
+                items: [
+                  {
+                    item_id: menu.id,
+                    price: menu.unitPrice,
+                    affiliation: storeId,
+                  },
+                ],
+              })
+            }
+          >
             <MenuCard menu={menu} />
           </Link>
         ))}

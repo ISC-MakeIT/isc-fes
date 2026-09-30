@@ -25,6 +25,7 @@ import { pickChangedFields } from "../lib/pick-changed-fields";
 import { useRef } from "react";
 import { useMenuEditor } from "../model/hooks/use-menu-editor";
 import { menuToppingsQueryOptions } from "@/entities/topping";
+import { trackEvent } from "@/shared/lib/analytics";
 
 type EditMenuFormProps = {
   menuId: string;
@@ -64,6 +65,7 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
   const editMenuMutation = useMutation({
     mutationFn: editMenu,
     onSuccess: async () => {
+      trackEvent("menu_updated", { store_id: storeId, menu_id: menu.id });
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) }),
         queryClient.invalidateQueries({
@@ -77,6 +79,7 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
   const deleteMenuMutation = useMutation({
     mutationFn: deleteMenu,
     onSuccess: async () => {
+      trackEvent("menu_deleted", { store_id: storeId, menu_id: menu.id });
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: storeMenusKey(storeId) }),
         queryClient.removeQueries({

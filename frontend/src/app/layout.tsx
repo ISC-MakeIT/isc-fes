@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "./query-provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { AnalyticsPageView } from "./analytics-page-view";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,10 @@ export default function RootLayout({
     >
       <QueryProvider>
         <body className="flex min-h-full flex-col">
-          <NuqsAdapter>{children}</NuqsAdapter>
+          <NuqsAdapter>
+            <AnalyticsPageView />
+            {children}
+          </NuqsAdapter>
         </body>
       </QueryProvider>
     </html>

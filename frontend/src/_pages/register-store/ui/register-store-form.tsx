@@ -27,6 +27,7 @@ import {
   allergenQueryOptions,
 } from "@/entities/allergen";
 import { cn } from "@/shared/lib/utils";
+import { trackEvent } from "@/shared/lib/analytics";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -45,6 +46,7 @@ export function RegisterStoreForm() {
   const mutation = useMutation({
     mutationFn: createStoreApplication,
     onSuccess: () => {
+      trackEvent("store_application_submitted");
       router.push(storeListUrl());
     },
   });
