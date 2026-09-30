@@ -19,7 +19,7 @@ export async function RegisterStoreView() {
             店舗登録
           </HeadingCard>
           <p className="text-sm">
-            この情報は、モバイルオーダーの画面にも使用されます
+            この情報は、モバイルオーダーの画面にも使用されます。
           </p>
         </div>
         <RegisterStoreForm />

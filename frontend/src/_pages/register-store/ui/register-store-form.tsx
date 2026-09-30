@@ -247,11 +247,6 @@ export function RegisterStoreForm() {
         />
       </div>
 
-      <p className="text-sm">
-        登録内容は変更できません。
-        <br />
-        変更したい場合は管理者に連絡してください。
-      </p>
       <form.Subscribe
         selector={(state) => [
           state.canSubmit,
