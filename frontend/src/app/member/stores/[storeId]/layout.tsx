@@ -37,7 +37,7 @@ export default async function StoreManagerLayout(
           "--sidebar-width": "10rem",
         } as React.CSSProperties
       }
-      defaultOpen={false}
+      defaultOpen
     >
       <AppSidebar
         navigationItems={storeNavigationItems(storeId, currentMember.role)}
