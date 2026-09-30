@@ -3,7 +3,11 @@ import appLogo from "./assets/app-logo.svg";
 import homeIcon from "./assets/home-icon.svg";
 import { DotText } from "@/shared/ui/dot-text";
 import Link from "next/link";
-import { ACCOUNT_SESSION_COOKIE_NAME, storeListUrl } from "@/shared/config";
+import {
+  ACCOUNT_SESSION_COOKIE_NAME,
+  homeUrl,
+  storeListUrl,
+} from "@/shared/config";
 import { cookies } from "next/headers";
 
 export async function GuestHeader() {
@@ -13,14 +17,10 @@ export async function GuestHeader() {
   const hasAccountSession = cookiesStore.has(ACCOUNT_SESSION_COOKIE_NAME);
   return (
     <header className="bg-primary text-background flex flex-row items-center justify-between px-6 py-4">
-      <div className="flex flex-row gap-1">
-        <Image
-          src={appLogo}
-          alt={"アプリのロゴ"}
-          className="justify-self-end"
-        />
+      <Link href={homeUrl()} className="flex flex-row gap-1">
+        <Image src={appLogo} alt="" />
         <DotText className="text-[1.375rem]">ふぇすNavi</DotText>
-      </div>
+      </Link>
 
       {hasAccountSession && (
         <Link href={storeListUrl()} className="flex flex-row gap-2">
