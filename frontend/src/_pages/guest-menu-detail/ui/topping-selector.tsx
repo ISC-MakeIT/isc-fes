@@ -6,6 +6,8 @@ import { cn } from "@/shared/lib/utils";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { MinusIcon, PlusIcon } from "lucide-react";
+import { useState } from "react";
+import { trackEvent } from "@/shared/lib/analytics";
 
 type ToppingSelectorType = {
   storeId: string;
@@ -13,6 +15,7 @@ type ToppingSelectorType = {
 };
 
 export function ToppingSelector({ storeId, menuId }: ToppingSelectorType) {
+  const [selectedToppingIds, setSelectedToppingIds] = useState<string[]>([]);
   const { data: toppings } = useSuspenseQuery(
     menuToppingsQueryOptions({ storeId, menuId }),
   );
@@ -24,6 +27,21 @@ export function ToppingSelector({ storeId, menuId }: ToppingSelectorType) {
       </h2>
       <ToggleGroup
         multiple
+        value={selectedToppingIds}
+        onValueChange={(nextIds) => {
+          const changedId =
+            nextIds.find((id) => !selectedToppingIds.includes(id)) ??
+            selectedToppingIds.find((id) => !nextIds.includes(id));
+          if (changedId) {
+            trackEvent("topping_selection_changed", {
+              store_id: storeId,
+              menu_id: menuId,
+              topping_id: changedId,
+              selected: nextIds.includes(changedId),
+            });
+          }
+          setSelectedToppingIds(nextIds);
+        }}
         orientation="vertical"
         className="flex w-full flex-col gap-4"
       >

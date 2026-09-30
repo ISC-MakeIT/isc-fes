@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/shared/ui/dialog";
 import { DotText } from "@/shared/ui/dot-text";
 import { useState } from "react";
 import { currentAccountQueryOptions } from "@/entities/account";
+import { trackEvent } from "@/shared/lib/analytics";
 
 const fallbackIcon = "/avatar-fallback.svg";
 
@@ -93,6 +94,7 @@ function MemberCard({ storeId, member, currentMember }: MemberCardProps) {
   const mutation = useMutation({
     mutationFn: deleteStoreMemberById,
     onSuccess: async () => {
+      trackEvent("store_member_removed", { store_id: storeId });
       setIsDeleteDialogOpen(false);
       await queryClient.invalidateQueries({
         queryKey: storeMembersKey(storeId),

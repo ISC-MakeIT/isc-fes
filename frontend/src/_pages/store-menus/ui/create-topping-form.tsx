@@ -8,6 +8,7 @@ import { v } from "@/shared/lib/valibot";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { ToppingFormFields } from "./topping-form-fields";
 import { ActionButton } from "@/shared/ui/action-button";
+import { trackEvent } from "@/shared/lib/analytics";
 
 export function CreateToppingForm() {
   const storeId = useStoreId();
@@ -15,6 +16,7 @@ export function CreateToppingForm() {
   const mutation = useMutation({
     mutationFn: createTopping,
     onSuccess: () => {
+      trackEvent("topping_created", { store_id: storeId });
       client.invalidateQueries({ queryKey: storeToppingsKey(storeId) });
       form.reset();
     },
