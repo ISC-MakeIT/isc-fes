@@ -4,6 +4,7 @@ import {
   storePickupUrl,
   storeCallUrl,
   storeMenusUrl,
+  storeEditUrl,
 } from "@/shared/config";
 import { NavigationItems } from "../model/types";
 import { StoreMemberRole } from "@/entities/store-member";
@@ -23,6 +24,10 @@ export function storeNavigationItems(
     navigationItems.push({
       label: "商品管理画面",
       href: storeMenusUrl(storeId),
+    });
+    navigationItems.push({
+      label: "店舗情報画面",
+      href: storeEditUrl(storeId),
     });
   }
 
