@@ -132,13 +132,13 @@ export interface paths {
     };
     /** 承認済みの店舗を取得する */
     get: operations["getApprovedStoreByID"];
-    /** 店舗の閉店状態を更新する */
-    put: operations["updateStore"];
+    put?: never;
     post?: never;
     delete?: never;
     options?: never;
     head?: never;
-    patch?: never;
+    /** 店舗情報を部分更新する */
+    patch: operations["updateStore"];
     trace?: never;
   };
   "/stores/{store_id}/members": {
@@ -543,7 +543,13 @@ export interface components {
     };
     UpdateStoreInput: {
       /** @description trueで閉店、falseで営業再開する */
-      closed: boolean;
+      closed?: boolean;
+      /** @example 605教室 */
+      room?: string;
+      imageObjectKey?: components["schemas"]["ImageObjectKey"];
+      description?: string;
+      /** @description 店舗で使用するアレルゲンのID一覧。空配列で表示を消去する。 */
+      allergenIds?: string[];
     };
     StoreMember: {
       /** Format: uuid */

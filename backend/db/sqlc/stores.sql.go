@@ -81,6 +81,16 @@ func (q *Queries) CreateStore(ctx context.Context, arg CreateStoreParams) (Store
 	return i, err
 }
 
+const deleteAllStoreAllergens = `-- name: DeleteAllStoreAllergens :exec
+DELETE FROM store_allergens
+WHERE store_id = $1
+`
+
+func (q *Queries) DeleteAllStoreAllergens(ctx context.Context, storeID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteAllStoreAllergens, storeID)
+	return err
+}
+
 const getApprovedStoreByID = `-- name: GetApprovedStoreByID :one
 SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
 FROM stores
@@ -293,31 +303,39 @@ func (q *Queries) GetVisibleStoresByAccountID(ctx context.Context, accountID uui
 	return items, nil
 }
 
-const updateStoreClosed = `-- name: UpdateStoreClosed :one
+const updateStore = `-- name: UpdateStore :one
 UPDATE stores
 SET
     closed_at = CASE
+        WHEN $1::boolean IS NULL THEN closed_at
         WHEN $1::boolean THEN COALESCE(closed_at, now())
         ELSE NULL
     END,
-    updated_at = CASE
-        WHEN ($1::boolean AND closed_at IS NULL)
-          OR (NOT $1::boolean AND closed_at IS NOT NULL)
-        THEN now()
-        ELSE updated_at
-    END
-WHERE id = $2
+    room = COALESCE($2::text, room),
+    description = COALESCE($3::text, description),
+    image_object_key = COALESCE($4::text, image_object_key),
+    updated_at = now()
+WHERE id = $5
     AND review_status = 'approved'
 RETURNING id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
 `
 
-type UpdateStoreClosedParams struct {
-	Closed  bool      `json:"closed"`
-	StoreID uuid.UUID `json:"store_id"`
+type UpdateStoreParams struct {
+	Closed         *bool     `json:"closed"`
+	Room           *string   `json:"room"`
+	Description    *string   `json:"description"`
+	ImageObjectKey *string   `json:"image_object_key"`
+	StoreID        uuid.UUID `json:"store_id"`
 }
 
-func (q *Queries) UpdateStoreClosed(ctx context.Context, arg UpdateStoreClosedParams) (Store, error) {
-	row := q.db.QueryRow(ctx, updateStoreClosed, arg.Closed, arg.StoreID)
+func (q *Queries) UpdateStore(ctx context.Context, arg UpdateStoreParams) (Store, error) {
+	row := q.db.QueryRow(ctx, updateStore,
+		arg.Closed,
+		arg.Room,
+		arg.Description,
+		arg.ImageObjectKey,
+		arg.StoreID,
+	)
 	var i Store
 	err := row.Scan(
 		&i.ID,

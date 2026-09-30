@@ -345,9 +345,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-    put:
+    patch:
       operationId: updateStore
-      summary: 店舗の閉店状態を更新する
+      summary: 店舗情報を部分更新する
       security:
         - AccountSession: []
       parameters:
@@ -1689,12 +1689,28 @@ components:
           nullable: true
     UpdateStoreInput:
       type: object
-      required:
-        - closed
       properties:
         closed:
           type: boolean
           description: trueで閉店、falseで営業再開する
+        room:
+          type: string
+          minLength: 1
+          maxLength: 50
+          example: 605教室
+        imageObjectKey:
+          $ref: "#/components/schemas/ImageObjectKey"
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        allergenIds:
+          type: array
+          description: 店舗で使用するアレルゲンのID一覧。空配列で表示を消去する。
+          items:
+            type: string
+            format: uuid
+          uniqueItems: true
     StoreMember:
       type: object
       required:
