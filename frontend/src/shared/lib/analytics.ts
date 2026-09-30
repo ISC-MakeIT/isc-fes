@@ -46,7 +46,7 @@ export type AnalyticsEventName =
 
 declare global {
   interface Window {
-    dataLayer?: unknown[][];
+    dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
   }
 }
@@ -130,7 +130,9 @@ function initializeAnalytics() {
   if (initialized) return true;
 
   window.dataLayer = window.dataLayer ?? [];
-  window.gtag = (...args: unknown[]) => window.dataLayer?.push(args);
+  window.gtag = function () {
+    window.dataLayer?.push(arguments);
+  };
   const location = analyticsLocation(window.location.href);
   window.gtag("js", new Date());
   window.gtag("set", {
