@@ -1,6 +1,3 @@
-export {
-  eventDates2026,
-  events2026,
-  type EventDateKey2026,
-} from "./config/events2026";
+export { events } from "./config/events";
 export type { ScheduledEvent } from "./model/types";
+export { selectEventsByFestivalDay } from "./lib/select-events-by-festival-day";

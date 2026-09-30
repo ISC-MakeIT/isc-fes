@@ -1,14 +1,10 @@
 import { Temporal } from "@js-temporal/polyfill";
 
 import { createScheduledEvent } from "../lib/create-scheduled-event";
-import type {
-  EventDateKey,
-  EventDateMap,
-  ScheduledEvent,
-} from "../model/types";
+import type { FestivalDates, ScheduledEvent } from "../model/types";
 
-export const eventDates2026 = {
-  october24: Temporal.PlainDate.from(
+export const eventDates = {
+  day1: Temporal.PlainDate.from(
     {
       year: 2026,
       month: 10,
@@ -18,7 +14,7 @@ export const eventDates2026 = {
       overflow: "reject",
     },
   ),
-  october25: Temporal.PlainDate.from(
+  day2: Temporal.PlainDate.from(
     {
       year: 2026,
       month: 10,
@@ -28,16 +24,14 @@ export const eventDates2026 = {
       overflow: "reject",
     },
   ),
-} as const satisfies EventDateMap;
+} as const satisfies FestivalDates;
 
-export type EventDateKey2026 = EventDateKey<typeof eventDates2026>;
-
-export const events2026 = [
+export const events = [
   createScheduledEvent({
     name: "男女装",
     bannerPath: undefined,
     description: "男女装の説明",
-    date: eventDates2026.october24,
+    date: eventDates.day1,
     startTime: {
       hour: 10,
     },
@@ -49,7 +43,7 @@ export const events2026 = [
     name: "カラオケ",
     bannerPath: undefined,
     description: "カラオケの説明",
-    date: eventDates2026.october24,
+    date: eventDates.day1,
     startTime: {
       hour: 12,
     },
@@ -61,7 +55,7 @@ export const events2026 = [
     name: "筋肉サークル",
     bannerPath: undefined,
     description: "説明",
-    date: eventDates2026.october24,
+    date: eventDates.day2,
     startTime: {
       hour: 15,
     },
@@ -73,7 +67,7 @@ export const events2026 = [
     name: "フリージア",
     bannerPath: undefined,
     description: "説明",
-    date: eventDates2026.october25,
+    date: eventDates.day2,
     startTime: {
       hour: 12,
     },
@@ -85,7 +79,7 @@ export const events2026 = [
     name: "演奏技術探求サークル",
     bannerPath: undefined,
     description: "説明",
-    date: eventDates2026.october25,
+    date: eventDates.day2,
     startTime: {
       hour: 13,
     },

@@ -1,6 +1,12 @@
 import { Temporal } from "@js-temporal/polyfill";
 import { StaticImageData } from "next/image";
 
+export const FESTIVAL_DAY_KEYS = ["day1", "day2"] as const;
+
+export type FestivalDayKey = (typeof FESTIVAL_DAY_KEYS)[number];
+
+export type FestivalDates = Record<FestivalDayKey, Temporal.PlainDate>;
+
 export type ScheduledEvent = {
   name: string;
   bannerPath: StaticImageData | undefined;
@@ -9,9 +15,7 @@ export type ScheduledEvent = {
   endAt: Temporal.PlainDateTime;
 };
 
-export type EventDateMap = Record<string, Temporal.PlainDate>;
-
-export type EventDateKey<TEventDates extends EventDateMap> = Extract<
-  keyof TEventDates,
-  string
->;
+export type FestivalSchedule = {
+  dates: FestivalDates;
+  events: readonly ScheduledEvent[];
+};
