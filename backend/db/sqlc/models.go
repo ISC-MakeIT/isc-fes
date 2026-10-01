@@ -221,16 +221,17 @@ type Room struct {
 }
 
 type Store struct {
-	ID             uuid.UUID          `json:"id"`
-	Name           string             `json:"name"`
-	Room           string             `json:"room"`
-	Description    string             `json:"description"`
-	ImageObjectKey string             `json:"image_object_key"`
-	ReviewStatus   StoreReviewStatus  `json:"review_status"`
-	SubmittedAt    pgtype.Timestamptz `json:"submitted_at"`
-	CreatedAt      pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
-	ClosedAt       pgtype.Timestamptz `json:"closed_at"`
+	ID              uuid.UUID          `json:"id"`
+	Name            string             `json:"name"`
+	Room            string             `json:"room"`
+	Description     string             `json:"description"`
+	ImageObjectKey  string             `json:"image_object_key"`
+	ReviewStatus    StoreReviewStatus  `json:"review_status"`
+	SubmittedAt     pgtype.Timestamptz `json:"submitted_at"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	ClosedAt        pgtype.Timestamptz `json:"closed_at"`
+	CongestionLevel int32              `json:"congestion_level"`
 }
 
 type StoreAllergen struct {
