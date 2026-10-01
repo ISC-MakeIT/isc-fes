@@ -12,6 +12,7 @@ export type FestivalDates = {
 };
 
 export type ScheduledEvent = {
+  slug: string;
   name: string;
   bannerPath: StaticImageData | undefined;
   description: string;

@@ -65,8 +65,8 @@ export function EventBanners() {
             ref={(element) => {
               bannerRefs.current[index] = element;
             }}
-            key={event.name}
-            href={eventsUrl()}
+            key={event.slug}
+            href={eventsUrl(event.slug)}
             className="relative block w-84"
           >
             <AspectRatioImage

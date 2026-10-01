@@ -39,7 +39,7 @@ export function EventScheduleView() {
           </Card>
           <ul className="space-y-4 px-2">
             {day1Events.map((event) => (
-              <EventScheduleItem isDay1 event={event} key={event.name} />
+              <EventScheduleItem isDay1 event={event} key={event.slug} />
             ))}
           </ul>
         </section>
@@ -52,7 +52,7 @@ export function EventScheduleView() {
               <EventScheduleItem
                 isDay1={false}
                 event={event}
-                key={event.name}
+                key={event.slug}
               />
             ))}
           </ul>
@@ -69,7 +69,7 @@ type EventScheduleItemProps = {
 
 function EventScheduleItem({ event, isDay1 }: EventScheduleItemProps) {
   return (
-    <li className="list-none">
+    <li className="list-none" id={event.slug}>
       <div className="flex flex-row items-center gap-2 text-xl font-semibold">
         <span aria-hidden className="bg-primary size-5 rounded-full" />
         <time dateTime={event.startAt.toString()}>
