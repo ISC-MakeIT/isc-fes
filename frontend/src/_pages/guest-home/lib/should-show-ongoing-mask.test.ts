@@ -15,7 +15,7 @@ describe("shouldShowOngoingMask", () => {
     ["イベント開催中", "2026-10-24T10:30:00", true],
     ["イベント終了時刻", "2026-10-24T11:00:00", false],
     ["イベント終了後", "2026-10-24T11:00:01", false],
-  ])("%sの場合は%sを返す", (_, now, expected) => {
+  ])("%s（現在時刻: %s）の場合は%sを返す", (_, now, expected) => {
     const result = shouldShowOngoingMask(
       event,
       Temporal.PlainDateTime.from(now),
