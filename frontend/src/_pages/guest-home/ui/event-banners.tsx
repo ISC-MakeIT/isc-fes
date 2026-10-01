@@ -9,7 +9,7 @@ import {
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { Temporal } from "@js-temporal/polyfill";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { shouldShowOngoingMask } from "../lib/should-show-ongoing-mask";
 import { DotText } from "@/shared/ui/dot-text";
 
@@ -20,6 +20,9 @@ export function EventBanners() {
   const [currentDateTime, setCurrentDateTime] =
     useState<Temporal.PlainDateTime | null>(null);
 
+  const bannerRefs = useRef<Array<HTMLAnchorElement | null>>([]);
+
+  // 時刻の初期化と定期更新
   useEffect(() => {
     setCurrentDateTime(Temporal.Now.plainDateTimeISO(FESTIVAL_TIME_ZONE));
 
@@ -32,14 +35,32 @@ export function EventBanners() {
     };
   }, []);
 
+  // 初期描画時、開催中のバナーにスクロールを合わせる
+  useEffect(() => {
+    if (!currentDateTime) return;
+
+    const ongoingEventIndex = currentScheduledEvents.findIndex((event) =>
+      shouldShowOngoingMask(event, currentDateTime),
+    );
+
+    bannerRefs.current[ongoingEventIndex]?.scrollIntoView({
+      behavior: "auto",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [currentDateTime]);
+
   return (
     <div className="flex flex-row gap-6 overflow-x-auto px-4 py-4">
-      {currentScheduledEvents.map((event) => {
+      {currentScheduledEvents.map((event, index) => {
         const isOngoing =
           currentDateTime && shouldShowOngoingMask(event, currentDateTime);
 
         return (
           <Link
+            ref={(element) => {
+              bannerRefs.current[index] = element;
+            }}
             key={event.name}
             href={eventsUrl()}
             className="relative block w-84"
