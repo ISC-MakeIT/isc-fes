@@ -7,7 +7,6 @@ import {
   FESTIVAL_TIME_ZONE,
 } from "@/shared/config";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
-import { Mask } from "@/shared/ui/mask";
 import { Temporal } from "@js-temporal/polyfill";
 import Link from "next/link";
 import { useEffect, useState } from "react";
