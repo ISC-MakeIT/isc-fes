@@ -46,7 +46,7 @@ INSERT INTO stores (
 ) VALUES (
     $1, $2, $3, $4, $5, 'pending'
 )
-RETURNING id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
+RETURNING id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at, congestion_level
 `
 
 type CreateStoreParams struct {
@@ -77,6 +77,7 @@ func (q *Queries) CreateStore(ctx context.Context, arg CreateStoreParams) (Store
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ClosedAt,
+		&i.CongestionLevel,
 	)
 	return i, err
 }
@@ -92,7 +93,7 @@ func (q *Queries) DeleteAllStoreAllergens(ctx context.Context, storeID uuid.UUID
 }
 
 const getApprovedStoreByID = `-- name: GetApprovedStoreByID :one
-SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at, congestion_level
 FROM stores
 WHERE review_status = 'approved'
     AND id = $1
@@ -112,12 +113,13 @@ func (q *Queries) GetApprovedStoreByID(ctx context.Context, id uuid.UUID) (Store
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ClosedAt,
+		&i.CongestionLevel,
 	)
 	return i, err
 }
 
 const getApprovedStores = `-- name: GetApprovedStores :many
-SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at, congestion_level
 FROM stores
 WHERE review_status = 'approved'
 ORDER BY created_at DESC
@@ -143,6 +145,7 @@ func (q *Queries) GetApprovedStores(ctx context.Context) ([]Store, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ClosedAt,
+			&i.CongestionLevel,
 		); err != nil {
 			return nil, err
 		}
@@ -155,7 +158,7 @@ func (q *Queries) GetApprovedStores(ctx context.Context) ([]Store, error) {
 }
 
 const getMemberStoresByAccountID = `-- name: GetMemberStoresByAccountID :many
-SELECT stores.id, stores.name, stores.room, stores.description, stores.image_object_key, stores.review_status, stores.submitted_at, stores.created_at, stores.updated_at, stores.closed_at
+SELECT stores.id, stores.name, stores.room, stores.description, stores.image_object_key, stores.review_status, stores.submitted_at, stores.created_at, stores.updated_at, stores.closed_at, stores.congestion_level
 FROM stores
 JOIN store_members ON store_members.store_id = stores.id
 WHERE store_members.account_id = $1
@@ -183,6 +186,7 @@ func (q *Queries) GetMemberStoresByAccountID(ctx context.Context, accountID uuid
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ClosedAt,
+			&i.CongestionLevel,
 		); err != nil {
 			return nil, err
 		}
@@ -195,7 +199,7 @@ func (q *Queries) GetMemberStoresByAccountID(ctx context.Context, accountID uuid
 }
 
 const getStoreApplications = `-- name: GetStoreApplications :many
-SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at, congestion_level
 FROM stores
 WHERE review_status = 'pending'
 ORDER BY created_at DESC
@@ -221,6 +225,7 @@ func (q *Queries) GetStoreApplications(ctx context.Context) ([]Store, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ClosedAt,
+			&i.CongestionLevel,
 		); err != nil {
 			return nil, err
 		}
@@ -233,7 +238,7 @@ func (q *Queries) GetStoreApplications(ctx context.Context) ([]Store, error) {
 }
 
 const getStoreByID = `-- name: GetStoreByID :one
-SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at, congestion_level
 FROM stores
 WHERE id = $1
 `
@@ -252,12 +257,13 @@ func (q *Queries) GetStoreByID(ctx context.Context, id uuid.UUID) (Store, error)
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ClosedAt,
+		&i.CongestionLevel,
 	)
 	return i, err
 }
 
 const getVisibleStoresByAccountID = `-- name: GetVisibleStoresByAccountID :many
-SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at, congestion_level
 FROM stores
 WHERE review_status = 'approved'
    OR (
@@ -292,6 +298,7 @@ func (q *Queries) GetVisibleStoresByAccountID(ctx context.Context, accountID uui
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ClosedAt,
+			&i.CongestionLevel,
 		); err != nil {
 			return nil, err
 		}
@@ -314,18 +321,20 @@ SET
     room = COALESCE($2::text, room),
     description = COALESCE($3::text, description),
     image_object_key = COALESCE($4::text, image_object_key),
+    congestion_level = COALESCE($5::integer, congestion_level),
     updated_at = now()
-WHERE id = $5
+WHERE id = $6
     AND review_status = 'approved'
-RETURNING id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
+RETURNING id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at, congestion_level
 `
 
 type UpdateStoreParams struct {
-	Closed         *bool     `json:"closed"`
-	Room           *string   `json:"room"`
-	Description    *string   `json:"description"`
-	ImageObjectKey *string   `json:"image_object_key"`
-	StoreID        uuid.UUID `json:"store_id"`
+	Closed          *bool     `json:"closed"`
+	Room            *string   `json:"room"`
+	Description     *string   `json:"description"`
+	ImageObjectKey  *string   `json:"image_object_key"`
+	CongestionLevel *int32    `json:"congestion_level"`
+	StoreID         uuid.UUID `json:"store_id"`
 }
 
 func (q *Queries) UpdateStore(ctx context.Context, arg UpdateStoreParams) (Store, error) {
@@ -334,6 +343,7 @@ func (q *Queries) UpdateStore(ctx context.Context, arg UpdateStoreParams) (Store
 		arg.Room,
 		arg.Description,
 		arg.ImageObjectKey,
+		arg.CongestionLevel,
 		arg.StoreID,
 	)
 	var i Store
@@ -348,6 +358,7 @@ func (q *Queries) UpdateStore(ctx context.Context, arg UpdateStoreParams) (Store
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ClosedAt,
+		&i.CongestionLevel,
 	)
 	return i, err
 }

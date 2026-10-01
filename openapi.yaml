@@ -1654,6 +1654,12 @@ components:
         available:
           type: boolean
           description: トッピングが現在利用可能かどうか。店舗がトッピングを削除した場合や在庫切れはfalseになる。
+    StoreCongestionLevel:
+      type: integer
+      format: int32
+      description: 店舗の混雑度。1、2、3の3段階で、3が最も混んでいる。新規店舗と既存店舗の初期値は1。
+      enum: [1, 2, 3]
+      x-enum-varnames: [StoreCongestionLevelLow, StoreCongestionLevelMedium, StoreCongestionLevelHigh]
     Store:
       type: object
       required:
@@ -1665,6 +1671,7 @@ components:
         - reviewStatus
         - allergens
         - closedAt
+        - congestionLevel
       properties:
         id:
           type: string
@@ -1687,9 +1694,14 @@ components:
           type: string
           format: date-time
           nullable: true
+        congestionLevel:
+          $ref: "#/components/schemas/StoreCongestionLevel"
     UpdateStoreInput:
       type: object
+      description: 指定した項目のみ更新する。混雑度も省略した場合は変更しない。
       properties:
+        congestionLevel:
+          $ref: "#/components/schemas/StoreCongestionLevel"
         closed:
           type: boolean
           description: trueで閉店、falseで営業再開する
@@ -1748,6 +1760,7 @@ components:
         - reviewStatus
         - submittedAt
         - allergens
+        - congestionLevel
       properties:
         id:
           type: string
@@ -1765,6 +1778,8 @@ components:
         submittedAt:
           type: string
           format: date-time
+        congestionLevel:
+          $ref: "#/components/schemas/StoreCongestionLevel"
         allergens:
           type: array
           items:

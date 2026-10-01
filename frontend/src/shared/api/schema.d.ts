@@ -529,6 +529,12 @@ export interface components {
       /** @description トッピングが現在利用可能かどうか。店舗がトッピングを削除した場合や在庫切れはfalseになる。 */
       available: boolean;
     };
+    /**
+     * Format: int32
+     * @description 店舗の混雑度。1、2、3の3段階で、3が最も混んでいる。新規店舗と既存店舗の初期値は1。
+     * @enum {integer}
+     */
+    StoreCongestionLevel: 1 | 2 | 3;
     Store: {
       /** Format: uuid */
       id: string;
@@ -540,8 +546,11 @@ export interface components {
       allergens: components["schemas"]["Allergen"][];
       /** Format: date-time */
       closedAt: string | null;
+      congestionLevel: components["schemas"]["StoreCongestionLevel"];
     };
+    /** @description 指定した項目のみ更新する。混雑度も省略した場合は変更しない。 */
     UpdateStoreInput: {
+      congestionLevel?: components["schemas"]["StoreCongestionLevel"];
       /** @description trueで閉店、falseで営業再開する */
       closed?: boolean;
       /** @example 605教室 */
@@ -572,6 +581,7 @@ export interface components {
       reviewStatus: components["schemas"]["StoreReviewStatus"];
       /** Format: date-time */
       submittedAt: string;
+      congestionLevel: components["schemas"]["StoreCongestionLevel"];
       allergens: components["schemas"]["Allergen"][];
     };
     Menu: {

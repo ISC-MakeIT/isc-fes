@@ -34,14 +34,15 @@ func (s *Server) GetStoreApplications(c *gin.Context) {
 
 func toStoreApplicationResponse(application entities.StoreOutput) StoreApplication {
 	return StoreApplication{
-		Id:           application.ID,
-		Name:         application.Name,
-		Description:  application.Description,
-		Room:         application.Room,
-		ImageUrl:     application.ImageURL,
-		ReviewStatus: StoreReviewStatus(application.ReviewStatus),
-		SubmittedAt:  application.SubmittedAt,
-		Allergens:    utils.Map(application.Allergens, toAllergen),
+		Id:              application.ID,
+		Name:            application.Name,
+		Description:     application.Description,
+		Room:            application.Room,
+		ImageUrl:        application.ImageURL,
+		ReviewStatus:    StoreReviewStatus(application.ReviewStatus),
+		SubmittedAt:     application.SubmittedAt,
+		Allergens:       utils.Map(application.Allergens, toAllergen),
+		CongestionLevel: StoreCongestionLevel(application.CongestionLevel),
 	}
 }
 

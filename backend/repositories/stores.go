@@ -137,11 +137,12 @@ func (r *StoreRepository) UpdateStore(ctx context.Context, storeID uuid.UUID, in
 
 	qtx := r.queries.WithTx(tx)
 	dbStore, err := qtx.UpdateStore(ctx, sqlc.UpdateStoreParams{
-		Closed:         input.Closed,
-		Room:           input.Room,
-		Description:    input.Description,
-		ImageObjectKey: (*string)(input.ImageObjectKey),
-		StoreID:        storeID,
+		Closed:          input.Closed,
+		CongestionLevel: (*int32)(input.CongestionLevel),
+		Room:            input.Room,
+		Description:     input.Description,
+		ImageObjectKey:  (*string)(input.ImageObjectKey),
+		StoreID:         storeID,
 	})
 	if err != nil {
 		return entities.Store{}, err
@@ -176,16 +177,17 @@ func (r *StoreRepository) UpdateStoreReviewStatus(ctx context.Context, storeID u
 // Converts sqlc.Store to entities.Store
 func (r *StoreRepository) toStore(dbStore sqlc.Store) entities.Store {
 	return entities.Store{
-		ID:             dbStore.ID,
-		Name:           dbStore.Name,
-		Room:           dbStore.Room,
-		Description:    dbStore.Description,
-		ImageObjectKey: entities.StoreImageObjectKey(dbStore.ImageObjectKey),
-		ReviewStatus:   entities.StoreReviewStatus(dbStore.ReviewStatus),
-		SubmittedAt:    dbStore.SubmittedAt.Time,
-		CreatedAt:      dbStore.CreatedAt.Time,
-		UpdatedAt:      dbStore.UpdatedAt.Time,
-		ClosedAt:       utils.TimestamptzToTimePtr(dbStore.ClosedAt),
+		ID:              dbStore.ID,
+		Name:            dbStore.Name,
+		Room:            dbStore.Room,
+		Description:     dbStore.Description,
+		ImageObjectKey:  entities.StoreImageObjectKey(dbStore.ImageObjectKey),
+		ReviewStatus:    entities.StoreReviewStatus(dbStore.ReviewStatus),
+		SubmittedAt:     dbStore.SubmittedAt.Time,
+		CreatedAt:       dbStore.CreatedAt.Time,
+		UpdatedAt:       dbStore.UpdatedAt.Time,
+		ClosedAt:        utils.TimestamptzToTimePtr(dbStore.ClosedAt),
+		CongestionLevel: entities.StoreCongestionLevel(dbStore.CongestionLevel),
 	}
 }
 
