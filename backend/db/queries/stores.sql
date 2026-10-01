@@ -27,13 +27,24 @@ WHERE review_status = 'approved'
 SELECT *
 FROM stores
 WHERE review_status = 'approved'
-   OR id IN (
-       SELECT store_id
-       FROM store_members
-       WHERE account_id = $1
-         AND role = 'manager'
+   OR (
+       review_status = 'pending'
+       AND id IN (
+           SELECT store_id
+           FROM store_members
+           WHERE account_id = $1
+             AND role = 'manager'
+       )
    )
 ORDER BY created_at DESC;
+
+-- name: GetMemberStoresByAccountID :many
+SELECT stores.*
+FROM stores
+JOIN store_members ON store_members.store_id = stores.id
+WHERE store_members.account_id = $1
+  AND stores.review_status IN ('approved', 'pending')
+ORDER BY stores.created_at DESC;
 
 -- name: GetStoreApplications :many
 SELECT *
@@ -46,22 +57,25 @@ SELECT *
 FROM stores
 WHERE id = $1;
 
--- name: UpdateStoreClosed :one
+-- name: UpdateStore :one
 UPDATE stores
 SET
     closed_at = CASE
-        WHEN sqlc.arg(closed)::boolean THEN COALESCE(closed_at, now())
+        WHEN sqlc.narg(closed)::boolean IS NULL THEN closed_at
+        WHEN sqlc.narg(closed)::boolean THEN COALESCE(closed_at, now())
         ELSE NULL
     END,
-    updated_at = CASE
-        WHEN (sqlc.arg(closed)::boolean AND closed_at IS NULL)
-          OR (NOT sqlc.arg(closed)::boolean AND closed_at IS NOT NULL)
-        THEN now()
-        ELSE updated_at
-    END
+    room = COALESCE(sqlc.narg(room)::text, room),
+    description = COALESCE(sqlc.narg(description)::text, description),
+    image_object_key = COALESCE(sqlc.narg(image_object_key)::text, image_object_key),
+    updated_at = now()
 WHERE id = sqlc.arg(store_id)
     AND review_status = 'approved'
 RETURNING *;
+
+-- name: DeleteAllStoreAllergens :exec
+DELETE FROM store_allergens
+WHERE store_id = sqlc.arg(store_id);
 
 -- name: UpdateStoreReviewStatusById :exec
 UPDATE stores

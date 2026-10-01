@@ -1,4 +1,7 @@
+"use client";
+
 import { googleLoginUrl } from "@/shared/config";
+import { trackEvent } from "@/shared/lib/analytics";
 import { cn } from "@/shared/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
 import { DotText } from "@/shared/ui/dot-text";
@@ -12,6 +15,7 @@ export function LoginButton({ redirectTo }: LoginButtonProps) {
   return (
     <LinkButton
       href={googleLoginUrl(redirectTo)}
+      onClick={() => trackEvent("login_started", { method: "google" })}
       className={cn(buttonVariants({ size: "lg" }), "h-16 px-8 text-2xl")}
     >
       <DotText>ログイン</DotText>

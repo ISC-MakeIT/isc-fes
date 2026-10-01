@@ -27,6 +27,7 @@ import {
   allergenQueryOptions,
 } from "@/entities/allergen";
 import { cn } from "@/shared/lib/utils";
+import { trackEvent } from "@/shared/lib/analytics";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -45,6 +46,7 @@ export function RegisterStoreForm() {
   const mutation = useMutation({
     mutationFn: createStoreApplication,
     onSuccess: () => {
+      trackEvent("store_application_submitted");
       router.push(storeListUrl());
     },
   });
@@ -245,11 +247,6 @@ export function RegisterStoreForm() {
         />
       </div>
 
-      <p className="text-sm">
-        登録内容は変更できません。
-        <br />
-        変更したい場合は管理者に連絡してください。
-      </p>
       <form.Subscribe
         selector={(state) => [
           state.canSubmit,

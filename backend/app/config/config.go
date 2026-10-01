@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -11,15 +12,16 @@ type Config struct {
 	Database DatabaseConfig
 	S3       S3Config
 	Auth     AuthConfig
+	Sentry   SentryConfig
 
 	FrontendURL       string
 	StoreImageBaseURL string
-	DiscordNotifier   DiscordNotifierConfig
 }
 
-type DiscordNotifierConfig struct {
-	WebhookURL     string
-	MentionUserIDs []string
+type SentryConfig struct {
+	DSN              string
+	Environment      string
+	TracesSampleRate float64
 }
 
 type HTTPConfig struct {
@@ -79,12 +81,13 @@ func Load() Config {
 			GoogleClientSecret:  requireEnv("GOOGLE_CLIENT_SECRET"),
 			GoogleRedirectURL:   requireEnv("GOOGLE_REDIRECT_URL"),
 		},
+		Sentry: SentryConfig{
+			DSN:              os.Getenv("SENTRY_DSN"),
+			Environment:      sentryEnvironment(),
+			TracesSampleRate: optionalFloatEnv("SENTRY_TRACES_SAMPLE_RATE", 1),
+		},
 		FrontendURL:       requireEnv("FRONTEND_URL"),
 		StoreImageBaseURL: os.Getenv("STORE_IMAGE_BASE_URL"),
-		DiscordNotifier: DiscordNotifierConfig{
-			WebhookURL:     os.Getenv("DISCORD_WEBHOOK_URL"),
-			MentionUserIDs: optionalCSVEnv("DISCORD_MENTION_USER_IDS"),
-		},
 	}
 }
 
@@ -102,22 +105,33 @@ func requireCSVEnv(key string) []string {
 	return values
 }
 
-func optionalCSVEnv(key string) []string {
+func optionalEnv(key, defaultValue string) string {
 	value := os.Getenv(key)
 	if value == "" {
-		return nil
+		return defaultValue
+	}
+	return value
+}
+
+func sentryEnvironment() string {
+	environment := optionalEnv("SENTRY_ENVIRONMENT", "dev")
+	if environment != "dev" && environment != "prod" {
+		panic("environment variable SENTRY_ENVIRONMENT must be dev or prod")
+	}
+	return environment
+}
+
+func optionalFloatEnv(key string, defaultValue float64) float64 {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
 	}
 
-	values := strings.Split(value, ",")
-
-	for i, value := range values {
-		values[i] = strings.TrimSpace(value)
-		if values[i] == "" {
-			panic("environment variable " + key + " must not contain empty values")
-		}
+	parsed, err := strconv.ParseFloat(value, 64)
+	if err != nil || parsed < 0 || parsed > 1 {
+		panic("environment variable " + key + " must be a number between 0 and 1")
 	}
-
-	return values
+	return parsed
 }
 
 // 必須の環境変数を取り出す

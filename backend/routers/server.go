@@ -29,7 +29,6 @@ type Server struct {
 	toppings            *toppings.ToppingsService
 	cart                *carts.CartService
 	rooms               *rooms.RoomsService
-	errorNotifier       *services.ErrorNotifier
 }
 
 func NewServer(
@@ -48,7 +47,6 @@ func NewServer(
 	toppingsService *toppings.ToppingsService,
 	cartService *carts.CartService,
 	roomsService *rooms.RoomsService,
-	errorNotifier *services.ErrorNotifier,
 ) *Server {
 	return &Server{
 		queries:             queries,
@@ -66,6 +64,5 @@ func NewServer(
 		toppings:            toppingsService,
 		cart:                cartService,
 		rooms:               roomsService,
-		errorNotifier:       errorNotifier,
 	}
 }

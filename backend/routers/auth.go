@@ -2,7 +2,6 @@ package routers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -25,7 +24,7 @@ func (s *Server) googleLogin(c *gin.Context) {
 		},
 	)
 	if err != nil {
-		log.Printf("start Google login: %v", err)
+		captureUnexpectedError(c, fmt.Errorf("start Google login: %w", err))
 
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"message": "failed to start login",
@@ -46,7 +45,7 @@ func (s *Server) googleCallback(c *gin.Context) {
 
 	output, err := s.auth.CompleteGoogleLogin(ctx, input)
 	if err != nil {
-		log.Printf("complete Google login: %v", err)
+		captureUnexpectedError(c, fmt.Errorf("complete Google login: %w", err))
 		// TODO: 全部が Internal Error にならないようにする
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"message": "failed to complete login",
@@ -56,7 +55,7 @@ func (s *Server) googleCallback(c *gin.Context) {
 
 	redirectURL, err := frontendRedirectURL(s.frontendURL, output.RedirectTo)
 	if err != nil {
-		log.Printf("resolve frontend redirect URL: %v", err)
+		captureUnexpectedError(c, fmt.Errorf("resolve frontend redirect URL: %w", err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"message": "failed to complete login",
 		})

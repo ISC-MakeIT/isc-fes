@@ -20,7 +20,7 @@ INSERT INTO store_members (
 )
 RETURNING *;
 
--- name: CreateStoreMemberIfNotExists :one
+-- name: CreateOrUpgradeStoreMember :one
 INSERT INTO store_members (
     store_id,
     account_id,
@@ -28,7 +28,9 @@ INSERT INTO store_members (
 ) VALUES (
     $1, $2, $3
 )
-ON CONFLICT (store_id, account_id) DO NOTHING
+ON CONFLICT (store_id, account_id) DO UPDATE
+SET role = EXCLUDED.role
+WHERE store_members.role = 'staff' AND EXCLUDED.role = 'manager'
 RETURNING *;
 
 -- name: GetStoreMembersByStoreID :many

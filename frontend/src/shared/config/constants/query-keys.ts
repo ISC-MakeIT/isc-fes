@@ -1,4 +1,3 @@
-export const storesKey = () => ["stores"];
 export const storeDetailKey = (storeId: string) => ["store", storeId];
 export const storeMenusKey = (storeId: string) => ["store", "menus", storeId];
 export const storeToppingsKey = (storeId: string) => [
@@ -31,3 +30,9 @@ export const menuToppingsKeys = {
 };
 
 export const cartKey = (storeId: string) => ["store", storeId, "cart"];
+
+export const storeListKeys = {
+  all: () => ["stores"] as const,
+  visible: () => [...storeListKeys.all(), "visible"] as const,
+  currentAccount: () => [...storeListKeys.all(), "current-account"] as const,
+};

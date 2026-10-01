@@ -9,6 +9,7 @@ import { createQueryClient } from "@/shared/api";
 import { storeMenusQueryOptions } from "@/entities/menu";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { AllergenBadge } from "@/entities/allergen";
+import { StoreViewAnalytics } from "./store-view-analytics";
 
 type GuestStoreDetailViewProps = {
   storeId: string;
@@ -27,6 +28,10 @@ export async function GuestStoreDetailView({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
+      <StoreViewAnalytics
+        storeId={storeId}
+        floorNumber={Number(store.room.charAt(0)) || undefined}
+      />
       <div className="mx-auto flex flex-col md:max-w-200">
         <div className="md:flex md:flex-row md:items-start md:gap-1.5 md:px-6 md:pt-10 md:pb-8">
           <AspectRatioImage
@@ -65,7 +70,7 @@ export async function GuestStoreDetailView({
           <HeadingCard className="px-14 py-2">マップ</HeadingCard>
           {mapImage && (
             <Image
-              alt={`${store.room}教室のマップ`}
+              alt={`${store.room}のマップ`}
               src={mapImage}
               className="w-75"
             />

@@ -14,6 +14,7 @@ type FetchCurrentAccountResult = Promise<Account | null>;
 /**
  * 現在のアカウント情報を取得するAPI
  * 未ログインであればnullを返す
+ * SSRからの呼び出し && セッションクッキーがなければAPIを叩く前にnullを返す
  * @returns
  */
 export async function fetchCurrentAccount(): FetchCurrentAccountResult {

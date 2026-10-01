@@ -27,3 +27,34 @@ func TestRequireCSVEnvRejectsEmptyValue(t *testing.T) {
 
 	requireCSVEnv("TEST_ORIGINS")
 }
+
+func TestSentryEnvironmentDefaultsToDev(t *testing.T) {
+	t.Setenv("SENTRY_ENVIRONMENT", "")
+	if got := sentryEnvironment(); got != "dev" {
+		t.Errorf("sentryEnvironment() = %q, want dev", got)
+	}
+}
+
+func TestSentryEnvironmentRejectsUnknownEnvironment(t *testing.T) {
+	t.Setenv("SENTRY_ENVIRONMENT", "production")
+
+	defer func() {
+		if recover() == nil {
+			t.Error("sentryEnvironment() did not panic")
+		}
+	}()
+
+	sentryEnvironment()
+}
+
+func TestOptionalFloatEnvRejectsOutOfRangeValue(t *testing.T) {
+	t.Setenv("SENTRY_TRACES_SAMPLE_RATE", "1.1")
+
+	defer func() {
+		if recover() == nil {
+			t.Error("optionalFloatEnv() did not panic")
+		}
+	}()
+
+	optionalFloatEnv("SENTRY_TRACES_SAMPLE_RATE", 1)
+}

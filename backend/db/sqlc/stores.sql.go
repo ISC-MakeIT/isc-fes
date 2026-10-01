@@ -81,6 +81,16 @@ func (q *Queries) CreateStore(ctx context.Context, arg CreateStoreParams) (Store
 	return i, err
 }
 
+const deleteAllStoreAllergens = `-- name: DeleteAllStoreAllergens :exec
+DELETE FROM store_allergens
+WHERE store_id = $1
+`
+
+func (q *Queries) DeleteAllStoreAllergens(ctx context.Context, storeID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteAllStoreAllergens, storeID)
+	return err
+}
+
 const getApprovedStoreByID = `-- name: GetApprovedStoreByID :one
 SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
 FROM stores
@@ -115,6 +125,46 @@ ORDER BY created_at DESC
 
 func (q *Queries) GetApprovedStores(ctx context.Context) ([]Store, error) {
 	rows, err := q.db.Query(ctx, getApprovedStores)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Store{}
+	for rows.Next() {
+		var i Store
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Room,
+			&i.Description,
+			&i.ImageObjectKey,
+			&i.ReviewStatus,
+			&i.SubmittedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ClosedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMemberStoresByAccountID = `-- name: GetMemberStoresByAccountID :many
+SELECT stores.id, stores.name, stores.room, stores.description, stores.image_object_key, stores.review_status, stores.submitted_at, stores.created_at, stores.updated_at, stores.closed_at
+FROM stores
+JOIN store_members ON store_members.store_id = stores.id
+WHERE store_members.account_id = $1
+  AND stores.review_status IN ('approved', 'pending')
+ORDER BY stores.created_at DESC
+`
+
+func (q *Queries) GetMemberStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]Store, error) {
+	rows, err := q.db.Query(ctx, getMemberStoresByAccountID, accountID)
 	if err != nil {
 		return nil, err
 	}
@@ -210,11 +260,14 @@ const getVisibleStoresByAccountID = `-- name: GetVisibleStoresByAccountID :many
 SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
 FROM stores
 WHERE review_status = 'approved'
-   OR id IN (
-       SELECT store_id
-       FROM store_members
-       WHERE account_id = $1
-         AND role = 'manager'
+   OR (
+       review_status = 'pending'
+       AND id IN (
+           SELECT store_id
+           FROM store_members
+           WHERE account_id = $1
+             AND role = 'manager'
+       )
    )
 ORDER BY created_at DESC
 `
@@ -250,31 +303,39 @@ func (q *Queries) GetVisibleStoresByAccountID(ctx context.Context, accountID uui
 	return items, nil
 }
 
-const updateStoreClosed = `-- name: UpdateStoreClosed :one
+const updateStore = `-- name: UpdateStore :one
 UPDATE stores
 SET
     closed_at = CASE
+        WHEN $1::boolean IS NULL THEN closed_at
         WHEN $1::boolean THEN COALESCE(closed_at, now())
         ELSE NULL
     END,
-    updated_at = CASE
-        WHEN ($1::boolean AND closed_at IS NULL)
-          OR (NOT $1::boolean AND closed_at IS NOT NULL)
-        THEN now()
-        ELSE updated_at
-    END
-WHERE id = $2
+    room = COALESCE($2::text, room),
+    description = COALESCE($3::text, description),
+    image_object_key = COALESCE($4::text, image_object_key),
+    updated_at = now()
+WHERE id = $5
     AND review_status = 'approved'
 RETURNING id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at
 `
 
-type UpdateStoreClosedParams struct {
-	Closed  bool      `json:"closed"`
-	StoreID uuid.UUID `json:"store_id"`
+type UpdateStoreParams struct {
+	Closed         *bool     `json:"closed"`
+	Room           *string   `json:"room"`
+	Description    *string   `json:"description"`
+	ImageObjectKey *string   `json:"image_object_key"`
+	StoreID        uuid.UUID `json:"store_id"`
 }
 
-func (q *Queries) UpdateStoreClosed(ctx context.Context, arg UpdateStoreClosedParams) (Store, error) {
-	row := q.db.QueryRow(ctx, updateStoreClosed, arg.Closed, arg.StoreID)
+func (q *Queries) UpdateStore(ctx context.Context, arg UpdateStoreParams) (Store, error) {
+	row := q.db.QueryRow(ctx, updateStore,
+		arg.Closed,
+		arg.Room,
+		arg.Description,
+		arg.ImageObjectKey,
+		arg.StoreID,
+	)
 	var i Store
 	err := row.Scan(
 		&i.ID,

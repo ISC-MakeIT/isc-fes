@@ -10,6 +10,7 @@ export {
   registerStoreUrl,
   storeListUrl,
   storeHomeUrl,
+  storeEditUrl,
   storeKitchenUrl,
   storeCallUrl,
   storeMenusUrl,
@@ -28,7 +29,6 @@ export {
 } from "./constants/status-codes";
 
 export {
-  storesKey,
   storeDetailKey,
   storeMembersKey,
   storeMenusKey,
@@ -40,6 +40,7 @@ export {
   allergensKey,
   menuToppingsKeys,
   cartKey,
+  storeListKeys,
 } from "./constants/query-keys";
 
 export {

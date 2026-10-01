@@ -274,14 +274,34 @@ paths:
   /stores:
     get:
       operationId: getVisibleStores
-      summary: 全ての承認済みの店舗と、自分が申請した店舗一覧を取得する
+      summary: 閲覧可能な店舗一覧を取得する
+      parameters:
+        - name: member_only
+          in: query
+          required: false
+          description: true の場合、ログイン中のアカウントが所属する承認済み・申請中の店舗を取得する
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
-          description: 承認済みの店舗と、自分が申請した店舗一覧
+          description: 店舗一覧。member_only が false の場合は承認済みの店舗と自分が管理者である申請中の店舗
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/GetVisibleStoresResponse"
+        "400":
+          description: クエリパラメータが不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: member_only が true で未ログイン
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: サーバーエラー
           content:
@@ -325,9 +345,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-    put:
+    patch:
       operationId: updateStore
-      summary: 店舗の閉店状態を更新する
+      summary: 店舗情報を部分更新する
       security:
         - AccountSession: []
       parameters:
@@ -1182,7 +1202,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
-          description: すでに店舗のメンバーである
+          description: すでに招待された権限以上で店舗のメンバーである
           content:
             application/json:
               schema:
@@ -1319,7 +1339,7 @@ components:
           type: string
           minLength: 1
           maxLength: 50
-          example: 605
+          example: 605教室
         description:
           type: string
           minLength: 1
@@ -1669,12 +1689,28 @@ components:
           nullable: true
     UpdateStoreInput:
       type: object
-      required:
-        - closed
       properties:
         closed:
           type: boolean
           description: trueで閉店、falseで営業再開する
+        room:
+          type: string
+          minLength: 1
+          maxLength: 50
+          example: 605教室
+        imageObjectKey:
+          $ref: "#/components/schemas/ImageObjectKey"
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        allergenIds:
+          type: array
+          description: 店舗で使用するアレルゲンのID一覧。空配列で表示を消去する。
+          items:
+            type: string
+            format: uuid
+          uniqueItems: true
     StoreMember:
       type: object
       required:

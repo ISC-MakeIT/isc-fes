@@ -136,6 +136,7 @@ func TestRouterCORSAllowedOrigins(t *testing.T) {
 			request := httptest.NewRequestWithContext(t.Context(), http.MethodOptions, "/health", nil)
 			request.Header.Set("Origin", origin)
 			request.Header.Set("Access-Control-Request-Method", http.MethodPut)
+			request.Header.Set("Access-Control-Request-Headers", "sentry-trace,baggage")
 			response := httptest.NewRecorder()
 
 			router.ServeHTTP(response, request)
@@ -145,6 +146,12 @@ func TestRouterCORSAllowedOrigins(t *testing.T) {
 			}
 			if got := response.Header().Get("Access-Control-Allow-Origin"); got != origin {
 				t.Errorf("Access-Control-Allow-Origin = %q, want %q", got, origin)
+			}
+			allowedHeaders := response.Header().Get("Access-Control-Allow-Headers")
+			for _, header := range []string{"Sentry-Trace", "Baggage"} {
+				if !strings.Contains(allowedHeaders, header) {
+					t.Errorf("Access-Control-Allow-Headers = %q, want %q", allowedHeaders, header)
+				}
 			}
 		})
 	}
@@ -416,22 +423,22 @@ func TestOpenAPIRequestValidatorValidatesStoreApplicationAllergenIDs(t *testing.
 	}{
 		{
 			name:       "空配列を受け付ける",
-			body:       `{"name":"test","room":"605","description":"test","allergenIds":[],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			body:       `{"name":"test","room":"605教室","description":"test","allergenIds":[],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
 			wantStatus: http.StatusNoContent,
 		},
 		{
 			name:       "フィールドの省略を拒否する",
-			body:       `{"name":"test","room":"605","description":"test","imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			body:       `{"name":"test","room":"605教室","description":"test","imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
 			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "不正なUUIDを拒否する",
-			body:       `{"name":"test","room":"605","description":"test","allergenIds":["invalid"],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			body:       `{"name":"test","room":"605教室","description":"test","allergenIds":["invalid"],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
 			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "重複したIDを拒否する",
-			body:       `{"name":"test","room":"605","description":"test","allergenIds":["` + allergenID + `","` + allergenID + `"],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			body:       `{"name":"test","room":"605教室","description":"test","allergenIds":["` + allergenID + `","` + allergenID + `"],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
 			wantStatus: http.StatusBadRequest,
 		},
 	}
@@ -511,8 +518,10 @@ func TestOpenAPIRequestValidatorValidatesUpdateStoreInput(t *testing.T) {
 	}{
 		{name: "close store", body: `{"closed":true}`, wantStatus: http.StatusNoContent},
 		{name: "reopen store", body: `{"closed":false}`, wantStatus: http.StatusNoContent},
-		{name: "closed is required", body: `{}`, wantStatus: http.StatusBadRequest},
+		{name: "empty update", body: `{}`, wantStatus: http.StatusNoContent},
+		{name: "description only", body: `{"description":"新しい説明"}`, wantStatus: http.StatusNoContent},
 		{name: "closed must be boolean", body: `{"closed":"true"}`, wantStatus: http.StatusBadRequest},
+		{name: "description must not be empty", body: `{"description":""}`, wantStatus: http.StatusBadRequest},
 	}
 
 	for _, test := range tests {
@@ -521,13 +530,13 @@ func TestOpenAPIRequestValidatorValidatesUpdateStoreInput(t *testing.T) {
 				account: entities.Account{ID: uuid.New()},
 			})
 			router := gin.New()
-			router.PUT("/stores/:store_id", validator, func(c *gin.Context) {
+			router.PATCH("/stores/:store_id", validator, func(c *gin.Context) {
 				c.Status(http.StatusNoContent)
 			})
 
 			request := httptest.NewRequestWithContext(
 				t.Context(),
-				http.MethodPut,
+				http.MethodPatch,
 				"/stores/00000000-0000-0000-0000-000000000000",
 				strings.NewReader(test.body),
 			)

@@ -10,6 +10,7 @@ import { v } from "@/shared/lib/valibot";
 import { useStoreId } from "../model/hooks/use-store-id";
 import { useAppForm } from "@/shared/lib/form-hook";
 import { menuFormOptions } from "../model/menu-form";
+import { trackEvent } from "@/shared/lib/analytics";
 
 export function CreateMenuForm() {
   const storeId = useStoreId();
@@ -17,6 +18,7 @@ export function CreateMenuForm() {
   const mutation = useMutation({
     mutationFn: createMenu,
     onSuccess: () => {
+      trackEvent("menu_created", { store_id: storeId });
       client.invalidateQueries({ queryKey: storeMenusKey(storeId) });
       form.reset();
     },

@@ -14,6 +14,7 @@ import { Fragment } from "react/jsx-runtime";
 import { Button } from "@/shared/ui/button";
 import { editMenu } from "../api/edit-menu";
 import { EditorTarget, useMenuEditor } from "../model/hooks/use-menu-editor";
+import { trackEvent } from "@/shared/lib/analytics";
 
 export function MenuList() {
   const storeId = useStoreId();
@@ -44,6 +45,12 @@ export function MenuList() {
                     storeId,
                     menuId: menu.id,
                     editMenuInput: { soldOut: !menu.soldOut },
+                  });
+                  trackEvent("item_availability_changed", {
+                    store_id: storeId,
+                    item_type: "menu",
+                    item_id: menu.id,
+                    sold_out: !menu.soldOut,
                   });
                   await queryClient.invalidateQueries({
                     queryKey: storeMenusKey(storeId),

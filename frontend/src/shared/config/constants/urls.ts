@@ -28,6 +28,7 @@ export const storeInvitationsUrl = (invitationId: string) =>
 export const storeListUrl = () => "/member/stores";
 export const registerStoreUrl = () => "/member/stores/register";
 export const storeHomeUrl = (id: string) => `/member/stores/${id}`;
+export const storeEditUrl = (id: string) => `/member/stores/${id}/edit`;
 export const storeKitchenUrl = (id: string) => `/member/stores/${id}/kitchen`;
 export const storePickupUrl = (id: string) => `/member/stores/${id}/pickup`;
 export const storeCallUrl = (id: string) => `/member/stores/${id}/call`;

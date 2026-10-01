@@ -110,6 +110,15 @@ func (r *StoreRepository) GetVisibleStoresByAccountID(ctx context.Context, accou
 	return utils.Map(dbStores, r.toStore), nil
 }
 
+func (r *StoreRepository) GetMemberStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error) {
+	dbStores, err := r.queries.GetMemberStoresByAccountID(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	return utils.Map(dbStores, r.toStore), nil
+}
+
 func (r *StoreRepository) GetStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error) {
 	dbStore, err := r.queries.GetStoreByID(ctx, storeID)
 	if err != nil {
@@ -119,12 +128,38 @@ func (r *StoreRepository) GetStoreByID(ctx context.Context, storeID uuid.UUID) (
 	return r.toStore(dbStore), nil
 }
 
-func (r *StoreRepository) UpdateStoreClosed(ctx context.Context, storeID uuid.UUID, closed bool) (entities.Store, error) {
-	dbStore, err := r.queries.UpdateStoreClosed(ctx, sqlc.UpdateStoreClosedParams{
-		Closed:  closed,
-		StoreID: storeID,
+func (r *StoreRepository) UpdateStore(ctx context.Context, storeID uuid.UUID, input services.UpdateStoreInput) (entities.Store, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return entities.Store{}, err
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := r.queries.WithTx(tx)
+	dbStore, err := qtx.UpdateStore(ctx, sqlc.UpdateStoreParams{
+		Closed:         input.Closed,
+		Room:           input.Room,
+		Description:    input.Description,
+		ImageObjectKey: (*string)(input.ImageObjectKey),
+		StoreID:        storeID,
 	})
 	if err != nil {
+		return entities.Store{}, err
+	}
+
+	if input.AllergenIDs != nil {
+		if err := qtx.DeleteAllStoreAllergens(ctx, storeID); err != nil {
+			return entities.Store{}, err
+		}
+		if err := qtx.AddAllergensToStore(ctx, sqlc.AddAllergensToStoreParams{
+			StoreID:     storeID,
+			AllergenIds: *input.AllergenIDs,
+		}); err != nil {
+			return entities.Store{}, err
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
 		return entities.Store{}, err
 	}
 

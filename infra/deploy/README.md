@@ -22,6 +22,10 @@ Caddyの証明書と設定状態は`caddy-data`、`caddy-config` volumeへ永続
 `.env.example`をもとに、EC2の`/opt/isc-fes/.env`へ実際の値を配置する。
 `.env`はGit管理せず、TerraformのStateにもSecretを保存しない。
 
+ローカルの`infra/deploy/.env`には通常ファイルのほか、1Password Environmentsが作成する
+名前付きパイプ（FIFO）も使用できる。登録スクリプトはFIFOの内容を権限`0600`の一時ファイルへ
+一度だけ読み込み、処理終了時に削除する。
+
 `BACKEND_IMAGE`はSecretへ含めず、後続のデプロイ処理から`make push-backend-image`でECRへpushした不変なCommit SHA Tagを渡す。
 Container内ではEC2のIAM Roleを使うため、AWS Access Keyは設定しない。
 

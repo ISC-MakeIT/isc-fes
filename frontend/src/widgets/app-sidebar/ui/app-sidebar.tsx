@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PanelLeftCloseIcon, PanelRightCloseIcon } from "lucide-react";
+import { storeListUrl } from "@/shared/config";
 
 type AppSidebarProps = {
   navigationItems: { label: string; href: string }[];
@@ -41,6 +42,15 @@ export function AppSidebar({ navigationItems, className }: AppSidebarProps) {
 
       <SidebarContent>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              className="h-auto rounded-none py-6 pl-6"
+              render={<Link href={storeListUrl()} />}
+            >
+              <DotText className="text-primary">店舗一覧</DotText>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           {navigationItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
@@ -49,7 +59,7 @@ export function AppSidebar({ navigationItems, className }: AppSidebarProps) {
                 render={<Link href={item.href} />}
                 isActive={pathname === item.href}
               >
-                <DotText className="text-base">{item.label}</DotText>
+                <DotText>{item.label}</DotText>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

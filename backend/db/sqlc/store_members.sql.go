@@ -12,6 +12,38 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createOrUpgradeStoreMember = `-- name: CreateOrUpgradeStoreMember :one
+INSERT INTO store_members (
+    store_id,
+    account_id,
+    role
+) VALUES (
+    $1, $2, $3
+)
+ON CONFLICT (store_id, account_id) DO UPDATE
+SET role = EXCLUDED.role
+WHERE store_members.role = 'staff' AND EXCLUDED.role = 'manager'
+RETURNING store_id, account_id, role, joined_at
+`
+
+type CreateOrUpgradeStoreMemberParams struct {
+	StoreID   uuid.UUID       `json:"store_id"`
+	AccountID uuid.UUID       `json:"account_id"`
+	Role      StoreMemberRole `json:"role"`
+}
+
+func (q *Queries) CreateOrUpgradeStoreMember(ctx context.Context, arg CreateOrUpgradeStoreMemberParams) (StoreMember, error) {
+	row := q.db.QueryRow(ctx, createOrUpgradeStoreMember, arg.StoreID, arg.AccountID, arg.Role)
+	var i StoreMember
+	err := row.Scan(
+		&i.StoreID,
+		&i.AccountID,
+		&i.Role,
+		&i.JoinedAt,
+	)
+	return i, err
+}
+
 const createStoreMember = `-- name: CreateStoreMember :one
 INSERT INTO store_members (
     store_id,
@@ -31,36 +63,6 @@ type CreateStoreMemberParams struct {
 
 func (q *Queries) CreateStoreMember(ctx context.Context, arg CreateStoreMemberParams) (StoreMember, error) {
 	row := q.db.QueryRow(ctx, createStoreMember, arg.StoreID, arg.AccountID, arg.Role)
-	var i StoreMember
-	err := row.Scan(
-		&i.StoreID,
-		&i.AccountID,
-		&i.Role,
-		&i.JoinedAt,
-	)
-	return i, err
-}
-
-const createStoreMemberIfNotExists = `-- name: CreateStoreMemberIfNotExists :one
-INSERT INTO store_members (
-    store_id,
-    account_id,
-    role
-) VALUES (
-    $1, $2, $3
-)
-ON CONFLICT (store_id, account_id) DO NOTHING
-RETURNING store_id, account_id, role, joined_at
-`
-
-type CreateStoreMemberIfNotExistsParams struct {
-	StoreID   uuid.UUID       `json:"store_id"`
-	AccountID uuid.UUID       `json:"account_id"`
-	Role      StoreMemberRole `json:"role"`
-}
-
-func (q *Queries) CreateStoreMemberIfNotExists(ctx context.Context, arg CreateStoreMemberIfNotExistsParams) (StoreMember, error) {
-	row := q.db.QueryRow(ctx, createStoreMemberIfNotExists, arg.StoreID, arg.AccountID, arg.Role)
 	var i StoreMember
 	err := row.Scan(
 		&i.StoreID,

@@ -7,6 +7,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { MinusIcon, PlusIcon } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
+import { trackEvent } from "@/shared/lib/analytics";
 
 type ToppingSelectorType = {
   storeId: string;
@@ -32,9 +33,22 @@ export function ToppingSelector({
       </h2>
       <ToggleGroup
         multiple
+        onValueChange={(nextIds) => {
+          const changedId =
+            nextIds.find((id) => !value.includes(id)) ??
+            value.find((id) => !nextIds.includes(id));
+          if (changedId) {
+            trackEvent("topping_selection_changed", {
+              store_id: storeId,
+              menu_id: menuId,
+              topping_id: changedId,
+              selected: nextIds.includes(changedId),
+            });
+          }
+          onValueChange(nextIds);
+        }}
         orientation="vertical"
         className="flex w-full flex-col gap-4"
-        onValueChange={onValueChange}
         value={value}
       >
         {/* TODO: 仮でトッピングない時の表示を置いてる。デザインが出来次第置き換える */}

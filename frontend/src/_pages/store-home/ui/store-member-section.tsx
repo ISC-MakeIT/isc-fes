@@ -13,7 +13,7 @@ import { Button } from "@/shared/ui/button";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { ICON_IMAGE_ASPECT, storeMembersKey } from "@/shared/config";
 import { StoreInvitationDialog } from "./store-invitation-dialog";
-import { storeMemberByAccountIdQueryOptions } from "../api/fetch-store-member-by-id";
+import { storeMemberByAccountIdQueryOptions } from "@/entities/store-member";
 import { canDeleteMember } from "../lib/can-delete-member";
 import { deleteStoreMemberById } from "../api/delete-store-member-by-id";
 import { XIcon } from "lucide-react";
@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/shared/ui/dialog";
 import { DotText } from "@/shared/ui/dot-text";
 import { useState } from "react";
 import { currentAccountQueryOptions } from "@/entities/account";
+import { trackEvent } from "@/shared/lib/analytics";
 
 const fallbackIcon = "/avatar-fallback.svg";
 
@@ -53,6 +54,13 @@ function StoreMemberList({ storeId, accountId }: StoreMemberListProps) {
   const { data: currentMember } = useSuspenseQuery(
     storeMemberByAccountIdQueryOptions(storeId, accountId),
   );
+
+  // SSC側でcurrentMemberが取得できなければ店舗一覧へ遷移させてるので基本的にはここは表示されない
+  // 未所属で店舗一覧への遷移中にのみ表示される想定
+  if (!currentMember) {
+    return <p>この店舗にはアクセスできません。店舗一覧へ移動します。</p>;
+  }
+
   return (
     <>
       <div className="space-y-5">
@@ -86,6 +94,7 @@ function MemberCard({ storeId, member, currentMember }: MemberCardProps) {
   const mutation = useMutation({
     mutationFn: deleteStoreMemberById,
     onSuccess: async () => {
+      trackEvent("store_member_removed", { store_id: storeId });
       setIsDeleteDialogOpen(false);
       await queryClient.invalidateQueries({
         queryKey: storeMembersKey(storeId),

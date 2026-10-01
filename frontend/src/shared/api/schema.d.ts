@@ -113,7 +113,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** 全ての承認済みの店舗と、自分が申請した店舗一覧を取得する */
+    /** 閲覧可能な店舗一覧を取得する */
     get: operations["getVisibleStores"];
     put?: never;
     post?: never;
@@ -132,13 +132,13 @@ export interface paths {
     };
     /** 承認済みの店舗を取得する */
     get: operations["getApprovedStoreByID"];
-    /** 店舗の閉店状態を更新する */
-    put: operations["updateStore"];
+    put?: never;
     post?: never;
     delete?: never;
     options?: never;
     head?: never;
-    patch?: never;
+    /** 店舗情報を部分更新する */
+    patch: operations["updateStore"];
     trace?: never;
   };
   "/stores/{store_id}/members": {
@@ -381,7 +381,7 @@ export interface components {
     CreateStoreApplicationInput: {
       /** @example たこ焼き屋 */
       name: string;
-      /** @example 605 */
+      /** @example 605教室 */
       room: string;
       /** @example 外はカリカリ、中はトロトロのたこ焼きです。 */
       description: string;
@@ -543,7 +543,13 @@ export interface components {
     };
     UpdateStoreInput: {
       /** @description trueで閉店、falseで営業再開する */
-      closed: boolean;
+      closed?: boolean;
+      /** @example 605教室 */
+      room?: string;
+      imageObjectKey?: components["schemas"]["ImageObjectKey"];
+      description?: string;
+      /** @description 店舗で使用するアレルゲンのID一覧。空配列で表示を消去する。 */
+      allergenIds?: string[];
     };
     StoreMember: {
       /** Format: uuid */
@@ -1021,20 +1027,41 @@ export interface operations {
   };
   getVisibleStores: {
     parameters: {
-      query?: never;
+      query?: {
+        /** @description true の場合、ログイン中のアカウントが所属する承認済み・申請中の店舗を取得する */
+        member_only?: boolean;
+      };
       header?: never;
       path?: never;
       cookie?: never;
     };
     requestBody?: never;
     responses: {
-      /** @description 承認済みの店舗と、自分が申請した店舗一覧 */
+      /** @description 店舗一覧。member_only が false の場合は承認済みの店舗と自分が管理者である申請中の店舗 */
       200: {
         headers: {
           [name: string]: unknown;
         };
         content: {
           "application/json": components["schemas"]["GetVisibleStoresResponse"];
+        };
+      };
+      /** @description クエリパラメータが不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description member_only が true で未ログイン */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
       /** @description サーバーエラー */
@@ -2172,7 +2199,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description すでに店舗のメンバーである */
+      /** @description すでに招待された権限以上で店舗のメンバーである */
       409: {
         headers: {
           [name: string]: unknown;

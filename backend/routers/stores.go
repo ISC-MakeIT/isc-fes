@@ -1,17 +1,17 @@
 package routers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/utils"
 )
 
-func (s *Server) GetVisibleStores(c *gin.Context) {
-	stores, err := s.store.GetVisibleStores(c.Request.Context())
+func (s *Server) GetVisibleStores(c *gin.Context, params GetVisibleStoresParams) {
+	stores, err := s.store.GetVisibleStores(c.Request.Context(), params.MemberOnly != nil && *params.MemberOnly)
 	if err != nil {
 		s.handleCommonServiceErrors(c, err)
 		return
@@ -36,11 +36,22 @@ func (s *Server) GetApprovedStoreByID(c *gin.Context, storeID uuid.UUID) {
 func (s *Server) UpdateStore(c *gin.Context, storeID uuid.UUID) {
 	var input UpdateStoreJSONRequestBody
 	if err := c.ShouldBindJSON(&input); err != nil {
-		s.handleCommonServiceErrors(c, fmt.Errorf("ミドルウェアで検証しているはずのボディのシリアライズに失敗: %w", err))
+		c.JSON(http.StatusBadRequest, ErrorResponse{Message: "リクエスト形式が不正です。"})
 		return
 	}
 
-	store, err := s.store.UpdateStore(c.Request.Context(), storeID, input.Closed)
+	update := services.UpdateStoreInput{
+		Closed:      input.Closed,
+		Room:        input.Room,
+		Description: input.Description,
+		AllergenIDs: (*[]uuid.UUID)(input.AllergenIds),
+	}
+	if input.ImageObjectKey != nil {
+		key := entities.ImageObjectKey(*input.ImageObjectKey)
+		update.ImageObjectKey = &key
+	}
+
+	store, err := s.store.UpdateStore(c.Request.Context(), storeID, update)
 	if err != nil {
 		s.handleCommonServiceErrors(c, err)
 		return
