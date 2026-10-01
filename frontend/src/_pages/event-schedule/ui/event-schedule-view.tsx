@@ -92,7 +92,7 @@ function EventScheduleItem({ event, isDay1 }: EventScheduleItemProps) {
               "shadow-[4px_4px_0]",
               isDay1 ? "shadow-secondary" : "shadow-tertiary",
             )}
-            src={event.bannerPath}
+            src={event.bannerSrc}
           />
           <p>{event.description}</p>
         </div>
