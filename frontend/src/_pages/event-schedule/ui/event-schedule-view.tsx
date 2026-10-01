@@ -37,15 +37,17 @@ export function EventScheduleView() {
           <Card className={cn(cardStyle, "bg-secondary")}>
             {formatDate(currentEventDates.day1)}
           </Card>
-          {day1Events.map((event) => (
-            <EventScheduleItem isDay1 event={event} key={event.name} />
-          ))}
+          <ul className="space-y-4 px-2">
+            {day1Events.map((event) => (
+              <EventScheduleItem isDay1 event={event} key={event.name} />
+            ))}
+          </ul>
         </section>
         <section className="w-full space-y-4 pb-16">
           <Card className={cn(cardStyle, "bg-tertiary")}>
             {formatDate(currentEventDates.day2)}
           </Card>
-          <ul>
+          <ul className="space-y-4 px-2">
             {day2Events.map((event) => (
               <EventScheduleItem
                 isDay1={false}
@@ -67,7 +69,7 @@ type EventScheduleItemProps = {
 
 function EventScheduleItem({ event, isDay1 }: EventScheduleItemProps) {
   return (
-    <li className="list-none px-2">
+    <li className="list-none">
       <div className="flex flex-row items-center gap-2 text-xl font-semibold">
         <span aria-hidden className="bg-primary size-5 rounded-full" />
         <time dateTime={event.startAt.toString()}>
@@ -79,7 +81,7 @@ function EventScheduleItem({ event, isDay1 }: EventScheduleItemProps) {
         </time>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,5.4375rem)_16.4375rem]">
+      <div className="grid grid-cols-[5.4375rem_minmax(0,1fr)]">
         <span aria-hidden className="bg-foreground mx-auto w-0.5" />
         <div className="space-y-4 pt-4">
           <h2 className="text-xl font-bold">{event.name}</h2>
