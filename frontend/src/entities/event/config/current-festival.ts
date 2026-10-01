@@ -1,4 +1,4 @@
-import { Temporal } from "temporal-polyfill";
+import { Temporal } from "temporal-polyfill-lite";
 
 import { createScheduledEvent } from "../lib/create-scheduled-event";
 import type { FestivalDates, ScheduledEvent } from "../model/types";

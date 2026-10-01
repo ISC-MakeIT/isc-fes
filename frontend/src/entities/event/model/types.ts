@@ -1,4 +1,4 @@
-import { Temporal } from "temporal-polyfill";
+import { Temporal } from "temporal-polyfill-lite";
 import { StaticImageData } from "next/image";
 
 export enum FestivalDay {

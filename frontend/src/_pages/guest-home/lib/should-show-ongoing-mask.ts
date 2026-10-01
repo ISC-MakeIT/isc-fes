@@ -1,5 +1,5 @@
 import { ScheduledEvent } from "@/entities/event";
-import { Temporal } from "temporal-polyfill";
+import { Temporal } from "temporal-polyfill-lite";
 
 // 開催に間に合うように実際の開催の5分前に開催中表示にする
 const ONGOING_LEAD_MINUTES = 5;

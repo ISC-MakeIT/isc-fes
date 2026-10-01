@@ -1,4 +1,4 @@
-import { Temporal } from "temporal-polyfill";
+import { Temporal } from "temporal-polyfill-lite";
 import { describe, expect, test } from "vitest";
 import { shouldShowOngoingMask } from "./should-show-ongoing-mask";
 
