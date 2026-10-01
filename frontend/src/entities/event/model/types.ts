@@ -6,7 +6,10 @@ export enum FestivalDay {
   Day2 = "day2",
 }
 
-export type FestivalDates = Record<FestivalDay, Temporal.PlainDate>;
+export type FestivalDates = {
+  [FestivalDay.Day1]: Temporal.PlainDate;
+  [FestivalDay.Day2]: Temporal.PlainDate;
+};
 
 export type ScheduledEvent = {
   name: string;
@@ -14,9 +17,4 @@ export type ScheduledEvent = {
   description: string;
   startAt: Temporal.PlainDateTime;
   endAt: Temporal.PlainDateTime;
-};
-
-export type FestivalSchedule = {
-  dates: FestivalDates;
-  events: readonly ScheduledEvent[];
 };
