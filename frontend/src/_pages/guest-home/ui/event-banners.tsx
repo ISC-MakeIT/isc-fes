@@ -35,9 +35,13 @@ export function EventBanners() {
     };
   }, []);
 
+  const hasHandledInitialScrollRef = useRef(false);
+
   // 初期描画時、開催中のバナーにスクロールを合わせる
   useEffect(() => {
-    if (!currentDateTime) return;
+    if (!currentDateTime || hasHandledInitialScrollRef.current) return;
+
+    hasHandledInitialScrollRef.current = true;
 
     const ongoingEventIndex = currentScheduledEvents.findIndex((event) =>
       shouldShowOngoingMask(event, currentDateTime),
