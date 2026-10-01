@@ -14,7 +14,7 @@ export type FestivalDates = {
 export type ScheduledEvent = {
   slug: string;
   name: string;
-  bannerPath: StaticImageData | undefined;
+  bannerSrc: StaticImageData | undefined;
   description: string;
   startAt: Temporal.PlainDateTime;
   endAt: Temporal.PlainDateTime;

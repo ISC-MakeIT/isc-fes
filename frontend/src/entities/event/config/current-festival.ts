@@ -30,7 +30,7 @@ export const currentScheduledEvents = [
   createScheduledEvent({
     slug: "test1",
     name: "テストイベント1",
-    bannerPath: undefined,
+    bannerSrc: undefined,
     description: "テストイベント1の説明",
     date: currentEventDates.day1,
     startTime: {
@@ -43,7 +43,7 @@ export const currentScheduledEvents = [
   createScheduledEvent({
     slug: "test2",
     name: "テストイベント2",
-    bannerPath: undefined,
+    bannerSrc: undefined,
     description: "テストイベント2の説明",
     date: currentEventDates.day1,
     startTime: {
@@ -56,7 +56,7 @@ export const currentScheduledEvents = [
   createScheduledEvent({
     slug: "test3",
     name: "テストイベント3",
-    bannerPath: undefined,
+    bannerSrc: undefined,
     description: "テストイベント3の説明",
     date: currentEventDates.day2,
     startTime: {
@@ -69,7 +69,7 @@ export const currentScheduledEvents = [
   createScheduledEvent({
     slug: "test4",
     name: "テストイベント4",
-    bannerPath: undefined,
+    bannerSrc: undefined,
     description: "テストイベント4の説明",
     date: currentEventDates.day2,
     startTime: {
@@ -82,7 +82,7 @@ export const currentScheduledEvents = [
   createScheduledEvent({
     slug: "test5",
     name: "テストイベント5",
-    bannerPath: undefined,
+    bannerSrc: undefined,
     description: "テストイベント5の説明",
     date: currentEventDates.day2,
     startTime: {

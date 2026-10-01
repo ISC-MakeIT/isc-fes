@@ -72,7 +72,7 @@ export function EventBanners() {
             <AspectRatioImage
               ratio={EVENT_IMAGE_ASPECT}
               alt={`${event.name}のバナー画像`}
-              src={event.bannerPath}
+              src={event.bannerSrc}
               className="w-84"
             />
 
