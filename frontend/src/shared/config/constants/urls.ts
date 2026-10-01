@@ -39,3 +39,4 @@ export const storeApplicationsUrl = () => "/admin/store-applications";
 // ゲスト用のページ
 export const homeUrl = () => "/";
 export const guestStoreDetailUrl = (storeId: string) => `/stores/${storeId}`;
+export const eventsUrl = () => "/events";

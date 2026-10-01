@@ -21,16 +21,16 @@ export async function GuestHomeView() {
             alt="キービジュアル"
             className="bg-gray-300 lg:w-140 lg:shrink-0"
           />
-          <div className="lg:hidden">
+          <div className="py-4 lg:hidden">
             <EventBanners />
           </div>
         </div>
         <div>
           <FloorGuide />
-          <div className="hidden lg:flex">
-            <EventBanners />
-          </div>
         </div>
+      </div>
+      <div className="hidden py-8 lg:flex">
+        <EventBanners />
       </div>
     </HydrationBoundary>
   );

@@ -28,9 +28,9 @@ export const currentEventDates = {
 
 export const currentScheduledEvents = [
   createScheduledEvent({
-    name: "男女装",
+    name: "テストイベント1",
     bannerPath: undefined,
-    description: "男女装の説明",
+    description: "テストイベント1の説明",
     date: currentEventDates.day1,
     startTime: {
       hour: 10,
@@ -40,9 +40,9 @@ export const currentScheduledEvents = [
     },
   }),
   createScheduledEvent({
-    name: "カラオケ",
+    name: "テストイベント2",
     bannerPath: undefined,
-    description: "カラオケの説明",
+    description: "テストイベント2の説明",
     date: currentEventDates.day1,
     startTime: {
       hour: 12,
@@ -52,9 +52,9 @@ export const currentScheduledEvents = [
     },
   }),
   createScheduledEvent({
-    name: "筋肉サークル",
+    name: "テストイベント3",
     bannerPath: undefined,
-    description: "説明",
+    description: "テストイベント3の説明",
     date: currentEventDates.day2,
     startTime: {
       hour: 15,
@@ -64,9 +64,9 @@ export const currentScheduledEvents = [
     },
   }),
   createScheduledEvent({
-    name: "フリージア",
+    name: "テストイベント4",
     bannerPath: undefined,
-    description: "説明",
+    description: "テストイベント4の説明",
     date: currentEventDates.day2,
     startTime: {
       hour: 12,
@@ -76,9 +76,9 @@ export const currentScheduledEvents = [
     },
   }),
   createScheduledEvent({
-    name: "演奏技術探求サークル",
+    name: "テストイベント5",
     bannerPath: undefined,
-    description: "説明",
+    description: "テストイベント5の説明",
     date: currentEventDates.day2,
     startTime: {
       hour: 13,
