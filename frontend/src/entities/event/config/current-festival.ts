@@ -1,4 +1,4 @@
-import { Temporal } from "@js-temporal/polyfill";
+import { Temporal } from "temporal-polyfill";
 
 import { createScheduledEvent } from "../lib/create-scheduled-event";
 import type { FestivalDates, ScheduledEvent } from "../model/types";

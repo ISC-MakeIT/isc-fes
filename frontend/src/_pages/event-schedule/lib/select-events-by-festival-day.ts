@@ -1,6 +1,6 @@
 import { currentEventDates, ScheduledEvent } from "@/entities/event";
 import { FestivalDay } from "@/entities/event";
-import { Temporal } from "@js-temporal/polyfill";
+import { Temporal } from "temporal-polyfill";
 
 /**
  * 指定した日のイベントを返す純粋関数。イベントの開始時刻が早い順にソートもする

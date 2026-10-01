@@ -6,7 +6,7 @@ import {
 } from "@/entities/event";
 import { Card } from "@/shared/ui/card";
 import { HeadingCard } from "@/shared/ui/heading-card";
-import { Temporal } from "@js-temporal/polyfill";
+import { Temporal } from "temporal-polyfill";
 import { selectEventsByFestivalDay } from "../lib/select-events-by-festival-day";
 import { cn } from "@/shared/lib/utils";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
