@@ -28,7 +28,26 @@ export function EventBanners({ initialDateTime }: EventBannersProps) {
   const bannerRefs = useRef<Array<HTMLAnchorElement | null>>([]);
 
   // 時刻の初期化と定期更新
+  useEffect(() => {}, []);
+
+  // 初期描画時、開催中のバナーにスクロールを合わせる
   useEffect(() => {
+    const now = Temporal.Now.plainDateTimeISO(FESTIVAL_TIME_ZONE);
+
+    setCurrentDateTime(now);
+
+    const ongoingEventIndex = currentScheduledEvents.findIndex((event) =>
+      shouldShowOngoingMask(event, now),
+    );
+
+    if (ongoingEventIndex >= 0) {
+      bannerRefs.current[ongoingEventIndex]?.scrollIntoView({
+        behavior: "auto",
+        block: "nearest",
+        inline: "center",
+      });
+    }
+
     const intervalId = setInterval(() => {
       setCurrentDateTime(Temporal.Now.plainDateTimeISO(FESTIVAL_TIME_ZONE));
     }, TIME_UPDATE_INTERVAL_MS);
@@ -36,20 +55,6 @@ export function EventBanners({ initialDateTime }: EventBannersProps) {
     return () => {
       clearInterval(intervalId);
     };
-  }, []);
-
-  // 初期描画時、開催中のバナーにスクロールを合わせる
-  useEffect(() => {
-    const initialCurrentDateTime = Te;
-    const ongoingEventIndex = currentScheduledEvents.findIndex((event) =>
-      shouldShowOngoingMask(event, currentDateTime),
-    );
-
-    bannerRefs.current[ongoingEventIndex]?.scrollIntoView({
-      behavior: "auto",
-      block: "nearest",
-      inline: "center",
-    });
   }, []);
 
   return (
