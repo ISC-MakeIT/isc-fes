@@ -15,17 +15,20 @@ import { DotText } from "@/shared/ui/dot-text";
 
 const TIME_UPDATE_INTERVAL_MS = 30_000;
 
-export function EventBanners() {
-  // サーバー描画からHydrationまでの間に開始時刻、終了時刻を跨ぐと開催中のマスク有無が変わってHydration Mismatchになるので初期化を遅延させる
+type EventBannersProps = {
+  initialDateTime: string;
+};
+
+export function EventBanners({ initialDateTime }: EventBannersProps) {
   const [currentDateTime, setCurrentDateTime] =
-    useState<Temporal.PlainDateTime | null>(null);
+    useState<Temporal.PlainDateTime>(() =>
+      Temporal.PlainDateTime.from(initialDateTime),
+    );
 
   const bannerRefs = useRef<Array<HTMLAnchorElement | null>>([]);
 
   // 時刻の初期化と定期更新
   useEffect(() => {
-    setCurrentDateTime(Temporal.Now.plainDateTimeISO(FESTIVAL_TIME_ZONE));
-
     const intervalId = setInterval(() => {
       setCurrentDateTime(Temporal.Now.plainDateTimeISO(FESTIVAL_TIME_ZONE));
     }, TIME_UPDATE_INTERVAL_MS);
@@ -35,14 +38,9 @@ export function EventBanners() {
     };
   }, []);
 
-  const hasHandledInitialScrollRef = useRef(false);
-
   // 初期描画時、開催中のバナーにスクロールを合わせる
   useEffect(() => {
-    if (!currentDateTime || hasHandledInitialScrollRef.current) return;
-
-    hasHandledInitialScrollRef.current = true;
-
+    const initialCurrentDateTime = Te;
     const ongoingEventIndex = currentScheduledEvents.findIndex((event) =>
       shouldShowOngoingMask(event, currentDateTime),
     );
@@ -52,7 +50,7 @@ export function EventBanners() {
       block: "nearest",
       inline: "center",
     });
-  }, [currentDateTime]);
+  }, []);
 
   return (
     <div className="flex flex-row gap-6 overflow-x-auto px-4 py-4">
