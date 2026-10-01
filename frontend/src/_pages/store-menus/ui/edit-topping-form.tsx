@@ -25,6 +25,7 @@ import { pickChangedFields } from "../lib/pick-changed-fields";
 import { useState } from "react";
 import { useMenuEditor } from "../model/hooks/use-menu-editor";
 import { menuToppingsKeys, storeToppingsKey } from "@/shared/config";
+import { trackEvent } from "@/shared/lib/analytics";
 
 type EditToppingFormProps = {
   toppingId: string;
@@ -62,6 +63,10 @@ function EditToppingFormContent({
   const editToppingMutation = useMutation({
     mutationFn: editTopping,
     onSuccess: async () => {
+      trackEvent("topping_updated", {
+        store_id: storeId,
+        topping_id: topping.id,
+      });
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: storeToppingsKey(storeId),
@@ -77,6 +82,10 @@ function EditToppingFormContent({
   const deleteToppingMutation = useMutation({
     mutationFn: deleteTopping,
     onSuccess: async () => {
+      trackEvent("topping_deleted", {
+        store_id: storeId,
+        topping_id: topping.id,
+      });
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: storeToppingsKey(storeId),

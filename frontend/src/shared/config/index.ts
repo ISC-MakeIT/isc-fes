@@ -10,6 +10,7 @@ export {
   registerStoreUrl,
   storeListUrl,
   storeHomeUrl,
+  storeEditUrl,
   storeKitchenUrl,
   storeCallUrl,
   storeMenusUrl,
@@ -19,6 +20,7 @@ export {
   ordersUrl,
   guestStoreDetailUrl,
   eventsUrl,
+  guestMenuDetailUrl,
 } from "./constants/urls";
 
 export {

@@ -13,6 +13,7 @@ import { SoldOutSwitch } from "./sold-out-switch";
 import { editTopping } from "../api/edit-topping";
 import { storeToppingsKey } from "@/shared/config";
 import { EditorTarget, useMenuEditor } from "../model/hooks/use-menu-editor";
+import { trackEvent } from "@/shared/lib/analytics";
 
 export function ToppingList() {
   const storeId = useStoreId();
@@ -39,6 +40,12 @@ export function ToppingList() {
                   storeId,
                   toppingId: topping.id,
                   editToppingInput: { soldOut: !topping.soldOut },
+                });
+                trackEvent("item_availability_changed", {
+                  store_id: storeId,
+                  item_type: "topping",
+                  item_id: topping.id,
+                  sold_out: !topping.soldOut,
                 });
                 await queryClient.invalidateQueries({
                   queryKey: storeToppingsKey(storeId),

@@ -20,6 +20,7 @@ import { STORE_IMAGE_ASPECT } from "@/shared/config";
 import { ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
 import { guestStoreDetailUrl } from "@/shared/config";
+import { trackEvent } from "@/shared/lib/analytics";
 
 export type Floors = {
   level: Floor;
@@ -74,7 +75,10 @@ export function FloorGuide() {
                     "-translate-x-5 translate-y-3",
                 )}
                 style={{ zIndex: floor.level }}
-                onClick={() => setSelectedFloor(floor.level)}
+                onClick={() => {
+                  setSelectedFloor(floor.level);
+                  trackEvent("select_floor", { floor_number: floor.level });
+                }}
               >
                 <Image
                   src={floor.image}
@@ -111,6 +115,12 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
         <Link
           href={guestStoreDetailUrl(store.id)}
           key={store.id}
+          onClick={() =>
+            trackEvent("select_store", {
+              store_id: store.id,
+              floor_number: floor,
+            })
+          }
           className="border-foreground flex w-full flex-row items-center gap-2 border-b border-dashed px-2 py-4 lg:max-w-115.5"
         >
           <PreviewImage

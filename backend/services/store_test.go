@@ -59,7 +59,7 @@ type updateStoreRepositoryStub struct {
 	getCalls      int
 	updateCalls   int
 	updatedID     uuid.UUID
-	updatedClosed bool
+	updatedInput  UpdateStoreInput
 }
 
 func (r *updateStoreRepositoryStub) GetApprovedStoreByID(_ context.Context, _ uuid.UUID) (entities.Store, error) {
@@ -67,10 +67,10 @@ func (r *updateStoreRepositoryStub) GetApprovedStoreByID(_ context.Context, _ uu
 	return r.approvedStore, r.getErr
 }
 
-func (r *updateStoreRepositoryStub) UpdateStoreClosed(_ context.Context, storeID uuid.UUID, closed bool) (entities.Store, error) {
+func (r *updateStoreRepositoryStub) UpdateStore(_ context.Context, storeID uuid.UUID, input UpdateStoreInput) (entities.Store, error) {
 	r.updateCalls++
 	r.updatedID = storeID
-	r.updatedClosed = closed
+	r.updatedInput = input
 	return r.updatedStore, r.updateErr
 }
 
@@ -359,19 +359,19 @@ func TestUpdateStoreUpdatesClosedState(t *testing.T) {
 			}
 			ctx := WithAuthenticatedAccount(t.Context(), entities.Account{ID: accountID})
 
-			store, err := service.UpdateStore(ctx, storeID, test.closed)
+			store, err := service.UpdateStore(ctx, storeID, UpdateStoreInput{Closed: &test.closed})
 			if err != nil {
 				t.Fatalf("UpdateStore() error = %v", err)
 			}
 
 			if storeRepository.updateCalls != 1 {
-				t.Fatalf("UpdateStoreClosed() calls = %d, want 1", storeRepository.updateCalls)
+				t.Fatalf("UpdateStore() calls = %d, want 1", storeRepository.updateCalls)
 			}
 			if storeRepository.updatedID != storeID {
 				t.Errorf("updated store ID = %v, want %v", storeRepository.updatedID, storeID)
 			}
-			if storeRepository.updatedClosed != test.closed {
-				t.Errorf("updated closed = %t, want %t", storeRepository.updatedClosed, test.closed)
+			if storeRepository.updatedInput.Closed == nil || *storeRepository.updatedInput.Closed != test.closed {
+				t.Errorf("updated closed = %v, want %t", storeRepository.updatedInput.Closed, test.closed)
 			}
 			if !reflect.DeepEqual(store.ClosedAt, test.updatedClosed) {
 				t.Errorf("output closedAt = %v, want %v", store.ClosedAt, test.updatedClosed)
@@ -417,13 +417,13 @@ func TestUpdateStoreDelegatesUnchangedStateToAtomicUpdate(t *testing.T) {
 			}
 			ctx := WithAuthenticatedAccount(t.Context(), entities.Account{ID: uuid.New()})
 
-			store, err := service.UpdateStore(ctx, storeID, test.closed)
+			store, err := service.UpdateStore(ctx, storeID, UpdateStoreInput{Closed: &test.closed})
 			if err != nil {
 				t.Fatalf("UpdateStore() error = %v", err)
 			}
 
 			if storeRepository.updateCalls != 1 {
-				t.Errorf("UpdateStoreClosed() calls = %d, want 1", storeRepository.updateCalls)
+				t.Errorf("UpdateStore() calls = %d, want 1", storeRepository.updateCalls)
 			}
 			if !reflect.DeepEqual(store.ClosedAt, test.closedAt) {
 				t.Errorf("output closedAt = %v, want %v", store.ClosedAt, test.closedAt)
@@ -480,7 +480,8 @@ func TestUpdateStoreRejectsUnauthorizedOrInvalidTargets(t *testing.T) {
 				ctx = WithAuthenticatedAccount(ctx, entities.Account{ID: accountID})
 			}
 
-			_, err := service.UpdateStore(ctx, storeID, true)
+			closed := true
+			_, err := service.UpdateStore(ctx, storeID, UpdateStoreInput{Closed: &closed})
 			if !errors.Is(err, test.wantErr) {
 				t.Fatalf("UpdateStore() error = %v, want %v", err, test.wantErr)
 			}
@@ -491,7 +492,7 @@ func TestUpdateStoreRejectsUnauthorizedOrInvalidTargets(t *testing.T) {
 				t.Errorf("GetStoreMembershipByAccountIDAndStoreID() calls = %d, want %d", membershipRepository.calls, test.wantMemberCalls)
 			}
 			if storeRepository.updateCalls != test.wantUpdateCalls {
-				t.Errorf("UpdateStoreClosed() calls = %d, want %d", storeRepository.updateCalls, test.wantUpdateCalls)
+				t.Errorf("UpdateStore() calls = %d, want %d", storeRepository.updateCalls, test.wantUpdateCalls)
 			}
 		})
 	}

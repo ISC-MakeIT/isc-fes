@@ -1,6 +1,6 @@
 <p align="center">
   <picture>
-    <img src="assets/icon.png" width="220" alt="isc-fes, 情報科学専門学校学園祭アプリ">
+    <img src="assets/banner.png" alt="isc-fes, 情報科学専門学校学園祭アプリ">
   </picture>
 </p>
 
@@ -18,7 +18,3 @@
 # 構成図
 
 ![アーキテクチャ](assets/infra-architecture.png)
-
-# 開発ドキュメント
-
-- [Observability](docs/observability.md)

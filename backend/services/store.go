@@ -18,7 +18,7 @@ type StoreRepository interface {
 	GetVisibleStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error)
 	GetMemberStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error)
 	GetStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error)
-	UpdateStoreClosed(ctx context.Context, storeID uuid.UUID, closed bool) (entities.Store, error)
+	UpdateStore(ctx context.Context, storeID uuid.UUID, input UpdateStoreInput) (entities.Store, error)
 	UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error
 	GetStoreApplications(ctx context.Context) ([]entities.Store, error)
 }
@@ -53,6 +53,18 @@ type CreateStoreApplicationServiceInput struct {
 	Description    string
 	AllergenIds    []uuid.UUID
 	ImageObjectKey entities.ImageObjectKey
+}
+
+type UpdateStoreInput struct {
+	Closed         *bool
+	Room           *string
+	Description    *string
+	ImageObjectKey *entities.ImageObjectKey
+	AllergenIDs    *[]uuid.UUID
+}
+
+func (i UpdateStoreInput) IsAllNil() bool {
+	return i.Closed == nil && i.Room == nil && i.Description == nil && i.ImageObjectKey == nil && i.AllergenIDs == nil
 }
 
 type StoreService struct {
@@ -236,13 +248,13 @@ func (s *StoreService) GetApprovedStoreByID(ctx context.Context, storeID uuid.UU
 	return s.toStoreOutput(ctx, store)
 }
 
-func (s *StoreService) UpdateStore(ctx context.Context, storeID uuid.UUID, closed bool) (entities.StoreOutput, error) {
+func (s *StoreService) UpdateStore(ctx context.Context, storeID uuid.UUID, input UpdateStoreInput) (entities.StoreOutput, error) {
 	account, err := RequireAuthenticatedAccount(ctx)
 	if err != nil {
 		return entities.StoreOutput{}, err
 	}
 
-	_, err = s.storeRepository.GetApprovedStoreByID(ctx, storeID)
+	currentStore, err := s.storeRepository.GetApprovedStoreByID(ctx, storeID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return entities.StoreOutput{}, ErrNotFound
 	}
@@ -260,21 +272,41 @@ func (s *StoreService) UpdateStore(ctx context.Context, storeID uuid.UUID, close
 	if !membership.IsStoreManagementAllowed() {
 		return entities.StoreOutput{}, ErrForbidden
 	}
+	if input.IsAllNil() {
+		return s.toStoreOutput(ctx, currentStore)
+	}
 
-	store, err := s.storeRepository.UpdateStoreClosed(ctx, storeID, closed)
+	if input.ImageObjectKey != nil && !input.ImageObjectKey.IsValid() {
+		return entities.StoreOutput{}, ErrInvalidInput
+	}
+	if input.Room != nil {
+		if _, err := s.roomsRepository.GetRoomByName(ctx, *input.Room); err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return entities.StoreOutput{}, ErrInvalidInput
+			}
+			return entities.StoreOutput{}, fmt.Errorf("failed to get room by name: %w", err)
+		}
+	}
+	if input.AllergenIDs != nil {
+		if err := s.validateAllergenIDs(ctx, *input.AllergenIDs); err != nil {
+			return entities.StoreOutput{}, err
+		}
+	}
+
+	store, err := s.storeRepository.UpdateStore(ctx, storeID, input)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return entities.StoreOutput{}, ErrNotFound
 	}
 	if err != nil {
-		return entities.StoreOutput{}, fmt.Errorf("failed to update store closed state: %w", err)
+		return entities.StoreOutput{}, fmt.Errorf("failed to update store: %w", err)
 	}
 
 	return s.toStoreOutput(ctx, store)
 }
 
 // GetVisibleStores は、ユーザーが閲覧可能な店舗一覧を取得する。
-// memberOnly が true の場合は、審査状態やロールに関係なく所属店舗のみ返す。
-// false の場合は承認済みの店舗をすべて返し、申請中・却下済みの店舗は管理者にのみ返す。
+// memberOnly が true の場合は、承認済み・申請中の所属店舗のみ返す。
+// false の場合は承認済みの店舗をすべて返し、申請中の店舗は管理者にのみ返す。
 func (s *StoreService) GetVisibleStores(ctx context.Context, memberOnly bool) ([]entities.StoreOutput, error) {
 	accountID, err := s.accountSession.AccountID(ctx)
 	if err != nil {
