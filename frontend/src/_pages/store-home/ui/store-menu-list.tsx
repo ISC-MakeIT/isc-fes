@@ -8,7 +8,8 @@ import { Menu } from "@/entities/menu";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { cn } from "@/shared/lib/utils";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
-import { MENU_IMAGE_ASPECT } from "@/shared/config";
+import { MENU_IMAGE_ASPECT, storeMenusUrl } from "@/shared/config";
+import { InlineLink } from "@/shared/ui/inline-link";
 
 type StoreMenuListProps = {
   storeId: string;
@@ -26,7 +27,8 @@ export function StoreMenuList({ storeId, className }: StoreMenuListProps) {
         <p className="text-center">
           メニューが登録されていません。
           <br />
-          商品管理画面からメニューを登録してください。
+          <InlineLink href={storeMenusUrl(storeId)}>商品管理画面</InlineLink>
+          からメニューを登録してください。
         </p>
       )}
 

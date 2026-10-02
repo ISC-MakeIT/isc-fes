@@ -23,6 +23,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-link: var(--link);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -122,6 +123,8 @@
   --pink-strong: #a75267;
 
   --sky-blue: #c0e4ff;
+
+  --link: #6d56b5;
 }
 
 @layer base {

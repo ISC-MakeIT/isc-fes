@@ -12,6 +12,9 @@ import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { storeToppingsQueryOptions } from "../api/fetch-store-toppings";
 import { menuFormOptions, MenuFormValues } from "../model/menu-form";
 import { useStoreId } from "../model/hooks/use-store-id";
+import { Button } from "@/shared/ui/button";
+import { inlineStyle } from "@/shared/ui/inline-link";
+import { EditorTarget, useMenuEditor } from "../model/hooks/use-menu-editor";
 
 type MenuFormFieldsProps = {
   initialImageUrl?: string;
@@ -28,6 +31,9 @@ export const MenuFormFields = withForm({
     const { data: toppings } = useSuspenseQuery(
       storeToppingsQueryOptions(storeId),
     );
+
+    const { openEditor } = useMenuEditor();
+
     return (
       <div className="flex w-full flex-col gap-6">
         <form.Field
@@ -156,8 +162,16 @@ export const MenuFormFields = withForm({
               {toppings.length === 0 ? (
                 <p>
                   カスタマイズが登録されていません
-                  <br />
-                  「カスタマイズの追加」から登録してください。
+                  <br />「
+                  <Button
+                    className={cn(inlineStyle, "px-0")}
+                    type="button"
+                    variant="link"
+                    onClick={() => openEditor(EditorTarget.Topping)}
+                  >
+                    カスタマイズの追加
+                  </Button>
+                  」から登録してください。
                 </p>
               ) : (
                 <p>このメニューに適用可能なカスタマイズを選択してください。</p>

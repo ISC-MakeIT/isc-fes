@@ -3,6 +3,7 @@ import { HeadingCard } from "@/shared/ui/heading-card";
 import { LinkButton } from "@/shared/ui/link-button";
 import { StoreList } from "./store-list";
 import { registerStoreUrl } from "@/shared/config";
+import { InlineLink } from "@/shared/ui/inline-link";
 
 export function StoresView() {
   return (
@@ -15,7 +16,8 @@ export function StoresView() {
         <br />
         店舗がない場合は、店舗登録したメンバーに
         <span className="text-notice">招待リンク</span>
-        をもらうか、<span className="text-notice">新規店舗申請</span>
+        をもらうか、
+        <InlineLink href={registerStoreUrl()}>新規店舗申請</InlineLink>
         をして新しく店舗を登録してください。
       </p>
       <StoreList />
