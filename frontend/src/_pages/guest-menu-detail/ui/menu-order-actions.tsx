@@ -51,17 +51,10 @@ export function MenuOrderActions({
         </div>
       </div>
 
-      <div className="grid grid-cols-[repeat(2,minmax(0,11rem))] justify-between gap-[1.94rem] px-6 py-4">
+      <div className="flex justify-center px-6 py-4">
         <Button
           disabled={disabledSubmit}
-          variant="outline"
-          className="border-secondary h-auto min-w-0 truncate rounded-sm p-2 md:text-xl"
-        >
-          注文に進む
-        </Button>
-        <Button
-          disabled={disabledSubmit}
-          className="h-auto min-w-0 truncate rounded-sm p-2 md:text-xl"
+          className="h-auto w-full truncate rounded-sm p-2 md:text-xl"
           onClick={onAddToCart}
         >
           カートに入れる
