@@ -44,10 +44,8 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
         queryKey: cartKey(storeId),
       });
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: cartKey(storeId),
-      });
+    onSuccess: (updatedCart) => {
+      queryClient.setQueryData(cartKey(storeId), updatedCart);
       router.push(guestStoreDetailUrl(storeId));
     },
   });
