@@ -12,7 +12,10 @@ export function SidebarSupportNavigation() {
       <SidebarMenuButton
         size="lg"
         className={sidebarNavigationStyle}
-        render={<Link href={item.href} />}
+        render={
+          // noopener noreferrer = 遷移先から元ページを操作されるのを防げるらしい
+          <Link href={item.href} target="_blank" rel="noopener noreferrer" />
+        }
       >
         <DotText>{item.label}</DotText>
       </SidebarMenuButton>
