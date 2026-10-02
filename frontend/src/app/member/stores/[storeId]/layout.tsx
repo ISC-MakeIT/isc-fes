@@ -2,16 +2,29 @@ import { storeMemberByAccountIdQueryOptions } from "@/entities/store-member";
 import { currentAccountQueryOptions } from "@/entities/account";
 import { createQueryClient } from "@/shared/api";
 import { loginUrl, storeListUrl } from "@/shared/config";
-import { SidebarInset, SidebarProvider } from "@/shared/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+} from "@/shared/ui/sidebar";
 import {
   AppSidebar,
+  createStoreNavigationItems,
   DesktopAppHeader,
   MobileAppHeader,
-  storeNavigationItems,
+  SidebarSupportNavigation,
 } from "@/widgets/app-sidebar";
 import { notFound, redirect } from "next/navigation";
+import { DotText } from "@/shared/ui/dot-text";
+import Link from "next/link";
+import {
+  SidebarNavigation,
+  sidebarNavigationStyle,
+} from "@/widgets/app-sidebar";
 
-export default async function StoreManagerLayout(
+export default async function StoreMemberLayout(
   props: LayoutProps<"/member/stores/[storeId]">,
 ) {
   const { storeId } = await props.params;
@@ -30,6 +43,11 @@ export default async function StoreManagerLayout(
     notFound();
   }
 
+  const storeSidebarNavigationItems = createStoreNavigationItems(
+    storeId,
+    currentMember.role,
+  );
+
   return (
     <SidebarProvider
       style={
@@ -39,9 +57,29 @@ export default async function StoreManagerLayout(
       }
       defaultOpen
     >
-      <AppSidebar
-        navigationItems={storeNavigationItems(storeId, currentMember.role)}
-      />
+      <AppSidebar>
+        <div className="space-y-6">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                size="lg"
+                className={sidebarNavigationStyle}
+                render={<Link href={storeListUrl()} />}
+              >
+                <DotText className="text-primary">店舗一覧</DotText>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+
+          <SidebarMenu>
+            <SidebarNavigation navigationItems={storeSidebarNavigationItems} />
+          </SidebarMenu>
+
+          <SidebarMenu>
+            <SidebarSupportNavigation />
+          </SidebarMenu>
+        </div>
+      </AppSidebar>
       {/* NOTE: モバイルとデスクトップでヘッダーの位置も呼び出し箇所も大きく変わるのでコンポーネントも分けている */}
       <DesktopAppHeader />
 

@@ -1,28 +1,20 @@
 "use client";
 
-import { DotText } from "@/shared/ui/dot-text";
 import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarTrigger,
   useSidebar,
 } from "@/shared/ui/sidebar";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { PanelLeftCloseIcon, PanelRightCloseIcon } from "lucide-react";
-import { storeListUrl } from "@/shared/config";
 
 type AppSidebarProps = {
-  navigationItems: { label: string; href: string }[];
+  children: React.ReactNode;
   className?: string;
 };
 
-export function AppSidebar({ navigationItems, className }: AppSidebarProps) {
-  const pathname = usePathname();
+export function AppSidebar({ children, className }: AppSidebarProps) {
   const { isMobile } = useSidebar();
 
   return (
@@ -40,31 +32,7 @@ export function AppSidebar({ navigationItems, className }: AppSidebarProps) {
         />
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              className="h-auto rounded-none py-6 pl-6"
-              render={<Link href={storeListUrl()} />}
-            >
-              <DotText className="text-primary">店舗一覧</DotText>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          {navigationItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                size="lg"
-                className="h-auto rounded-none py-6 pl-6"
-                render={<Link href={item.href} />}
-                isActive={pathname === item.href}
-              >
-                <DotText>{item.label}</DotText>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarContent>
+      <SidebarContent>{children}</SidebarContent>
     </Sidebar>
   );
 }
