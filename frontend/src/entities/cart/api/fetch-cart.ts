@@ -1,8 +1,8 @@
-import { Cart } from "@/entities/cart";
 import { createApiClient } from "@/shared/api";
 import { cartKey, getStatusMessage } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { queryOptions } from "@tanstack/react-query";
+import { Cart } from "../model/types";
 
 type FetchCartParams = {
   storeId: string;
