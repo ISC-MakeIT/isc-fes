@@ -26,8 +26,10 @@ export function ToppingSelector({
     menuToppingsQueryOptions({ storeId, menuId }),
   );
 
+  if (toppings.length === 0) return;
+
   return (
-    <div className="space-y-4.5 py-8 md:px-6 md:pt-0">
+    <div className="md:border-primary/50 space-y-4.5 py-8 md:border-b-2 md:px-6 md:pt-0">
       <h2 className="border-foreground w-full border-b text-xl">
         カスタマイズ
       </h2>
@@ -51,8 +53,6 @@ export function ToppingSelector({
         className="flex w-full flex-col gap-4"
         value={value}
       >
-        {/* TODO: 仮でトッピングない時の表示を置いてる。デザインが出来次第置き換える */}
-        {toppings.length === 0 && <p>選択できるカスタマイズはありません</p>}
         {toppings.map((topping) => (
           <ToggleGroupItem
             key={topping.id}
