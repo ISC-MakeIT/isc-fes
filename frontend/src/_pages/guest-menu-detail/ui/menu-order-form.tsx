@@ -8,6 +8,8 @@ import { v } from "@/shared/lib/valibot";
 import {
   CartItemQuantity,
   fetchCartQueryOptions,
+  MAX_CART_ITEMS_TYPE,
+  summarizeCartItems,
   updateCart,
 } from "@/entities/cart";
 import { buildCartUpdateInput } from "../lib/build-cart-update-input";
@@ -18,6 +20,7 @@ import {
 } from "@tanstack/react-query";
 import { cartKey, guestStoreDetailUrl } from "@/shared/config";
 import { useRouter } from "next/navigation";
+import { createCartItemIdentityKey } from "@/entities/cart";
 
 type MenuOrderFormProps = {
   storeId: string;
@@ -33,6 +36,25 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
   const queryClient = useQueryClient();
 
   const { data: cart } = useSuspenseQuery(fetchCartQueryOptions(storeId));
+
+  const groupedItems = summarizeCartItems(cart.items);
+
+  const selectedItemIdentityKey = createCartItemIdentityKey({
+    menuId: menu.id,
+    toppingIds: selectedToppingIds,
+  });
+
+  const isSelectedItemAlreadyInCart = groupedItems.some(({ item }) => {
+    const cartItemIdentityKey = createCartItemIdentityKey({
+      menuId: item.menuId,
+      toppingIds: item.toppings.map((topping) => topping.toppingId),
+    });
+
+    return cartItemIdentityKey === selectedItemIdentityKey;
+  });
+
+  const isCartItemLimitReached =
+    groupedItems.length >= MAX_CART_ITEMS_TYPE && !isSelectedItemAlreadyInCart;
 
   // NOTE:
   //  カート追加時のエラーはここではあえて処理しない。注文確認前にエラー処理を集約させる。
@@ -81,7 +103,8 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
         value={selectedToppingIds}
       />
       <MenuOrderActions
-        disabledSubmit={updateCartMutation.isPending}
+        isAddingToCart={updateCartMutation.isPending}
+        isCartItemLimitReached={isCartItemLimitReached}
         storeId={storeId}
         menu={menu}
         quantity={quantity}

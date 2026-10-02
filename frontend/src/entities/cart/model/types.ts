@@ -1,6 +1,8 @@
 import { v } from "@/shared/lib/valibot";
 import { boolean } from "valibot";
 
+export const MAX_CART_ITEMS_TYPE = 3;
+
 export const CartItemTopping = v.object({
   id: v.string(),
   cartItemId: v.string(),
