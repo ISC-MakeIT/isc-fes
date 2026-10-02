@@ -1,10 +1,3 @@
-import { SidebarInset } from "@/shared/ui/sidebar";
-import {
-  adminNavigationItems,
-  AppSidebar,
-  DesktopAppHeader,
-  MobileAppHeader,
-} from "@/widgets/app-sidebar";
 import { StoreReview } from "./store-review";
 import { createQueryClient } from "@/shared/api";
 import { storeApplicationQueryOptions } from "../api/fetch-store-applications";
@@ -15,16 +8,8 @@ export async function StoreApplicationsView() {
   await queryClient.prefetchQuery(storeApplicationQueryOptions());
 
   return (
-    <>
-      <AppSidebar navigationItems={adminNavigationItems()} />
-      <DesktopAppHeader />
-
-      <SidebarInset>
-        <MobileAppHeader />
-        <HydrationBoundary state={dehydrate(queryClient)}>
-          <StoreReview />
-        </HydrationBoundary>
-      </SidebarInset>
-    </>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <StoreReview />
+    </HydrationBoundary>
   );
 }
