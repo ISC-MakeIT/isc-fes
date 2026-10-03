@@ -37,6 +37,29 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/reviews": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * アプリの利用体験に対するレビューを投稿する
+     * @description ゲスト・店舗側のどちらからでも投稿できるアプリへのレビュー。
+     *     ログインは不要。既存のゲスト・アカウントセッションがある場合だけ投稿者IDを保存する。
+     *     投稿のためにゲストセッションを新規発行しない。
+     *     投稿元の操作はtriggerで記録する。レビュー表示の抽選と1日間隔の制御はフロントエンドが行う。
+     */
+    post: operations["createReview"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/rooms": {
     parameters: {
       query?: never;
@@ -338,6 +361,27 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    CreateReviewInput: {
+      /**
+       * Format: int32
+       * @description アプリへの満足度（1〜5の星）
+       */
+      rating: number;
+      /** @description 任意の感想・要望。空白のみの場合は未入力として保存する。 */
+      comment?: string | null;
+      /**
+       * @description フロントエンドで何をトリガーにレビューモーダルを表示したかを識別するための文字列。
+       *     これにより、レビューがどのような操作をしていたユーザーによるものかが保存できる。
+       * @example order_complete
+       */
+      trigger?: string | null;
+    };
+    CreateReviewResponse: {
+      /** Format: uuid */
+      id: string;
+      /** Format: date-time */
+      createdAt: string;
+    };
     HealthResponse: {
       /** @example ok */
       status: string;
@@ -714,6 +758,48 @@ export interface operations {
       };
       /** @description 未ログインまたはセッションが無効 */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  createReview: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateReviewInput"];
+      };
+    };
+    responses: {
+      /** @description レビューを投稿した */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CreateReviewResponse"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
         headers: {
           [name: string]: unknown;
         };

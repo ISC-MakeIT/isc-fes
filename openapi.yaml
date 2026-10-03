@@ -44,6 +44,42 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /reviews:
+    post:
+      operationId: createReview
+      summary: アプリの利用体験に対するレビューを投稿する
+      description: |
+        ゲスト・店舗側のどちらからでも投稿できるアプリへのレビュー。
+        ログインは不要。既存のゲスト・アカウントセッションがある場合だけ投稿者IDを保存する。
+        投稿のためにゲストセッションを新規発行しない。
+        投稿元の操作はtriggerで記録する。レビュー表示の抽選と1日間隔の制御はフロントエンドが行う。
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewInput"
+      responses:
+        "201":
+          description: レビューを投稿した
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateReviewResponse"
+        "400":
+          description: リクエスト形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /rooms:
     get:
       operationId: getRooms
@@ -1243,6 +1279,45 @@ components:
       in: cookie
       name: isc_fes_guest_session
   schemas:
+    CreateReviewInput:
+      type: object
+      additionalProperties: false
+      required:
+        - rating
+      properties:
+        rating:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 5
+          description: アプリへの満足度（1〜5の星）
+        comment:
+          type: string
+          nullable: true
+          maxLength: 1000
+          description: 任意の感想・要望。空白のみの場合は未入力として保存する。
+          pattern: '^[^\x00]*$'
+        trigger:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: |
+            フロントエンドで何をトリガーにレビューモーダルを表示したかを識別するための文字列。
+            これにより、レビューがどのような操作をしていたユーザーによるものかが保存できる。
+          example: order_complete
+          pattern: '^[^\x00]*$'
+    CreateReviewResponse:
+      type: object
+      required:
+        - id
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
     HealthResponse:
       type: object
       required: [status, commitHash, deployedAt]
@@ -1659,7 +1734,8 @@ components:
       format: int32
       description: 店舗の混雑度。1、2、3の3段階で、3が最も混んでいる。新規店舗と既存店舗の初期値は1。
       enum: [1, 2, 3]
-      x-enum-varnames: [StoreCongestionLevelLow, StoreCongestionLevelMedium, StoreCongestionLevelHigh]
+      x-enum-varnames:
+        [StoreCongestionLevelLow, StoreCongestionLevelMedium, StoreCongestionLevelHigh]
     Store:
       type: object
       required:
