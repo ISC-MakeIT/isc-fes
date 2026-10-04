@@ -215,6 +215,16 @@ type MenuTopping struct {
 	StoreID   uuid.UUID `json:"store_id"`
 }
 
+type Review struct {
+	ID        uuid.UUID          `json:"id"`
+	GuestID   *uuid.UUID         `json:"guest_id"`
+	AccountID *uuid.UUID         `json:"account_id"`
+	Rating    int32              `json:"rating"`
+	Comment   *string            `json:"comment"`
+	Trigger   *string            `json:"trigger"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 type Room struct {
 	Name      string `json:"name"`
 	SortOrder int16  `json:"sort_order"`
