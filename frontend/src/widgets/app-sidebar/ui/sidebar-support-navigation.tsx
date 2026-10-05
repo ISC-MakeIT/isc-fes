@@ -14,7 +14,7 @@ export function SidebarSupportNavigation() {
         className={sidebarNavigationStyle}
         render={
           // noopener noreferrer = 遷移先から元ページを操作されるのを防げるらしい
-          <Link href={item.href} target="_blank" rel="noopener noreferrer" />
+          <Link href={item.href} target="_blank" rel="noreferrer" />
         }
       >
         <DotText>{item.label}</DotText>
