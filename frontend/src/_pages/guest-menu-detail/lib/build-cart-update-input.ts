@@ -1,4 +1,9 @@
-import { Cart, UpdateCartInput } from "@/entities/cart";
+import {
+  Cart,
+  createCartItemIdentityKey,
+  summarizeCartItems,
+  UpdateCartInput,
+} from "@/entities/cart";
 
 type BuildCartUpdateInputParams = {
   cart: Cart;
@@ -18,22 +23,52 @@ export function buildCartUpdateInput({
   menuId,
   toppingIds,
 }: BuildCartUpdateInputParams): UpdateCartInput {
-  const existingItems = cart.items.map((item) => ({
-    id: item.id,
-    menuId: item.menuId,
-    quantity: item.quantity,
-    toppingIds: item.toppings.map((topping) => topping.toppingId),
-  }));
+  const selectedItemIdentityKey = createCartItemIdentityKey({
+    menuId,
+    toppingIds,
+  });
+
+  const summarizedItems = summarizeCartItems(cart.items);
+
+  const hasSelectedItem = summarizedItems.some(({ item }) => {
+    return (
+      createCartItemIdentityKey({
+        menuId: item.menuId,
+        toppingIds: item.toppings.map((topping) => topping.toppingId),
+      }) === selectedItemIdentityKey
+    );
+  });
+
+  const existingItems = summarizedItems.map(
+    ({ item, quantity: currentQuantity }) => {
+      const itemIdentityKey = createCartItemIdentityKey({
+        menuId: item.menuId,
+        toppingIds: item.toppings.map((topping) => topping.toppingId),
+      });
+
+      return {
+        id: item.id,
+        menuId: item.menuId,
+        quantity:
+          itemIdentityKey === selectedItemIdentityKey
+            ? currentQuantity + quantity
+            : currentQuantity,
+        toppingIds: item.toppings.map((topping) => topping.toppingId),
+      };
+    },
+  );
 
   return {
     expectedVersion: cart.version,
-    items: [
-      ...existingItems,
-      {
-        menuId,
-        quantity,
-        toppingIds,
-      },
-    ],
+    items: hasSelectedItem
+      ? existingItems
+      : [
+          ...existingItems,
+          {
+            menuId,
+            quantity,
+            toppingIds,
+          },
+        ],
   };
 }
