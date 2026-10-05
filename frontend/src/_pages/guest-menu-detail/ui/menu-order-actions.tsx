@@ -89,7 +89,9 @@ export function MenuOrderActions({
           </TooltipTrigger>
 
           <TooltipContent>
-            {`カートに入れられるメニューは${MAX_CART_ITEMS_TYPE}種類までです`}
+            カートに入れられるメニューは{MAX_CART_ITEMS_TYPE}種類までです。
+            <br />
+            注文を分けてください。
           </TooltipContent>
         </Tooltip>
       </div>
