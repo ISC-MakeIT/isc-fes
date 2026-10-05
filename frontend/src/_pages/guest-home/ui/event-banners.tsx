@@ -68,8 +68,8 @@ export function EventBanners({ initialDateTime }: EventBannersProps) {
             ref={(element) => {
               bannerRefs.current[index] = element;
             }}
-            key={event.slug}
-            href={eventsUrl(event.slug)}
+            key={event.name}
+            href={eventsUrl(event.name)}
             className="relative block w-84"
           >
             <AspectRatioImage
