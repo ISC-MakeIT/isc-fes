@@ -11,9 +11,9 @@ import { Topping } from "@/entities/topping";
 import { Button } from "@/shared/ui/button";
 import { SoldOutSwitch } from "./sold-out-switch";
 import { editTopping } from "../api/edit-topping";
-import { storeToppingsKey } from "@/shared/config";
-import { EditorTarget, useMenuEditor } from "../model/hooks/use-menu-editor";
+import { MenuEditorTarget, storeToppingsKey } from "@/shared/config";
 import { trackEvent } from "@/shared/lib/analytics";
+import { useMenuEditor } from "../model/hooks/use-menu-editor";
 
 export function ToppingList() {
   const storeId = useStoreId();
@@ -58,7 +58,7 @@ export function ToppingList() {
       <ActionButton
         className="px-6 py-4 text-lg font-bold"
         isDot={false}
-        onClick={() => openEditor(EditorTarget.Topping)}
+        onClick={() => openEditor(MenuEditorTarget.Topping)}
       >
         <PlusIcon className="size-6" />
         カスタマイズの追加
@@ -78,7 +78,7 @@ export function ToppingCard({ topping }: ToppingCardProps) {
       type="button"
       variant="outline"
       className="border-foreground shadow-primary flex h-auto w-full cursor-pointer flex-row items-center gap-4 rounded-sm border px-6 py-4 font-bold shadow-[4px_4px_0]"
-      onClick={() => openEditor(EditorTarget.Topping, topping.id)}
+      onClick={() => openEditor(MenuEditorTarget.Topping, topping.id)}
     >
       <span className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-3">
         <span className="truncate text-left">{topping.name}</span>

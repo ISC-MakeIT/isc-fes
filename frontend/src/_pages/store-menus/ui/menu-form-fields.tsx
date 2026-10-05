@@ -1,7 +1,11 @@
 "use client";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { MENU_IMAGE_ASPECT } from "@/shared/config";
+import {
+  MENU_IMAGE_ASPECT,
+  MenuEditorTarget,
+  storeMenuEditorUrl,
+} from "@/shared/config";
 import { withForm } from "@/shared/lib/form-hook";
 import { cn } from "@/shared/lib/utils";
 import { Field, FieldContent, FieldError, FieldLabel } from "@/shared/ui/field";
@@ -12,9 +16,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { storeToppingsQueryOptions } from "../api/fetch-store-toppings";
 import { menuFormOptions, MenuFormValues } from "../model/menu-form";
 import { useStoreId } from "../model/hooks/use-store-id";
-import { Button } from "@/shared/ui/button";
-import { inlineStyle } from "@/shared/ui/inline-link";
-import { EditorTarget, useMenuEditor } from "../model/hooks/use-menu-editor";
+import { InlineLink } from "@/shared/ui/inline-link";
 
 type MenuFormFieldsProps = {
   initialImageUrl?: string;
@@ -31,8 +33,6 @@ export const MenuFormFields = withForm({
     const { data: toppings } = useSuspenseQuery(
       storeToppingsQueryOptions(storeId),
     );
-
-    const { openEditor } = useMenuEditor();
 
     return (
       <div className="flex w-full flex-col gap-6">
@@ -163,14 +163,11 @@ export const MenuFormFields = withForm({
                 <p>
                   カスタマイズが登録されていません
                   <br />「
-                  <Button
-                    className={cn(inlineStyle, "px-0")}
-                    type="button"
-                    variant="link"
-                    onClick={() => openEditor(EditorTarget.Topping)}
+                  <InlineLink
+                    href={storeMenuEditorUrl(storeId, MenuEditorTarget.Topping)}
                   >
                     カスタマイズの追加
-                  </Button>
+                  </InlineLink>
                   」から登録してください。
                 </p>
               ) : (

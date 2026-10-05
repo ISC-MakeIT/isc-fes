@@ -1,29 +1,17 @@
 "use client";
 
-import { parseAsString, parseAsStringEnum, useQueryStates } from "nuqs";
-
-export enum EditorTarget {
-  Menu = "menu",
-  Topping = "topping",
-}
-
-const editorParsers = {
-  editorTarget: parseAsStringEnum<EditorTarget>(Object.values(EditorTarget)),
-  itemId: parseAsString,
-};
+import { menuEditorParsers, MenuEditorTarget } from "@/shared/config";
+import { useQueryStates } from "nuqs";
 
 export function useMenuEditor() {
-  const [{ editorTarget, itemId }, setEditor] = useQueryStates(editorParsers, {
-    history: "push",
-    urlKeys: {
-      editorTarget: "editor",
-      itemId: "id",
+  const [{ editorTarget, itemId }, setEditor] = useQueryStates(
+    menuEditorParsers,
+    {
+      history: "push",
     },
-  });
+  );
 
-  const normalizedItemId = editorTarget && itemId ? itemId : null;
-
-  function openEditor(target: EditorTarget, id?: string) {
+  function openEditor(target: MenuEditorTarget, id?: string) {
     return setEditor({
       editorTarget: target,
       itemId: id ?? null,
@@ -36,7 +24,7 @@ export function useMenuEditor() {
 
   return {
     editorTarget,
-    itemId: normalizedItemId,
+    itemId,
     isOpen: editorTarget !== null,
     openEditor,
     closeEditor,
