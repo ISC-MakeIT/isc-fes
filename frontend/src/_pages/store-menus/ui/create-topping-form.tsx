@@ -9,8 +9,13 @@ import { HeadingCard } from "@/shared/ui/heading-card";
 import { ToppingFormFields } from "./topping-form-fields";
 import { ActionButton } from "@/shared/ui/action-button";
 import { trackEvent } from "@/shared/lib/analytics";
+import {
+  QuestionnaireTrigger,
+  useAppQuestionnaire,
+} from "@/widgets/app-questionnaire";
 
 export function CreateToppingForm() {
+  const { requestQuestionnaire } = useAppQuestionnaire();
   const storeId = useStoreId();
   const client = useQueryClient();
   const mutation = useMutation({
@@ -19,6 +24,7 @@ export function CreateToppingForm() {
       trackEvent("topping_created", { store_id: storeId });
       client.invalidateQueries({ queryKey: storeToppingsKey(storeId) });
       form.reset();
+      requestQuestionnaire(QuestionnaireTrigger.MenuCreated);
     },
   });
 
