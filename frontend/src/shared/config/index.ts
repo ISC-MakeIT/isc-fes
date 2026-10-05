@@ -48,3 +48,5 @@ export {
   STORE_IMAGE_ASPECT,
   HERO_IMAGE_ASPECT,
 } from "./constants/image-aspect-ratios";
+
+export { dotGothic16, geistMono, geistSans } from "./fonts";

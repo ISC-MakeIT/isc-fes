@@ -4,16 +4,7 @@ import "./globals.css";
 import { QueryProvider } from "./query-provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { AnalyticsPageView } from "./analytics-page-view";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { dotGothic16, geistMono, geistSans } from "@/shared/config";
 
 export const metadata: Metadata = {
   title: "ふぇすNavi",
@@ -29,7 +20,7 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${dotGothic16.variable} h-full antialiased`}
     >
       <QueryProvider>
         <body className="flex min-h-full flex-col">
