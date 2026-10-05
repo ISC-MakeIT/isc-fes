@@ -8,8 +8,14 @@ import { Menu } from "@/entities/menu";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { cn } from "@/shared/lib/utils";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
-import { MENU_IMAGE_ASPECT, storeMenusUrl } from "@/shared/config";
+import {
+  MENU_IMAGE_ASPECT,
+  MenuEditorTarget,
+  storeMenuEditorUrl,
+  storeMenusUrl,
+} from "@/shared/config";
 import { InlineLink } from "@/shared/ui/inline-link";
+import Link from "next/link";
 
 type StoreMenuListProps = {
   storeId: string;
@@ -34,7 +40,12 @@ export function StoreMenuList({ storeId, className }: StoreMenuListProps) {
 
       <div className="grid grid-cols-[repeat(auto-fit,11.375rem)] justify-center gap-8">
         {menus.map((menu) => (
-          <MenuCard menu={menu} key={menu.id} />
+          <Link
+            href={storeMenuEditorUrl(storeId, MenuEditorTarget.Menu, menu.id)}
+            key={menu.id}
+          >
+            <MenuCard menu={menu} />
+          </Link>
         ))}
       </div>
     </div>

@@ -7,7 +7,6 @@ export { getApiBaseUrl } from "./constants/env";
 export {
   MenuEditorTarget,
   menuEditorParsers,
-  serializeMenuEditor,
 } from "./search-params/menu-editor";
 
 export {

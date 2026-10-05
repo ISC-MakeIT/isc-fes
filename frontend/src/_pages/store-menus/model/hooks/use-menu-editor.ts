@@ -11,10 +11,10 @@ export function useMenuEditor() {
     },
   );
 
-  function openEditor(target: MenuEditorTarget, id?: string) {
+  function openEditor(editorTarget: MenuEditorTarget, itemId?: string) {
     return setEditor({
-      editorTarget: target,
-      itemId: id ?? null,
+      editorTarget,
+      itemId: itemId ?? null,
     });
   }
 
