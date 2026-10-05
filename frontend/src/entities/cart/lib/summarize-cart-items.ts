@@ -10,7 +10,9 @@ export function createCartItemIdentityKey({
   menuId,
   toppingIds,
 }: CartItemIdentity): string {
-  return JSON.stringify([menuId, [...toppingIds].sort()]);
+  const sortedToppingIds = [...toppingIds].sort();
+
+  return [menuId, ...sortedToppingIds].join(",");
 }
 
 /**
