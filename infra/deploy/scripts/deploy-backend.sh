@@ -13,7 +13,7 @@ if [[ ! "$runtime_env_parameter_name" =~ ^/?[a-zA-Z0-9_.-]+(/[a-zA-Z0-9_.-]+)*$ 
   exit 1
 fi
 
-readonly max_poll_attempts=120
+readonly max_poll_seconds=1800
 readonly max_invocation_lookup_failures=5
 
 repo_root="$(git rev-parse --show-toplevel)"
@@ -95,7 +95,7 @@ remote_commands=(
   'set -euo pipefail'
   'cd /opt/isc-fes'
   'exec 9>/opt/isc-fes/deploy.lock'
-  'flock -n 9 || { echo "別のデプロイが実行中です。" >&2; exit 1; }'
+  'flock -w 1200 9 || { echo "デプロイ・バックアップのロック待機がタイムアウトしました。" >&2; exit 1; }'
   'umask 077'
   "trap 'rm -f /opt/isc-fes/.env.next; docker logout \"$registry\" >/dev/null 2>&1 || true' EXIT"
   "aws ssm get-parameter --region \"$aws_region\" --name \"$runtime_env_parameter_name\" --with-decryption --query Parameter.Value --output text > /opt/isc-fes/.env.next"
@@ -112,7 +112,7 @@ remote_commands=(
   "BACKEND_IMAGE=\"$image_uri\" docker compose --env-file /opt/isc-fes/.env -f /opt/isc-fes/compose.yaml ps"
 )
 
-parameters_json="$(printf '%s\n' "${remote_commands[@]}" | jq -Rs '{commands: [.]}' )"
+parameters_json="$(printf '%s\n' "${remote_commands[@]}" | jq -Rs '{commands: [.], executionTimeout: ["1800"]}' )"
 
 command_id="$(
   aws ssm send-command \
@@ -120,6 +120,7 @@ command_id="$(
     --instance-ids "$instance_id" \
     --document-name AWS-RunShellScript \
     --comment "deploy ${image_tag}" \
+    --timeout-seconds 120 \
     --parameters "$parameters_json" \
     --query Command.CommandId \
     --output text
@@ -132,13 +133,16 @@ status="Pending"
 terminal_status_observed=false
 invocation_json=""
 invocation_lookup_failures=0
-for ((poll_attempt = 1; poll_attempt <= max_poll_attempts; poll_attempt++)); do
+poll_deadline=$(( SECONDS + max_poll_seconds ))
+while (( SECONDS < poll_deadline )); do
   if invocation_json="$(
     aws ssm get-command-invocation \
       --region "$aws_region" \
       --command-id "$command_id" \
       --instance-id "$instance_id" \
       --output json \
+      --cli-connect-timeout 10 \
+      --cli-read-timeout 30 \
       2>"$aws_error_file"
   )"; then
     invocation_lookup_failures=0
@@ -170,7 +174,7 @@ for ((poll_attempt = 1; poll_attempt <= max_poll_attempts; poll_attempt++)); do
       ;;
   esac
 
-  if ((poll_attempt < max_poll_attempts)); then
+  if (( SECONDS < poll_deadline )); then
     sleep 5
   fi
 done
