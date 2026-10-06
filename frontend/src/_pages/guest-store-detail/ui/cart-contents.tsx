@@ -62,9 +62,10 @@ export function CartContents({ storeId }: CartContentsProps) {
               <Button
                 type="button"
                 variant="ghost"
+                aria-label={`${topping.name}を削除`}
                 className="text-notice ml-auto px-2"
               >
-                <XIcon size={10} strokeWidth={3} />
+                <XIcon size={10} strokeWidth={3} aria-hidden />
               </Button>
             </div>
           ))}
