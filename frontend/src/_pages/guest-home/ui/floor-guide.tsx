@@ -127,10 +127,10 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
             ratio={STORE_IMAGE_ASPECT}
             alt={`${store.name}の店舗画像`}
             imagePath={store.imageUrl}
-            className="w-28"
+            className="w-28 shrink-0"
           />
           <div>
-            <p className="text-lg">{store.name}</p>
+            <p className="line-clamp-2 text-lg">{store.name}</p>
           </div>
           <ChevronRightIcon strokeWidth={0.5} className="ml-auto" size={40} />
         </Link>
