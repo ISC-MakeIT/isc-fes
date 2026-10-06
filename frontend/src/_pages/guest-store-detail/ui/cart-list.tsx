@@ -27,6 +27,7 @@ import { buildClearCartInput } from "../lib/build-clear-cart-input";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { formatYen } from "@/shared/lib/formatYen";
 import { CornerLeftUpIcon, XIcon } from "lucide-react";
+import { QuantityController } from "@/widgets/quantity-controller";
 
 type CartListProps = {
   storeId: string;
@@ -155,8 +156,12 @@ export function CartContents({ storeId }: CartContentsProps) {
           ))}
 
           <div className="flex flex-row justify-between text-lg font-medium">
-            <p>{formatYen(item.unitPrice)}</p>
-            <p>{item.quantity}</p>
+            <p className="w-18">{formatYen(item.unitPrice)}</p>
+            <QuantityController
+              onDecrease={() => {}}
+              onIncrease={() => {}}
+              quantity={item.quantity}
+            />
           </div>
         </li>
       ))}
