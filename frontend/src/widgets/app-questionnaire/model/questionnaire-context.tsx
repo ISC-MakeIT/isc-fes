@@ -54,7 +54,13 @@ export function AppQuestionnaireProvider({
       return;
     }
 
-    storePendingQuestionnaire();
+    const wasPendingQuestionnaireStored = storePendingQuestionnaire();
+
+    // localStorageが使えない環境ならアンケートを開かない
+    if (!wasPendingQuestionnaireStored) {
+      return;
+    }
+
     setActiveTrigger(trigger);
   }
 
