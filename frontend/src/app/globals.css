@@ -70,6 +70,7 @@
     color-mix(in oklch, var(--foreground) 25%, transparent);
   --color-cart-sheet-header: var(--cart-sheet-header);
   --color-cart-quantity-badge: var(--yellow-strong);
+  --color-soldout-overlay: oklch(from var(--background) l c h / 75%);
 }
 
 :root {
