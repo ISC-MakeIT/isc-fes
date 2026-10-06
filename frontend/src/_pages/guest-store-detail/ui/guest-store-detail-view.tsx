@@ -33,52 +33,55 @@ export async function GuestStoreDetailView({
         storeId={storeId}
         floorNumber={Number(store.room.charAt(0)) || undefined}
       />
-      <div className="mx-auto flex flex-col md:max-w-200">
-        <div className="md:flex md:flex-row md:items-start md:gap-1.5 md:px-6 md:pt-10 md:pb-8">
-          <AspectRatioImage
-            ratio={STORE_IMAGE_ASPECT}
-            src={store.imageUrl}
-            className="md:w-77 md:shrink-0"
-            alt="店舗のバナー画像"
-          />
+      <div className="mx-auto w-full lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:justify-end lg:gap-10">
+        <div className="min-w-0 lg:mx-auto lg:max-w-200">
+          <div className="lg:flex lg:flex-row lg:items-start lg:gap-1.5 lg:px-6 lg:pt-10 lg:pb-8">
+            <AspectRatioImage
+              ratio={STORE_IMAGE_ASPECT}
+              src={store.imageUrl}
+              className="lg:w-77 lg:shrink-0"
+              alt="店舗のバナー画像"
+            />
 
-          <section className="min-w-0 flex-1 space-y-8 px-8 py-8 text-left">
-            <h1 className="text-[1.375rem] font-bold">{store.name}</h1>
-            <p className="text-[1.375rem] font-bold">{store.room}</p>
-            <p className="text-lg">{store.description}</p>
-            <div className="space-y-4">
-              <p className="font-semibold">アレルギー対象8品目</p>
-              {store.allergens.length === 0 ? (
-                <p>該当なし</p>
-              ) : (
-                <div className="flex flex-row flex-wrap justify-start gap-2">
-                  {store.allergens.map((allergen) => (
-                    <AllergenBadge
-                      key={allergen.id}
-                      allergen={allergen}
-                      className="w-19"
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+            <section className="min-w-0 flex-1 space-y-8 px-8 py-8 text-left">
+              <h1 className="text-[1.375rem] font-bold">{store.name}</h1>
+              <p className="text-[1.375rem] font-bold">{store.room}</p>
+              <p className="text-lg">{store.description}</p>
+              <div className="space-y-4">
+                <p className="font-semibold">アレルギー対象8品目</p>
+                {store.allergens.length === 0 ? (
+                  <p>該当なし</p>
+                ) : (
+                  <div className="flex flex-row flex-wrap justify-start gap-2">
+                    {store.allergens.map((allergen) => (
+                      <AllergenBadge
+                        key={allergen.id}
+                        allergen={allergen}
+                        className="w-19"
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          <MenuList storeId={storeId} />
+
+          <section className="flex flex-col items-center gap-8 px-6 pt-8 pb-16">
+            <HeadingCard className="px-14 py-2">マップ</HeadingCard>
+            {mapImage && (
+              <Image
+                alt={`${store.room}のマップ`}
+                src={mapImage}
+                className="w-75"
+              />
+            )}
           </section>
         </div>
 
-        <MenuList storeId={storeId} />
-
-        <section className="flex flex-col items-center gap-8 px-6 pt-8 pb-16">
-          <HeadingCard className="px-14 py-2">マップ</HeadingCard>
-          {mapImage && (
-            <Image
-              alt={`${store.room}のマップ`}
-              src={mapImage}
-              className="w-75"
-            />
-          )}
-        </section>
+        <CartList storeId={storeId} />
       </div>
-      <CartList storeId={storeId} />
     </HydrationBoundary>
   );
 }
