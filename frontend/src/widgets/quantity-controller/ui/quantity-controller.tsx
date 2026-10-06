@@ -21,7 +21,7 @@ export function QuantityController({
         size="icon-xs"
         className="rounded-full"
       >
-        <MinusIcon />
+        <MinusIcon aria-hidden />
       </Button>
       <span className="text-xl font-semibold">{quantity}</span>
       <Button
