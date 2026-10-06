@@ -5,6 +5,7 @@ import (
 	db "github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/services/allergens"
+	"github.com/isc-makeit/isc-fes/backend/services/reviews"
 	"github.com/isc-makeit/isc-fes/backend/services/rooms"
 	"github.com/isc-makeit/isc-fes/backend/services/store/carts"
 	"github.com/isc-makeit/isc-fes/backend/services/store/invitations"
@@ -17,7 +18,7 @@ type Server struct {
 	queries             *db.Queries
 	googleAuthenticator *auth.GoogleAuthenticator
 	frontendURL         string
-	accountService      *services.AccountService
+	accountService      currentAccountLoader
 	auth                *services.AuthService
 	guestResolver       guestResolver
 	allergen            *allergens.AllergenService
@@ -29,6 +30,7 @@ type Server struct {
 	toppings            *toppings.ToppingsService
 	cart                *carts.CartService
 	rooms               *rooms.RoomsService
+	reviews             *reviews.ReviewService
 }
 
 func NewServer(
@@ -47,6 +49,7 @@ func NewServer(
 	toppingsService *toppings.ToppingsService,
 	cartService *carts.CartService,
 	roomsService *rooms.RoomsService,
+	reviewService *reviews.ReviewService,
 ) *Server {
 	return &Server{
 		queries:             queries,
@@ -64,5 +67,6 @@ func NewServer(
 		toppings:            toppingsService,
 		cart:                cartService,
 		rooms:               roomsService,
+		reviews:             reviewService,
 	}
 }

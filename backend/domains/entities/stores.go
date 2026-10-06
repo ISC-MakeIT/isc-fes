@@ -41,32 +41,52 @@ func (r StoreReviewStatus) IsValid() bool {
 	}
 }
 
+// StoreCongestionLevel は店舗の混雑度。値が大きいほど混んでいる。
+type StoreCongestionLevel int32
+
+const (
+	StoreCongestionLevelLow    StoreCongestionLevel = 1
+	StoreCongestionLevelMedium StoreCongestionLevel = 2
+	StoreCongestionLevelHigh   StoreCongestionLevel = 3
+)
+
+func (l StoreCongestionLevel) IsValid() bool {
+	switch l {
+	case StoreCongestionLevelLow, StoreCongestionLevelMedium, StoreCongestionLevelHigh:
+		return true
+	default:
+		return false
+	}
+}
+
 type Store struct {
-	ID             uuid.UUID
-	Name           string
-	Room           string
-	Description    string
-	ImageObjectKey StoreImageObjectKey
-	ReviewStatus   StoreReviewStatus
-	SubmittedAt    time.Time
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	ClosedAt       *time.Time
+	ID              uuid.UUID
+	Name            string
+	Room            string
+	Description     string
+	ImageObjectKey  StoreImageObjectKey
+	ReviewStatus    StoreReviewStatus
+	SubmittedAt     time.Time
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	ClosedAt        *time.Time
+	CongestionLevel StoreCongestionLevel
 }
 
 type StoreOutput struct {
-	ID             uuid.UUID
-	Name           string
-	Room           string
-	Description    string
-	ImageObjectKey StoreImageObjectKey
-	ImageURL       string
-	ReviewStatus   StoreReviewStatus
-	SubmittedAt    time.Time
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	Allergens      []Allergen
-	ClosedAt       *time.Time
+	ID              uuid.UUID
+	Name            string
+	Room            string
+	Description     string
+	ImageObjectKey  StoreImageObjectKey
+	ImageURL        string
+	ReviewStatus    StoreReviewStatus
+	SubmittedAt     time.Time
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	Allergens       []Allergen
+	ClosedAt        *time.Time
+	CongestionLevel StoreCongestionLevel
 }
 
 type StoreMemberRole string

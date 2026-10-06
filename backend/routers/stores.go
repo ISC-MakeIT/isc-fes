@@ -41,10 +41,11 @@ func (s *Server) UpdateStore(c *gin.Context, storeID uuid.UUID) {
 	}
 
 	update := services.UpdateStoreInput{
-		Closed:      input.Closed,
-		Room:        input.Room,
-		Description: input.Description,
-		AllergenIDs: (*[]uuid.UUID)(input.AllergenIds),
+		Closed:          input.Closed,
+		Room:            input.Room,
+		Description:     input.Description,
+		AllergenIDs:     (*[]uuid.UUID)(input.AllergenIds),
+		CongestionLevel: (*entities.StoreCongestionLevel)(input.CongestionLevel),
 	}
 	if input.ImageObjectKey != nil {
 		key := entities.ImageObjectKey(*input.ImageObjectKey)
@@ -62,13 +63,14 @@ func (s *Server) UpdateStore(c *gin.Context, storeID uuid.UUID) {
 
 func toStoreResponse(store entities.StoreOutput) Store {
 	return Store{
-		Id:           store.ID,
-		Name:         store.Name,
-		Room:         store.Room,
-		Description:  store.Description,
-		ImageUrl:     store.ImageURL,
-		ReviewStatus: StoreReviewStatus(store.ReviewStatus),
-		Allergens:    utils.Map(store.Allergens, toAllergen),
-		ClosedAt:     store.ClosedAt,
+		Id:              store.ID,
+		Name:            store.Name,
+		Room:            store.Room,
+		Description:     store.Description,
+		ImageUrl:        store.ImageURL,
+		ReviewStatus:    StoreReviewStatus(store.ReviewStatus),
+		Allergens:       utils.Map(store.Allergens, toAllergen),
+		ClosedAt:        store.ClosedAt,
+		CongestionLevel: StoreCongestionLevel(store.CongestionLevel),
 	}
 }

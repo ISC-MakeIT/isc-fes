@@ -2,3 +2,4 @@ export const MENU_IMAGE_ASPECT = 5 / 4;
 export const STORE_IMAGE_ASPECT = 16 / 9;
 export const ICON_IMAGE_ASPECT = 1;
 export const HERO_IMAGE_ASPECT = 1 / 1.414;
+export const EVENT_IMAGE_ASPECT = 3 / 1;

@@ -61,7 +61,7 @@ func NewAccountSession(
 	manager := scs.New()
 	manager.Store = store
 	manager.HashTokenInStore = true
-	manager.Lifetime = 24 * time.Hour
+	manager.Lifetime = 7 * 24 * time.Hour
 
 	configureAccountSessionCookie(manager, secure, domain)
 

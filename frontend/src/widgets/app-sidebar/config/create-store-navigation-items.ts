@@ -9,7 +9,7 @@ import {
 import { NavigationItems } from "../model/types";
 import { StoreMemberRole } from "@/entities/store-member";
 
-export function storeNavigationItems(
+export function createStoreNavigationItems(
   storeId: string,
   storeMemberRole: StoreMemberRole,
 ): NavigationItems {

@@ -56,15 +56,16 @@ type CreateStoreApplicationServiceInput struct {
 }
 
 type UpdateStoreInput struct {
-	Closed         *bool
-	Room           *string
-	Description    *string
-	ImageObjectKey *entities.ImageObjectKey
-	AllergenIDs    *[]uuid.UUID
+	Closed          *bool
+	Room            *string
+	Description     *string
+	ImageObjectKey  *entities.ImageObjectKey
+	AllergenIDs     *[]uuid.UUID
+	CongestionLevel *entities.StoreCongestionLevel
 }
 
 func (i UpdateStoreInput) IsAllNil() bool {
-	return i.Closed == nil && i.Room == nil && i.Description == nil && i.ImageObjectKey == nil && i.AllergenIDs == nil
+	return i.Closed == nil && i.Room == nil && i.Description == nil && i.ImageObjectKey == nil && i.AllergenIDs == nil && i.CongestionLevel == nil
 }
 
 type StoreService struct {
@@ -276,6 +277,9 @@ func (s *StoreService) UpdateStore(ctx context.Context, storeID uuid.UUID, input
 		return s.toStoreOutput(ctx, currentStore)
 	}
 
+	if input.CongestionLevel != nil && !input.CongestionLevel.IsValid() {
+		return entities.StoreOutput{}, ErrInvalidInput
+	}
 	if input.ImageObjectKey != nil && !input.ImageObjectKey.IsValid() {
 		return entities.StoreOutput{}, ErrInvalidInput
 	}
@@ -361,18 +365,19 @@ func (s *StoreService) buildStoreOutput(ctx context.Context, store entities.Stor
 	}
 
 	return entities.StoreOutput{
-		ID:             store.ID,
-		Name:           store.Name,
-		Room:           store.Room,
-		Description:    store.Description,
-		ImageObjectKey: store.ImageObjectKey,
-		ImageURL:       publicImageURL,
-		ReviewStatus:   store.ReviewStatus,
-		SubmittedAt:    store.SubmittedAt,
-		UpdatedAt:      store.UpdatedAt,
-		CreatedAt:      store.CreatedAt,
-		ClosedAt:       store.ClosedAt,
-		Allergens:      allergens,
+		ID:              store.ID,
+		Name:            store.Name,
+		Room:            store.Room,
+		Description:     store.Description,
+		ImageObjectKey:  store.ImageObjectKey,
+		ImageURL:        publicImageURL,
+		ReviewStatus:    store.ReviewStatus,
+		SubmittedAt:     store.SubmittedAt,
+		UpdatedAt:       store.UpdatedAt,
+		CreatedAt:       store.CreatedAt,
+		ClosedAt:        store.ClosedAt,
+		CongestionLevel: store.CongestionLevel,
+		Allergens:       allergens,
 	}, nil
 }
 
