@@ -29,6 +29,8 @@ export const menuToppingsKeys = {
     [...menuToppingsKeys.all(storeId), menuId] as const,
 };
 
+export const cartKey = (storeId: string) => ["store", storeId, "cart"];
+
 export const storeListKeys = {
   all: () => ["stores"] as const,
   visible: () => [...storeListKeys.all(), "visible"] as const,

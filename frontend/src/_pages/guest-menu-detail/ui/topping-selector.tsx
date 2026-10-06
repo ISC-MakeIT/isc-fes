@@ -6,32 +6,39 @@ import { cn } from "@/shared/lib/utils";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { MinusIcon, PlusIcon } from "lucide-react";
-import { useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { trackEvent } from "@/shared/lib/analytics";
 
 type ToppingSelectorType = {
   storeId: string;
   menuId: string;
+  onValueChange: Dispatch<SetStateAction<string[]>>;
+  value: string[];
 };
 
-export function ToppingSelector({ storeId, menuId }: ToppingSelectorType) {
-  const [selectedToppingIds, setSelectedToppingIds] = useState<string[]>([]);
+export function ToppingSelector({
+  storeId,
+  menuId,
+  onValueChange,
+  value,
+}: ToppingSelectorType) {
   const { data: toppings } = useSuspenseQuery(
     menuToppingsQueryOptions({ storeId, menuId }),
   );
 
+  if (toppings.length === 0) return;
+
   return (
-    <div className="space-y-4.5 md:px-6">
+    <div className="md:border-primary/50 space-y-4.5 py-8 md:border-b-2 md:px-6 md:pt-0">
       <h2 className="border-foreground w-full border-b text-xl">
         カスタマイズ
       </h2>
       <ToggleGroup
         multiple
-        value={selectedToppingIds}
         onValueChange={(nextIds) => {
           const changedId =
-            nextIds.find((id) => !selectedToppingIds.includes(id)) ??
-            selectedToppingIds.find((id) => !nextIds.includes(id));
+            nextIds.find((id) => !value.includes(id)) ??
+            value.find((id) => !nextIds.includes(id));
           if (changedId) {
             trackEvent("topping_selection_changed", {
               store_id: storeId,
@@ -40,10 +47,11 @@ export function ToppingSelector({ storeId, menuId }: ToppingSelectorType) {
               selected: nextIds.includes(changedId),
             });
           }
-          setSelectedToppingIds(nextIds);
+          onValueChange(nextIds);
         }}
         orientation="vertical"
         className="flex w-full flex-col gap-4"
+        value={value}
       >
         {toppings.map((topping) => (
           <ToggleGroupItem
