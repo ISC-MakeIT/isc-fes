@@ -48,6 +48,11 @@ export function CartList({ storeId }: CartListProps) {
 
   const clearCartMutation = useMutation({
     mutationFn: updateCart,
+    onError: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: cartKey(storeId),
+      });
+    },
     onSuccess: (updatedCart) => {
       queryClient.setQueryData(cartKey(storeId), updatedCart);
       setIsSheetOpen(false);
