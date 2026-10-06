@@ -30,10 +30,8 @@ export function QuestionnaireDialog({
         {audience === AudienceTarget.Guest ? (
           <DialogHeader className="flex flex-row gap-2">
             <Image src={AppIcon} alt={"アプリのロゴ"} className="w-12" />
-            <div className="flex flex-col font-bold">
-              <p className="text-sm">学園祭アプリ</p>
-              <h1 className="text-xl">ふぇすNavi アンケート</h1>
-            </div>
+            <p className="text-sm">学園祭アプリ</p>
+            <p className="text-xl">ふぇすNavi アンケート</p>
           </DialogHeader>
         ) : (
           <DialogHeader className="flex flex-col items-center text-lg font-bold">

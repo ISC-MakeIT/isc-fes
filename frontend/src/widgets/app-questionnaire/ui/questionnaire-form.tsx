@@ -74,9 +74,9 @@ export function QuestionnaireForm({
                   value={field.state.value}
                   max={5}
                   precision={1}
-                  size={40}
+                  size={35}
                   variant="yellow"
-                  className="gap-4"
+                  className="sm:gap-4"
                   disabled={mutation.isPending}
                   onValueChange={(rating) => field.handleChange(rating)}
                   onBlur={field.handleBlur}
