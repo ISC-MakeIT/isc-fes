@@ -12,3 +12,5 @@ export const sentryOptions = {
   ),
   strictTraceContinuation: true,
 };
+
+export * as Sentry from "@sentry/nextjs";
