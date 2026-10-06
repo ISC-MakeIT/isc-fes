@@ -125,11 +125,8 @@ export function CartContents({ storeId }: CartContentsProps) {
   return (
     <ul className="flex flex-col overflow-y-auto">
       {cart.items.map((item) => (
-        <li
-          key={item.id}
-          className="border-foreground flex flex-col gap-2 border-b px-6 py-4"
-        >
-          <div className="relative">
+        <div key={item.id} className="relative">
+          <li className="border-foreground flex flex-col gap-2 border-b px-6 py-4">
             {!item.available && (
               <div className="bg-soldout-overlay absolute inset-0 z-10 flex flex-col items-center justify-center">
                 <div className="flex flex-col gap-2">
@@ -177,7 +174,7 @@ export function CartContents({ storeId }: CartContentsProps) {
               </div>
             ))}
 
-            <div className="flex flex-row justify-between text-lg font-medium">
+            <div className="flex h-11 flex-row items-center justify-between text-lg font-medium">
               <p className="w-18">{formatYen(item.unitPrice)}</p>
               {/* TODO: 個数変更処理 */}
               <QuantityController
@@ -186,8 +183,8 @@ export function CartContents({ storeId }: CartContentsProps) {
                 quantity={item.quantity}
               />
             </div>
-          </div>
-        </li>
+          </li>
+        </div>
       ))}
     </ul>
   );
