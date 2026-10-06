@@ -68,6 +68,8 @@
   --color-allergen-card: var(--orange);
   --shadow-bottom-bar: 0 -4px 4px
     color-mix(in oklch, var(--foreground) 25%, transparent);
+  --color-cart-sheet-header: var(--cart-sheet-header);
+  --color-cart-quantity-badge: var(--yellow-strong);
 }
 
 :root {
@@ -108,6 +110,7 @@
   --close-button: #ea6082;
   --dialog-overlay: #3e3e3ebf;
   --editor-header: #e2851b80;
+  --cart-sheet-header: #f9e589;
 
   /* primitive token */
   --black-soft: #575757;

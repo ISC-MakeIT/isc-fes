@@ -78,7 +78,7 @@ export async function GuestStoreDetailView({
           )}
         </section>
       </div>
-      <CartList />
+      <CartList storeId={storeId} />
     </HydrationBoundary>
   );
 }
