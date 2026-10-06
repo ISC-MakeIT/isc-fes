@@ -21,14 +21,11 @@ import {
   updateCart,
 } from "@/entities/cart";
 import { useState } from "react";
-import { cartKey, MENU_IMAGE_ASPECT } from "@/shared/config";
+import { cartKey } from "@/shared/config";
 import { Badge } from "@/shared/ui/badge";
 import { buildClearCartInput } from "../lib/build-clear-cart-input";
-import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { formatYen } from "@/shared/lib/formatYen";
-import { CornerLeftUpIcon, XIcon } from "lucide-react";
-import { QuantityController } from "@/widgets/quantity-controller";
-import { SoldOutLabel } from "@/entities/menu";
+import { CartContents } from "./cart-contents";
 
 type CartListProps = {
   storeId: string;
@@ -70,18 +67,10 @@ export function CartList({ storeId }: CartListProps) {
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <div className="bg-background shadow-bottom-bar fixed inset-x-0 bottom-0 z-60 flex w-full flex-row items-center gap-4 px-6">
             <SheetTrigger className="flex h-20 flex-1 flex-row items-center gap-4">
-              <div className="relative">
-                <Image
-                  src={CartIcon}
-                  alt={"カートのアイコン"}
-                  className="h-10"
-                />
-                {totalQuantity > 0 && (
-                  <Badge className="text-foreground bg-cart-quantity-badge absolute top-1 -left-1 z-10 size-5 rounded-full p-0 font-medium">
-                    {totalQuantity}
-                  </Badge>
-                )}
-              </div>
+              <CartBadge totalQuantity={totalQuantity} />
+              <span className="text-xl font-medium">
+                {formatYen(cart.totalAmount)}
+              </span>
               <span className="text-xl font-medium">
                 {formatYen(cart.totalAmount)}
               </span>
@@ -148,14 +137,7 @@ export function CartList({ storeId }: CartListProps) {
         <CartContents storeId={storeId} />
 
         <div className="flex h-20 flex-row items-center justify-center gap-4">
-          <div className="relative">
-            <Image src={CartIcon} alt={"カートのアイコン"} className="h-10" />
-            {totalQuantity > 0 && (
-              <Badge className="text-foreground bg-cart-quantity-badge absolute top-1 -left-1 z-10 size-5 rounded-full p-0 font-medium">
-                {totalQuantity}
-              </Badge>
-            )}
-          </div>
+          <CartBadge totalQuantity={totalQuantity} />
           <span className="text-xl font-medium">
             {formatYen(cart.totalAmount)}
           </span>
@@ -176,75 +158,19 @@ export function CartList({ storeId }: CartListProps) {
   );
 }
 
-type CartContentsProps = {
-  storeId: string;
+type CartBadgeProps = {
+  totalQuantity: number;
 };
 
-export function CartContents({ storeId }: CartContentsProps) {
-  const { data: cart } = useSuspenseQuery(fetchCartQueryOptions(storeId));
-
+function CartBadge({ totalQuantity }: CartBadgeProps) {
   return (
-    <ul className="flex flex-col overflow-y-auto">
-      {cart.items.map((item) => (
-        <li
-          key={item.id}
-          className="border-foreground relative flex flex-col gap-2 border-b px-6 py-4"
-        >
-          {!item.available && (
-            <div className="bg-soldout-overlay absolute inset-0 z-10 flex flex-col items-center justify-center">
-              <div className="flex flex-col gap-2">
-                <Image src={SoldOutLabel} alt="" className="w-60" />
-                <p className="text-xs">
-                  こちらの商品は只今売り切れとなりました。
-                </p>
-              </div>
-              <Button
-                variant="ghost"
-                className="text-notice text-xs font-bold underline underline-offset-2"
-              >
-                削除する
-              </Button>
-            </div>
-          )}
-
-          <div className="border-foreground flex flex-row gap-6 border-b border-dashed py-2">
-            <AspectRatioImage
-              alt={`${item.name}の画像`}
-              src={item.imageUrl}
-              ratio={MENU_IMAGE_ASPECT}
-              className="w-25 shrink-0 rounded-sm"
-            />
-            <p className="line-clamp-3 text-xl font-semibold">{item.name}</p>
-          </div>
-
-          {item.toppings.map((topping) => (
-            <div
-              key={topping.id}
-              className="border-foreground flex min-h-13.75 flex-row gap-2 border-b border-dashed py-2 pl-20"
-            >
-              <CornerLeftUpIcon size={15} className="shrink-0 justify-start" />
-              <p className="line-clamp-2 font-semibold">{topping.name}</p>
-              <Button
-                type="button"
-                variant="ghost"
-                className="text-notice ml-auto px-2"
-              >
-                <XIcon size={10} strokeWidth={3} />
-              </Button>
-            </div>
-          ))}
-
-          <div className="flex h-11 flex-row items-center justify-between text-lg font-medium">
-            <p className="w-18">{formatYen(item.unitPrice)}</p>
-            {/* TODO: 個数変更処理 */}
-            <QuantityController
-              onDecrease={() => {}}
-              onIncrease={() => {}}
-              quantity={item.quantity}
-            />
-          </div>
-        </li>
-      ))}
-    </ul>
+    <div className="relative">
+      <Image src={CartIcon} alt={"カートのアイコン"} className="h-10" />
+      {totalQuantity > 0 && (
+        <Badge className="text-foreground bg-cart-quantity-badge absolute top-1 -left-1 z-10 h-5 min-w-5 rounded-full p-0 font-medium">
+          {totalQuantity}
+        </Badge>
+      )}
+    </div>
   );
 }
