@@ -5,7 +5,8 @@ import { CreateMenuForm } from "./create-menu-form";
 import { CreateToppingForm } from "./create-topping-form";
 import { EditMenuForm } from "./edit-menu-form";
 import { EditToppingForm } from "./edit-topping-form";
-import { EditorTarget, useMenuEditor } from "../model/hooks/use-menu-editor";
+import { useMenuEditor } from "../model/hooks/use-menu-editor";
+import { MenuEditorTarget } from "@/shared/config";
 
 export function MenuEditor() {
   const { editorTarget, itemId, isOpen, closeEditor } = useMenuEditor();
@@ -25,18 +26,20 @@ export function MenuEditor() {
 
       <div className="flex h-full min-h-dvh flex-col py-18">
         <div className="lg:border-primary h-full px-6 py-4 lg:border-l">
-          {editorTarget === EditorTarget.Menu && !itemId && <CreateMenuForm />}
+          {editorTarget === MenuEditorTarget.Menu && !itemId && (
+            <CreateMenuForm />
+          )}
 
           {/* keyを渡すことで、メニューのidが変わった時に再レンダリングを起こしている */}
-          {editorTarget === EditorTarget.Menu && itemId && (
+          {editorTarget === MenuEditorTarget.Menu && itemId && (
             <EditMenuForm key={itemId} menuId={itemId} />
           )}
 
-          {editorTarget === EditorTarget.Topping && !itemId && (
+          {editorTarget === MenuEditorTarget.Topping && !itemId && (
             <CreateToppingForm />
           )}
 
-          {editorTarget === EditorTarget.Topping && itemId && (
+          {editorTarget === MenuEditorTarget.Topping && itemId && (
             <EditToppingForm key={itemId} toppingId={itemId} />
           )}
         </div>

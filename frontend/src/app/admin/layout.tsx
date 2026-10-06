@@ -1,7 +1,7 @@
 import { fetchCurrentAccount } from "@/entities/account";
 import { AccountRole } from "@/entities/account";
 import { loginUrl, storeListUrl } from "@/shared/config";
-import { SidebarProvider } from "@/shared/ui/sidebar";
+import { AppSidebarLayout } from "@/widgets/app-sidebar";
 import { redirect } from "next/navigation";
 
 export default async function AdminLayout(props: LayoutProps<"/admin">) {
@@ -13,5 +13,9 @@ export default async function AdminLayout(props: LayoutProps<"/admin">) {
     redirect(storeListUrl());
   }
 
-  return <SidebarProvider>{props.children}</SidebarProvider>;
+  return (
+    <AppSidebarLayout sidebar={{ variant: "admin" }}>
+      {props.children}
+    </AppSidebarLayout>
+  );
 }

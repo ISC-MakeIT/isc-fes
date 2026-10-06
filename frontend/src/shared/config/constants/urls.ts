@@ -1,4 +1,8 @@
 import { getApiBaseUrl } from "./env";
+import {
+  MenuEditorTarget,
+  serializeMenuEditor,
+} from "../search-params/menu-editor";
 
 export const ordersUrl = () => "/orders";
 export const loginUrl = (redirectTo?: string) => {
@@ -33,6 +37,11 @@ export const storeKitchenUrl = (id: string) => `/member/stores/${id}/kitchen`;
 export const storePickupUrl = (id: string) => `/member/stores/${id}/pickup`;
 export const storeCallUrl = (id: string) => `/member/stores/${id}/call`;
 export const storeMenusUrl = (id: string) => `/member/stores/${id}/menus`;
+export const storeMenuEditorUrl = (
+  storeId: string,
+  editorTarget: MenuEditorTarget,
+  itemId?: string,
+) => serializeMenuEditor(storeMenusUrl(storeId), { editorTarget, itemId });
 
 // 管理者ページ
 export const storeApplicationsUrl = () => "/admin/store-applications";
@@ -40,5 +49,7 @@ export const storeApplicationsUrl = () => "/admin/store-applications";
 // ゲスト用のページ
 export const homeUrl = () => "/";
 export const guestStoreDetailUrl = (storeId: string) => `/stores/${storeId}`;
+export const eventsUrl = (eventName?: string) =>
+  eventName ? `/events#${encodeURIComponent(eventName)}` : "/events";
 export const guestMenuDetailUrl = (storeId: string, menuId: string) =>
   `/stores/${storeId}/menus/${menuId}`;

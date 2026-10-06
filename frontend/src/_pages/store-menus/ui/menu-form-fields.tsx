@@ -1,7 +1,11 @@
 "use client";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { MENU_IMAGE_ASPECT } from "@/shared/config";
+import {
+  MENU_IMAGE_ASPECT,
+  MenuEditorTarget,
+  storeMenuEditorUrl,
+} from "@/shared/config";
 import { withForm } from "@/shared/lib/form-hook";
 import { cn } from "@/shared/lib/utils";
 import { Field, FieldContent, FieldError, FieldLabel } from "@/shared/ui/field";
@@ -12,6 +16,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { storeToppingsQueryOptions } from "../api/fetch-store-toppings";
 import { menuFormOptions, MenuFormValues } from "../model/menu-form";
 import { useStoreId } from "../model/hooks/use-store-id";
+import { InlineLink } from "@/shared/ui/inline-link";
 
 type MenuFormFieldsProps = {
   initialImageUrl?: string;
@@ -28,6 +33,7 @@ export const MenuFormFields = withForm({
     const { data: toppings } = useSuspenseQuery(
       storeToppingsQueryOptions(storeId),
     );
+
     return (
       <div className="flex w-full flex-col gap-6">
         <form.Field
@@ -156,8 +162,13 @@ export const MenuFormFields = withForm({
               {toppings.length === 0 ? (
                 <p>
                   カスタマイズが登録されていません
-                  <br />
-                  「カスタマイズの追加」から登録してください。
+                  <br />「
+                  <InlineLink
+                    href={storeMenuEditorUrl(storeId, MenuEditorTarget.Topping)}
+                  >
+                    カスタマイズの追加
+                  </InlineLink>
+                  」から登録してください。
                 </p>
               ) : (
                 <p>このメニューに適用可能なカスタマイズを選択してください。</p>
