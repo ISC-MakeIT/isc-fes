@@ -63,18 +63,22 @@ export function CartList({ storeId }: CartListProps) {
           <div className="relative">
             <Image src={CartIcon} alt={"カートのアイコン"} className="h-10" />
             {totalQuantity > 0 && (
-              <Badge className="text-foreground bg-cart-quantity-badge absolute top-1 -left-1 z-10 size-5 rounded-full p-0">
+              <Badge className="text-foreground bg-cart-quantity-badge absolute top-1 -left-1 z-10 size-5 rounded-full p-0 font-medium">
                 {totalQuantity}
               </Badge>
             )}
           </div>
-          <span className="text-xl font-semibold">
+          <span className="text-xl font-medium">
             {formatYen(cart.totalAmount)}
           </span>
         </SheetTrigger>
 
         {/* TODO: チェックアウト処理 */}
-        <Button type="button" variant="secondary">
+        <Button
+          type="button"
+          variant="secondary"
+          className="rounded-sm px-6 py-2 font-semibold"
+        >
           注文画面へ ＞
         </Button>
       </div>
@@ -86,11 +90,12 @@ export function CartList({ storeId }: CartListProps) {
         className="max-h-[calc(100vh-5rem)] gap-0 overflow-hidden rounded-t-2xl data-[side=bottom]:bottom-20"
       >
         <SheetHeader className="bg-cart-sheet-header flex h-10 flex-row items-center justify-between py-0">
-          <SheetTitle>カート内の商品</SheetTitle>
+          <SheetTitle className="text-sm">カート内の商品</SheetTitle>
           <Button
             type="button"
             variant="ghost"
             disabled={clearCartMutation.isPending}
+            className="text-notice text-sm"
             onClick={() =>
               clearCartMutation.mutate({
                 storeId,
@@ -129,7 +134,7 @@ export function CartContents({ storeId }: CartContentsProps) {
               ratio={MENU_IMAGE_ASPECT}
               className="w-25 shrink-0 rounded-sm"
             />
-            <p className="line-clamp-3 text-xl font-medium">{item.name}</p>
+            <p className="line-clamp-3 text-xl font-semibold">{item.name}</p>
           </div>
 
           {item.toppings.map((topping) => (
@@ -137,8 +142,8 @@ export function CartContents({ storeId }: CartContentsProps) {
               key={topping.id}
               className="border-foreground flex min-h-13.75 flex-row gap-2 border-b border-dashed py-2 pl-20"
             >
-              <CornerLeftUpIcon size={12} className="justify-start" />
-              <p className="line-clamp-2 font-medium">{topping.name}</p>
+              <CornerLeftUpIcon size={15} className="shrink-0 justify-start" />
+              <p className="line-clamp-2 font-semibold">{topping.name}</p>
               <Button
                 type="button"
                 variant="ghost"
