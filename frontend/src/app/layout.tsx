@@ -4,6 +4,7 @@ import "./globals.css";
 import { QueryProvider } from "./query-provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { AnalyticsPageView } from "./analytics-page-view";
+import { AppQuestionnaireProvider } from "@/widgets/app-questionnaire";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,12 +33,14 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <QueryProvider>
-        <body className="flex min-h-full flex-col">
-          <NuqsAdapter>
-            <AnalyticsPageView />
-            {children}
-          </NuqsAdapter>
-        </body>
+        <AppQuestionnaireProvider>
+          <body className="flex min-h-full flex-col">
+            <NuqsAdapter>
+              <AnalyticsPageView />
+              {children}
+            </NuqsAdapter>
+          </body>
+        </AppQuestionnaireProvider>
       </QueryProvider>
     </html>
   );

@@ -95,6 +95,7 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
         }),
       ]);
       closeEditor();
+      requestQuestionnaire(QuestionnaireTrigger.MenuDeleted);
     },
   });
 

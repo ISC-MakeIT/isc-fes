@@ -1,3 +1,5 @@
+// TODO: カート追加、注文完了、受け取り完了でレビューを表示する（ゲストのみ）
+
 export enum QuestionnaireTrigger {
   CartItemAdded = "cart_item_added",
   OrderCompleted = "order_completed",

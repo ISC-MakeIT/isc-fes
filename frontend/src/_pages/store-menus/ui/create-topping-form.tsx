@@ -24,7 +24,7 @@ export function CreateToppingForm() {
       trackEvent("topping_created", { store_id: storeId });
       client.invalidateQueries({ queryKey: storeToppingsKey(storeId) });
       form.reset();
-      requestQuestionnaire(QuestionnaireTrigger.MenuCreated);
+      requestQuestionnaire(QuestionnaireTrigger.ToppingCreated);
     },
   });
 
