@@ -61,9 +61,15 @@ export function QuestionnaireForm({
           name="rating"
           children={(field) => (
             <Field>
-              <FieldLabel className="text-lg font-semibold">満足度</FieldLabel>
+              <FieldLabel
+                className="text-lg font-semibold"
+                htmlFor={field.name}
+              >
+                満足度
+              </FieldLabel>
               <FieldContent>
                 <Rating
+                  id={field.name}
                   name={field.name}
                   value={field.state.value}
                   max={5}
@@ -87,12 +93,15 @@ export function QuestionnaireForm({
           name="comment"
           children={(field) => (
             <Field>
-              <FieldLabel className="text-lg font-semibold">
+              <FieldLabel
+                className="text-lg font-semibold"
+                htmlFor={field.name}
+              >
                 ご意見やご要望があれば、お気軽にお願いします。
               </FieldLabel>
               <FieldContent>
                 <Textarea
-                  id="comment"
+                  id={field.name}
                   name={field.name}
                   value={field.state.value}
                   onBlur={field.handleBlur}
