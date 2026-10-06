@@ -71,9 +71,6 @@ export function CartList({ storeId }: CartListProps) {
               <span className="text-xl font-medium">
                 {formatYen(cart.totalAmount)}
               </span>
-              <span className="text-xl font-medium">
-                {formatYen(cart.totalAmount)}
-              </span>
             </SheetTrigger>
 
             {/* TODO: チェックアウト処理 */}
