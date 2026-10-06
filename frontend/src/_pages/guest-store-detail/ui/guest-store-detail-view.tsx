@@ -10,6 +10,7 @@ import { storeMenusQueryOptions } from "@/entities/menu";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { AllergenBadge } from "@/entities/allergen";
 import { StoreViewAnalytics } from "./store-view-analytics";
+import { CartList } from "./cart-list";
 
 type GuestStoreDetailViewProps = {
   storeId: string;
@@ -77,6 +78,7 @@ export async function GuestStoreDetailView({
           )}
         </section>
       </div>
+      <CartList />
     </HydrationBoundary>
   );
 }

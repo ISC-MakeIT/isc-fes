@@ -32,7 +32,7 @@ export function MenuOrderActions({
   const isAddToCartDisabled = isAddingToCart || isCartItemLimitReached;
 
   return (
-    <div className="bg-background shadow-foreground/25 fixed inset-x-0 bottom-0 shadow-[0_-4px_4px] md:static md:shadow-none">
+    <div className="bg-background shadow-bottom-bar fixed inset-x-0 bottom-0 md:static md:shadow-none">
       <div className="flex w-full flex-row justify-between px-10 py-4">
         <span className="text-xl font-semibold">
           {formatYen(menu.unitPrice)}
