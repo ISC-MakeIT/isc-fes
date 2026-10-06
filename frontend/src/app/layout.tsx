@@ -1,19 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "./query-provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { AnalyticsPageView } from "./analytics-page-view";
 import { AppQuestionnaireProvider } from "@/widgets/app-questionnaire";
+import { DotGothic16, Geist, Geist_Mono } from "next/font/google";
 
-const geistSans = Geist({
+export const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+export const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+export const dotGothic16 = DotGothic16({
+  variable: "--font-dot-gothic",
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -30,7 +37,7 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${dotGothic16.variable} h-full antialiased`}
     >
       <QueryProvider>
         <AppQuestionnaireProvider>
