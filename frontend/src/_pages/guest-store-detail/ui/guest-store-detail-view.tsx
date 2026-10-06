@@ -33,7 +33,7 @@ export async function GuestStoreDetailView({
         storeId={storeId}
         floorNumber={Number(store.room.charAt(0)) || undefined}
       />
-      <div className="mx-auto w-full lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:justify-end lg:gap-10">
+      <div className="mx-auto w-full lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10">
         <div className="min-w-0 lg:mx-auto lg:max-w-200">
           <div className="lg:flex lg:flex-row lg:items-start lg:gap-1.5 lg:px-6 lg:pt-10 lg:pb-8">
             <AspectRatioImage
