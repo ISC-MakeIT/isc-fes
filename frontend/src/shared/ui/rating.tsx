@@ -306,11 +306,9 @@ function Rating({
 
   const stars = React.useMemo(() => {
     if (precision <= 0 || precision > 1) {
-      console.warn(
+      throw new Error(
         "Rating: precision must be greater than 0 and less than or equal to 1",
       );
-
-      return [];
     }
 
     return Array.from({ length: max }, (_, index) => ({
