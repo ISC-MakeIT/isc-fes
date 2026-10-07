@@ -3,6 +3,8 @@ import { boolean } from "valibot";
 
 export const MAX_CART_ITEMS_TYPE = 3;
 
+export const MAX_CART_ITEM_QUANTITY = 99;
+
 export const CartItemTopping = v.object({
   id: v.string(),
   cartItemId: v.string(),

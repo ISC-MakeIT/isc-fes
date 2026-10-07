@@ -1,7 +1,7 @@
 import { Dialog, DialogContent } from "@/shared/ui/dialog";
 
 type ErrorDialogProps = {
-  message: string | null;
+  message: string;
 };
 
 export function ErrorDialog({ message }: ErrorDialogProps) {
