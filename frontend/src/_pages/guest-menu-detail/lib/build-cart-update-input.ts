@@ -14,6 +14,8 @@ type BuildCartUpdateInputParams = {
 
 /**
  * 既存のカートに新しいアイテムを追加して、カート更新APIに送れるデータへ変換する純粋関数
+ * もしカートに同じ内容のアイテムがあれば統合
+ * （マッチしたアイテムが複数あれば、先に見つけたitem.idへ統合）
  * @param param0
  * @returns UpdateCartInput
  */
