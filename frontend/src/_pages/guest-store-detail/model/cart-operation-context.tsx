@@ -143,7 +143,11 @@ export function CartOperationProvider({
         displayedCartItems: displayedCartItems,
       }}
     >
-      {mutation.isError && <ErrorDialog message={mutation.error.message} />}
+      {mutation.isError && (
+        <ErrorDialog>
+          <p>{mutation.error.message}</p>
+        </ErrorDialog>
+      )}
       {children}
     </CartOperationContext>
   );

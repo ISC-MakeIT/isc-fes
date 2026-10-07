@@ -9,7 +9,7 @@ export function CartContents() {
   return (
     <ul className="flex flex-col overflow-y-auto">
       {displayedCartItems.map((item) => (
-        <CartItemRow cartItem={item} />
+        <CartItemRow key={item.id} cartItem={item} />
       ))}
     </ul>
   );
