@@ -6,24 +6,16 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarTrigger,
   useSidebar,
 } from "@/shared/ui/sidebar";
-import {
-  ArrowUpRightIcon,
-  PanelLeftCloseIcon,
-  PanelRightCloseIcon,
-} from "lucide-react";
+import { PanelLeftCloseIcon, PanelRightCloseIcon } from "lucide-react";
 import { createAdminNavigationItems } from "../config/create-admin-navigation-items";
 import { createStoreNavigationItems } from "../config/create-store-navigation-items";
 import { SidebarNavigation } from "./sidebar-navigation";
 import { SidebarSupportNavigation } from "./sidebar-support-navigation";
 import { StoreListNavigation } from "./store-list-navigation";
-import { sidebarNavigationStyle } from "./sidebar-navigation-styles";
-import Link from "next/link";
-import { homeUrl } from "@/shared/config";
-import { DotText } from "@/shared/ui/dot-text";
+import { GuestHomeNavigation } from "./guest-home-navigation";
 
 export type AppSidebarProps =
   | { variant: "admin" }
@@ -55,6 +47,7 @@ export function AppSidebar(props: AppSidebarProps) {
       <SidebarContent className="space-y-6">
         <SidebarMenu>
           <StoreListNavigation />
+          <GuestHomeNavigation />
         </SidebarMenu>
 
         <SidebarMenu>
@@ -63,17 +56,6 @@ export function AppSidebar(props: AppSidebarProps) {
 
         <SidebarMenu>
           <SidebarSupportNavigation />
-        </SidebarMenu>
-
-        <SidebarMenu>
-          <SidebarMenuButton
-            size="lg"
-            className={sidebarNavigationStyle}
-            render={<Link href={homeUrl()} />}
-          >
-            <DotText>顧客画面</DotText>
-            <ArrowUpRightIcon />
-          </SidebarMenuButton>
         </SidebarMenu>
       </SidebarContent>
     </Sidebar>

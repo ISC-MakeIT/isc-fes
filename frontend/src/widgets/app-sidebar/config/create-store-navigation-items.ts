@@ -15,18 +15,18 @@ export function createStoreNavigationItems(
 ): NavigationItems {
   const navigationItems: NavigationItems = [
     { label: "ホーム", href: storeHomeUrl(storeId) },
-    { label: "作業場画面", href: storeKitchenUrl(storeId) },
-    { label: "受け渡し画面", href: storePickupUrl(storeId) },
-    { label: "呼び出し画面", href: storeCallUrl(storeId) },
+    { label: "作業場", href: storeKitchenUrl(storeId) },
+    { label: "受け渡し", href: storePickupUrl(storeId) },
+    { label: "呼び出し", href: storeCallUrl(storeId) },
   ];
 
   if (storeMemberRole === StoreMemberRole.Manager) {
     navigationItems.push({
-      label: "商品管理画面",
+      label: "商品管理",
       href: storeMenusUrl(storeId),
     });
     navigationItems.push({
-      label: "店舗情報画面",
+      label: "店舗情報",
       href: storeEditUrl(storeId),
     });
   }
