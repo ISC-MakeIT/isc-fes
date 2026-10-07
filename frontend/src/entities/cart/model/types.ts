@@ -3,7 +3,7 @@ import { boolean } from "valibot";
 
 export const MAX_CART_ITEMS_TYPE = 3;
 
-export const MAX_CART_ITEM_QUANTITY = 99;
+export const MAX_CART_ITEM_QUANTITY = 10;
 
 export const CartItemTopping = v.object({
   id: v.string(),
@@ -18,7 +18,7 @@ export type CartItemTopping = v.InferOutput<typeof CartItemTopping>;
 export const CartItemQuantity = v.pipe(
   v.number(),
   v.minValue(1),
-  v.maxValue(99),
+  v.maxValue(MAX_CART_ITEM_QUANTITY),
 );
 export type CartItemQuantity = v.InferOutput<typeof CartItemQuantity>;
 
