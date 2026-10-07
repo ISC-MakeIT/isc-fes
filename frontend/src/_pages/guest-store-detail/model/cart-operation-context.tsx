@@ -63,6 +63,7 @@ export function CartOperationProvider({
       await queryClient.invalidateQueries({
         queryKey: cartKey(storeId),
       });
+      setDraftCartItems(null);
     },
     onSuccess: (updatedCart) => {
       queryClient.setQueryData(cartKey(storeId), updatedCart);
