@@ -9,6 +9,7 @@ import { QuantityController } from "@/widgets/quantity-controller";
 import { CornerLeftUpIcon, XIcon } from "lucide-react";
 import Image from "next/image";
 import { useCartOperation } from "../model/cart-operation-context";
+import { MAX_CART_ITEM_QUANTITY } from "@/entities/cart";
 
 export function CartContents() {
   const {
@@ -17,6 +18,7 @@ export function CartContents() {
     displayedCartItems,
     removeItem,
     removeTopping,
+    isSaving,
   } = useCartOperation();
 
   return (
@@ -66,7 +68,7 @@ export function CartContents() {
                 variant="ghost"
                 aria-label={`${topping.name}を削除`}
                 className="text-notice ml-auto px-2"
-                onClick={() => removeTopping(item.id, topping.id)}
+                onClick={() => removeTopping(item.id, topping.toppingId)}
               >
                 <XIcon size={10} strokeWidth={3} aria-hidden />
               </Button>
@@ -79,6 +81,10 @@ export function CartContents() {
               onDecrease={() => decreaseItemQuantity(item.id)}
               onIncrease={() => increaseItemQuantity(item.id)}
               quantity={item.quantity}
+              isDisabledDecreaseButton={isSaving || item.quantity <= 0}
+              isDisabledIncreaseButton={
+                isSaving || item.quantity >= MAX_CART_ITEM_QUANTITY
+              }
             />
           </div>
         </li>

@@ -5,12 +5,16 @@ type QuantityControllerProps = {
   onDecrease: () => void;
   onIncrease: () => void;
   quantity: number;
+  isDisabledDecreaseButton?: boolean;
+  isDisabledIncreaseButton?: boolean;
 };
 
 export function QuantityController({
   onDecrease,
   onIncrease,
   quantity,
+  isDisabledDecreaseButton,
+  isDisabledIncreaseButton,
 }: QuantityControllerProps) {
   return (
     <div className="flex w-35.75 min-w-0 flex-row items-center justify-between">
@@ -20,6 +24,7 @@ export function QuantityController({
         variant="tertiary"
         size="icon-xs"
         className="rounded-full"
+        disabled={isDisabledDecreaseButton}
       >
         <MinusIcon aria-hidden />
       </Button>
@@ -30,6 +35,7 @@ export function QuantityController({
         aria-label="数量を増やす"
         onClick={onIncrease}
         className="rounded-full"
+        disabled={isDisabledIncreaseButton}
       >
         <PlusIcon aria-hidden />
       </Button>
