@@ -83,6 +83,9 @@ export function CartOperationProvider({
     },
     {
       wait: CART_UPDATE_DELAY_MS,
+      onUnmount: (debouncer) => {
+        debouncer.flush();
+      },
     },
   );
 
