@@ -227,6 +227,7 @@ type CartItemTopping struct {
 	CartItemID uuid.UUID `json:"cart_item_id"`
 	MenuID     uuid.UUID `json:"menu_id"`
 	ToppingID  uuid.UUID `json:"topping_id"`
+	StoreID    uuid.UUID `json:"store_id"`
 }
 
 type Guest struct {

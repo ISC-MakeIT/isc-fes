@@ -1154,6 +1154,7 @@ paths:
     put:
       operationId: updateStoreCart
       summary: 店舗の自分のカートを更新する（Guestセッションがない場合、カートがない場合はそれぞれが新規作成される）
+      description: 新しく選ぶトッピングは対象メニューに紐づく同店舗のものに限る。同じ明細に保存済みの選択は関連解除後も保持・削除できる。
       parameters:
         - name: store_id
           in: path
@@ -1728,7 +1729,7 @@ components:
           format: int32
         available:
           type: boolean
-          description: トッピングが現在利用可能かどうか。店舗がトッピングを削除した場合や在庫切れはfalseになる。
+          description: トッピングが現在利用可能かどうか。削除・売り切れ・対象メニューとの関連解除の場合はfalseになる。選択自体はカートに残る。
     StoreCongestionLevel:
       type: integer
       format: int32

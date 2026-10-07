@@ -138,7 +138,13 @@ SELECT
     toppings.name AS topping_name,
     toppings.unit_price AS topping_unit_price,
     toppings.sold_out AS topping_sold_out,
-    toppings.deleted_at AS topping_deleted_at
+    toppings.deleted_at AS topping_deleted_at,
+    EXISTS (
+        SELECT 1 FROM menu_toppings AS mt
+        WHERE mt.menu_id = cart_items.menu_id
+          AND mt.topping_id = cart_item_toppings.topping_id
+          AND mt.store_id = cart_items.store_id
+    ) AS topping_linked_to_menu
 FROM carts
 LEFT JOIN cart_items
     ON cart_items.cart_id = carts.id
@@ -149,8 +155,10 @@ LEFT JOIN menus
 LEFT JOIN cart_item_toppings
     ON cart_item_toppings.cart_item_id = cart_items.id
     AND cart_item_toppings.menu_id = cart_items.menu_id
+    AND cart_item_toppings.store_id = cart_items.store_id
 LEFT JOIN toppings
     ON toppings.id = cart_item_toppings.topping_id
+    AND toppings.store_id = cart_item_toppings.store_id
 WHERE carts.guest_id = $1
   AND carts.store_id = $2
 ORDER BY
@@ -165,25 +173,26 @@ type GetCartByGuestIDAndStoreIDParams struct {
 }
 
 type GetCartByGuestIDAndStoreIDRow struct {
-	CartID             uuid.UUID          `json:"cart_id"`
-	CartVersion        int32              `json:"cart_version"`
-	GuestID            uuid.UUID          `json:"guest_id"`
-	StoreID            uuid.UUID          `json:"store_id"`
-	CartItemID         *uuid.UUID         `json:"cart_item_id"`
-	CartItemQuantity   *int32             `json:"cart_item_quantity"`
-	CartItemCreatedAt  pgtype.Timestamptz `json:"cart_item_created_at"`
-	MenuID             *uuid.UUID         `json:"menu_id"`
-	MenuName           *string            `json:"menu_name"`
-	MenuUnitPrice      *int32             `json:"menu_unit_price"`
-	MenuImageObjectKey *string            `json:"menu_image_object_key"`
-	MenuSoldOut        *bool              `json:"menu_sold_out"`
-	MenuDeletedAt      pgtype.Timestamptz `json:"menu_deleted_at"`
-	CartItemToppingID  *uuid.UUID         `json:"cart_item_topping_id"`
-	ToppingID          *uuid.UUID         `json:"topping_id"`
-	ToppingName        *string            `json:"topping_name"`
-	ToppingUnitPrice   *int32             `json:"topping_unit_price"`
-	ToppingSoldOut     *bool              `json:"topping_sold_out"`
-	ToppingDeletedAt   pgtype.Timestamptz `json:"topping_deleted_at"`
+	CartID              uuid.UUID          `json:"cart_id"`
+	CartVersion         int32              `json:"cart_version"`
+	GuestID             uuid.UUID          `json:"guest_id"`
+	StoreID             uuid.UUID          `json:"store_id"`
+	CartItemID          *uuid.UUID         `json:"cart_item_id"`
+	CartItemQuantity    *int32             `json:"cart_item_quantity"`
+	CartItemCreatedAt   pgtype.Timestamptz `json:"cart_item_created_at"`
+	MenuID              *uuid.UUID         `json:"menu_id"`
+	MenuName            *string            `json:"menu_name"`
+	MenuUnitPrice       *int32             `json:"menu_unit_price"`
+	MenuImageObjectKey  *string            `json:"menu_image_object_key"`
+	MenuSoldOut         *bool              `json:"menu_sold_out"`
+	MenuDeletedAt       pgtype.Timestamptz `json:"menu_deleted_at"`
+	CartItemToppingID   *uuid.UUID         `json:"cart_item_topping_id"`
+	ToppingID           *uuid.UUID         `json:"topping_id"`
+	ToppingName         *string            `json:"topping_name"`
+	ToppingUnitPrice    *int32             `json:"topping_unit_price"`
+	ToppingSoldOut      *bool              `json:"topping_sold_out"`
+	ToppingDeletedAt    pgtype.Timestamptz `json:"topping_deleted_at"`
+	ToppingLinkedToMenu bool               `json:"topping_linked_to_menu"`
 }
 
 func (q *Queries) GetCartByGuestIDAndStoreID(ctx context.Context, arg GetCartByGuestIDAndStoreIDParams) ([]GetCartByGuestIDAndStoreIDRow, error) {
@@ -215,6 +224,7 @@ func (q *Queries) GetCartByGuestIDAndStoreID(ctx context.Context, arg GetCartByG
 			&i.ToppingUnitPrice,
 			&i.ToppingSoldOut,
 			&i.ToppingDeletedAt,
+			&i.ToppingLinkedToMenu,
 		); err != nil {
 			return nil, err
 		}
@@ -230,12 +240,14 @@ const insertCartItemToppingsIfNotExists = `-- name: InsertCartItemToppingsIfNotE
 INSERT INTO cart_item_toppings (
     cart_item_id,
     menu_id,
-    topping_id
+    topping_id,
+    store_id
 )
 SELECT DISTINCT
     ci.id,
     ci.menu_id,
-    desired.topping_id
+    desired.topping_id,
+    ci.store_id
 FROM ROWS FROM (
     unnest($1::uuid[]),
     unnest($2::uuid[])
@@ -310,4 +322,54 @@ func (q *Queries) UpsertCartItems(ctx context.Context, arg UpsertCartItemsParams
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const validateCartItemToppingSelections = `-- name: ValidateCartItemToppingSelections :one
+SELECT NOT EXISTS (
+    SELECT 1
+    FROM ROWS FROM (
+        unnest($1::uuid[]),
+        unnest($2::uuid[])
+    ) AS desired(cart_item_id, topping_id)
+    LEFT JOIN cart_items AS ci
+        ON ci.id = desired.cart_item_id
+        AND ci.cart_id = $3
+        AND ci.store_id = $4
+    WHERE ci.id IS NULL
+       OR NOT (
+           EXISTS (
+               SELECT 1 FROM cart_item_toppings AS cit
+               WHERE cit.cart_item_id = ci.id
+                 AND cit.menu_id = ci.menu_id
+                 AND cit.store_id = ci.store_id
+                 AND cit.topping_id = desired.topping_id
+           )
+           OR EXISTS (
+               SELECT 1 FROM menu_toppings AS mt
+               WHERE mt.menu_id = ci.menu_id
+                 AND mt.store_id = ci.store_id
+                 AND mt.topping_id = desired.topping_id
+           )
+       )
+) AS valid
+`
+
+type ValidateCartItemToppingSelectionsParams struct {
+	CartItemIds []uuid.UUID `json:"cart_item_ids"`
+	ToppingIds  []uuid.UUID `json:"topping_ids"`
+	CartID      uuid.UUID   `json:"cart_id"`
+	StoreID     uuid.UUID   `json:"store_id"`
+}
+
+// 既存の選択は関連解除後も保持できる。新しい選択だけ現在の関連を要求する。
+func (q *Queries) ValidateCartItemToppingSelections(ctx context.Context, arg ValidateCartItemToppingSelectionsParams) (bool, error) {
+	row := q.db.QueryRow(ctx, validateCartItemToppingSelections,
+		arg.CartItemIds,
+		arg.ToppingIds,
+		arg.CartID,
+		arg.StoreID,
+	)
+	var valid bool
+	err := row.Scan(&valid)
+	return valid, err
 }
