@@ -9,6 +9,8 @@ import {
 import { QuestionnaireForm } from "./questionnaire-form";
 import AppIcon from "./assets/app-icon.png";
 import Image from "next/image";
+import { useEffect, useRef } from "react";
+import { trackEvent } from "@/shared/lib/analytics";
 
 type QuestionnaireDialogProps = {
   trigger: QuestionnaireTrigger;
@@ -20,6 +22,16 @@ export function QuestionnaireDialog({
   onSubmitted,
 }: QuestionnaireDialogProps) {
   const audience = QUESTIONNAIRE_AUDIENCE_BY_TRIGGER[trigger];
+  const lastTrackedTrigger = useRef<QuestionnaireTrigger | null>(null);
+
+  useEffect(() => {
+    if (lastTrackedTrigger.current === trigger) {
+      return;
+    }
+
+    lastTrackedTrigger.current = trigger;
+    trackEvent("open_review", { trigger });
+  }, [trigger]);
 
   return (
     <Dialog open disablePointerDismissal>

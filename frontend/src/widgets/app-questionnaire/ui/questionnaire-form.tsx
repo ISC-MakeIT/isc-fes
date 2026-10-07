@@ -13,6 +13,7 @@ import { Textarea } from "@/shared/ui/textarea";
 import { Field, FieldContent, FieldError, FieldLabel } from "@/shared/ui/field";
 import { ActionButton } from "@/shared/ui/action-button";
 import { Rating } from "@/shared/ui/rating";
+import { trackEvent } from "@/shared/lib/analytics";
 
 type QuestionnaireFormProps = {
   trigger: QuestionnaireTrigger;
@@ -25,7 +26,13 @@ export function QuestionnaireForm({
 }: QuestionnaireFormProps) {
   const mutation = useMutation({
     mutationFn: createReview,
-    onSuccess: onSubmitted,
+    onSuccess: (_result, variables) => {
+      trackEvent("submit_review", {
+        trigger: variables.trigger,
+        rating: variables.rating,
+      });
+      onSubmitted();
+    },
   });
 
   const form = useAppForm({
