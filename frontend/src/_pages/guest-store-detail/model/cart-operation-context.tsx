@@ -12,7 +12,7 @@ import { toCartUpdateItems } from "../lib/to-cart-update-items";
 import { increaseCartItemQuantity } from "../lib/increase-cart-item-quantity";
 import { decreaseCartItemQuantity } from "../lib/decrease-cart-item-quantity";
 import { removeCartItem } from "../lib/remove-cart-item";
-import { removeCartItemToppnig } from "../lib/remove-cart-item-toppings";
+import { removeCartItemTopping } from "../lib/remove-cart-item-toppings";
 import { ErrorDialog } from "../ui/error-dialog";
 
 const CART_UPDATE_DELAY_MS = 1000;
@@ -107,7 +107,7 @@ export function CartOperationProvider({
 
   function removeTopping(cartItemId: string, toppingId: string) {
     updateDraftCartItems((items) =>
-      removeCartItemToppnig(items, cartItemId, toppingId),
+      removeCartItemTopping(items, cartItemId, toppingId),
     );
   }
 

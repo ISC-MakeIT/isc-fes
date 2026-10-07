@@ -17,11 +17,7 @@ import { CartContents } from "./cart-contents";
 import { useCartOperation } from "../model/cart-operation-context";
 import { calculateCartTotal } from "../lib/calculate-cart-total";
 
-type CartListProps = {
-  storeId: string;
-};
-
-export function CartList({ storeId }: CartListProps) {
+export function CartList() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const { clearCart, displayedCartItems, isSaving, hasPendingChanges } =

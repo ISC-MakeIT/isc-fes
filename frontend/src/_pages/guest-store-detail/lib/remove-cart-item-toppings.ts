@@ -7,24 +7,30 @@ import { CartItem } from "@/entities/cart";
  * @param toppingId
  * @returns
  */
-export function removeCartItemToppnig(
+export function removeCartItemTopping(
   items: CartItem[],
   cartItemId: string,
   toppingId: string,
 ): CartItem[] {
   const targetItem = items.find((item) => item.id === cartItemId);
   const hasTargetTopping = targetItem?.toppings.some(
-    (topping) => topping.id === toppingId,
+    (topping) => topping.toppingId === toppingId,
   );
 
   if (!hasTargetTopping) {
     return items;
   }
 
-  return items.map((item) => ({
-    ...item,
-    toppings: item.toppings.filter(
-      (topping) => topping.toppingId !== toppingId,
-    ),
-  }));
+  return items.map((item) => {
+    if (item.id !== cartItemId) {
+      return item;
+    }
+
+    return {
+      ...item,
+      toppings: item.toppings.filter(
+        (topping) => topping.toppingId !== toppingId,
+      ),
+    };
+  });
 }
