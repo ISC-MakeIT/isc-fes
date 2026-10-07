@@ -68,7 +68,6 @@ export function CartList() {
               <Button
                 type="button"
                 variant="ghost"
-                disabled={isSaving}
                 className="text-notice text-sm"
                 onClick={clearCart}
               >
@@ -88,7 +87,6 @@ export function CartList() {
           <Button
             type="button"
             variant="ghost"
-            disabled={hasPendingChanges}
             className="text-notice text-sm"
             onClick={clearCart}
           >
