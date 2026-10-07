@@ -39,10 +39,10 @@ func (q *Queries) BumpCartVersion(ctx context.Context, arg BumpCartVersionParams
 	return i, err
 }
 
-const createCart = `-- name: CreateCart :one
+const createCart = `-- name: CreateCart :exec
 INSERT INTO carts (guest_id, store_id)
 VALUES ($1, $2)
-RETURNING id, guest_id, store_id, version
+ON CONFLICT (guest_id, store_id) DO NOTHING
 `
 
 type CreateCartParams struct {
@@ -50,16 +50,9 @@ type CreateCartParams struct {
 	StoreID uuid.UUID `json:"store_id"`
 }
 
-func (q *Queries) CreateCart(ctx context.Context, arg CreateCartParams) (Cart, error) {
-	row := q.db.QueryRow(ctx, createCart, arg.GuestID, arg.StoreID)
-	var i Cart
-	err := row.Scan(
-		&i.ID,
-		&i.GuestID,
-		&i.StoreID,
-		&i.Version,
-	)
-	return i, err
+func (q *Queries) CreateCart(ctx context.Context, arg CreateCartParams) error {
+	_, err := q.db.Exec(ctx, createCart, arg.GuestID, arg.StoreID)
+	return err
 }
 
 const deleteCartItemToppingsNotIn = `-- name: DeleteCartItemToppingsNotIn :exec

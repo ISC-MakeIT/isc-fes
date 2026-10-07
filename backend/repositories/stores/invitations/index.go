@@ -52,6 +52,10 @@ func (r *StoreInvitationRepository) AcceptStoreInvitation(ctx context.Context, i
 		return entities.StoreInvitation{}, err
 	}
 
+	if _, err := qtx.LockStoreForUpdate(ctx, inv.StoreID); err != nil {
+		return entities.StoreInvitation{}, err
+	}
+
 	_, err = qtx.CreateOrUpgradeStoreMember(ctx, sqlc.CreateOrUpgradeStoreMemberParams{
 		StoreID:   inv.StoreID,
 		AccountID: accountID,

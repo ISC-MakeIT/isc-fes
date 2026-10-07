@@ -118,7 +118,7 @@ func buildDependencies(
 		}
 	}
 	storeRepository := repositories.NewStoreRepository(queries, pool)
-	storeMemberRepository := membersRepo.NewStoreMemberRepository(queries)
+	storeMemberRepository := membersRepo.NewStoreMemberRepository(queries, pool)
 	storeInvitationRepository := invRepo.NewStoreInvitationRepository(queries, pool)
 	menuRepository := menuRepo.NewMenuRepository(queries, pool)
 	allergensRepository := allergens_repository.NewAllergenRepository(queries)
