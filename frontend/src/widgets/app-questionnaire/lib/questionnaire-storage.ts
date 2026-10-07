@@ -2,23 +2,39 @@ import { Temporal } from "temporal-polyfill-lite";
 import {
   LAST_REVIEW_SUBMITTED_AT_STORAGE_KEY,
   PENDING_QUESTIONNAIRE_STORAGE_KEY,
+  QuestionnaireTrigger,
 } from "../config/questionnaire";
 import {
   getStorageItem,
   removeStorageItem,
   setStorageItem,
 } from "./safe-local-storage";
+import { v } from "@/shared/lib/valibot";
 
-export function readPendingQuestionnaire(): boolean {
-  return getStorageItem(PENDING_QUESTIONNAIRE_STORAGE_KEY) !== null;
+export function readPendingQuestionnaireTrigger(): QuestionnaireTrigger | null {
+  const value = getStorageItem(PENDING_QUESTIONNAIRE_STORAGE_KEY);
+
+  if (value === null) {
+    return null;
+  }
+
+  const result = v.safeParse(v.enum(QuestionnaireTrigger), value);
+
+  if (!result.success) {
+    removeStorageItem(PENDING_QUESTIONNAIRE_STORAGE_KEY);
+    return null;
+  }
+
+  return result.output;
 }
 
-export function storePendingQuestionnaire(): boolean {
-  // 読み取り時にはキーが存在するかどうかで判定しているので値はなんでもいい
-  return setStorageItem(PENDING_QUESTIONNAIRE_STORAGE_KEY, "true");
+export function storePendingQuestionnaireTrigger(
+  trigger: QuestionnaireTrigger,
+): boolean {
+  return setStorageItem(PENDING_QUESTIONNAIRE_STORAGE_KEY, trigger);
 }
 
-export function removePendingQuestionnaire(): boolean {
+export function removePendingQuestionnaireTrigger(): boolean {
   return removeStorageItem(PENDING_QUESTIONNAIRE_STORAGE_KEY);
 }
 

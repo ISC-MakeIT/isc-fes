@@ -6,10 +6,10 @@ import { Temporal } from "temporal-polyfill-lite";
 import { shouldOpenQuestionnaire } from "../lib/should-open-questionnaire";
 import {
   readLastReviewedAt,
-  readPendingQuestionnaire,
-  removePendingQuestionnaire,
+  readPendingQuestionnaireTrigger,
+  removePendingQuestionnaireTrigger,
   storeLastReviewSubmittedAt,
-  storePendingQuestionnaire,
+  storePendingQuestionnaireTrigger,
 } from "../lib/questionnaire-storage";
 import { QuestionnaireDialog } from "../ui/questionnaire-dialog";
 
@@ -32,10 +32,10 @@ export function AppQuestionnaireProvider({
     useState<QuestionnaireTrigger | null>(null);
 
   function requestQuestionnaire(trigger: QuestionnaireTrigger) {
-    const isPendingQuestionnaire = readPendingQuestionnaire();
+    const pendingTrigger = readPendingQuestionnaireTrigger();
 
-    if (isPendingQuestionnaire) {
-      setActiveTrigger(trigger);
+    if (pendingTrigger !== null) {
+      setActiveTrigger(pendingTrigger);
       return;
     }
 
@@ -45,7 +45,6 @@ export function AppQuestionnaireProvider({
     const shouldOpen = shouldOpenQuestionnaire({
       trigger,
       lastReviewedAt,
-      hasPendingQuestionnaire: isPendingQuestionnaire,
       now,
       randomValue: Math.random(),
     });
@@ -54,7 +53,8 @@ export function AppQuestionnaireProvider({
       return;
     }
 
-    const wasPendingQuestionnaireStored = storePendingQuestionnaire();
+    const wasPendingQuestionnaireStored =
+      storePendingQuestionnaireTrigger(trigger);
 
     // localStorageが使えない環境ならアンケートを開かない
     if (!wasPendingQuestionnaireStored) {
@@ -66,7 +66,7 @@ export function AppQuestionnaireProvider({
 
   function handleSubmitted() {
     storeLastReviewSubmittedAt(Temporal.Now.instant());
-    removePendingQuestionnaire();
+    removePendingQuestionnaireTrigger();
     setActiveTrigger(null);
   }
 
