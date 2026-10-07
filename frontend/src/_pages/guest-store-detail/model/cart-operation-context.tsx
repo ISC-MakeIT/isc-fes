@@ -14,6 +14,7 @@ import { decreaseCartItemQuantity } from "../lib/decrease-cart-item-quantity";
 import { removeCartItem } from "../lib/remove-cart-item";
 import { removeCartItemTopping } from "../lib/remove-cart-item-toppings";
 import { ErrorDialog } from "../ui/error-dialog";
+import { useDebouncer } from "@tanstack/react-pacer";
 
 const CART_UPDATE_DELAY_MS = 1000;
 
@@ -69,23 +70,30 @@ export function CartOperationProvider({
     },
   });
 
+  const cartUpdateDebouncer = useDebouncer(
+    (items: CartItem[]) => {
+      mutation.mutate({
+        storeId,
+        updateCartInput: {
+          expectedVersion: fetchedCart.version,
+          items: toCartUpdateItems(items),
+        },
+      });
+    },
+    {
+      wait: CART_UPDATE_DELAY_MS,
+    },
+  );
+
   useEffect(() => {
     if (!draftCartItems || mutation.isPending) {
       return;
     }
 
-    const timeoutId = setTimeout(() => {
-      mutation.mutate({
-        storeId,
-        updateCartInput: {
-          expectedVersion: fetchedCart.version,
-          items: toCartUpdateItems(draftCartItems),
-        },
-      });
-    }, CART_UPDATE_DELAY_MS);
+    cartUpdateDebouncer.maybeExecute(draftCartItems);
 
     return () => {
-      clearTimeout(timeoutId);
+      cartUpdateDebouncer.cancel();
     };
   }, [mutation.isPending, draftCartItems, storeId]);
 
