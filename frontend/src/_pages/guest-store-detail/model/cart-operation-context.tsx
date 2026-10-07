@@ -15,7 +15,7 @@ import { removeCartItem } from "../lib/remove-cart-item";
 import { removeCartItemToppnig } from "../lib/remove-cart-item-toppings";
 import { ErrorDialog } from "../ui/error-dialog";
 
-const CART_UPDATE_DELAY_MS = 500;
+const CART_UPDATE_DELAY_MS = 1000;
 
 type CartOperationContextValue = {
   increaseItemQuantity: (cartItemId: string) => void;
@@ -23,8 +23,8 @@ type CartOperationContextValue = {
   removeItem: (cartItemId: string) => void;
   removeTopping: (cartItemId: string, toppingId: string) => void;
   clearCart: () => void;
-  isPendingMutate: boolean;
-  isPendingCartItems: boolean;
+  isSaving: boolean;
+  hasPendingChanges: boolean;
   displayedCartItems: CartItem[];
 };
 
@@ -65,7 +65,7 @@ export function CartOperationProvider({
     },
     onSuccess: (updatedCart) => {
       queryClient.setQueryData(cartKey(storeId), updatedCart);
-      setDraftCartItems(updatedCart.items);
+      setDraftCartItems(null);
     },
   });
 
@@ -129,8 +129,8 @@ export function CartOperationProvider({
         removeItem,
         removeTopping,
         clearCart,
-        isPendingMutate: mutation.isPending,
-        isPendingCartItems: !!draftCartItems,
+        isSaving: mutation.isPending,
+        hasPendingChanges: !!draftCartItems,
         displayedCartItems: displayedCartItems,
       }}
     >

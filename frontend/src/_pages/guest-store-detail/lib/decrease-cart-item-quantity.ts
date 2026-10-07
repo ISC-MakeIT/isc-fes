@@ -16,7 +16,8 @@ export function decreaseCartItemQuantity(
     return items;
   }
 
-  if (targetItem.quantity <= 0) {
+  if (targetItem.quantity <= 1) {
+    return items.filter((item) => item.id !== targetItem.id);
   }
 
   return items.map((item) => {

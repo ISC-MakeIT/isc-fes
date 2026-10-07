@@ -1,26 +1,27 @@
 "use client";
 
-import { fetchCartQueryOptions } from "@/entities/cart";
 import { SoldOutLabel } from "@/entities/menu";
 import { MENU_IMAGE_ASPECT } from "@/shared/config";
 import { formatYen } from "@/shared/lib/formatYen";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { Button } from "@/shared/ui/button";
 import { QuantityController } from "@/widgets/quantity-controller";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { CornerLeftUpIcon, XIcon } from "lucide-react";
 import Image from "next/image";
+import { useCartOperation } from "../model/cart-operation-context";
 
-type CartContentsProps = {
-  storeId: string;
-};
-
-export function CartContents({ storeId }: CartContentsProps) {
-  const { data: cart } = useSuspenseQuery(fetchCartQueryOptions(storeId));
+export function CartContents() {
+  const {
+    increaseItemQuantity,
+    decreaseItemQuantity,
+    displayedCartItems,
+    removeItem,
+    removeTopping,
+  } = useCartOperation();
 
   return (
     <ul className="flex flex-col overflow-y-auto">
-      {cart.items.map((item) => (
+      {displayedCartItems.map((item) => (
         <li
           key={item.id}
           className="border-foreground relative flex flex-col gap-2 border-b px-6 py-4"
@@ -36,6 +37,7 @@ export function CartContents({ storeId }: CartContentsProps) {
               <Button
                 variant="ghost"
                 className="text-notice text-xs font-bold underline underline-offset-2"
+                onClick={() => removeItem(item.id)}
               >
                 削除する
               </Button>
@@ -64,6 +66,7 @@ export function CartContents({ storeId }: CartContentsProps) {
                 variant="ghost"
                 aria-label={`${topping.name}を削除`}
                 className="text-notice ml-auto px-2"
+                onClick={() => removeTopping(item.id, topping.id)}
               >
                 <XIcon size={10} strokeWidth={3} aria-hidden />
               </Button>
@@ -72,10 +75,9 @@ export function CartContents({ storeId }: CartContentsProps) {
 
           <div className="flex h-11 flex-row items-center justify-between text-lg font-medium">
             <p className="w-18">{formatYen(item.unitPrice)}</p>
-            {/* TODO: 個数変更処理 */}
             <QuantityController
-              onDecrease={() => {}}
-              onIncrease={() => {}}
+              onDecrease={() => decreaseItemQuantity(item.id)}
+              onIncrease={() => increaseItemQuantity(item.id)}
               quantity={item.quantity}
             />
           </div>
