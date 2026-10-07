@@ -12,6 +12,7 @@ import { AllergenBadge } from "@/entities/allergen";
 import { StoreViewAnalytics } from "./store-view-analytics";
 import { CartList } from "./cart-list";
 import { CartOperationProvider } from "../model/cart-operation-context";
+import { fetchCartQueryOptions } from "@/entities/cart";
 
 type GuestStoreDetailViewProps = {
   storeId: string;
@@ -24,6 +25,7 @@ export async function GuestStoreDetailView({
   const [store] = await Promise.all([
     queryClient.fetchQuery(storeDetailQueryOptions(storeId)),
     queryClient.prefetchQuery(storeMenusQueryOptions(storeId)),
+    queryClient.prefetchQuery(fetchCartQueryOptions(storeId)),
   ]);
 
   const mapImage = roomMapImages[store.room];
@@ -82,7 +84,7 @@ export async function GuestStoreDetailView({
             </section>
           </div>
 
-          <CartList storeId={storeId} />
+          <CartList />
         </div>
       </CartOperationProvider>
     </HydrationBoundary>
