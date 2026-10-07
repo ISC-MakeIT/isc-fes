@@ -314,7 +314,10 @@ export interface paths {
     };
     /** 店舗の自分のカートを取得する（Guest セッションがない場合は空カートが返る） */
     get: operations["getStoreCart"];
-    /** 店舗の自分のカートを更新する（Guestセッションがない場合、カートがない場合はそれぞれが新規作成される） */
+    /**
+     * 店舗の自分のカートを更新する（Guestセッションがない場合、カートがない場合はそれぞれが新規作成される）
+     * @description 新しく選ぶトッピングは対象メニューに紐づく同店舗のものに限る。同じ明細に保存済みの選択は関連解除後も保持・削除できる。
+     */
     put: operations["updateStoreCart"];
     post?: never;
     delete?: never;
@@ -570,7 +573,7 @@ export interface components {
       name: string;
       /** Format: int32 */
       unitPrice: number;
-      /** @description トッピングが現在利用可能かどうか。店舗がトッピングを削除した場合や在庫切れはfalseになる。 */
+      /** @description トッピングが現在利用可能かどうか。削除・売り切れ・対象メニューとの関連解除の場合はfalseになる。選択自体はカートに残る。 */
       available: boolean;
     };
     /**

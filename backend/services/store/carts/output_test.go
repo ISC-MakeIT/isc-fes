@@ -84,13 +84,14 @@ func TestToCartOutputCanCheckout(t *testing.T) {
 	availableItem := carts.CartItem{
 		ImageObjectKey: menus.NewMenuImageObjectKey(uuid.New()),
 	}
-	availableTopping := carts.CartItemTopping{}
+	availableTopping := carts.CartItemTopping{LinkedToMenu: true}
 
 	tests := []struct {
-		name  string
-		store entities.Store
-		items []carts.CartItem
-		want  bool
+		name                 string
+		store                entities.Store
+		items                []carts.CartItem
+		want                 bool
+		wantToppingAvailable bool
 	}{
 		{
 			name:  "available cart",
@@ -129,7 +130,8 @@ func TestToCartOutputCanCheckout(t *testing.T) {
 			items: []carts.CartItem{{
 				ImageObjectKey: menus.NewMenuImageObjectKey(uuid.New()),
 				Toppings: []carts.CartItemTopping{{
-					Soldout: true,
+					Soldout:      true,
+					LinkedToMenu: true,
 				}},
 			}},
 			want: false,
@@ -139,8 +141,17 @@ func TestToCartOutputCanCheckout(t *testing.T) {
 			items: []carts.CartItem{{
 				ImageObjectKey: menus.NewMenuImageObjectKey(uuid.New()),
 				Toppings: []carts.CartItemTopping{{
-					DeletedAt: &now,
+					DeletedAt:    &now,
+					LinkedToMenu: true,
 				}},
+			}},
+			want: false,
+		},
+		{
+			name: "detached topping",
+			items: []carts.CartItem{{
+				ImageObjectKey: menus.NewMenuImageObjectKey(uuid.New()),
+				Toppings:       []carts.CartItemTopping{{LinkedToMenu: false}},
 			}},
 			want: false,
 		},
@@ -150,7 +161,8 @@ func TestToCartOutputCanCheckout(t *testing.T) {
 				ImageObjectKey: menus.NewMenuImageObjectKey(uuid.New()),
 				Toppings:       []carts.CartItemTopping{availableTopping},
 			}},
-			want: true,
+			want:                 true,
+			wantToppingAvailable: true,
 		},
 	}
 
@@ -165,9 +177,45 @@ func TestToCartOutputCanCheckout(t *testing.T) {
 			if err != nil {
 				t.Fatalf("ToCartOutput() error = %v", err)
 			}
+			for i, item := range tt.items {
+				if len(got.Items[i].Toppings) != len(item.Toppings) {
+					t.Fatal("cart topping selections were lost")
+				}
+				for j, topping := range item.Toppings {
+					wantAvailable := tt.wantToppingAvailable
+					if got.Items[i].Toppings[j].Available != wantAvailable {
+						t.Errorf("topping %v available = %v, want %v", topping.ToppingID, got.Items[i].Toppings[j].Available, wantAvailable)
+					}
+				}
+			}
 			if got.CanCheckout != tt.want {
 				t.Errorf("ToCartOutput().CanCheckout = %v, want %v", got.CanCheckout, tt.want)
 			}
 		})
+	}
+}
+
+func TestToCartOutputKeepsDetachedSelectionAndAmount(t *testing.T) {
+	toppingID := uuid.New()
+	cart := carts.Cart{Items: []carts.CartItem{{
+		ID: uuid.New(), Quantity: 2, UnitPrice: 300,
+		Toppings: []carts.CartItemTopping{{
+			ID: uuid.New(), ToppingID: toppingID, Name: "目玉焼き", UnitPrice: 50,
+			LinkedToMenu: false,
+		}},
+	}}}
+	got, err := ToCartOutput(t.Context(), cart, entities.Store{}, &recordingMenuImageURLGenerator{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got.Items) != 1 || len(got.Items[0].Toppings) != 1 {
+		t.Fatalf("selection lost: %#v", got.Items)
+	}
+	topping := got.Items[0].Toppings[0]
+	if topping.ToppingID != toppingID || topping.Name != "目玉焼き" || topping.UnitPrice != 50 {
+		t.Fatalf("selection changed: %#v", topping)
+	}
+	if topping.Available || got.CanCheckout || got.TotalAmount != 700 {
+		t.Fatalf("detached cart: available=%v, canCheckout=%v, amount=%d", topping.Available, got.CanCheckout, got.TotalAmount)
 	}
 }
