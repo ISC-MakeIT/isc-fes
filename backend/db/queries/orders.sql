@@ -69,6 +69,10 @@ WHERE store_id = sqlc.arg(store_id)
   AND status = ANY(sqlc.arg(statuses)::text[]::order_status[])
 ORDER BY created_at ASC, id ASC;
 
+-- name: GetOrderByIDAndGuestID :one
+SELECT * FROM orders
+WHERE id = sqlc.arg(order_id) AND guest_id = sqlc.arg(guest_id);
+
 -- name: GetOrderItemsByOrderIDs :many
 SELECT * FROM order_items
 WHERE order_id = ANY(sqlc.arg(order_ids)::uuid[])

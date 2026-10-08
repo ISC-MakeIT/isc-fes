@@ -29,8 +29,12 @@ func (s *Server) GetOrders(c *gin.Context, params GetOrdersParams) {
 }
 
 func (s *Server) GetOrderByID(c *gin.Context, orderID uuid.UUID) {
-	// TODO: 既存のGuestセッションから注文の所有者を検証して詳細を取得する。
-	s.handleCommonServiceErrors(c, services.ErrNotFound, CommonErrorMessages{NotFound: "注文が見つかりません"})
+	order, err := s.orders.GetOrderByID(c.Request.Context(), orderID)
+	if err != nil {
+		s.handleCommonServiceErrors(c, err, CommonErrorMessages{NotFound: "注文が見つかりません"})
+		return
+	}
+	c.JSON(http.StatusOK, toOrderResponse(order))
 }
 
 func (s *Server) GetOrdersByStoreID(c *gin.Context, storeID uuid.UUID, params GetOrdersByStoreIDParams) {

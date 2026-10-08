@@ -76,9 +76,6 @@ export interface paths {
     /**
      * 自分の注文詳細を取得する
      * @description Guestセッションに紐づく自分の注文を取得する。
-     *     Guestセッションが未発行の場合、注文が存在しない場合、自分の注文でない場合は404を返す。
-     *     GETではGuestを新規発行しない。注文後の店舗の閉店・販売状況にかかわらず取得できる。
-     *     現時点ではダミー実装として404を返す。
      */
     get: operations["getOrderByID"];
     put?: never;
@@ -1084,7 +1081,10 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description 自分の注文詳細 */
+      /**
+       * @description 自分の注文が存在する場合、注文時に保存した店舗・商品・トッピングの情報を含む詳細を返す。
+       *     注文後の店舗の閉店・販売状況にかかわらず取得できる。
+       */
       200: {
         headers: {
           [name: string]: unknown;
@@ -1102,7 +1102,10 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description 注文が存在しない、または自分の注文ではない */
+      /**
+       * @description Guestセッションが未発行または無効、注文が存在しない、または自分の注文ではない場合。
+       *     Guestを新規発行せず、いずれの場合も同じエラーを返す。
+       */
       404: {
         headers: {
           [name: string]: unknown;
