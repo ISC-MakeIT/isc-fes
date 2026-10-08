@@ -1,7 +1,7 @@
 "use client";
 
 import { Order, OrderItem, OrderStatus } from "@/entities/order";
-import { storeOrdersQueryOptions } from "@/entities/order/api/fetch-store-orders";
+import { storeOrdersQueryOptions } from "@/entities/order";
 import { Card } from "@/shared/ui/card";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { CircleIcon, PlusIcon } from "lucide-react";
