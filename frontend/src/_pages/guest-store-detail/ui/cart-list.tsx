@@ -109,7 +109,7 @@ export function CartList() {
         </div>
 
         {/* TODO: チェックアウト処理 */}
-        <div className="px-6">
+        <div className="px-6 pb-6">
           <Button
             type="button"
             variant="secondary"

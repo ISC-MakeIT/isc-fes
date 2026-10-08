@@ -39,6 +39,9 @@ type CartItemRowProps = {
 
 function CartItemRow({ summarisedItem }: CartItemRowProps) {
   const item = summarisedItem.item;
+  const unitPriceWithTopping =
+    item.unitPrice +
+    item.toppings.reduce((total, topping) => total + topping.unitPrice, 0);
 
   return (
     <li className="border-foreground grid grid-cols-[minmax(0,1fr)_3.8125rem] items-end gap-6 border-b py-4">
@@ -55,14 +58,14 @@ function CartItemRow({ summarisedItem }: CartItemRowProps) {
         ))}
 
         <div className="flex flex-row items-center justify-end gap-2 text-right text-lg font-medium">
-          <span>{formatYen(item.unitPrice)}</span>
+          <span>{formatYen(unitPriceWithTopping)}</span>
           <span>×</span>
           <span>{summarisedItem.quantity}</span>
         </div>
       </div>
 
       <p className="ml-auto text-lg font-medium">
-        {formatYen(item.unitPrice * summarisedItem.quantity)}
+        {formatYen(unitPriceWithTopping * summarisedItem.quantity)}
       </p>
     </li>
   );
