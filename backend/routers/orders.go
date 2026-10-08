@@ -10,11 +10,22 @@ import (
 	domain "github.com/isc-makeit/isc-fes/backend/domains/entities/orders"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	orderservice "github.com/isc-makeit/isc-fes/backend/services/orders"
+	"github.com/isc-makeit/isc-fes/backend/utils"
 )
 
 func (s *Server) GetOrders(c *gin.Context, params GetOrdersParams) {
-	// TODO: 既存のGuestセッションから自分の注文を取得し、状態で絞り込む。
-	c.JSON(http.StatusOK, GetOrdersResponse{Data: []Order{}, Total: 0})
+	var statuses []domain.OrderStatus
+	if params.Statuses != nil {
+		statuses = utils.Map(*params.Statuses, func(status OrderStatus) domain.OrderStatus {
+			return domain.OrderStatus(status)
+		})
+	}
+	orders, err := s.orders.GetOrders(c.Request.Context(), statuses)
+	if err != nil {
+		s.handleCommonServiceErrors(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, GetOrdersResponse{Data: utils.Map(orders, toOrderResponse), Total: len(orders)})
 }
 
 func (s *Server) GetOrderByID(c *gin.Context, orderID uuid.UUID) {

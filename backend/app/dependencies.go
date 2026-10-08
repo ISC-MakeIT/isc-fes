@@ -150,7 +150,7 @@ func buildDependencies(
 	reviewsRepository := reviews_repository.NewReviewRepository(queries)
 	reviewService := reviews_service.NewReviewService(reviewsRepository, guestResolver, accountService)
 	orderRepository := orders_repository.NewOrderRepository(queries, pool)
-	orderService := orders_service.NewOrderService(orderRepository, accountService)
+	orderService := orders_service.NewOrderService(orderRepository, accountService, guestResolver)
 	storeService := services.NewStoreService(
 		storeRepository,
 		storeMemberRepository,

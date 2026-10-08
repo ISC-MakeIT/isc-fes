@@ -35,22 +35,28 @@ type CreateResult struct {
 	Replayed bool
 }
 
-// 注文の検証・保存・カート消費を一つの取引で行う操作だけを要求する。
+// 注文作成とGuest自身の注文一覧取得に必要な操作だけを要求する。
 type Repository interface {
 	CreateOrder(context.Context, CreateRepositoryInput) (CreateResult, error)
+	GetOrdersByGuestID(context.Context, uuid.UUID, []orders.OrderStatus) ([]orders.Order, error)
 }
 
 type CurrentAccountLoader interface {
 	GetCurrentAccount(context.Context) (entities.Account, error)
 }
 
+type GuestResolver interface {
+	ResolveGuest(context.Context) (guestID uuid.UUID, found bool, err error)
+}
+
 type OrderService struct {
 	repository    Repository
 	accountLoader CurrentAccountLoader
+	guestResolver GuestResolver
 }
 
-func NewOrderService(repository Repository, accountLoader CurrentAccountLoader) *OrderService {
-	return &OrderService{repository: repository, accountLoader: accountLoader}
+func NewOrderService(repository Repository, accountLoader CurrentAccountLoader, guestResolver GuestResolver) *OrderService {
+	return &OrderService{repository: repository, accountLoader: accountLoader, guestResolver: guestResolver}
 }
 
 func (s *OrderService) CreateOrder(ctx context.Context, input CreateInput) (CreateResult, error) {
