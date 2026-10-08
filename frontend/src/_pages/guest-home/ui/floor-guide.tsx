@@ -101,9 +101,7 @@ type FloorStoreListProps = {
 function FloorStoreList({ floor }: FloorStoreListProps) {
   const { data: stores } = useSuspenseQuery({
     ...visibleStoresQueryOptions(),
-    // FloorStoreListは学園祭当日用のページで、当日は店舗が更新されることはない想定
-    // visibleStoreは店舗側でも使うので呼び出し側からstaleTimeを設定
-    staleTime: Infinity,
+    staleTime: 30_000,
   });
   const storesByFloor = selectApprovedStoresByFloor(stores, floor);
 

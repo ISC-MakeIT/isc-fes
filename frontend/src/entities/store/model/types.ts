@@ -9,6 +9,9 @@ export enum StoreReviewStatus {
 }
 const StoreReviewStatusSchema = v.enum(StoreReviewStatus);
 
+export const StoreCongestionLevel = v.picklist([1, 2, 3]);
+export type StoreCongestionLevel = v.InferOutput<typeof StoreCongestionLevel>;
+
 export const StoreName = v.pipe(
   v.string(),
   v.minLength(1, "1文字以上で入力してください"),
@@ -29,6 +32,7 @@ export const Store = v.object({
   imageUrl: v.string(),
   reviewStatus: StoreReviewStatusSchema,
   allergens: v.array(Allergen),
+  congestionLevel: StoreCongestionLevel,
 });
 
 export type Store = v.InferOutput<typeof Store>;
