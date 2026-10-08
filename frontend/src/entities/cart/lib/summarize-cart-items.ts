@@ -33,6 +33,7 @@ export function summarizeCartItems(items: CartItem[]): CartItemSummary[] {
 
     if (!existingSummary) {
       summariseByIdentity.set(identityKey, {
+        identityKey,
         item: item,
         quantity: item.quantity,
       });
