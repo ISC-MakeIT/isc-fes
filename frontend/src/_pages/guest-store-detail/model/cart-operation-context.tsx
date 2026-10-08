@@ -75,7 +75,10 @@ export function CartOperationProvider({
   });
 
   const cartUpdateDebouncer = useDebouncer(
-    (items: CartItem[]) => {
+    async (items: CartItem[]) => {
+      await queryClient.cancelQueries({
+        queryKey: cartKey(storeId),
+      });
       mutation.mutate({
         storeId,
         updateCartInput: {
@@ -126,12 +129,15 @@ export function CartOperationProvider({
     );
   }
 
-  function clearCart() {
+  async function clearCart() {
     if (mutation.isPending) {
       return;
     }
     cartUpdateDebouncer.cancel();
     setDraftCartItems(null);
+    await queryClient.cancelQueries({
+      queryKey: cartKey(storeId),
+    });
     mutation.mutate({
       storeId,
       updateCartInput: {
