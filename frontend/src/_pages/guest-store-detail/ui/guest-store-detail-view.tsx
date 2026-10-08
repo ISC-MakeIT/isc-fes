@@ -10,7 +10,7 @@ import { storeMenusQueryOptions } from "@/entities/menu";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { AllergenBadge } from "@/entities/allergen";
 import { StoreViewAnalytics } from "./store-view-analytics";
-import { StoreCongestionBadge } from "@/entities/store/ui/store-congestion-badge";
+import { StoreCongestionBadge } from "@/entities/store";
 
 type GuestStoreDetailViewProps = {
   storeId: string;
@@ -47,7 +47,10 @@ export async function GuestStoreDetailView({
               {/* TODO: モバイルオーダー使用店バッジ */}
               <div />
               <div className="flex flex-row pt-2 md:pt-0">
-                <p className="text-lg font-semibold">混雑状況：</p>
+                {/* StoreCongestionBadge側に混雑状況を含むaltがある */}
+                <p className="text-lg font-semibold" aria-hidden>
+                  混雑状況：
+                </p>
                 <StoreCongestionBadge congestionLevel={store.congestionLevel} />
               </div>
             </div>

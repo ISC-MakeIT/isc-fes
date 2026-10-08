@@ -21,7 +21,7 @@ import { guestStoreDetailUrl } from "@/shared/config";
 import { trackEvent } from "@/shared/lib/analytics";
 import { useQueryState } from "nuqs";
 import { floorParser } from "../model/floor-search-params";
-import { StoreCongestionBadge } from "@/entities/store/ui/store-congestion-badge";
+import { StoreCongestionBadge } from "@/entities/store";
 
 export type Floors = {
   level: Floor;
