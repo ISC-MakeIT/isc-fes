@@ -1,6 +1,6 @@
 import {
   CartItem,
-  MAX_CART_ITEMS_TYPE,
+  MAX_CART_ITEM_QUANTITY,
   summarizeCartItems,
   UpdateCartInput,
 } from "@/entities/cart";
@@ -10,7 +10,7 @@ export function toCartUpdateItems(items: CartItem[]): UpdateCartInput["items"] {
   return summarizeCartItems(items).map(({ item, quantity }) => ({
     id: item.id,
     menuId: item.menuId,
-    quantity: Math.min(quantity, MAX_CART_ITEMS_TYPE),
+    quantity: Math.min(quantity, MAX_CART_ITEM_QUANTITY),
     toppingIds: item.toppings.map((topping) => topping.toppingId),
   }));
 }

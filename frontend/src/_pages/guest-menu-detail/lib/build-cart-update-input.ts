@@ -1,6 +1,7 @@
 import {
   Cart,
   createCartItemIdentityKey,
+  MAX_CART_ITEM_QUANTITY,
   summarizeCartItems,
   UpdateCartInput,
 } from "@/entities/cart";
@@ -48,13 +49,15 @@ export function buildCartUpdateInput({
         toppingIds: item.toppings.map((topping) => topping.toppingId),
       });
 
+      const nextQuantity =
+        itemIdentityKey === selectedItemIdentityKey
+          ? currentQuantity + quantity
+          : currentQuantity;
+
       return {
         id: item.id,
         menuId: item.menuId,
-        quantity:
-          itemIdentityKey === selectedItemIdentityKey
-            ? currentQuantity + quantity
-            : currentQuantity,
+        quantity: Math.min(nextQuantity, MAX_CART_ITEM_QUANTITY),
         toppingIds: item.toppings.map((topping) => topping.toppingId),
       };
     },
