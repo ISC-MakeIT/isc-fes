@@ -70,6 +70,7 @@ export function CartList() {
                 variant="ghost"
                 className="text-notice text-sm"
                 onClick={clearCart}
+                disabled={isSaving}
               >
                 全て削除
               </Button>
@@ -88,6 +89,7 @@ export function CartList() {
             type="button"
             variant="ghost"
             className="text-notice text-sm"
+            disabled={isSaving}
             onClick={clearCart}
           >
             全て削除

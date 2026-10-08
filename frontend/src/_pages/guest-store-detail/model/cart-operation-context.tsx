@@ -124,6 +124,8 @@ export function CartOperationProvider({
   }
 
   function clearCart() {
+    cartUpdateDebouncer.cancel();
+    setDraftCartItems(null);
     mutation.mutate({
       storeId,
       updateCartInput: {
