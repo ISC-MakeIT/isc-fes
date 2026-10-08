@@ -10,6 +10,7 @@ import { storeMenusQueryOptions } from "@/entities/menu";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { AllergenBadge } from "@/entities/allergen";
 import { StoreViewAnalytics } from "./store-view-analytics";
+import { StoreCongestionBadge } from "@/entities/store/ui/store-congestion-badge";
 
 type GuestStoreDetailViewProps = {
   storeId: string;
@@ -34,15 +35,28 @@ export async function GuestStoreDetailView({
       />
       <div className="mx-auto flex flex-col md:max-w-200">
         <div className="md:flex md:flex-row md:items-start md:gap-1.5 md:px-6 md:pt-10 md:pb-8">
-          <AspectRatioImage
-            ratio={STORE_IMAGE_ASPECT}
-            src={store.imageUrl}
-            className="md:w-77 md:shrink-0"
-            alt="店舗のバナー画像"
-          />
+          <section>
+            <AspectRatioImage
+              ratio={STORE_IMAGE_ASPECT}
+              src={store.imageUrl}
+              className="md:w-77 md:shrink-0"
+              alt="店舗のバナー画像"
+            />
+
+            <div className="flex flex-row items-center justify-between px-6">
+              {/* TODO: モバイルオーダー使用店バッジ */}
+              <div />
+              <div className="flex flex-row pt-2 md:pt-0">
+                <p className="text-lg font-semibold">混雑状況：</p>
+                <StoreCongestionBadge congestionLevel={store.congestionLevel} />
+              </div>
+            </div>
+          </section>
 
           <section className="min-w-0 flex-1 space-y-8 px-8 py-8 text-left">
-            <h1 className="text-[1.375rem] font-bold">{store.name}</h1>
+            <h1 className="text-[1.375rem] leading-7 font-bold">
+              {store.name}
+            </h1>
             <p className="text-[1.375rem] font-bold">{store.room}</p>
             <p className="text-lg">{store.description}</p>
             <div className="space-y-4">
