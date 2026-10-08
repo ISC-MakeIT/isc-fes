@@ -114,6 +114,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/stores/{store_id}/orders/{order_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * 店舗の注文状態を更新する
+     * @description 店舗に所属する注文の状態を更新する。
+     */
+    patch: operations["updateOrderByStoreIDAndOrderID"];
+    trace?: never;
+  };
   "/reviews": {
     parameters: {
       query?: never;
@@ -599,6 +619,14 @@ export interface components {
       /** @description 指定した条件に一致する注文の総数 */
       total: number;
       data: components["schemas"]["Order"][];
+    };
+    UpdateOrderInput: {
+      status: components["schemas"]["OrderStatus"];
+      /**
+       * Format: int32
+       * @description 更新対象の注文のversion。同じ状態への再送にも同じ値を使用する。
+       */
+      expectedVersion: number;
     };
     CreateOrderInput: {
       /** Format: uuid */
@@ -1167,6 +1195,111 @@ export interface operations {
       };
       /** @description サーバーエラー */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  updateOrderByStoreIDAndOrderID: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+        order_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateOrderInput"];
+      };
+    };
+    responses: {
+      /**
+       * @description 状態更新に成功した場合、更新後の注文を返す。更新時刻はサーバー側で決定する。
+       *     すでに要求したstatusの場合はexpectedVersionにかかわらず同じ注文を返し、version・日時を変更しない。
+       *     店舗の閉店・現在の販売状況は状態更新を妨げない。
+       */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Order"];
+        };
+      };
+      /**
+       * @description 店舗ID・注文IDがUUID形式ではない、必須項目がない、statusが定義された値ではない、
+       *     expectedVersionが1以上の整数ではない、またはリクエスト形式が不正な場合。
+       *     status・expectedVersion以外の項目（金額・明細など）を指定した場合も返す。
+       */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Accountセッションが存在しない、無効、または有効期限切れの場合。 */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description ログイン中のAccountが当該店舗のStaff/Managerではない場合。 */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない、または指定した注文が当該店舗に存在しない場合。 */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /**
+       * @description 要求したstatusが現在と異なり、expectedVersionが現在のversionと一致しない場合。
+       *     pendingからready、readyからcompletedまたはcancelled以外の状態遷移を要求した場合。
+       *     readyからcancelledへの遷移を、呼び出し開始（readyAt）から15分が経過する前に要求した場合。
+       */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 注文の読み取り・更新など、サーバー内部の処理で予期しないエラーが発生した場合。 */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /**
+       * @description 現時点ではインターフェースのみの実装のため、リクエスト形式とAccountセッションの検証を通過した場合に返す。
+       *     店舗の存在・Membership・注文の検証と状態更新は未実装。
+       */
+      501: {
         headers: {
           [name: string]: unknown;
         };

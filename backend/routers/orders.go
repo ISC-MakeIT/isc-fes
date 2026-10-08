@@ -38,6 +38,11 @@ func (s *Server) GetOrdersByStoreID(c *gin.Context, storeID uuid.UUID, params Ge
 	c.JSON(http.StatusOK, GetOrdersResponse{Data: []Order{}, Total: 0})
 }
 
+func (s *Server) UpdateOrderByStoreIDAndOrderID(c *gin.Context, storeID uuid.UUID, orderID uuid.UUID) {
+	// TODO: 当該店舗のStaff/Managerと注文のversion・状態遷移を検証して更新する。
+	c.JSON(http.StatusNotImplemented, ErrorResponse{Message: "注文の状態更新は未実装です"})
+}
+
 func (s *Server) CreateOrder(c *gin.Context) {
 	var body CreateOrderJSONRequestBody
 	if err := c.ShouldBindJSON(&body); err != nil {
