@@ -1,6 +1,6 @@
 "use client";
 
-import { Order, OrderItem } from "@/entities/order";
+import { Order, OrderItem, OrderStatus } from "@/entities/order";
 import { storeOrdersQueryOptions } from "@/entities/order/api/fetch-store-orders";
 import { Card } from "@/shared/ui/card";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -11,16 +11,21 @@ type StoreKitchenViewProps = {
 };
 
 export function StoreKitchenView({ storeId }: StoreKitchenViewProps) {
-  const { data: orders } = useSuspenseQuery(storeOrdersQueryOptions(storeId));
+  const { data: pendingOrders } = useSuspenseQuery({
+    ...storeOrdersQueryOptions(storeId),
+    select: (orders) =>
+      orders.filter((order) => order.status === OrderStatus.Pending),
+  });
+
   return (
     <div className="flex flex-1 items-start gap-8 overflow-x-auto px-8 pt-10">
-      {orders.map((order) => (
+      {pendingOrders.map((order) => (
         <OrderCard key={order.id} order={order} />
       ))}
 
       <div className="absolute right-3 bottom-3 grid grid-cols-[minmax(0,1fr)_5rem] text-[2.5rem] font-bold">
         <p>注文数：</p>
-        <p className="text-right">{orders.length}</p>
+        <p className="text-right">{pendingOrders.length}</p>
       </div>
     </div>
   );
