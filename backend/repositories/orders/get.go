@@ -2,13 +2,16 @@ package orders
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/orders"
 	"github.com/isc-makeit/isc-fes/backend/repositories/db2entities"
+	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/utils"
+	"github.com/jackc/pgx/v5"
 )
 
 func (r *OrderRepository) GetOrdersByGuestID(ctx context.Context, guestID uuid.UUID, statuses []orders.OrderStatus) ([]orders.Order, error) {
@@ -34,4 +37,21 @@ func (r *OrderRepository) GetOrdersByGuestID(ctx context.Context, guestID uuid.U
 		return nil, fmt.Errorf("get guest order toppings: %w", err)
 	}
 	return db2entities.ToOrders(rows, items, toppings), nil
+}
+
+func (r *OrderRepository) GetOrderByIDAndGuestID(ctx context.Context, orderID, guestID uuid.UUID) (orders.Order, error) {
+	row, err := r.queries.GetOrderByIDAndGuestID(ctx, sqlc.GetOrderByIDAndGuestIDParams{
+		OrderID: orderID, GuestID: guestID,
+	})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return orders.Order{}, services.ErrNotFound
+	}
+	if err != nil {
+		return orders.Order{}, fmt.Errorf("get guest order: %w", err)
+	}
+	order, err := loadSnapshot(ctx, r.queries, row)
+	if err != nil {
+		return orders.Order{}, fmt.Errorf("get guest order snapshot: %w", err)
+	}
+	return order, nil
 }
