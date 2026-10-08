@@ -37,6 +37,28 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/orders": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * カートから注文を確定する
+     * @description 同じGuest・店舗・元カートversionの再送は、現在の販売状況や権限にかかわらず同じ注文を返す。
+     *     通常のpending/ready注文は全店舗合計で2件まで。当該店舗のStaff/Managerによる注文は件数制限を免除し、集計から除外する。
+     *     成功時は同じカートの明細を消去してversionを1増やす。明細順序は保証しない。
+     */
+    post: operations["createOrder"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/reviews": {
     parameters: {
       query?: never;
@@ -518,6 +540,68 @@ export interface components {
       storeId: string;
       role: components["schemas"]["StoreMemberRole"];
     };
+    CreateOrderInput: {
+      /** Format: uuid */
+      storeId: string;
+      /**
+       * Format: int32
+       * @description 注文に使うカートのversion。成立済み注文の再送にも同じ値を使用する。
+       */
+      expectedCartVersion: number;
+    };
+    /** @enum {string} */
+    OrderStatus: "pending" | "ready" | "completed" | "cancelled";
+    Order: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      storeId: string;
+      status: components["schemas"]["OrderStatus"];
+      /**
+       * Format: int64
+       * @description トッピングを含む合計金額（円）
+       */
+      totalAmount: number;
+      /** Format: int32 */
+      displayNumber: number;
+      /** Format: int32 */
+      version: number;
+      /** @description 注文時の店舗名 */
+      storeName: string;
+      /** @description 注文時の教室名 */
+      roomName: string;
+      /** @description 注文時の明細。カート内の順序は保証しない。 */
+      items: components["schemas"]["OrderItem"][];
+      /** Format: date-time */
+      readyAt: string | null;
+      /** Format: date-time */
+      completedAt: string | null;
+      /** Format: date-time */
+      cancelledAt: string | null;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    OrderItem: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      menuId: string;
+      menuName: string;
+      /** Format: int32 */
+      unitPrice: number;
+      /** Format: int32 */
+      quantity: number;
+      toppings: components["schemas"]["OrderItemTopping"][];
+    };
+    OrderItemTopping: {
+      /** Format: uuid */
+      toppingId: string;
+      toppingName: string;
+      /** Format: int32 */
+      unitPrice: number;
+    };
     UpdateCartInput: {
       /**
        * Format: int32
@@ -761,6 +845,75 @@ export interface operations {
       };
       /** @description 未ログインまたはセッションが無効 */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  createOrder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateOrderInput"];
+      };
+    };
+    responses: {
+      /** @description 成立済み注文への再送 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Order"];
+        };
+      };
+      /** @description 注文を作成した */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Order"];
+        };
+      };
+      /** @description 空カート・数量・メニュー種類数などの入力が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない、または承認されていない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description カートversion競合・閉店・利用不可の選択・同時注文件数制限 */
+      409: {
         headers: {
           [name: string]: unknown;
         };

@@ -15,6 +15,7 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/repositories"
 	allergens_repository "github.com/isc-makeit/isc-fes/backend/repositories/allergens"
 	"github.com/isc-makeit/isc-fes/backend/repositories/imageurl"
+	orders_repository "github.com/isc-makeit/isc-fes/backend/repositories/orders"
 	reviews_repository "github.com/isc-makeit/isc-fes/backend/repositories/reviews"
 	"github.com/isc-makeit/isc-fes/backend/repositories/rooms"
 	"github.com/isc-makeit/isc-fes/backend/repositories/stores/carts"
@@ -25,6 +26,7 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/routers"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	allergens_service "github.com/isc-makeit/isc-fes/backend/services/allergens"
+	orders_service "github.com/isc-makeit/isc-fes/backend/services/orders"
 	reviews_service "github.com/isc-makeit/isc-fes/backend/services/reviews"
 	rooms_service "github.com/isc-makeit/isc-fes/backend/services/rooms"
 	carts_service "github.com/isc-makeit/isc-fes/backend/services/store/carts"
@@ -147,6 +149,8 @@ func buildDependencies(
 	roomsService := rooms_service.NewRoomsService(roomsRepository)
 	reviewsRepository := reviews_repository.NewReviewRepository(queries)
 	reviewService := reviews_service.NewReviewService(reviewsRepository, guestResolver, accountService)
+	orderRepository := orders_repository.NewOrderRepository(queries, pool)
+	orderService := orders_service.NewOrderService(orderRepository, accountService)
 	storeService := services.NewStoreService(
 		storeRepository,
 		storeMemberRepository,
@@ -173,6 +177,7 @@ func buildDependencies(
 		cartService,
 		roomsService,
 		reviewService,
+		orderService,
 	)
 
 	return &dependencies{
