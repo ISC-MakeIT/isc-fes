@@ -53,3 +53,23 @@ SELECT * FROM order_items WHERE order_id = $1 ORDER BY id;
 SELECT order_item_toppings.* FROM order_item_toppings
 JOIN order_items ON order_items.id = order_item_toppings.order_item_id
 WHERE order_items.order_id = $1 ORDER BY order_item_id, topping_id;
+
+-- name: GetOrdersByGuestID :many
+SELECT * FROM orders
+WHERE guest_id = sqlc.arg(guest_id)
+  AND (
+    cardinality(sqlc.arg(statuses)::text[]) = 0
+    OR status = ANY(sqlc.arg(statuses)::text[]::order_status[])
+  )
+ORDER BY created_at DESC, id DESC;
+
+-- name: GetOrderItemsByOrderIDs :many
+SELECT * FROM order_items
+WHERE order_id = ANY(sqlc.arg(order_ids)::uuid[])
+ORDER BY order_id, id;
+
+-- name: GetOrderItemToppingsByOrderIDs :many
+SELECT order_item_toppings.* FROM order_item_toppings
+JOIN order_items ON order_items.id = order_item_toppings.order_item_id
+WHERE order_items.order_id = ANY(sqlc.arg(order_ids)::uuid[])
+ORDER BY order_item_id, topping_id;

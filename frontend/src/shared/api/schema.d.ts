@@ -50,7 +50,6 @@ export interface paths {
      *     statusesを省略した場合はすべての状態を対象にする。
      *     Guestセッションが未発行の場合は空の一覧を返し、GETではGuestを新規発行しない。
      *     注文後の店舗の閉店・販売状況にかかわらず取得できる。
-     *     現時点ではダミー実装として空の一覧を返す。
      */
     get: operations["getOrders"];
     put?: never;

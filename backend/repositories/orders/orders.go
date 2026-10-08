@@ -13,7 +13,6 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/repositories/db2entities"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	orderservice "github.com/isc-makeit/isc-fes/backend/services/orders"
-	"github.com/isc-makeit/isc-fes/backend/utils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -184,31 +183,5 @@ func loadSnapshot(ctx context.Context, qtx *sqlc.Queries, row sqlc.Order) (domai
 	if err != nil {
 		return domain.Order{}, err
 	}
-	byItem := make(map[uuid.UUID][]domain.OrderItemTopping)
-	for _, topping := range toppings {
-		byItem[topping.OrderItemID] = append(byItem[topping.OrderItemID], domain.OrderItemTopping{
-			OrderItemID: topping.OrderItemID, StoreID: topping.StoreID, ToppingID: topping.ToppingID,
-			ToppingName: topping.ToppingName, UnitPrice: topping.UnitPrice,
-		})
-	}
-	order := domain.Order{
-		ID: row.ID, StoreID: row.StoreID, GuestID: row.GuestID, Status: domain.OrderStatus(row.Status),
-		TotalAmount: row.TotalAmount, DisplayNumber: row.DisplayNumber, Version: row.Version,
-		OriginCartID: row.OriginCartID, OriginCartVersion: row.OriginCartVersion,
-		LimitExemptedByAccountID: row.LimitExemptedByAccountID, StoreName: row.StoreName, RoomName: row.RoomName,
-		ReadyAt: utils.TimestamptzToTimePtr(row.ReadyAt), CompletedAt: utils.TimestamptzToTimePtr(row.CompletedAt),
-		CancelledAt: utils.TimestamptzToTimePtr(row.CancelledAt), CreatedAt: row.CreatedAt.Time, UpdatedAt: row.UpdatedAt.Time,
-		Items: make([]domain.OrderItem, 0, len(items)),
-	}
-	for _, item := range items {
-		selected := byItem[item.ID]
-		if selected == nil {
-			selected = []domain.OrderItemTopping{}
-		}
-		order.Items = append(order.Items, domain.OrderItem{
-			ID: item.ID, OrderID: item.OrderID, StoreID: item.StoreID, MenuID: item.MenuID, MenuName: item.MenuName,
-			UnitPrice: item.UnitPrice, Quantity: item.Quantity, Toppings: selected,
-		})
-	}
-	return order, nil
+	return db2entities.ToOrders([]sqlc.Order{row}, items, toppings)[0], nil
 }

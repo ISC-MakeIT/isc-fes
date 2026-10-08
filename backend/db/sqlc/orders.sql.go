@@ -247,6 +247,126 @@ func (q *Queries) GetCreatedOrderItems(ctx context.Context, orderID uuid.UUID) (
 	return items, nil
 }
 
+const getOrderItemToppingsByOrderIDs = `-- name: GetOrderItemToppingsByOrderIDs :many
+SELECT order_item_toppings.order_item_id, order_item_toppings.store_id, order_item_toppings.topping_id, order_item_toppings.topping_name, order_item_toppings.unit_price FROM order_item_toppings
+JOIN order_items ON order_items.id = order_item_toppings.order_item_id
+WHERE order_items.order_id = ANY($1::uuid[])
+ORDER BY order_item_id, topping_id
+`
+
+func (q *Queries) GetOrderItemToppingsByOrderIDs(ctx context.Context, orderIds []uuid.UUID) ([]OrderItemTopping, error) {
+	rows, err := q.db.Query(ctx, getOrderItemToppingsByOrderIDs, orderIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []OrderItemTopping{}
+	for rows.Next() {
+		var i OrderItemTopping
+		if err := rows.Scan(
+			&i.OrderItemID,
+			&i.StoreID,
+			&i.ToppingID,
+			&i.ToppingName,
+			&i.UnitPrice,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getOrderItemsByOrderIDs = `-- name: GetOrderItemsByOrderIDs :many
+SELECT id, order_id, store_id, menu_id, menu_name, unit_price, quantity FROM order_items
+WHERE order_id = ANY($1::uuid[])
+ORDER BY order_id, id
+`
+
+func (q *Queries) GetOrderItemsByOrderIDs(ctx context.Context, orderIds []uuid.UUID) ([]OrderItem, error) {
+	rows, err := q.db.Query(ctx, getOrderItemsByOrderIDs, orderIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []OrderItem{}
+	for rows.Next() {
+		var i OrderItem
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrderID,
+			&i.StoreID,
+			&i.MenuID,
+			&i.MenuName,
+			&i.UnitPrice,
+			&i.Quantity,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getOrdersByGuestID = `-- name: GetOrdersByGuestID :many
+SELECT id, store_id, guest_id, status, total_amount, display_number, version, origin_cart_id, origin_cart_version, limit_exempted_by_account_id, store_name, room_name, ready_at, completed_at, cancelled_at, created_at, updated_at FROM orders
+WHERE guest_id = $1
+  AND (
+    cardinality($2::text[]) = 0
+    OR status = ANY($2::text[]::order_status[])
+  )
+ORDER BY created_at DESC, id DESC
+`
+
+type GetOrdersByGuestIDParams struct {
+	GuestID  uuid.UUID `json:"guest_id"`
+	Statuses []string  `json:"statuses"`
+}
+
+func (q *Queries) GetOrdersByGuestID(ctx context.Context, arg GetOrdersByGuestIDParams) ([]Order, error) {
+	rows, err := q.db.Query(ctx, getOrdersByGuestID, arg.GuestID, arg.Statuses)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Order{}
+	for rows.Next() {
+		var i Order
+		if err := rows.Scan(
+			&i.ID,
+			&i.StoreID,
+			&i.GuestID,
+			&i.Status,
+			&i.TotalAmount,
+			&i.DisplayNumber,
+			&i.Version,
+			&i.OriginCartID,
+			&i.OriginCartVersion,
+			&i.LimitExemptedByAccountID,
+			&i.StoreName,
+			&i.RoomName,
+			&i.ReadyAt,
+			&i.CompletedAt,
+			&i.CancelledAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockOrderCart = `-- name: LockOrderCart :one
 SELECT id, guest_id, store_id, version FROM carts
 WHERE guest_id = $1 AND store_id = $2
