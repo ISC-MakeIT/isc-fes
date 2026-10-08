@@ -63,6 +63,10 @@ WHERE guest_id = sqlc.arg(guest_id)
   )
 ORDER BY created_at DESC, id DESC;
 
+-- name: GetOrderByIDAndGuestID :one
+SELECT * FROM orders
+WHERE id = sqlc.arg(order_id) AND guest_id = sqlc.arg(guest_id);
+
 -- name: GetOrderItemsByOrderIDs :many
 SELECT * FROM order_items
 WHERE order_id = ANY(sqlc.arg(order_ids)::uuid[])

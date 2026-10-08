@@ -247,6 +247,41 @@ func (q *Queries) GetCreatedOrderItems(ctx context.Context, orderID uuid.UUID) (
 	return items, nil
 }
 
+const getOrderByIDAndGuestID = `-- name: GetOrderByIDAndGuestID :one
+SELECT id, store_id, guest_id, status, total_amount, display_number, version, origin_cart_id, origin_cart_version, limit_exempted_by_account_id, store_name, room_name, ready_at, completed_at, cancelled_at, created_at, updated_at FROM orders
+WHERE id = $1 AND guest_id = $2
+`
+
+type GetOrderByIDAndGuestIDParams struct {
+	OrderID uuid.UUID `json:"order_id"`
+	GuestID uuid.UUID `json:"guest_id"`
+}
+
+func (q *Queries) GetOrderByIDAndGuestID(ctx context.Context, arg GetOrderByIDAndGuestIDParams) (Order, error) {
+	row := q.db.QueryRow(ctx, getOrderByIDAndGuestID, arg.OrderID, arg.GuestID)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.StoreID,
+		&i.GuestID,
+		&i.Status,
+		&i.TotalAmount,
+		&i.DisplayNumber,
+		&i.Version,
+		&i.OriginCartID,
+		&i.OriginCartVersion,
+		&i.LimitExemptedByAccountID,
+		&i.StoreName,
+		&i.RoomName,
+		&i.ReadyAt,
+		&i.CompletedAt,
+		&i.CancelledAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getOrderItemToppingsByOrderIDs = `-- name: GetOrderItemToppingsByOrderIDs :many
 SELECT order_item_toppings.order_item_id, order_item_toppings.store_id, order_item_toppings.topping_id, order_item_toppings.topping_name, order_item_toppings.unit_price FROM order_item_toppings
 JOIN order_items ON order_items.id = order_item_toppings.order_item_id
