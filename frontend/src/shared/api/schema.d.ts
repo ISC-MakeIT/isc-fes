@@ -44,7 +44,15 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get?: never;
+    /**
+     * 自分の注文一覧を取得する
+     * @description Guestセッションに紐づく自分の注文を全店舗横断で、新しい注文から取得する。
+     *     statusesを省略した場合はすべての状態を対象にする。
+     *     Guestセッションが未発行の場合は空の一覧を返し、GETではGuestを新規発行しない。
+     *     注文後の店舗の閉店・販売状況にかかわらず取得できる。
+     *     現時点ではダミー実装として空の一覧を返す。
+     */
+    get: operations["getOrders"];
     put?: never;
     /**
      * カートから注文を確定する
@@ -53,6 +61,54 @@ export interface paths {
      *     成功時は同じカートの明細を消去してversionを1増やす。明細順序は保証しない。
      */
     post: operations["createOrder"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/orders/{order_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * 自分の注文詳細を取得する
+     * @description Guestセッションに紐づく自分の注文を取得する。
+     *     Guestセッションが未発行の場合、注文が存在しない場合、自分の注文でない場合は404を返す。
+     *     GETではGuestを新規発行しない。注文後の店舗の閉店・販売状況にかかわらず取得できる。
+     *     現時点ではダミー実装として404を返す。
+     */
+    get: operations["getOrderByID"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/stores/{store_id}/orders": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * 店舗の注文一覧を取得する
+     * @description 当該店舗のStaff/Managerが、注文時の明細を含む店舗の注文一覧を古い注文から取得する。
+     *     statusesを省略した場合はpending/readyを対象にする。
+     *     キッチンはstatuses=pending、受け渡しはstatuses=pending&statuses=readyで取得する。
+     *     店舗の閉店・現在の販売状況にかかわらず取得できる。
+     *     現時点ではダミー実装としてAccountセッションのみを検証し、空の一覧を返す。
+     *     店舗の存在・Membershipの検証と注文取得は未実装。
+     */
+    get: operations["getOrdersByStoreID"];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -540,6 +596,11 @@ export interface components {
       storeId: string;
       role: components["schemas"]["StoreMemberRole"];
     };
+    GetOrdersResponse: {
+      /** @description 指定した条件に一致する注文の総数 */
+      total: number;
+      data: components["schemas"]["Order"][];
+    };
     CreateOrderInput: {
       /** Format: uuid */
       storeId: string;
@@ -798,7 +859,17 @@ export interface components {
     };
   };
   responses: never;
-  parameters: never;
+  parameters: {
+    /**
+     * @description 取得対象の注文状態。複数指定はOR条件。
+     *     statuses=pending&statuses=readyのように同じキーを繰り返して指定する。
+     * @example [
+     *       "pending",
+     *       "ready"
+     *     ]
+     */
+    OrderStatuses: components["schemas"]["OrderStatus"][];
+  };
   requestBodies: never;
   headers: never;
   pathItems: never;
@@ -845,6 +916,54 @@ export interface operations {
       };
       /** @description 未ログインまたはセッションが無効 */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getOrders: {
+    parameters: {
+      query?: {
+        /**
+         * @description 取得対象の注文状態。複数指定はOR条件。
+         *     statuses=pending&statuses=readyのように同じキーを繰り返して指定する。
+         * @example [
+         *       "pending",
+         *       "ready"
+         *     ]
+         */
+        statuses?: components["parameters"]["OrderStatuses"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 自分の注文一覧 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetOrdersResponse"];
+        };
+      };
+      /** @description クエリパラメータが不正 */
+      400: {
         headers: {
           [name: string]: unknown;
         };
@@ -914,6 +1033,132 @@ export interface operations {
       };
       /** @description カートversion競合・閉店・利用不可の選択・同時注文件数制限 */
       409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getOrderByID: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        order_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 自分の注文詳細 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Order"];
+        };
+      };
+      /** @description 注文IDの形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 注文が存在しない、または自分の注文ではない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getOrdersByStoreID: {
+    parameters: {
+      query?: {
+        /**
+         * @description 取得対象の注文状態。複数指定はOR条件。
+         *     statuses=pending&statuses=readyのように同じキーを繰り返して指定する。
+         * @example [
+         *       "pending",
+         *       "ready"
+         *     ]
+         */
+        statuses?: components["parameters"]["OrderStatuses"];
+      };
+      header?: never;
+      path: {
+        store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 店舗の注文一覧 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetOrdersResponse"];
+        };
+      };
+      /** @description 店舗IDまたはクエリパラメータが不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 未ログインまたはセッションが無効 */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 当該店舗のStaff/Managerではない */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない */
+      404: {
         headers: {
           [name: string]: unknown;
         };

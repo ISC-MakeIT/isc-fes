@@ -6,10 +6,26 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	domain "github.com/isc-makeit/isc-fes/backend/domains/entities/orders"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	orderservice "github.com/isc-makeit/isc-fes/backend/services/orders"
 )
+
+func (s *Server) GetOrders(c *gin.Context, params GetOrdersParams) {
+	// TODO: 既存のGuestセッションから自分の注文を取得し、状態で絞り込む。
+	c.JSON(http.StatusOK, GetOrdersResponse{Data: []Order{}, Total: 0})
+}
+
+func (s *Server) GetOrderByID(c *gin.Context, orderID uuid.UUID) {
+	// TODO: 既存のGuestセッションから注文の所有者を検証して詳細を取得する。
+	s.handleCommonServiceErrors(c, services.ErrNotFound, CommonErrorMessages{NotFound: "注文が見つかりません"})
+}
+
+func (s *Server) GetOrdersByStoreID(c *gin.Context, storeID uuid.UUID, params GetOrdersByStoreIDParams) {
+	// TODO: 当該店舗のStaff/Managerであることを検証して注文を取得し、状態で絞り込む。
+	c.JSON(http.StatusOK, GetOrdersResponse{Data: []Order{}, Total: 0})
+}
 
 func (s *Server) CreateOrder(c *gin.Context) {
 	var body CreateOrderJSONRequestBody
