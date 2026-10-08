@@ -35,5 +35,6 @@ export function storeOrdersQueryOptions(storeId: string) {
     queryFn: () => fetchStoreOrders({ storeId }),
     queryKey: storeOrdersKey(storeId),
     staleTime: 10_000,
+    refetchInterval: 10_000,
   });
 }
