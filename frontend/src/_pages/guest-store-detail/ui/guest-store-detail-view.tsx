@@ -10,7 +10,6 @@ import { storeMenusQueryOptions } from "@/entities/menu";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { AllergenBadge } from "@/entities/allergen";
 import { StoreViewAnalytics } from "./store-view-analytics";
-import { CartList } from "./cart-list";
 import { CartOperationProvider } from "../model/cart-operation-context";
 import { fetchCartQueryOptions } from "@/entities/cart";
 import { StoreDetailCartLayout } from "./store-detail-cart-layout";
