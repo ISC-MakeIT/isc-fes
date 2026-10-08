@@ -133,18 +133,9 @@ export function CartOperationProvider({
     if (mutation.isPending) {
       return;
     }
-    cartUpdateDebouncer.cancel();
-    setDraftCartItems(null);
-    await queryClient.cancelQueries({
-      queryKey: cartKey(storeId),
-    });
-    mutation.mutate({
-      storeId,
-      updateCartInput: {
-        expectedVersion: fetchedCart.version,
-        items: [],
-      },
-    });
+    setDraftCartItems([]);
+    cartUpdateDebouncer.maybeExecute([]);
+    cartUpdateDebouncer.flush();
   }
 
   return (
