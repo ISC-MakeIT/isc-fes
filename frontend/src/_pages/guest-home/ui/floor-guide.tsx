@@ -130,7 +130,11 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
           <div>
             <p className="line-clamp-2 text-lg">{store.name}</p>
           </div>
-          <ChevronRightIcon strokeWidth={0.5} className="ml-auto" size={40} />
+          <ChevronRightIcon
+            strokeWidth={0.5}
+            className="ml-auto shrink-0"
+            size={40}
+          />
         </Link>
       ))}
     </div>
