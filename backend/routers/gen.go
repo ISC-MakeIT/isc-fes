@@ -229,6 +229,9 @@ type CreateStoreApplicationInput struct {
 	// Name Example: たこ焼き屋
 	Name string `json:"name"`
 
+	// OrderEnabled 店舗のモバイルオーダーが有効かどうか。
+	OrderEnabled bool `json:"orderEnabled"`
+
 	// Room Example: 605教室
 	Room string `json:"room"`
 }
@@ -446,8 +449,11 @@ type Store struct {
 	Id              openapi_types.UUID   `json:"id"`
 	ImageUrl        string               `json:"imageUrl"`
 	Name            string               `json:"name"`
-	ReviewStatus    StoreReviewStatus    `json:"reviewStatus"`
-	Room            string               `json:"room"`
+
+	// OrderEnabled 店舗のモバイルオーダーが有効かどうか。
+	OrderEnabled bool              `json:"orderEnabled"`
+	ReviewStatus StoreReviewStatus `json:"reviewStatus"`
+	Room         string            `json:"room"`
 }
 
 // StoreApplication defines model for StoreApplication.
@@ -460,9 +466,12 @@ type StoreApplication struct {
 	Id              openapi_types.UUID   `json:"id"`
 	ImageUrl        string               `json:"imageUrl"`
 	Name            string               `json:"name"`
-	ReviewStatus    StoreReviewStatus    `json:"reviewStatus"`
-	Room            string               `json:"room"`
-	SubmittedAt     time.Time            `json:"submittedAt"`
+
+	// OrderEnabled 店舗のモバイルオーダーが有効かどうか。
+	OrderEnabled bool              `json:"orderEnabled"`
+	ReviewStatus StoreReviewStatus `json:"reviewStatus"`
+	Room         string            `json:"room"`
+	SubmittedAt  time.Time         `json:"submittedAt"`
 }
 
 // StoreCongestionLevel 店舗の混雑度。1、2、3の3段階で、3が最も混んでいる。新規店舗と既存店舗の初期値は1。
@@ -544,7 +553,7 @@ type UpdateStoreApplicationReviewStatusResponse struct {
 	ReviewStatus StoreReviewStatus  `json:"reviewStatus"`
 }
 
-// UpdateStoreInput 指定した項目のみ更新する。混雑度も省略した場合は変更しない。
+// UpdateStoreInput 指定した項目のみ更新する。混雑度とモバイルオーダーの有効設定も省略した場合は変更しない。
 type UpdateStoreInput struct {
 	// AllergenIds 店舗で使用するアレルゲンのID一覧。空配列で表示を消去する。
 	AllergenIds *[]openapi_types.UUID `json:"allergenIds,omitempty"`
@@ -558,6 +567,9 @@ type UpdateStoreInput struct {
 
 	// ImageObjectKey Example: images/e625d731-8d26-4de9-ac77-a1bc96affb8e
 	ImageObjectKey *ImageObjectKey `json:"imageObjectKey,omitempty"`
+
+	// OrderEnabled trueでモバイルオーダーを有効、falseで無効にする。
+	OrderEnabled *bool `json:"orderEnabled,omitempty"`
 
 	// Room Example: 605教室
 	Room *string `json:"room,omitempty"`

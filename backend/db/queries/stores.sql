@@ -5,9 +5,10 @@ INSERT INTO stores (
     room,
     description,
     image_object_key,
-    review_status
+    review_status,
+    order_enabled
 ) VALUES (
-    $1, $2, $3, $4, $5, 'pending'
+    $1, $2, $3, $4, $5, 'pending', $6
 )
 RETURNING *;
 
@@ -77,6 +78,7 @@ SET
     description = COALESCE(sqlc.narg(description)::text, description),
     image_object_key = COALESCE(sqlc.narg(image_object_key)::text, image_object_key),
     congestion_level = COALESCE(sqlc.narg(congestion_level)::integer, congestion_level),
+    order_enabled = COALESCE(sqlc.narg(order_enabled)::boolean, order_enabled),
     updated_at = now()
 WHERE id = sqlc.arg(store_id)
     AND review_status = 'approved'

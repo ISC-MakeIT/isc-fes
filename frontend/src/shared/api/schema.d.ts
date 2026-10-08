@@ -515,6 +515,8 @@ export interface components {
       imageObjectKey: components["schemas"]["ImageObjectKey"];
     };
     CreateStoreApplicationInput: {
+      /** @description 店舗のモバイルオーダーが有効かどうか。 */
+      orderEnabled: boolean;
       /** @example たこ焼き屋 */
       name: string;
       /** @example 605教室 */
@@ -747,6 +749,8 @@ export interface components {
      */
     StoreCongestionLevel: 1 | 2 | 3;
     Store: {
+      /** @description 店舗のモバイルオーダーが有効かどうか。 */
+      orderEnabled: boolean;
       /** Format: uuid */
       id: string;
       name: string;
@@ -759,8 +763,10 @@ export interface components {
       closedAt: string | null;
       congestionLevel: components["schemas"]["StoreCongestionLevel"];
     };
-    /** @description 指定した項目のみ更新する。混雑度も省略した場合は変更しない。 */
+    /** @description 指定した項目のみ更新する。混雑度とモバイルオーダーの有効設定も省略した場合は変更しない。 */
     UpdateStoreInput: {
+      /** @description trueでモバイルオーダーを有効、falseで無効にする。 */
+      orderEnabled?: boolean;
       congestionLevel?: components["schemas"]["StoreCongestionLevel"];
       /** @description trueで閉店、falseで営業再開する */
       closed?: boolean;
@@ -783,6 +789,8 @@ export interface components {
       pictureUrl: string | null;
     };
     StoreApplication: {
+      /** @description 店舗のモバイルオーダーが有効かどうか。 */
+      orderEnabled: boolean;
       /** Format: uuid */
       id: string;
       name: string;

@@ -38,6 +38,7 @@ func (r *StoreRepository) CreateStoreApplication(ctx context.Context, input serv
 
 	// 店舗を作成する
 	store, err := qtx.CreateStore(ctx, sqlc.CreateStoreParams{
+		OrderEnabled:   input.OrderEnabled,
 		ID:             input.ID,
 		Name:           input.Name,
 		Room:           input.Room,
@@ -137,6 +138,7 @@ func (r *StoreRepository) UpdateStore(ctx context.Context, storeID uuid.UUID, in
 
 	qtx := r.queries.WithTx(tx)
 	dbStore, err := qtx.UpdateStore(ctx, sqlc.UpdateStoreParams{
+		OrderEnabled:    input.OrderEnabled,
 		Closed:          input.Closed,
 		CongestionLevel: (*int32)(input.CongestionLevel),
 		Room:            input.Room,
@@ -177,6 +179,7 @@ func (r *StoreRepository) UpdateStoreReviewStatus(ctx context.Context, storeID u
 // Converts sqlc.Store to entities.Store
 func (r *StoreRepository) toStore(dbStore sqlc.Store) entities.Store {
 	return entities.Store{
+		OrderEnabled:    dbStore.OrderEnabled,
 		ID:              dbStore.ID,
 		Name:            dbStore.Name,
 		Room:            dbStore.Room,
