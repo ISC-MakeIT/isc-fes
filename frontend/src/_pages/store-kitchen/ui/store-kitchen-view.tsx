@@ -11,11 +11,9 @@ type StoreKitchenViewProps = {
 };
 
 export function StoreKitchenView({ storeId }: StoreKitchenViewProps) {
-  const { data: pendingOrders } = useSuspenseQuery({
-    ...storeOrdersQueryOptions(storeId),
-    select: (orders) =>
-      orders.filter((order) => order.status === OrderStatus.Pending),
-  });
+  const { data: pendingOrders } = useSuspenseQuery(
+    storeOrdersQueryOptions(storeId, [OrderStatus.Pending]),
+  );
 
   return (
     <div className="flex flex-1 items-start gap-8 overflow-x-auto px-8 pt-10">
