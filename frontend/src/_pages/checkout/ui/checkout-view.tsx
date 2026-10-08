@@ -9,9 +9,9 @@ type CheckoutViewProps = {
   storeId: string;
 };
 
-export function CheckoutView({ storeId }: CheckoutViewProps) {
+export async function CheckoutView({ storeId }: CheckoutViewProps) {
   const queryClient = createQueryClient();
-  queryClient.prefetchQuery(fetchCartQueryOptions(storeId));
+  await queryClient.prefetchQuery(fetchCartQueryOptions(storeId));
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
