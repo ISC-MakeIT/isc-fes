@@ -21,6 +21,14 @@ func (r *CartRepository) UpdateCart(c context.Context, input carts_service.Updat
 	}
 	defer tx.Rollback(c)
 
+	if _, err := qtx.LockGuest(c, input.GuestID); err != nil {
+		return carts.Cart{}, err
+	}
+
+	if _, err := qtx.LockStoreForShare(c, input.StoreID); err != nil {
+		return carts.Cart{}, err
+	}
+
 	bv, err := qtx.BumpCartVersion(c, sqlc.BumpCartVersionParams{
 		GuestID:         input.GuestID,
 		StoreID:         input.StoreID,

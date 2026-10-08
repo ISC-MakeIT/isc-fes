@@ -39,12 +39,26 @@ func (r *ToppingsRepository) GetToppingByToppingIDAndStoreID(c context.Context, 
 }
 
 func (r *ToppingsRepository) CreateTopping(c context.Context, storeID uuid.UUID, name string, unitPrice int32) (toppings.Topping, error) {
-	dbTopping, err := r.queries.CreateTopping(c, sqlc.CreateToppingParams{
+	tx, qtx, err := repositories.SetupTransaction(c, r.pool, r.queries)
+	if err != nil {
+		return toppings.Topping{}, err
+	}
+	defer tx.Rollback(c)
+	if _, err := qtx.LockStoreForUpdate(c, storeID); err != nil {
+		return toppings.Topping{}, err
+	}
+	dbTopping, err := qtx.CreateTopping(c, sqlc.CreateToppingParams{
 		StoreID:   storeID,
 		Name:      name,
 		UnitPrice: unitPrice,
 	})
-	return db2entities.ToTopping(dbTopping), err
+	if err != nil {
+		return toppings.Topping{}, err
+	}
+	if err := tx.Commit(c); err != nil {
+		return toppings.Topping{}, err
+	}
+	return db2entities.ToTopping(dbTopping), nil
 }
 
 func (r *ToppingsRepository) DeleteTopping(c context.Context, storeID, toppingID uuid.UUID) error {
@@ -54,8 +68,12 @@ func (r *ToppingsRepository) DeleteTopping(c context.Context, storeID, toppingID
 	}
 	defer tx.Rollback(c)
 
+	if _, err := qtx.LockStoreForUpdate(c, storeID); err != nil {
+		return err
+	}
+
 	// menu_toppings テーブルの関連付けを削除する
-	err = qtx.DeleteMenuToppingsByToppingID(c, toppingID)
+	err = qtx.DeleteMenuToppingsByToppingID(c, sqlc.DeleteMenuToppingsByToppingIDParams{ToppingID: toppingID, StoreID: storeID})
 	if err != nil {
 		return err
 	}
@@ -75,14 +93,28 @@ func (r *ToppingsRepository) DeleteTopping(c context.Context, storeID, toppingID
 }
 
 func (r *ToppingsRepository) UpdateToppingByToppingIDAndStoreID(c context.Context, toppingID, storeID uuid.UUID, input toppings_service.UpdateToppingRepositoryInput) (toppings.Topping, error) {
-	dbTopping, err := r.queries.UpdateToppingByToppingIDAndStoreID(c, sqlc.UpdateToppingByToppingIDAndStoreIDParams{
+	tx, qtx, err := repositories.SetupTransaction(c, r.pool, r.queries)
+	if err != nil {
+		return toppings.Topping{}, err
+	}
+	defer tx.Rollback(c)
+	if _, err := qtx.LockStoreForUpdate(c, storeID); err != nil {
+		return toppings.Topping{}, err
+	}
+	dbTopping, err := qtx.UpdateToppingByToppingIDAndStoreID(c, sqlc.UpdateToppingByToppingIDAndStoreIDParams{
 		ToppingID: toppingID,
 		StoreID:   storeID,
 		Name:      input.Name,
 		UnitPrice: input.UnitPrice,
 		SoldOut:   input.SoldOut,
 	})
-	return db2entities.ToTopping(dbTopping), err
+	if err != nil {
+		return toppings.Topping{}, err
+	}
+	if err := tx.Commit(c); err != nil {
+		return toppings.Topping{}, err
+	}
+	return db2entities.ToTopping(dbTopping), nil
 }
 
 var _ toppings_service.ToppingsRepository = (*ToppingsRepository)(nil)

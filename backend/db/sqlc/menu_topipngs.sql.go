@@ -47,11 +47,16 @@ func (q *Queries) DeleteAllMenuToppingsByMenuID(ctx context.Context, menuID uuid
 
 const deleteMenuToppingsByToppingID = `-- name: DeleteMenuToppingsByToppingID :exec
 DELETE FROM menu_toppings
-WHERE topping_id = $1
+WHERE topping_id = $1 AND store_id = $2
 `
 
-func (q *Queries) DeleteMenuToppingsByToppingID(ctx context.Context, toppingID uuid.UUID) error {
-	_, err := q.db.Exec(ctx, deleteMenuToppingsByToppingID, toppingID)
+type DeleteMenuToppingsByToppingIDParams struct {
+	ToppingID uuid.UUID `json:"topping_id"`
+	StoreID   uuid.UUID `json:"store_id"`
+}
+
+func (q *Queries) DeleteMenuToppingsByToppingID(ctx context.Context, arg DeleteMenuToppingsByToppingIDParams) error {
+	_, err := q.db.Exec(ctx, deleteMenuToppingsByToppingID, arg.ToppingID, arg.StoreID)
 	return err
 }
 

@@ -51,10 +51,10 @@ ORDER BY
     toppings.id ASC;
 
 
--- name: CreateCart :one
+-- name: CreateCart :exec
 INSERT INTO carts (guest_id, store_id)
 VALUES (sqlc.arg(guest_id), sqlc.arg(store_id))
-RETURNING *;
+ON CONFLICT (guest_id, store_id) DO NOTHING;
 
 -- name: BumpCartVersion :one
 UPDATE carts

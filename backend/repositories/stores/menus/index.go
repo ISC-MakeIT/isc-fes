@@ -38,6 +38,10 @@ func (r *MenuRepository) CreateMenuWithToppings(c context.Context, input menuSer
 	defer tx.Rollback(c)
 
 	qtx := r.queries.WithTx(tx)
+
+	if _, err := qtx.LockStoreForUpdate(c, input.StoreID); err != nil {
+		return menus.Menu{}, err
+	}
 	m, err := qtx.CreateMenu(c, sqlc.CreateMenuParams{
 		ID:             input.ID,
 		StoreID:        input.StoreID,
@@ -68,7 +72,16 @@ func (r *MenuRepository) CreateMenuWithToppings(c context.Context, input menuSer
 }
 
 func (r *MenuRepository) DeleteMenuByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID) (int64, error) {
-	count, err := r.queries.DeleteMenuByStoreIDAndMenuID(c, sqlc.DeleteMenuByStoreIDAndMenuIDParams{
+	tx, err := r.pool.Begin(c)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback(c)
+	qtx := r.queries.WithTx(tx)
+	if _, err := qtx.LockStoreForUpdate(c, storeID); err != nil {
+		return 0, err
+	}
+	count, err := qtx.DeleteMenuByStoreIDAndMenuID(c, sqlc.DeleteMenuByStoreIDAndMenuIDParams{
 		StoreID: storeID,
 		ID:      menuID,
 	})
@@ -76,6 +89,9 @@ func (r *MenuRepository) DeleteMenuByStoreIDAndMenuID(c context.Context, storeID
 		return 0, fmt.Errorf("failed to delete menu: %w", err)
 	}
 
+	if err := tx.Commit(c); err != nil {
+		return 0, err
+	}
 	return count, nil
 }
 

@@ -44,6 +44,60 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /orders:
+    post:
+      operationId: createOrder
+      summary: カートから注文を確定する
+      description: |
+        同じGuest・店舗・元カートversionの再送は、現在の販売状況や権限にかかわらず同じ注文を返す。
+        通常のpending/ready注文は全店舗合計で2件まで。当該店舗のStaff/Managerによる注文は件数制限を免除し、集計から除外する。
+        成功時は同じカートの明細を消去してversionを1増やす。明細順序は保証しない。
+      security:
+        - GuestSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderInput"
+      responses:
+        "201":
+          description: 注文を作成した
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "200":
+          description: 成立済み注文への再送
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: 空カート・数量・メニュー種類数などの入力が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない、または承認されていない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: カートversion競合・閉店・利用不可の選択・同時注文件数制限
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /reviews:
     post:
       operationId: createReview
@@ -1608,6 +1662,124 @@ components:
           format: uuid
         role:
           $ref: "#/components/schemas/StoreMemberRole"
+    CreateOrderInput:
+      type: object
+      additionalProperties: false
+      required: [storeId, expectedCartVersion]
+      properties:
+        storeId:
+          type: string
+          format: uuid
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        expectedCartVersion:
+          type: integer
+          format: int32
+          minimum: 1
+          description: 注文に使うカートのversion。成立済み注文の再送にも同じ値を使用する。
+    OrderStatus:
+      type: string
+      enum: [pending, ready, completed, cancelled]
+    Order:
+      type: object
+      required:
+        [
+          id,
+          storeId,
+          status,
+          totalAmount,
+          displayNumber,
+          version,
+          storeName,
+          roomName,
+          items,
+          readyAt,
+          completedAt,
+          cancelledAt,
+          createdAt,
+          updatedAt,
+        ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        storeId:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        totalAmount:
+          type: integer
+          format: int64
+          description: トッピングを含む合計金額（円）
+        displayNumber:
+          type: integer
+          format: int32
+        version:
+          type: integer
+          format: int32
+        storeName:
+          type: string
+          description: 注文時の店舗名
+        roomName:
+          type: string
+          description: 注文時の教室名
+        items:
+          type: array
+          description: 注文時の明細。カート内の順序は保証しない。
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        readyAt:
+          type: string
+          format: date-time
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        cancelledAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    OrderItem:
+      type: object
+      required: [id, menuId, menuName, unitPrice, quantity, toppings]
+      properties:
+        id:
+          type: string
+          format: uuid
+        menuId:
+          type: string
+          format: uuid
+        menuName:
+          type: string
+        unitPrice:
+          type: integer
+          format: int32
+        quantity:
+          type: integer
+          format: int32
+        toppings:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItemTopping"
+    OrderItemTopping:
+      type: object
+      required: [toppingId, toppingName, unitPrice]
+      properties:
+        toppingId:
+          type: string
+          format: uuid
+        toppingName:
+          type: string
+        unitPrice:
+          type: integer
+          format: int32
     UpdateCartInput:
       type: object
       required:

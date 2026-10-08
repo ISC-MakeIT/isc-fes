@@ -4,7 +4,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 )
+
+const MaxActiveOrders = 2
 
 // Order は注文確定時のsnapshot。現在の商品情報から再計算しない。
 type Order struct {
@@ -46,4 +49,16 @@ type OrderItemTopping struct {
 	ToppingID   uuid.UUID
 	ToppingName string
 	UnitPrice   int32
+}
+
+// CanExemptOrderLimit は、当該店舗のStaff/Managerによる注文の件数制限を免除できるか判定する。
+func CanExemptOrderLimit(storeID uuid.UUID, membership entities.StoreMembership) bool {
+	return membership.StoreID == storeID &&
+		(membership.Role == entities.StoreMemberRoleStaff || membership.Role == entities.StoreMemberRoleManager)
+}
+
+// IsOrderLimitReached は、全店舗を通じた免除なしのpending/ready注文数が上限に達しているか判定する。
+// 件数制限を免除する注文では、この判定を適用しない。
+func IsOrderLimitReached(activeNonExemptOrderCount int64) bool {
+	return activeNonExemptOrderCount >= MaxActiveOrders
 }
