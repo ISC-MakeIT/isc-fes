@@ -21,6 +21,7 @@ import { guestStoreDetailUrl } from "@/shared/config";
 import { trackEvent } from "@/shared/lib/analytics";
 import { useQueryState } from "nuqs";
 import { floorParser } from "../model/floor-search-params";
+import { StoreCongestionBadge } from "@/entities/store";
 
 export type Floors = {
   level: Floor;
@@ -101,9 +102,7 @@ type FloorStoreListProps = {
 function FloorStoreList({ floor }: FloorStoreListProps) {
   const { data: stores } = useSuspenseQuery({
     ...visibleStoresQueryOptions(),
-    // FloorStoreListは学園祭当日用のページで、当日は店舗が更新されることはない想定
-    // visibleStoreは店舗側でも使うので呼び出し側からstaleTimeを設定
-    staleTime: Infinity,
+    staleTime: 30_000,
   });
   const storesByFloor = selectApprovedStoresByFloor(stores, floor);
 
@@ -127,8 +126,14 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
             imagePath={store.imageUrl}
             className="w-28 shrink-0"
           />
-          <div>
-            <p className="line-clamp-2 text-lg">{store.name}</p>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row justify-start gap-6">
+              <StoreCongestionBadge congestionLevel={store.congestionLevel} />
+              <p>{store.room}</p>
+            </div>
+            <p className="line-clamp-2 text-lg leading-6 font-semibold">
+              {store.name}
+            </p>
           </div>
           <ChevronRightIcon
             strokeWidth={0.5}
