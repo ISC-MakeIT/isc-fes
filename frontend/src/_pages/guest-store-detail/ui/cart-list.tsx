@@ -114,7 +114,8 @@ export function CartList() {
             type="button"
             variant="secondary"
             className="w-full rounded-sm px-6 py-2 font-semibold"
-            disabled={isSaving || hasPendingChanges}
+            disabled={isSaving || hasPendingChanges || !canCheckout}
+            onClick={checkout}
           >
             注文画面へ ＞
           </Button>
