@@ -52,6 +52,9 @@ export function CartOperationProvider({
   const displayedCartItems = draftCartItems ?? fetchedCart.items;
 
   function updateDraftCartItems(update: (items: CartItem[]) => CartItem[]) {
+    if (mutation.isPending) {
+      return;
+    }
     setDraftCartItems((currentItems) =>
       update(currentItems ?? fetchedCart.items),
     );
@@ -124,6 +127,9 @@ export function CartOperationProvider({
   }
 
   function clearCart() {
+    if (mutation.isPending) {
+      return;
+    }
     cartUpdateDebouncer.cancel();
     setDraftCartItems(null);
     mutation.mutate({

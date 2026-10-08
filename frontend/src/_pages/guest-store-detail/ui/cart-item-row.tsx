@@ -61,7 +61,7 @@ type CartItemSoldOutOverlayProps = {
   cartItem: CartItem;
 };
 function CartItemSoldOutOverlay({ cartItem }: CartItemSoldOutOverlayProps) {
-  const { removeItem } = useCartOperation();
+  const { removeItem, isSaving } = useCartOperation();
   return (
     <div className="bg-soldout-overlay absolute inset-0 z-10 flex flex-col items-center justify-center">
       <div className="flex flex-col gap-2">
@@ -71,6 +71,7 @@ function CartItemSoldOutOverlay({ cartItem }: CartItemSoldOutOverlayProps) {
       <Button
         variant="ghost"
         className="text-notice text-xs font-bold underline underline-offset-2"
+        disabled={isSaving}
         onClick={() => removeItem(cartItem.id)}
       >
         削除する
@@ -84,7 +85,7 @@ type CartItemToppingRowProps = {
 };
 
 function CartItemToppingRow({ topping }: CartItemToppingRowProps) {
-  const { removeTopping } = useCartOperation();
+  const { removeTopping, isSaving } = useCartOperation();
   return (
     <div
       key={topping.id}
@@ -97,6 +98,7 @@ function CartItemToppingRow({ topping }: CartItemToppingRowProps) {
         variant="ghost"
         aria-label={`${topping.name}を削除`}
         className="text-notice ml-auto px-2"
+        disabled={isSaving}
         onClick={() => removeTopping(topping.cartItemId, topping.toppingId)}
       >
         <XIcon size={10} strokeWidth={3} aria-hidden />
