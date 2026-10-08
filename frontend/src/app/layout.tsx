@@ -17,7 +17,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ふぇすNavi",
+  title: {
+    default: "ふぇすナビ",
+    template: "%s - ふぇすナビ",
+  },
   description:
     "情報科学専門学校の学園祭で店舗やメニューを探し、商品を注文できるアプリ",
 };
