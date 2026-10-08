@@ -59,4 +59,5 @@ export {
   EVENT_IMAGE_ASPECT,
 } from "./constants/image-aspect-ratios";
 
+export { Sentry } from "./sentry";
 export { FESTIVAL_TIME_ZONE } from "./constants/time-zone";

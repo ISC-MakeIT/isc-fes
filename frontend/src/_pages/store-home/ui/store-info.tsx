@@ -5,6 +5,11 @@ import { storeDetailQueryOptions } from "@/entities/store";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { STORE_IMAGE_ASPECT } from "@/shared/config";
 import { AllergenBadge } from "@/entities/allergen";
+import {
+  QuestionnaireTrigger,
+  useAppQuestionnaire,
+} from "@/widgets/app-questionnaire";
+import { useEffect } from "react";
 
 type StoreInfoProps = {
   storeId: string;
@@ -12,6 +17,12 @@ type StoreInfoProps = {
 
 export function StoreInfo({ storeId }: StoreInfoProps) {
   const { data: store } = useSuspenseQuery(storeDetailQueryOptions(storeId));
+  const { requestQuestionnaire } = useAppQuestionnaire();
+
+  useEffect(() => {
+    requestQuestionnaire(QuestionnaireTrigger.StoreHomeOpened);
+  }, []);
+
   return (
     <div className="border-b-primary flex flex-col items-center gap-12 border-b px-10 py-4 md:flex-row">
       <AspectRatioImage
