@@ -367,6 +367,56 @@ func (q *Queries) GetOrdersByGuestID(ctx context.Context, arg GetOrdersByGuestID
 	return items, nil
 }
 
+const getOrdersByStoreID = `-- name: GetOrdersByStoreID :many
+SELECT id, store_id, guest_id, status, total_amount, display_number, version, origin_cart_id, origin_cart_version, limit_exempted_by_account_id, store_name, room_name, ready_at, completed_at, cancelled_at, created_at, updated_at FROM orders
+WHERE store_id = $1
+  AND status = ANY($2::text[]::order_status[])
+ORDER BY created_at ASC, id ASC
+`
+
+type GetOrdersByStoreIDParams struct {
+	StoreID  uuid.UUID `json:"store_id"`
+	Statuses []string  `json:"statuses"`
+}
+
+func (q *Queries) GetOrdersByStoreID(ctx context.Context, arg GetOrdersByStoreIDParams) ([]Order, error) {
+	rows, err := q.db.Query(ctx, getOrdersByStoreID, arg.StoreID, arg.Statuses)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Order{}
+	for rows.Next() {
+		var i Order
+		if err := rows.Scan(
+			&i.ID,
+			&i.StoreID,
+			&i.GuestID,
+			&i.Status,
+			&i.TotalAmount,
+			&i.DisplayNumber,
+			&i.Version,
+			&i.OriginCartID,
+			&i.OriginCartVersion,
+			&i.LimitExemptedByAccountID,
+			&i.StoreName,
+			&i.RoomName,
+			&i.ReadyAt,
+			&i.CompletedAt,
+			&i.CancelledAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockOrderCart = `-- name: LockOrderCart :one
 SELECT id, guest_id, store_id, version FROM carts
 WHERE guest_id = $1 AND store_id = $2

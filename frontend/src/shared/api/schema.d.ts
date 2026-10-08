@@ -98,12 +98,7 @@ export interface paths {
     };
     /**
      * 店舗の注文一覧を取得する
-     * @description 当該店舗のStaff/Managerが、注文時の明細を含む店舗の注文一覧を古い注文から取得する。
-     *     statusesを省略した場合はpending/readyを対象にする。
-     *     キッチンはstatuses=pending、受け渡しはstatuses=pending&statuses=readyで取得する。
-     *     店舗の閉店・現在の販売状況にかかわらず取得できる。
-     *     現時点ではダミー実装としてAccountセッションのみを検証し、空の一覧を返す。
-     *     店舗の存在・Membershipの検証と注文取得は未実装。
+     * @description 店舗の注文一覧を取得する。
      */
     get: operations["getOrdersByStoreID"];
     put?: never;
@@ -1148,7 +1143,12 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description 店舗の注文一覧 */
+      /**
+       * @description 当該店舗のStaff/Managerの場合、全Guestの注文を注文時の明細付きで古い注文から返す。
+       *     statusesを省略した場合はpending/ready、指定した場合は指定した状態のいずれかに一致する注文を返す。
+       *     キッチンはstatuses=pending、受け渡しはstatuses=pending&statuses=readyで取得できる。
+       *     店舗の閉店・現在の販売状況にかかわらず取得でき、該当する注文がなければ空の一覧を返す。
+       */
       200: {
         headers: {
           [name: string]: unknown;
@@ -1157,7 +1157,7 @@ export interface operations {
           "application/json": components["schemas"]["GetOrdersResponse"];
         };
       };
-      /** @description 店舗IDまたはクエリパラメータが不正 */
+      /** @description 店舗IDがUUID形式ではない、またはstatusesに不正な値・重複した値を指定した場合。 */
       400: {
         headers: {
           [name: string]: unknown;
@@ -1175,7 +1175,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description 当該店舗のStaff/Managerではない */
+      /** @description ログイン中のAccountが当該店舗のStaff/Managerではない場合。Adminというだけでは閲覧できない。 */
       403: {
         headers: {
           [name: string]: unknown;
