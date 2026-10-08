@@ -13,6 +13,7 @@ import { StoreViewAnalytics } from "./store-view-analytics";
 import { CartList } from "./cart-list";
 import { CartOperationProvider } from "../model/cart-operation-context";
 import { fetchCartQueryOptions } from "@/entities/cart";
+import { StoreDetailCartLayout } from "./store-detail-cart-layout";
 
 type GuestStoreDetailViewProps = {
   storeId: string;
@@ -37,7 +38,7 @@ export async function GuestStoreDetailView({
           storeId={storeId}
           floorNumber={Number(store.room.charAt(0)) || undefined}
         />
-        <div className="mx-auto w-full lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10">
+        <StoreDetailCartLayout>
           <div className="min-w-0 lg:mx-auto lg:max-w-200">
             <div className="lg:flex lg:flex-row lg:items-start lg:gap-1.5 lg:px-6 lg:pt-10 lg:pb-8">
               <AspectRatioImage
@@ -69,9 +70,7 @@ export async function GuestStoreDetailView({
                 </div>
               </section>
             </div>
-
             <MenuList storeId={storeId} />
-
             <section className="flex flex-col items-center gap-8 px-6 pt-8 pb-16">
               <HeadingCard className="px-14 py-2">マップ</HeadingCard>
               {mapImage && (
@@ -83,9 +82,7 @@ export async function GuestStoreDetailView({
               )}
             </section>
           </div>
-
-          <CartList />
-        </div>
+        </StoreDetailCartLayout>
       </CartOperationProvider>
     </HydrationBoundary>
   );
