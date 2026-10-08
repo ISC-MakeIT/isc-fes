@@ -53,3 +53,4 @@ export const eventsUrl = (eventName?: string) =>
   eventName ? `/events#${encodeURIComponent(eventName)}` : "/events";
 export const guestMenuDetailUrl = (storeId: string, menuId: string) =>
   `/stores/${storeId}/menus/${menuId}`;
+export const checkout = (storeId: string) => `/stores/${storeId}/checkout`;
