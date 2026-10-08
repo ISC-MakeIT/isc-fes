@@ -20,8 +20,14 @@ import { calculateCartTotal } from "../lib/calculate-cart-total";
 export function CartList() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const { clearCart, displayedCartItems, isSaving, hasPendingChanges } =
-    useCartOperation();
+  const {
+    clearCart,
+    displayedCartItems,
+    isSaving,
+    hasPendingChanges,
+    canCheckout,
+    checkout,
+  } = useCartOperation();
 
   const totalQuantity = displayedCartItems.reduce(
     (total, item) => total + item.quantity,
@@ -46,12 +52,12 @@ export function CartList() {
               </span>
             </SheetTrigger>
 
-            {/* TODO: チェックアウト処理 */}
             <Button
               type="button"
               variant="secondary"
-              className="rounded-sm px-6 py-2 font-semibold"
-              disabled={isSaving || hasPendingChanges}
+              className="rounded-sm px-6 py-2 text-base font-semibold shadow-none"
+              disabled={isSaving || hasPendingChanges || !canCheckout}
+              onClick={checkout}
             >
               注文画面へ ＞
             </Button>

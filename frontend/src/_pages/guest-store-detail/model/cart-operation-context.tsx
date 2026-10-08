@@ -1,7 +1,7 @@
 "use client";
 
 import { CartItem, fetchCartQueryOptions, updateCart } from "@/entities/cart";
-import { cartKey } from "@/shared/config";
+import { cartKey, guestCheckoutUrl } from "@/shared/config";
 import {
   useMutation,
   useQueryClient,
@@ -15,6 +15,7 @@ import { removeCartItem } from "../lib/remove-cart-item";
 import { removeCartItemTopping } from "../lib/remove-cart-item-toppings";
 import { ErrorDialog } from "../ui/error-dialog";
 import { useDebouncer } from "@tanstack/react-pacer";
+import { useRouter } from "next/navigation";
 
 const CART_UPDATE_DELAY_MS = 1000;
 
@@ -24,8 +25,10 @@ type CartOperationContextValue = {
   removeItem: (cartItemId: string) => void;
   removeTopping: (cartItemId: string, toppingId: string) => void;
   clearCart: () => void;
+  checkout: () => void;
   isSaving: boolean;
   hasPendingChanges: boolean;
+  canCheckout: boolean;
   displayedCartItems: CartItem[];
 };
 
@@ -50,6 +53,8 @@ export function CartOperationProvider({
   const [draftCartItems, setDraftCartItems] = useState<CartItem[] | null>(null);
 
   const displayedCartItems = draftCartItems ?? fetchedCart.items;
+
+  const router = useRouter();
 
   function updateDraftCartItems(update: (items: CartItem[]) => CartItem[]) {
     if (mutation.isPending) {
@@ -138,6 +143,14 @@ export function CartOperationProvider({
     cartUpdateDebouncer.flush();
   }
 
+  function checkout() {
+    if (mutation.isPending) {
+      return;
+    }
+    cartUpdateDebouncer.flush();
+    router.push(guestCheckoutUrl(storeId));
+  }
+
   return (
     <CartOperationContext
       value={{
@@ -148,6 +161,9 @@ export function CartOperationProvider({
         clearCart,
         isSaving: mutation.isPending,
         hasPendingChanges: !!draftCartItems,
+        // チェックアウトできる条件は 売り切れ or 削除済みのアイテムがカートに含まれていないこと
+        canCheckout: fetchedCart.canCheckout,
+        checkout,
         displayedCartItems: displayedCartItems,
       }}
     >
