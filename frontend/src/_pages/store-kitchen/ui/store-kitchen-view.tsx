@@ -1,24 +1,22 @@
 "use client";
 
-import { fetchStoreOrders, Order } from "@/entities/order";
+import { Order, OrderItem } from "@/entities/order";
+import { storeOrdersQueryOptions } from "@/entities/order/api/fetch-store-orders";
 import { Card } from "@/shared/ui/card";
-import { CircleIcon } from "lucide-react";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { CircleIcon, PlusIcon } from "lucide-react";
 
 type StoreKitchenViewProps = {
   storeId: string;
 };
 
 export function StoreKitchenView({ storeId }: StoreKitchenViewProps) {
-  // TODO: 現状はステータス、更新順を考慮せずに適当に注文を表示している
-  //       具体的な仕様、APIが固まり次第ちゃんとする
-  const orders = fetchStoreOrders({ storeId });
+  const { data: orders } = useSuspenseQuery(storeOrdersQueryOptions(storeId));
   return (
-    <div className="flex flex-1 items-start overflow-x-auto pt-24">
-      <div className="flex items-start gap-8 px-8">
-        {orders.map((order) => (
-          <OrderCard key={order.id} order={order} />
-        ))}
-      </div>
+    <div className="flex flex-1 items-start gap-8 overflow-x-auto px-8 pt-10">
+      {orders.map((order) => (
+        <OrderCard key={order.id} order={order} />
+      ))}
 
       <div className="absolute right-3 bottom-3 grid grid-cols-[minmax(0,1fr)_5rem] text-[2.5rem] font-bold">
         <p>注文数：</p>
@@ -34,34 +32,44 @@ type OrderCardProps = {
 
 function OrderCard({ order }: OrderCardProps) {
   return (
-    <Card className="border-secondary shadow-primary flex flex-col items-center border-4 px-6 pt-6 pb-10 shadow-[4px_4px_0]">
-      <CircleIcon size={20} className="text-secondary fill-secondary" />
-      <div className="space-y-10">
-        <div className="space-y-4 text-center">
-          <p className="text-xl font-medium">注文番号</p>
-          <p className="text-[2.5rem] font-bold">{order.id}</p>
+    <Card className="border-secondary shadow-primary flex shrink-0 flex-col items-center rounded-md border-4 px-6 pt-4 pb-8 shadow-[4px_4px_0]">
+      <CircleIcon size={16} className="text-secondary fill-secondary" />
+      <div className="space-y-6">
+        <div className="flex flex-row items-center justify-center gap-2">
+          <p className="text-lg font-semibold">注文番号</p>
+          <p className="text-2xl font-bold">{order.displayNumber}</p>
         </div>
         {order.items.map((item) => (
-          <div
-            className="grid grid-cols-[12.065rem_5.5rem] text-2xl font-bold"
-            key={item.id}
-          >
-            <span>{item.name}</span>
-            <div className="flex justify-between">
-              <span>：</span>
-              <span className="tabular-nums">{item.quantity}個</span>
-            </div>
-
-            <div className="flex flex-col">
-              {item.toppings.map((topping) => (
-                <p key={topping.id} className="pl-8">
-                  {topping.name}
-                </p>
-              ))}
-            </div>
-          </div>
+          <OrderItemRow key={item.id} orderItem={item} />
         ))}
       </div>
     </Card>
+  );
+}
+
+type OrderItemRowProps = {
+  orderItem: OrderItem;
+};
+
+function OrderItemRow({ orderItem }: OrderItemRowProps) {
+  return (
+    <div className="flex flex-row justify-between gap-4 text-2xl font-bold">
+      <div className="">
+        <span>{orderItem.menuName}</span>
+        <div className="flex flex-col">
+          {orderItem.toppings.map((topping) => (
+            <div
+              key={topping.toppingId}
+              className="flex flex-row items-center gap-2 pt-2 pl-8 text-lg font-semibold"
+            >
+              <PlusIcon size={20} />
+              <p>{topping.toppingName}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <p className="tabular-nums">：{orderItem.quantity}個</p>
+    </div>
   );
 }
