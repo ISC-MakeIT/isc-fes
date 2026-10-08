@@ -31,7 +31,7 @@ export function EventScheduleView() {
   }
   return (
     <div className="mx-auto max-w-220">
-      <HeadingCard className="m-8 px-14 py-4">イベントスケジュール</HeadingCard>
+      <HeadingCard className="mx-auto my-8 px-14 py-2">イベント</HeadingCard>
       <div className="mx-8 flex flex-col gap-16 md:flex-row md:gap-6">
         <section className="w-full space-y-4 pb-16">
           <Card className={cn(cardStyle, "bg-secondary")}>
