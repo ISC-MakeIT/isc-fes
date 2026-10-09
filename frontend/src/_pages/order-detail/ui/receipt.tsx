@@ -104,9 +104,9 @@ function OrderItemRow({ item }: OrderItemRow) {
           {item.toppings.map((topping) => (
             <div
               key={topping.toppingId}
-              className="flex flex-row items-center gap-2 pt-2 pl-10 text-base"
+              className="flex flex-row items-start gap-2 pt-2 pl-10 text-base"
             >
-              <PlusIcon size={20} />
+              <PlusIcon size={24} className="shrink-0" />
               <p>{topping.toppingName}</p>
             </div>
           ))}
