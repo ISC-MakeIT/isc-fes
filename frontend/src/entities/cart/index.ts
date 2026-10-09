@@ -4,6 +4,7 @@ export {
   CartItemTopping,
   CartItemQuantity,
   MAX_CART_ITEMS_TYPE,
+  MAX_CART_ITEM_QUANTITY,
 } from "./model/types";
 
 export { updateCart } from "./api/update-cart";

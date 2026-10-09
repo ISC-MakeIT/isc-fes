@@ -1,30 +1,38 @@
 import Link from "next/link";
 import { ComponentProps } from "react";
 import { cn } from "../lib/utils";
-import { buttonVariants } from "./button";
+import { Button, buttonVariants } from "./button";
 import { actionButtonStyles } from "./action-button";
 import { VariantProps } from "class-variance-authority";
 
 type LinkButtonProps = ComponentProps<typeof Link> &
   VariantProps<typeof buttonVariants> & {
-    children?: React.ReactNode;
+    disabled?: boolean;
   };
 
 export function LinkButton({
   variant = "default",
   className,
   children,
-  ...props
+  disabled,
+  ...linkProps
 }: LinkButtonProps) {
+  const styles = cn(
+    buttonVariants({ variant: variant }),
+    actionButtonStyles(),
+    className,
+  );
+
+  if (disabled) {
+    return (
+      <Button type="button" disabled aria-disabled="true" className={styles}>
+        {children}
+      </Button>
+    );
+  }
+
   return (
-    <Link
-      className={cn(
-        buttonVariants({ variant: variant }),
-        actionButtonStyles(),
-        className,
-      )}
-      {...props}
-    >
+    <Link className={styles} {...linkProps}>
       {children}
     </Link>
   );

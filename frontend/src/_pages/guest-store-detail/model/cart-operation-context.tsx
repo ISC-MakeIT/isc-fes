@@ -1,0 +1,190 @@
+"use client";
+
+import { CartItem, fetchCartQueryOptions, updateCart } from "@/entities/cart";
+import { cartKey, guestCheckoutUrl } from "@/shared/config";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createContext, use, useEffect, useState } from "react";
+import { toCartUpdateItems } from "../lib/to-cart-update-items";
+import { increaseCartItemQuantity } from "../lib/increase-cart-item-quantity";
+import { decreaseCartItemQuantity } from "../lib/decrease-cart-item-quantity";
+import { removeCartItem } from "../lib/remove-cart-item";
+import { removeCartItemTopping } from "../lib/remove-cart-item-toppings";
+import { ErrorDialog } from "../ui/error-dialog";
+import { useDebouncer } from "@tanstack/react-pacer";
+import { useRouter } from "next/navigation";
+
+const CART_UPDATE_DELAY_MS = 1000;
+
+type CartOperationContextValue = {
+  increaseItemQuantity: (cartItemId: string) => void;
+  decreaseItemQuantity: (cartItemId: string) => void;
+  removeItem: (cartItemId: string) => void;
+  removeTopping: (cartItemId: string, toppingId: string) => void;
+  clearCart: () => void;
+  checkout: () => void;
+  isSaving: boolean;
+  hasPendingChanges: boolean;
+  canCheckout: boolean;
+  displayedCartItems: CartItem[];
+};
+
+const CartOperationContext = createContext<CartOperationContextValue | null>(
+  null,
+);
+
+type CartOperationProviderProps = {
+  storeId: string;
+  children: React.ReactNode;
+};
+
+export function CartOperationProvider({
+  storeId,
+  children,
+}: CartOperationProviderProps) {
+  const queryClient = useQueryClient();
+  const { data: fetchedCart } = useSuspenseQuery(
+    fetchCartQueryOptions(storeId),
+  );
+
+  const [draftCartItems, setDraftCartItems] = useState<CartItem[] | null>(null);
+
+  const displayedCartItems = draftCartItems ?? fetchedCart.items;
+
+  const router = useRouter();
+
+  function updateDraftCartItems(update: (items: CartItem[]) => CartItem[]) {
+    if (mutation.isPending) {
+      return;
+    }
+    setDraftCartItems((currentItems) =>
+      update(currentItems ?? fetchedCart.items),
+    );
+  }
+
+  const mutation = useMutation({
+    mutationFn: updateCart,
+    onError: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: cartKey(storeId),
+      });
+      setDraftCartItems(null);
+    },
+    onSuccess: (updatedCart) => {
+      queryClient.setQueryData(cartKey(storeId), updatedCart);
+      setDraftCartItems(null);
+    },
+  });
+
+  const cartUpdateDebouncer = useDebouncer(
+    async (items: CartItem[]) => {
+      await queryClient.cancelQueries({
+        queryKey: cartKey(storeId),
+      });
+      mutation.mutate({
+        storeId,
+        updateCartInput: {
+          expectedVersion: fetchedCart.version,
+          items: toCartUpdateItems(items),
+        },
+      });
+    },
+    {
+      wait: CART_UPDATE_DELAY_MS,
+      onUnmount: (debouncer) => {
+        debouncer.flush();
+      },
+    },
+  );
+
+  useEffect(() => {
+    if (!draftCartItems || mutation.isPending) {
+      return;
+    }
+
+    cartUpdateDebouncer.maybeExecute(draftCartItems);
+
+    return () => {
+      cartUpdateDebouncer.cancel();
+    };
+  }, [mutation.isPending, draftCartItems, storeId]);
+
+  function increaseItemQuantity(cartItemId: string) {
+    updateDraftCartItems((items) =>
+      increaseCartItemQuantity(items, cartItemId),
+    );
+  }
+
+  function decreaseItemQuantity(cartItemId: string) {
+    updateDraftCartItems((items) =>
+      decreaseCartItemQuantity(items, cartItemId),
+    );
+  }
+
+  function removeItem(cartItemId: string) {
+    updateDraftCartItems((items) => removeCartItem(items, cartItemId));
+  }
+
+  function removeTopping(cartItemId: string, toppingId: string) {
+    updateDraftCartItems((items) =>
+      removeCartItemTopping(items, cartItemId, toppingId),
+    );
+  }
+
+  async function clearCart() {
+    if (mutation.isPending) {
+      return;
+    }
+    setDraftCartItems([]);
+    cartUpdateDebouncer.maybeExecute([]);
+    cartUpdateDebouncer.flush();
+  }
+
+  function checkout() {
+    if (mutation.isPending) {
+      return;
+    }
+    cartUpdateDebouncer.flush();
+    router.push(guestCheckoutUrl(storeId));
+  }
+
+  return (
+    <CartOperationContext
+      value={{
+        increaseItemQuantity,
+        decreaseItemQuantity,
+        removeItem,
+        removeTopping,
+        clearCart,
+        isSaving: mutation.isPending,
+        hasPendingChanges: !!draftCartItems,
+        // チェックアウトできる条件は 売り切れ or 削除済みのアイテムがカートに含まれていないこと
+        canCheckout: fetchedCart.canCheckout,
+        checkout,
+        displayedCartItems: displayedCartItems,
+      }}
+    >
+      {mutation.isError && (
+        <ErrorDialog>
+          <p>{mutation.error.message}</p>
+        </ErrorDialog>
+      )}
+      {children}
+    </CartOperationContext>
+  );
+}
+
+export function useCartOperation() {
+  const context = use(CartOperationContext);
+
+  if (!context) {
+    throw new Error(
+      "useCartOperationはCartOperationProviderの中で使用してください",
+    );
+  }
+
+  return context;
+}

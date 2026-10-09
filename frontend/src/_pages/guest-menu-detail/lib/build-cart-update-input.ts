@@ -1,6 +1,7 @@
 import {
   Cart,
   createCartItemIdentityKey,
+  MAX_CART_ITEM_QUANTITY,
   summarizeCartItems,
   UpdateCartInput,
 } from "@/entities/cart";
@@ -14,6 +15,8 @@ type BuildCartUpdateInputParams = {
 
 /**
  * 既存のカートに新しいアイテムを追加して、カート更新APIに送れるデータへ変換する純粋関数
+ * もしカートに同じ内容のアイテムがあれば統合
+ * （マッチしたアイテムが複数あれば、先に見つけたitem.idへ統合）
  * @param param0
  * @returns UpdateCartInput
  */
@@ -46,13 +49,15 @@ export function buildCartUpdateInput({
         toppingIds: item.toppings.map((topping) => topping.toppingId),
       });
 
+      const nextQuantity =
+        itemIdentityKey === selectedItemIdentityKey
+          ? currentQuantity + quantity
+          : currentQuantity;
+
       return {
         id: item.id,
         menuId: item.menuId,
-        quantity:
-          itemIdentityKey === selectedItemIdentityKey
-            ? currentQuantity + quantity
-            : currentQuantity,
+        quantity: Math.min(nextQuantity, MAX_CART_ITEM_QUANTITY),
         toppingIds: item.toppings.map((topping) => topping.toppingId),
       };
     },

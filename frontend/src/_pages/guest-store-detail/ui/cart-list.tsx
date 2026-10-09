@@ -10,53 +10,32 @@ import {
 import Image from "next/image";
 import CartIcon from "./assets/cart-icon.svg";
 import { Button } from "@/shared/ui/button";
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
-import {
-  fetchCartQueryOptions,
-  summarizeCartItems,
-  updateCart,
-} from "@/entities/cart";
 import { useState } from "react";
-import { cartKey } from "@/shared/config";
 import { Badge } from "@/shared/ui/badge";
-import { buildClearCartInput } from "../lib/build-clear-cart-input";
 import { formatYen } from "@/shared/lib/formatYen";
 import { CartContents } from "./cart-contents";
+import { useCartOperation } from "../model/cart-operation-context";
+import { calculateCartTotal } from "../lib/calculate-cart-total";
 
-type CartListProps = {
-  storeId: string;
-};
-
-export function CartList({ storeId }: CartListProps) {
-  const queryClient = useQueryClient();
-  const { data: cart } = useSuspenseQuery(fetchCartQueryOptions(storeId));
-
+export function CartList() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const summarizedItems = summarizeCartItems(cart.items);
-  const totalQuantity = summarizedItems.reduce(
+  const {
+    clearCart,
+    displayedCartItems,
+    isSaving,
+    hasPendingChanges,
+    canCheckout,
+    checkout,
+  } = useCartOperation();
+
+  const totalQuantity = displayedCartItems.reduce(
     (total, item) => total + item.quantity,
     0,
   );
+  const totalAmount = calculateCartTotal(displayedCartItems);
 
-  const clearCartMutation = useMutation({
-    mutationFn: updateCart,
-    onError: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: cartKey(storeId),
-      });
-    },
-    onSuccess: (updatedCart) => {
-      queryClient.setQueryData(cartKey(storeId), updatedCart);
-      setIsSheetOpen(false);
-    },
-  });
-
-  if (summarizedItems.length === 0) {
+  if (displayedCartItems.length === 0) {
     return null;
   }
 
@@ -69,15 +48,16 @@ export function CartList({ storeId }: CartListProps) {
             <SheetTrigger className="flex h-20 flex-1 flex-row items-center gap-4">
               <CartBadge totalQuantity={totalQuantity} />
               <span className="text-xl font-medium">
-                {formatYen(cart.totalAmount)}
+                {formatYen(totalAmount)}
               </span>
             </SheetTrigger>
 
-            {/* TODO: チェックアウト処理 */}
             <Button
               type="button"
               variant="secondary"
-              className="rounded-sm px-6 py-2 font-semibold"
+              className="rounded-sm px-6 py-2 text-base font-semibold shadow-none"
+              disabled={isSaving || hasPendingChanges || !canCheckout}
+              onClick={checkout}
             >
               注文画面へ ＞
             </Button>
@@ -94,20 +74,15 @@ export function CartList({ storeId }: CartListProps) {
               <Button
                 type="button"
                 variant="ghost"
-                disabled={clearCartMutation.isPending}
                 className="text-notice text-sm"
-                onClick={() =>
-                  clearCartMutation.mutate({
-                    storeId,
-                    updateCartInput: buildClearCartInput(cart),
-                  })
-                }
+                onClick={clearCart}
+                disabled={isSaving}
               >
                 全て削除
               </Button>
             </SheetHeader>
 
-            <CartContents storeId={storeId} />
+            <CartContents />
           </SheetContent>
         </Sheet>
       </div>
@@ -119,33 +94,28 @@ export function CartList({ storeId }: CartListProps) {
           <Button
             type="button"
             variant="ghost"
-            disabled={clearCartMutation.isPending}
             className="text-notice text-sm"
-            onClick={() =>
-              clearCartMutation.mutate({
-                storeId,
-                updateCartInput: buildClearCartInput(cart),
-              })
-            }
+            disabled={isSaving}
+            onClick={clearCart}
           >
             全て削除
           </Button>
         </header>
-        <CartContents storeId={storeId} />
+        <CartContents />
 
         <div className="flex h-20 flex-row items-center justify-center gap-4">
           <CartBadge totalQuantity={totalQuantity} />
-          <span className="text-xl font-medium">
-            {formatYen(cart.totalAmount)}
-          </span>
+          <span className="text-xl font-medium">{formatYen(totalAmount)}</span>
         </div>
 
         {/* TODO: チェックアウト処理 */}
-        <div className="px-6">
+        <div className="px-6 pb-6">
           <Button
             type="button"
             variant="secondary"
             className="w-full rounded-sm px-6 py-2 font-semibold"
+            disabled={isSaving || hasPendingChanges || !canCheckout}
+            onClick={checkout}
           >
             注文画面へ ＞
           </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { MAX_CART_ITEMS_TYPE } from "@/entities/cart";
+import { MAX_CART_ITEM_QUANTITY, MAX_CART_ITEMS_TYPE } from "@/entities/cart";
 import { Menu } from "@/entities/menu";
 import { formatYen } from "@/shared/lib/formatYen";
 import { Button } from "@/shared/ui/button";
@@ -41,6 +41,8 @@ export function MenuOrderActions({
           onDecrease={onDecrease}
           onIncrease={onIncrease}
           quantity={quantity}
+          isDisabledDecreaseButton={quantity <= 1}
+          isDisabledIncreaseButton={quantity >= MAX_CART_ITEM_QUANTITY}
         />
       </div>
 
