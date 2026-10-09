@@ -32,16 +32,26 @@ export function Receipt({ orderId }: ReceiptProps) {
   return (
     <div className="border-foreground w-full space-y-4 border p-4">
       <section className="flex flex-row justify-between gap-2">
-        <Image src={UpperLeft} alt="" />
+        <Image src={UpperLeft} alt="" draggable={false} />
         <div className="flex w-full flex-col">
           <span className="border-primary w-full border-t-2" />
           <div className="flex flex-row justify-center gap-3 p-3">
-            <Image src={HeadingLeft} alt="" className="relative top-3" />
-            <Image src={HeadingCenter} alt="" />
-            <Image src={HeadingRight} alt="" className="relative top-3" />
+            <Image
+              src={HeadingLeft}
+              alt=""
+              className="relative top-3"
+              draggable={false}
+            />
+            <Image src={HeadingCenter} alt="" draggable={false} />
+            <Image
+              src={HeadingRight}
+              alt=""
+              className="relative top-3"
+              draggable={false}
+            />
           </div>
         </div>
-        <Image src={UpperRight} alt="" />
+        <Image src={UpperRight} alt="" draggable={false} />
       </section>
 
       <section className="border-primary flex flex-col items-center gap-2 border-x-2 px-4">
@@ -65,23 +75,30 @@ export function Receipt({ orderId }: ReceiptProps) {
       </section>
 
       <section className="flex flex-row gap-2">
-        <Image src={LowerLeft} alt="" />
+        <Image src={LowerLeft} alt="" draggable={false} />
         <div className="flex w-full flex-col justify-end">
           <div className="flex flex-row justify-between">
             <Image
               src={FooterLeft}
               alt=""
               className="relative -top-7 right-9"
+              draggable={false}
             />
             <Image
               src={FooterRight}
               alt=""
               className="relative -top-7 left-9"
+              draggable={false}
             />
           </div>
           <span className="border-primary w-full border-b-2" />
         </div>
-        <Image src={LowerRight} alt="" />
+        <Image
+          src={LowerRight}
+          alt=""
+          draggable={false}
+          className="select-none"
+        />
       </section>
     </div>
   );
