@@ -38,8 +38,18 @@ func (s *Server) GetOrderByID(c *gin.Context, orderID uuid.UUID) {
 }
 
 func (s *Server) GetOrdersByStoreID(c *gin.Context, storeID uuid.UUID, params GetOrdersByStoreIDParams) {
-	// TODO: 当該店舗のStaff/Managerであることを検証して注文を取得し、状態で絞り込む。
-	c.JSON(http.StatusOK, GetOrdersResponse{Data: []Order{}, Total: 0})
+	var statuses []domain.OrderStatus
+	if params.Statuses != nil {
+		statuses = utils.Map(*params.Statuses, func(status OrderStatus) domain.OrderStatus {
+			return domain.OrderStatus(status)
+		})
+	}
+	orders, err := s.orders.GetOrdersByStoreID(c.Request.Context(), storeID, statuses)
+	if err != nil {
+		s.handleCommonServiceErrors(c, err, CommonErrorMessages{NotFound: "店舗が見つかりません"})
+		return
+	}
+	c.JSON(http.StatusOK, GetOrdersResponse{Data: utils.Map(orders, toOrderResponse), Total: len(orders)})
 }
 
 func (s *Server) UpdateOrderByStoreIDAndOrderID(c *gin.Context, storeID uuid.UUID, orderID uuid.UUID) {

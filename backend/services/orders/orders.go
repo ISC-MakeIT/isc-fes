@@ -35,11 +35,16 @@ type CreateResult struct {
 	Replayed bool
 }
 
-// 注文作成とGuest自身の注文取得に必要な操作だけを要求する。
+// 注文作成・Guest自身の注文取得・店舗の注文一覧取得に必要な操作だけを要求する。
 type Repository interface {
 	CreateOrder(context.Context, CreateRepositoryInput) (CreateResult, error)
 	GetOrdersByGuestID(context.Context, uuid.UUID, []orders.OrderStatus) ([]orders.Order, error)
+	GetOrdersByStoreID(context.Context, uuid.UUID, []orders.OrderStatus) ([]orders.Order, error)
 	GetOrderByIDAndGuestID(ctx context.Context, orderID, guestID uuid.UUID) (orders.Order, error)
+}
+
+type StoreRepository interface {
+	GetStoreByID(context.Context, uuid.UUID) (entities.Store, error)
 }
 
 type CurrentAccountLoader interface {
@@ -51,13 +56,24 @@ type GuestResolver interface {
 }
 
 type OrderService struct {
-	repository    Repository
-	accountLoader CurrentAccountLoader
-	guestResolver GuestResolver
+	repository                Repository
+	accountLoader             CurrentAccountLoader
+	guestResolver             GuestResolver
+	storeRepository           StoreRepository
+	storeMembershipRepository services.StoreMembershipRepository
 }
 
-func NewOrderService(repository Repository, accountLoader CurrentAccountLoader, guestResolver GuestResolver) *OrderService {
-	return &OrderService{repository: repository, accountLoader: accountLoader, guestResolver: guestResolver}
+func NewOrderService(
+	repository Repository,
+	accountLoader CurrentAccountLoader,
+	guestResolver GuestResolver,
+	storeRepository StoreRepository,
+	storeMembershipRepository services.StoreMembershipRepository,
+) *OrderService {
+	return &OrderService{
+		repository: repository, accountLoader: accountLoader, guestResolver: guestResolver,
+		storeRepository: storeRepository, storeMembershipRepository: storeMembershipRepository,
+	}
 }
 
 func (s *OrderService) CreateOrder(ctx context.Context, input CreateInput) (CreateResult, error) {
