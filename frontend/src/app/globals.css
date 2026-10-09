@@ -66,6 +66,11 @@
   --shadow-button-destructive: 4px 4px 0 var(--pink-strong);
   /* TODO: サブカラー2を定義したのでそっち使うようにしたい */
   --color-allergen-card: var(--orange);
+  --shadow-bottom-bar: 0 -4px 4px
+    color-mix(in oklch, var(--foreground) 25%, transparent);
+  --color-cart-sheet-header: var(--cart-sheet-header);
+  --color-cart-quantity-badge: var(--yellow-strong);
+  --color-soldout-overlay: oklch(from var(--background) l c h / 75%);
 }
 
 :root {
@@ -106,6 +111,7 @@
   --close-button: #ea6082;
   --dialog-overlay: #3e3e3ebf;
   --editor-header: #e2851b80;
+  --cart-sheet-header: #f9e589;
 
   /* primitive token */
   --black-soft: #575757;
