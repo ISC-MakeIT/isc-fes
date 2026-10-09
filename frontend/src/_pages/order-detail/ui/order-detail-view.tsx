@@ -5,6 +5,7 @@ import { Receipt } from "./receipt";
 import { createQueryClient } from "@/shared/api";
 import { fetchOrderByidQueryOptions } from "../api/fetch-order-by-id";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { Ticket } from "./ticket";
 
 type OrderDetailViewProps = {
   orderId: string;
@@ -16,18 +17,22 @@ export async function OrderDetailView({ orderId }: OrderDetailViewProps) {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <main className="flex flex-col items-center gap-4 p-8 pb-16">
+      <main className="mx-auto flex max-w-150 flex-col items-center gap-4 p-8 pb-16">
         <HeadingCard className="px-14 py-2 text-[1.375rem]">
           注文完了
         </HeadingCard>
 
         <p className="font-semibold">
-          こちらの画面は、商品受け取り時
-          <br />
-          に店員に提示してください。
+          こちらの画面は、商品受け取り時に店員に提示してください。
         </p>
 
-        <Receipt orderId={orderId} />
+        <div className="relative flex w-fit flex-col items-center pb-46 lg:flex lg:flex-row lg:pb-0">
+          <Receipt orderId={orderId} />
+
+          <div className="absolute bottom-3 lg:-top-1 lg:-right-70">
+            <Ticket orderId={orderId} />
+          </div>
+        </div>
 
         <LinkButton
           href={homeUrl()}

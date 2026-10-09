@@ -14,6 +14,7 @@ import FooterLeft from "./assets/footer-left.svg";
 import FooterRight from "./assets/footer-right.svg";
 import { OrderItem } from "@/entities/order";
 import { formatYen } from "@/shared/lib/formatYen";
+import { PlusIcon } from "lucide-react";
 
 type ReceiptProps = {
   orderId: string;
@@ -98,7 +99,18 @@ function OrderItemRow({ item }: OrderItemRow) {
   return (
     <li className="border-foreground flex flex-row justify-between gap-6 border-b py-4 text-lg font-semibold">
       <div className="w-full">
-        <p>{item.menuName}</p>
+        <div>
+          <p>{item.menuName}</p>
+          {item.toppings.map((topping) => (
+            <div
+              key={topping.toppingId}
+              className="flex flex-row items-center gap-2 pt-2 pl-10 text-base"
+            >
+              <PlusIcon size={20} />
+              <p>{topping.toppingName}</p>
+            </div>
+          ))}
+        </div>
         <div className="ml-full gap-2 space-x-2 text-right">
           <span>{formatYen(unitPriceWithTopping)}</span>
           <span>×</span>
@@ -106,7 +118,9 @@ function OrderItemRow({ item }: OrderItemRow) {
         </div>
       </div>
 
-      <p className="mt-auto">{formatYen(unitPriceWithTopping)}</p>
+      <p className="mt-auto">
+        {formatYen(unitPriceWithTopping * item.quantity)}
+      </p>
     </li>
   );
 }
