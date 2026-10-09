@@ -15,6 +15,7 @@ import FooterRight from "./assets/footer-right.svg";
 import { OrderItem } from "@/entities/order";
 import { formatYen } from "@/shared/lib/formatYen";
 import { PlusIcon } from "lucide-react";
+import { FESTIVAL_TIME_ZONE } from "@/shared/config";
 
 type ReceiptProps = {
   orderId: string;
@@ -23,8 +24,11 @@ type ReceiptProps = {
 export function Receipt({ orderId }: ReceiptProps) {
   const { data: order } = useSuspenseQuery(fetchOrderByidQueryOptions(orderId));
 
-  const createdDate = order.createdAt.toLocaleDateString("ja-JP");
+  const createdDate = order.createdAt.toLocaleDateString("ja-JP", {
+    timeZone: FESTIVAL_TIME_ZONE,
+  });
   const createdTime = order.createdAt.toLocaleTimeString("ja-JP", {
+    timeZone: FESTIVAL_TIME_ZONE,
     hour: "2-digit",
     minute: "2-digit",
   });
