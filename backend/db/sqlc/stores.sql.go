@@ -310,6 +310,54 @@ func (q *Queries) GetVisibleStoresByAccountID(ctx context.Context, accountID uui
 	return items, nil
 }
 
+const lockStoreForShare = `-- name: LockStoreForShare :one
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at, congestion_level FROM stores WHERE id = $1 FOR SHARE
+`
+
+// 注文・カートは販売情報の変更を防ぎつつ、別Guestの処理と共有ロックを共存させる。
+func (q *Queries) LockStoreForShare(ctx context.Context, id uuid.UUID) (Store, error) {
+	row := q.db.QueryRow(ctx, lockStoreForShare, id)
+	var i Store
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Room,
+		&i.Description,
+		&i.ImageObjectKey,
+		&i.ReviewStatus,
+		&i.SubmittedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ClosedAt,
+		&i.CongestionLevel,
+	)
+	return i, err
+}
+
+const lockStoreForUpdate = `-- name: LockStoreForUpdate :one
+SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at, congestion_level FROM stores WHERE id = $1 FOR UPDATE
+`
+
+// 商品・関連・Membershipの変更は、同じStore行を排他ロックしてから行う。
+func (q *Queries) LockStoreForUpdate(ctx context.Context, id uuid.UUID) (Store, error) {
+	row := q.db.QueryRow(ctx, lockStoreForUpdate, id)
+	var i Store
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Room,
+		&i.Description,
+		&i.ImageObjectKey,
+		&i.ReviewStatus,
+		&i.SubmittedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ClosedAt,
+		&i.CongestionLevel,
+	)
+	return i, err
+}
+
 const updateStore = `-- name: UpdateStore :one
 UPDATE stores
 SET

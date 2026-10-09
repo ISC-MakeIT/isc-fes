@@ -36,9 +36,9 @@ NAT Gatewayは使用せず、EC2に関連付けたElastic IPから直接Internet
 
 Security Groupの受信ルールは次の通信だけを許可する。
 
-| Port | Protocol | Source | Purpose |
-| --- | --- | --- | --- |
-| 443 | TCP | `0.0.0.0/0` | HTTPS |
+| Port | Protocol | Source      | Purpose |
+| ---- | -------- | ----------- | ------- |
+| 443  | TCP      | `0.0.0.0/0` | HTTPS   |
 
 SSH、APIの内部Port、DatabaseのPortはインターネットへ公開しない。
 EC2の管理にはAWS Systems Manager Session Managerを使用する。
@@ -54,14 +54,14 @@ AWS管理Policyの`AmazonSSMManagedInstanceCore`は、全Parameterに対する`s
 
 ## API server instance
 
-| Setting | Value |
-| --- | --- |
-| AMI | 最新のAmazon Linux 2023 ARM64 |
+| Setting       | Value                               |
+| ------------- | ----------------------------------- |
+| AMI           | 最新のAmazon Linux 2023 ARM64       |
 | Instance type | `t4g.micro`（2 vCPU、1 GiB Memory） |
-| CPU credits | `standard` |
-| Root volume | 20 GiB gp3、暗号化あり |
-| Public IP | Elastic IPを明示的に関連付け |
-| SSH key pair | なし |
+| CPU credits   | `standard`                          |
+| Root volume   | 20 GiB gp3、暗号化あり              |
+| Public IP     | Elastic IPを明示的に関連付け        |
+| SSH key pair  | なし                                |
 
 ECRへpushするBackend ImageがARM64なので、EC2にもARM64のGraviton Instanceを使用する。
 Public IPv4 Addressの自動割り当ては無効化し、学校側のDNSへ設定するElastic IPだけを使用する。
@@ -262,11 +262,11 @@ Terraform適用後、次のTerraform OutputをGitHub Repository Variableへ設�
 Repository Variableを設定する。先にmergeすると、最初のWorkflowはAWS認証情報を
 取得できず失敗する。
 
-| Repository Variable | Terraform Output |
-| --- | --- |
-| `AWS_ECR_PUSH_ROLE_ARN` | `github_actions_ecr_push_role_arn` |
+| Repository Variable           | Terraform Output                         |
+| ----------------------------- | ---------------------------------------- |
+| `AWS_ECR_PUSH_ROLE_ARN`       | `github_actions_ecr_push_role_arn`       |
 | `AWS_BACKEND_DEPLOY_ROLE_ARN` | `github_actions_backend_deploy_role_arn` |
-| `AWS_ACCOUNT_ID` | `aws_account_id` |
+| `AWS_ACCOUNT_ID`              | `aws_account_id`                         |
 
 ```shell
 terraform -chdir=infra/aws output -raw github_actions_ecr_push_role_arn

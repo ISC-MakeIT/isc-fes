@@ -21,6 +21,14 @@ func (r *CartRepository) UpdateCart(c context.Context, input carts_service.Updat
 	}
 	defer tx.Rollback(c)
 
+	if _, err := qtx.LockGuest(c, input.GuestID); err != nil {
+		return carts.Cart{}, err
+	}
+
+	if _, err := qtx.LockStoreForShare(c, input.StoreID); err != nil {
+		return carts.Cart{}, err
+	}
+
 	bv, err := qtx.BumpCartVersion(c, sqlc.BumpCartVersionParams{
 		GuestID:         input.GuestID,
 		StoreID:         input.StoreID,
@@ -76,6 +84,19 @@ func (r *CartRepository) UpdateCart(c context.Context, input carts_service.Updat
 			toppingIDs = append(toppingIDs, input.Items[i].ToppingIDs[j])
 		}
 	}
+	valid, err := qtx.ValidateCartItemToppingSelections(c, sqlc.ValidateCartItemToppingSelectionsParams{
+		CartID:      bv.ID,
+		StoreID:     input.StoreID,
+		CartItemIds: cartItemIDs,
+		ToppingIds:  toppingIDs,
+	})
+	if err != nil {
+		return carts.Cart{}, err
+	}
+	if !valid {
+		return carts.Cart{}, carts_service.ErrCartItemInvalid
+	}
+
 	err = qtx.InsertCartItemToppingsIfNotExists(c, sqlc.InsertCartItemToppingsIfNotExistsParams{
 		CartID:      bv.ID,
 		StoreID:     input.StoreID,

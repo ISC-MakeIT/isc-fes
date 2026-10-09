@@ -27,9 +27,6 @@ export function EventBanners({ initialDateTime }: EventBannersProps) {
 
   const bannerRefs = useRef<Array<HTMLAnchorElement | null>>([]);
 
-  // 時刻の初期化と定期更新
-  useEffect(() => {}, []);
-
   // 初期描画時、開催中のバナーにスクロールを合わせる
   useEffect(() => {
     const now = Temporal.Now.plainDateTimeISO(FESTIVAL_TIME_ZONE);

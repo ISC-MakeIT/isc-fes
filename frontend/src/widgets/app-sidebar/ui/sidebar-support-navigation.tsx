@@ -3,6 +3,7 @@ import Link from "next/link";
 import { DotText } from "@/shared/ui/dot-text";
 import { sidebarNavigationStyle } from "./sidebar-navigation-styles";
 import { createSupportNavigationItems } from "../config/create-support-navigation-items";
+import { ArrowUpRightIcon } from "lucide-react";
 
 export function SidebarSupportNavigation() {
   const supportNavigationItems = createSupportNavigationItems();
@@ -13,11 +14,12 @@ export function SidebarSupportNavigation() {
         size="lg"
         className={sidebarNavigationStyle}
         render={
-          // noopener noreferrer = 遷移先から元ページを操作されるのを防げるらしい
+          //  noreferrer = 遷移先から元ページを操作されるのを防げるらしい
           <Link href={item.href} target="_blank" rel="noreferrer" />
         }
       >
         <DotText>{item.label}</DotText>
+        <ArrowUpRightIcon />
       </SidebarMenuButton>
     </SidebarMenuItem>
   ));

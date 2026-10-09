@@ -53,6 +53,7 @@ function createStore(room: Room, reviewStatus: StoreReviewStatus) {
     room: room,
     reviewStatus: reviewStatus,
     allergens: [],
+    congestionLevel: 1,
   };
 
   return store;

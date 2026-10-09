@@ -26,6 +26,10 @@ import { useRef } from "react";
 import { useMenuEditor } from "../model/hooks/use-menu-editor";
 import { menuToppingsQueryOptions } from "@/entities/topping";
 import { trackEvent } from "@/shared/lib/analytics";
+import {
+  QuestionnaireTrigger,
+  useAppQuestionnaire,
+} from "@/widgets/app-questionnaire";
 
 type EditMenuFormProps = {
   menuId: string;
@@ -55,6 +59,8 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
 
   const queryClient = useQueryClient();
 
+  const { requestQuestionnaire } = useAppQuestionnaire();
+
   // SSCの実行時点ではどのメニューを編集するか未確定なので、上位のSSCでのprefetchはしない
   const { data: menuToppingIds } = useSuspenseQuery({
     ...menuToppingsQueryOptions({ storeId, menuId: menu.id }),
@@ -73,6 +79,7 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
         }),
       ]);
       closeEditor();
+      requestQuestionnaire(QuestionnaireTrigger.MenuUpdated);
     },
   });
 
@@ -88,6 +95,7 @@ function EditMenuFormContent({ menu, storeId }: EditMenuFormContentProps) {
         }),
       ]);
       closeEditor();
+      requestQuestionnaire(QuestionnaireTrigger.MenuDeleted);
     },
   });
 

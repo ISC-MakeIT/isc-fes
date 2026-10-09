@@ -22,7 +22,13 @@ SELECT
     toppings.name AS topping_name,
     toppings.unit_price AS topping_unit_price,
     toppings.sold_out AS topping_sold_out,
-    toppings.deleted_at AS topping_deleted_at
+    toppings.deleted_at AS topping_deleted_at,
+    EXISTS (
+        SELECT 1 FROM menu_toppings AS mt
+        WHERE mt.menu_id = cart_items.menu_id
+          AND mt.topping_id = cart_item_toppings.topping_id
+          AND mt.store_id = cart_items.store_id
+    ) AS topping_linked_to_menu
 FROM carts
 LEFT JOIN cart_items
     ON cart_items.cart_id = carts.id
@@ -33,8 +39,10 @@ LEFT JOIN menus
 LEFT JOIN cart_item_toppings
     ON cart_item_toppings.cart_item_id = cart_items.id
     AND cart_item_toppings.menu_id = cart_items.menu_id
+    AND cart_item_toppings.store_id = cart_items.store_id
 LEFT JOIN toppings
     ON toppings.id = cart_item_toppings.topping_id
+    AND toppings.store_id = cart_item_toppings.store_id
 WHERE carts.guest_id = sqlc.arg(guest_id)
   AND carts.store_id = sqlc.arg(store_id)
 ORDER BY
@@ -43,10 +51,10 @@ ORDER BY
     toppings.id ASC;
 
 
--- name: CreateCart :one
+-- name: CreateCart :exec
 INSERT INTO carts (guest_id, store_id)
 VALUES (sqlc.arg(guest_id), sqlc.arg(store_id))
-RETURNING *;
+ON CONFLICT (guest_id, store_id) DO NOTHING;
 
 -- name: BumpCartVersion :one
 UPDATE carts
@@ -92,12 +100,14 @@ WHERE cart_id = sqlc.arg(cart_id)
 INSERT INTO cart_item_toppings (
     cart_item_id,
     menu_id,
-    topping_id
+    topping_id,
+    store_id
 )
 SELECT DISTINCT
     ci.id,
     ci.menu_id,
-    desired.topping_id
+    desired.topping_id,
+    ci.store_id
 FROM ROWS FROM (
     unnest(sqlc.arg(cart_item_ids)::uuid[]),
     unnest(sqlc.arg(topping_ids)::uuid[])
@@ -123,3 +133,33 @@ WHERE ci.id = cit.cart_item_id
       WHERE desired.cart_item_id = cit.cart_item_id
         AND desired.topping_id = cit.topping_id
   );
+
+-- name: ValidateCartItemToppingSelections :one
+-- 既存の選択は関連解除後も保持できる。新しい選択だけ現在の関連を要求する。
+SELECT NOT EXISTS (
+    SELECT 1
+    FROM ROWS FROM (
+        unnest(sqlc.arg(cart_item_ids)::uuid[]),
+        unnest(sqlc.arg(topping_ids)::uuid[])
+    ) AS desired(cart_item_id, topping_id)
+    LEFT JOIN cart_items AS ci
+        ON ci.id = desired.cart_item_id
+        AND ci.cart_id = sqlc.arg(cart_id)
+        AND ci.store_id = sqlc.arg(store_id)
+    WHERE ci.id IS NULL
+       OR NOT (
+           EXISTS (
+               SELECT 1 FROM cart_item_toppings AS cit
+               WHERE cit.cart_item_id = ci.id
+                 AND cit.menu_id = ci.menu_id
+                 AND cit.store_id = ci.store_id
+                 AND cit.topping_id = desired.topping_id
+           )
+           OR EXISTS (
+               SELECT 1 FROM menu_toppings AS mt
+               WHERE mt.menu_id = ci.menu_id
+                 AND mt.store_id = ci.store_id
+                 AND mt.topping_id = desired.topping_id
+           )
+       )
+) AS valid;

@@ -6,17 +6,21 @@ import (
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	"github.com/isc-makeit/isc-fes/backend/repositories"
 	repositoryinterfaces "github.com/isc-makeit/isc-fes/backend/services/repository_interfaces"
 	"github.com/isc-makeit/isc-fes/backend/utils"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type StoreMemberRepository struct {
 	queries *sqlc.Queries
+	pool    *pgxpool.Pool
 }
 
-func NewStoreMemberRepository(queries *sqlc.Queries) *StoreMemberRepository {
+func NewStoreMemberRepository(queries *sqlc.Queries, pool *pgxpool.Pool) *StoreMemberRepository {
 	return &StoreMemberRepository{
 		queries: queries,
+		pool:    pool,
 	}
 }
 
@@ -56,10 +60,21 @@ func (r *StoreMemberRepository) GetStoreMembersByStoreID(c context.Context, stor
 }
 
 func (r *StoreMemberRepository) RemoveStoreMemberByAccountIDAndStoreID(c context.Context, accountID uuid.UUID, storeID uuid.UUID) error {
-	return r.queries.RemoveStoreMemberByAccountIDAndStoreID(c, sqlc.RemoveStoreMemberByAccountIDAndStoreIDParams{
+	tx, qtx, err := repositories.SetupTransaction(c, r.pool, r.queries)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(c)
+	if _, err := qtx.LockStoreForUpdate(c, storeID); err != nil {
+		return err
+	}
+	if err := qtx.RemoveStoreMemberByAccountIDAndStoreID(c, sqlc.RemoveStoreMemberByAccountIDAndStoreIDParams{
 		AccountID: accountID,
 		StoreID:   storeID,
-	})
+	}); err != nil {
+		return err
+	}
+	return tx.Commit(c)
 }
 
 func toStoreMembership(dbStoreMember sqlc.StoreMember) entities.StoreMembership {

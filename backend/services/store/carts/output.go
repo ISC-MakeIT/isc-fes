@@ -114,5 +114,5 @@ func isCartItemAvailable(item carts.CartItem) bool {
 }
 
 func isCartItemToppingAvailable(topping carts.CartItemTopping) bool {
-	return !topping.Soldout && topping.DeletedAt == nil
+	return topping.LinkedToMenu && !topping.Soldout && topping.DeletedAt == nil
 }

@@ -11,16 +11,24 @@ import { useStoreId } from "../model/hooks/use-store-id";
 import { useAppForm } from "@/shared/lib/form-hook";
 import { menuFormOptions } from "../model/menu-form";
 import { trackEvent } from "@/shared/lib/analytics";
+import {
+  QuestionnaireTrigger,
+  useAppQuestionnaire,
+} from "@/widgets/app-questionnaire";
 
 export function CreateMenuForm() {
   const storeId = useStoreId();
   const client = useQueryClient();
+
+  const { requestQuestionnaire } = useAppQuestionnaire();
+
   const mutation = useMutation({
     mutationFn: createMenu,
     onSuccess: () => {
       trackEvent("menu_created", { store_id: storeId });
       client.invalidateQueries({ queryKey: storeMenusKey(storeId) });
       form.reset();
+      requestQuestionnaire(QuestionnaireTrigger.MenuCreated);
     },
   });
 

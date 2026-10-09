@@ -1,4 +1,7 @@
-import { storeDetailQueryOptions } from "@/entities/store";
+import {
+  StoreCongestionBadge,
+  storeDetailQueryOptions,
+} from "@/entities/store";
 import { STORE_IMAGE_ASPECT } from "@/shared/config";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { HeadingCard } from "@/shared/ui/heading-card";
@@ -36,15 +39,33 @@ export async function GuestStoreDetailView({
       <div className="mx-auto w-full lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10">
         <div className="min-w-0 lg:mx-auto lg:max-w-200">
           <div className="lg:flex lg:flex-row lg:items-start lg:gap-1.5 lg:px-6 lg:pt-10 lg:pb-8">
-            <AspectRatioImage
-              ratio={STORE_IMAGE_ASPECT}
-              src={store.imageUrl}
-              className="lg:w-77 lg:shrink-0"
-              alt="店舗のバナー画像"
-            />
+            <section>
+              <AspectRatioImage
+                ratio={STORE_IMAGE_ASPECT}
+                src={store.imageUrl}
+                className="lg:w-77 lg:shrink-0"
+                alt="店舗のバナー画像"
+              />
+
+              <div className="flex flex-row items-center justify-between px-6">
+                {/* TODO: モバイルオーダー使用店バッジ */}
+                <div />
+                <div className="flex flex-row pt-2 lg:pt-0">
+                  {/* StoreCongestionBadge側に混雑状況を含むaltがある */}
+                  <p className="text-lg font-semibold" aria-hidden>
+                    混雑状況：
+                  </p>
+                  <StoreCongestionBadge
+                    congestionLevel={store.congestionLevel}
+                  />
+                </div>
+              </div>
+            </section>
 
             <section className="min-w-0 flex-1 space-y-8 px-8 py-8 text-left">
-              <h1 className="text-[1.375rem] font-bold">{store.name}</h1>
+              <h1 className="text-[1.375rem] leading-7 font-bold">
+                {store.name}
+              </h1>
               <p className="text-[1.375rem] font-bold">{store.room}</p>
               <p className="text-lg">{store.description}</p>
               <div className="space-y-4">
