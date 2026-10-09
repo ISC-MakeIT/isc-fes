@@ -22,3 +22,15 @@ func (q *Queries) CreateGuest(ctx context.Context) (uuid.UUID, error) {
 	err := row.Scan(&id)
 	return id, err
 }
+
+const lockGuest = `-- name: LockGuest :one
+SELECT id FROM guests WHERE id = $1 FOR UPDATE
+`
+
+// 店舗をまたぐ注文数の検証とカート更新をGuest単位で直列化する。
+func (q *Queries) LockGuest(ctx context.Context, id uuid.UUID) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, lockGuest, id)
+	var id_2 uuid.UUID
+	err := row.Scan(&id_2)
+	return id_2, err
+}

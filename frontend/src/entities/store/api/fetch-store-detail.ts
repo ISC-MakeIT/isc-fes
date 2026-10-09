@@ -23,6 +23,6 @@ export function storeDetailQueryOptions(storeId: string) {
   return queryOptions({
     queryKey: storeDetailKey(storeId),
     queryFn: () => fetchStoreDetail(storeId),
-    staleTime: 60 * 1000,
+    staleTime: 30_000,
   });
 }

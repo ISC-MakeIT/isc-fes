@@ -15,6 +15,7 @@ import { createStoreNavigationItems } from "../config/create-store-navigation-it
 import { SidebarNavigation } from "./sidebar-navigation";
 import { SidebarSupportNavigation } from "./sidebar-support-navigation";
 import { StoreListNavigation } from "./store-list-navigation";
+import { GuestHomeNavigation } from "./guest-home-navigation";
 
 export type AppSidebarProps =
   | { variant: "admin" }
@@ -46,6 +47,7 @@ export function AppSidebar(props: AppSidebarProps) {
       <SidebarContent className="space-y-6">
         <SidebarMenu>
           <StoreListNavigation />
+          <GuestHomeNavigation />
         </SidebarMenu>
 
         <SidebarMenu>

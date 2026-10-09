@@ -1,6 +1,11 @@
 {
+  "scripts": {
+    "test:backup": "bun test ./infra/deploy/tests",
+    "typecheck:backup": "tsc -p infra/deploy/tsconfig.json"
+  },
   "dependencies": {},
   "devDependencies": {
-    "@types/bun": "^1.4.1"
+    "@types/bun": "^1.4.1",
+    "typescript": "5.9.3"
   }
 }

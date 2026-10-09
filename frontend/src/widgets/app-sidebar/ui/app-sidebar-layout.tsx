@@ -13,7 +13,7 @@ export function AppSidebarLayout({ children, sidebar }: AppSidebarLayoutProps) {
     <SidebarProvider
       style={
         {
-          "--sidebar-width": "10rem",
+          "--sidebar-width": "9.6875rem",
         } as React.CSSProperties
       }
       defaultOpen

@@ -42,12 +42,13 @@ type CartItem struct {
 }
 
 type CartItemTopping struct {
-	ID         uuid.UUID
-	CartItemID uuid.UUID
-	MenuID     uuid.UUID
-	ToppingID  uuid.UUID
-	Name       string
-	UnitPrice  int32
-	Soldout    bool
-	DeletedAt  *time.Time
+	ID           uuid.UUID
+	CartItemID   uuid.UUID
+	MenuID       uuid.UUID
+	ToppingID    uuid.UUID
+	Name         string
+	UnitPrice    int32
+	Soldout      bool
+	DeletedAt    *time.Time
+	LinkedToMenu bool
 }

@@ -5,6 +5,7 @@ import (
 	db "github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/services/allergens"
+	"github.com/isc-makeit/isc-fes/backend/services/orders"
 	"github.com/isc-makeit/isc-fes/backend/services/reviews"
 	"github.com/isc-makeit/isc-fes/backend/services/rooms"
 	"github.com/isc-makeit/isc-fes/backend/services/store/carts"
@@ -31,6 +32,7 @@ type Server struct {
 	cart                *carts.CartService
 	rooms               *rooms.RoomsService
 	reviews             *reviews.ReviewService
+	orders              *orders.OrderService
 }
 
 func NewServer(
@@ -50,6 +52,7 @@ func NewServer(
 	cartService *carts.CartService,
 	roomsService *rooms.RoomsService,
 	reviewService *reviews.ReviewService,
+	orderService *orders.OrderService,
 ) *Server {
 	return &Server{
 		queries:             queries,
@@ -68,5 +71,6 @@ func NewServer(
 		cart:                cartService,
 		rooms:               roomsService,
 		reviews:             reviewService,
+		orders:              orderService,
 	}
 }

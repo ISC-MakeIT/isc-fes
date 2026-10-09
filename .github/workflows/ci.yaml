@@ -9,6 +9,24 @@ permissions:
   contents: read
 
 jobs:
+  infra-backup-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - run: bun install --frozen-lockfile
+      - name: Validate backup scripts
+        run: |
+          bash -n infra/deploy/scripts/backup-db.sh
+          bash -n infra/deploy/scripts/backup-db-remote.sh
+          bash -n infra/deploy/scripts/deploy-backend.sh
+          bun run typecheck:backup
+          bun run test:backup
+
   go-code-quality:
     runs-on: ubuntu-latest
     defaults:
@@ -111,6 +129,7 @@ jobs:
 
   push-backend-image:
     needs:
+      - infra-backup-test
       - go-code-quality
       - go-test
       - generated-code-is-up-to-date
@@ -197,6 +216,7 @@ jobs:
       group: deploy-backend-production
       cancel-in-progress: false
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     permissions:
       contents: read
       id-token: write

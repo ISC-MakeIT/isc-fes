@@ -63,14 +63,15 @@ func ToCart(raw []sqlc.GetCartByGuestIDAndStoreIDRow) carts.Cart {
 		cart.Items[itemIndex].Toppings = append(
 			cart.Items[itemIndex].Toppings,
 			carts.CartItemTopping{
-				ID:         *row.CartItemToppingID,
-				CartItemID: itemID,
-				MenuID:     *row.MenuID,
-				ToppingID:  *row.ToppingID,
-				Name:       *row.ToppingName,
-				UnitPrice:  *row.ToppingUnitPrice,
-				Soldout:    *row.ToppingSoldOut,
-				DeletedAt:  timestampPointer(row.ToppingDeletedAt),
+				ID:           *row.CartItemToppingID,
+				CartItemID:   itemID,
+				MenuID:       *row.MenuID,
+				ToppingID:    *row.ToppingID,
+				Name:         *row.ToppingName,
+				UnitPrice:    *row.ToppingUnitPrice,
+				Soldout:      *row.ToppingSoldOut,
+				DeletedAt:    timestampPointer(row.ToppingDeletedAt),
+				LinkedToMenu: row.ToppingLinkedToMenu,
 			},
 		)
 	}

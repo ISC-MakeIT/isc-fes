@@ -26,6 +26,10 @@ import { useState } from "react";
 import { useMenuEditor } from "../model/hooks/use-menu-editor";
 import { menuToppingsKeys, storeToppingsKey } from "@/shared/config";
 import { trackEvent } from "@/shared/lib/analytics";
+import {
+  QuestionnaireTrigger,
+  useAppQuestionnaire,
+} from "@/widgets/app-questionnaire";
 
 type EditToppingFormProps = {
   toppingId: string;
@@ -59,6 +63,8 @@ function EditToppingFormContent({
 }: EditToppingFormContentProps) {
   const { closeEditor } = useMenuEditor();
 
+  const { requestQuestionnaire } = useAppQuestionnaire();
+
   const queryClient = useQueryClient();
   const editToppingMutation = useMutation({
     mutationFn: editTopping,
@@ -76,6 +82,8 @@ function EditToppingFormContent({
         }),
       ]);
       closeEditor();
+
+      requestQuestionnaire(QuestionnaireTrigger.ToppingUpdated);
     },
   });
 
@@ -95,6 +103,7 @@ function EditToppingFormContent({
         }),
       ]);
       closeEditor();
+      requestQuestionnaire(QuestionnaireTrigger.ToppingDeleted);
     },
   });
 

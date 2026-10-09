@@ -7,6 +7,11 @@ import {
 import { createQueryClient } from "@/shared/api";
 import { loginUrl, storeListUrl } from "@/shared/config";
 import { notFound, redirect } from "next/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "店舗情報",
+};
 
 export default async function StoreEditPage({
   params,

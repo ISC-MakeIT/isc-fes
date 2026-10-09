@@ -36,6 +36,10 @@ export function MenuList({ storeId }: MenuListProps) {
     });
   }, [storeId, menus]);
 
+  if (menus.length === 0) {
+    return;
+  }
+
   return (
     <section className="space-y-8 px-6 py-8">
       <HeadingCard className="px-14 py-2">メニュー</HeadingCard>

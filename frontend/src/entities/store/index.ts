@@ -14,3 +14,5 @@ export {
   fetchStoreDetail,
   storeDetailQueryOptions,
 } from "./api/fetch-store-detail";
+
+export { StoreCongestionBadge } from "./ui/store-congestion-badge";
