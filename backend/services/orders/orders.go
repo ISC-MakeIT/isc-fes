@@ -35,11 +35,12 @@ type CreateResult struct {
 	Replayed bool
 }
 
-// 注文作成と注文一覧取得に必要な操作だけを要求する。
+// 注文作成・Guest自身の注文取得・店舗の注文一覧取得に必要な操作だけを要求する。
 type Repository interface {
 	CreateOrder(context.Context, CreateRepositoryInput) (CreateResult, error)
 	GetOrdersByGuestID(context.Context, uuid.UUID, []orders.OrderStatus) ([]orders.Order, error)
 	GetOrdersByStoreID(context.Context, uuid.UUID, []orders.OrderStatus) ([]orders.Order, error)
+	GetOrderByIDAndGuestID(ctx context.Context, orderID, guestID uuid.UUID) (orders.Order, error)
 }
 
 type StoreRepository interface {
