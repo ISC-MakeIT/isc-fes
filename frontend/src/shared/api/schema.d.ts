@@ -37,6 +37,95 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/orders": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * 自分の注文一覧を取得する
+     * @description Guestセッションに紐づく自分の注文を全店舗横断で、新しい注文から取得する。
+     *     statusesを省略した場合はすべての状態を対象にする。
+     *     Guestセッションが未発行の場合は空の一覧を返し、GETではGuestを新規発行しない。
+     *     注文後の店舗の閉店・販売状況にかかわらず取得できる。
+     */
+    get: operations["getOrders"];
+    put?: never;
+    /**
+     * カートから注文を確定する
+     * @description 同じGuest・店舗・元カートversionの再送は、現在の販売状況や権限にかかわらず同じ注文を返す。
+     *     通常のpending/ready注文は全店舗合計で2件まで。当該店舗のStaff/Managerによる注文は件数制限を免除し、集計から除外する。
+     *     成功時は同じカートの明細を消去してversionを1増やす。明細順序は保証しない。
+     */
+    post: operations["createOrder"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/orders/{order_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * 自分の注文詳細を取得する
+     * @description Guestセッションに紐づく自分の注文を取得する。
+     */
+    get: operations["getOrderByID"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/stores/{store_id}/orders": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * 店舗の注文一覧を取得する
+     * @description 店舗の注文一覧を取得する。
+     */
+    get: operations["getOrdersByStoreID"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/stores/{store_id}/orders/{order_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * 店舗の注文状態を更新する
+     * @description 店舗に所属する注文の状態を更新する。
+     */
+    patch: operations["updateOrderByStoreIDAndOrderID"];
+    trace?: never;
+  };
   "/reviews": {
     parameters: {
       query?: never;
@@ -314,7 +403,10 @@ export interface paths {
     };
     /** 店舗の自分のカートを取得する（Guest セッションがない場合は空カートが返る） */
     get: operations["getStoreCart"];
-    /** 店舗の自分のカートを更新する（Guestセッションがない場合、カートがない場合はそれぞれが新規作成される） */
+    /**
+     * 店舗の自分のカートを更新する（Guestセッションがない場合、カートがない場合はそれぞれが新規作成される）
+     * @description 新しく選ぶトッピングは対象メニューに紐づく同店舗のものに限る。同じ明細に保存済みの選択は関連解除後も保持・削除できる。
+     */
     put: operations["updateStoreCart"];
     post?: never;
     delete?: never;
@@ -515,6 +607,81 @@ export interface components {
       storeId: string;
       role: components["schemas"]["StoreMemberRole"];
     };
+    GetOrdersResponse: {
+      /** @description 指定した条件に一致する注文の総数 */
+      total: number;
+      data: components["schemas"]["Order"][];
+    };
+    UpdateOrderInput: {
+      status: components["schemas"]["OrderStatus"];
+      /**
+       * Format: int32
+       * @description 更新対象の注文のversion。同じ状態への再送にも同じ値を使用する。
+       */
+      expectedVersion: number;
+    };
+    CreateOrderInput: {
+      /** Format: uuid */
+      storeId: string;
+      /**
+       * Format: int32
+       * @description 注文に使うカートのversion。成立済み注文の再送にも同じ値を使用する。
+       */
+      expectedCartVersion: number;
+    };
+    /** @enum {string} */
+    OrderStatus: "pending" | "ready" | "completed" | "cancelled";
+    Order: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      storeId: string;
+      status: components["schemas"]["OrderStatus"];
+      /**
+       * Format: int64
+       * @description トッピングを含む合計金額（円）
+       */
+      totalAmount: number;
+      /** Format: int32 */
+      displayNumber: number;
+      /** Format: int32 */
+      version: number;
+      /** @description 注文時の店舗名 */
+      storeName: string;
+      /** @description 注文時の教室名 */
+      roomName: string;
+      /** @description 注文時の明細。カート内の順序は保証しない。 */
+      items: components["schemas"]["OrderItem"][];
+      /** Format: date-time */
+      readyAt: string | null;
+      /** Format: date-time */
+      completedAt: string | null;
+      /** Format: date-time */
+      cancelledAt: string | null;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    OrderItem: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      menuId: string;
+      menuName: string;
+      /** Format: int32 */
+      unitPrice: number;
+      /** Format: int32 */
+      quantity: number;
+      toppings: components["schemas"]["OrderItemTopping"][];
+    };
+    OrderItemTopping: {
+      /** Format: uuid */
+      toppingId: string;
+      toppingName: string;
+      /** Format: int32 */
+      unitPrice: number;
+    };
     UpdateCartInput: {
       /**
        * Format: int32
@@ -570,7 +737,7 @@ export interface components {
       name: string;
       /** Format: int32 */
       unitPrice: number;
-      /** @description トッピングが現在利用可能かどうか。店舗がトッピングを削除した場合や在庫切れはfalseになる。 */
+      /** @description トッピングが現在利用可能かどうか。削除・売り切れ・対象メニューとの関連解除の場合はfalseになる。選択自体はカートに残る。 */
       available: boolean;
     };
     /**
@@ -711,7 +878,17 @@ export interface components {
     };
   };
   responses: never;
-  parameters: never;
+  parameters: {
+    /**
+     * @description 取得対象の注文状態。複数指定はOR条件。
+     *     statuses=pending&statuses=readyのように同じキーを繰り返して指定する。
+     * @example [
+     *       "pending",
+     *       "ready"
+     *     ]
+     */
+    OrderStatuses: components["schemas"]["OrderStatus"][];
+  };
   requestBodies: never;
   headers: never;
   pathItems: never;
@@ -767,6 +944,365 @@ export interface operations {
       };
       /** @description サーバーエラー */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getOrders: {
+    parameters: {
+      query?: {
+        /**
+         * @description 取得対象の注文状態。複数指定はOR条件。
+         *     statuses=pending&statuses=readyのように同じキーを繰り返して指定する。
+         * @example [
+         *       "pending",
+         *       "ready"
+         *     ]
+         */
+        statuses?: components["parameters"]["OrderStatuses"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 自分の注文一覧 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetOrdersResponse"];
+        };
+      };
+      /** @description クエリパラメータが不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  createOrder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateOrderInput"];
+      };
+    };
+    responses: {
+      /** @description 成立済み注文への再送 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Order"];
+        };
+      };
+      /** @description 注文を作成した */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Order"];
+        };
+      };
+      /** @description 空カート・数量・メニュー種類数などの入力が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない、または承認されていない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description カートversion競合・閉店・利用不可の選択・同時注文件数制限 */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getOrderByID: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        order_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /**
+       * @description 自分の注文が存在する場合、注文時に保存した店舗・商品・トッピングの情報を含む詳細を返す。
+       *     注文後の店舗の閉店・販売状況にかかわらず取得できる。
+       */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Order"];
+        };
+      };
+      /** @description 注文IDの形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /**
+       * @description Guestセッションが未発行または無効、注文が存在しない、または自分の注文ではない場合。
+       *     Guestを新規発行せず、いずれの場合も同じエラーを返す。
+       */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getOrdersByStoreID: {
+    parameters: {
+      query?: {
+        /**
+         * @description 取得対象の注文状態。複数指定はOR条件。
+         *     statuses=pending&statuses=readyのように同じキーを繰り返して指定する。
+         * @example [
+         *       "pending",
+         *       "ready"
+         *     ]
+         */
+        statuses?: components["parameters"]["OrderStatuses"];
+      };
+      header?: never;
+      path: {
+        store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /**
+       * @description 当該店舗のStaff/Managerの場合、全Guestの注文を注文時の明細付きで古い注文から返す。
+       *     statusesを省略した場合はpending/ready、指定した場合は指定した状態のいずれかに一致する注文を返す。
+       *     キッチンはstatuses=pending、受け渡しはstatuses=pending&statuses=readyで取得できる。
+       *     店舗の閉店・現在の販売状況にかかわらず取得でき、該当する注文がなければ空の一覧を返す。
+       */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetOrdersResponse"];
+        };
+      };
+      /** @description 店舗IDがUUID形式ではない、またはstatusesに不正な値・重複した値を指定した場合。 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 未ログインまたはセッションが無効 */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description ログイン中のAccountが当該店舗のStaff/Managerではない場合。Adminというだけでは閲覧できない。 */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  updateOrderByStoreIDAndOrderID: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+        order_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateOrderInput"];
+      };
+    };
+    responses: {
+      /**
+       * @description 状態更新に成功した場合、更新後の注文を返す。更新時刻はサーバー側で決定する。
+       *     すでに要求したstatusの場合はexpectedVersionにかかわらず同じ注文を返し、version・日時を変更しない。
+       *     店舗の閉店・現在の販売状況は状態更新を妨げない。
+       */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Order"];
+        };
+      };
+      /**
+       * @description 店舗ID・注文IDがUUID形式ではない、必須項目がない、statusが定義された値ではない、
+       *     expectedVersionが1以上の整数ではない、またはリクエスト形式が不正な場合。
+       *     status・expectedVersion以外の項目（金額・明細など）を指定した場合も返す。
+       */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Accountセッションが存在しない、無効、または有効期限切れの場合。 */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description ログイン中のAccountが当該店舗のStaff/Managerではない場合。 */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない、または指定した注文が当該店舗に存在しない場合。 */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /**
+       * @description 要求したstatusが現在と異なり、expectedVersionが現在のversionと一致しない場合。
+       *     pendingからready、readyからcompletedまたはcancelled以外の状態遷移を要求した場合。
+       *     readyからcancelledへの遷移を、呼び出し開始（readyAt）から15分が経過する前に要求した場合。
+       */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 注文の読み取り・更新など、サーバー内部の処理で予期しないエラーが発生した場合。 */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /**
+       * @description 現時点ではインターフェースのみの実装のため、リクエスト形式とAccountセッションの検証を通過した場合に返す。
+       *     店舗の存在・Membership・注文の検証と状態更新は未実装。
+       */
+      501: {
         headers: {
           [name: string]: unknown;
         };

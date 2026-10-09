@@ -18,6 +18,10 @@ func (r *MenuRepository) UpdateMenuWithToppings(c context.Context, input menu_se
 	}
 	defer tx.Rollback(c)
 
+	if _, err := qtx.LockStoreForUpdate(c, input.StoreID); err != nil {
+		return menus.Menu{}, err
+	}
+
 	m, err := qtx.UpdateMenu(c, sqlc.UpdateMenuParams{
 		ID:             input.ID,
 		StoreID:        input.StoreID,

@@ -12,6 +12,50 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type OrderStatus string
+
+const (
+	OrderStatusPending   OrderStatus = "pending"
+	OrderStatusReady     OrderStatus = "ready"
+	OrderStatusCompleted OrderStatus = "completed"
+	OrderStatusCancelled OrderStatus = "cancelled"
+)
+
+func (e *OrderStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = OrderStatus(s)
+	case string:
+		*e = OrderStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for OrderStatus: %T", src)
+	}
+	return nil
+}
+
+type NullOrderStatus struct {
+	OrderStatus OrderStatus `json:"order_status"`
+	Valid       bool        `json:"valid"` // Valid is true if OrderStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullOrderStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.OrderStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.OrderStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullOrderStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.OrderStatus), nil
+}
+
 type Role string
 
 const (
@@ -183,6 +227,7 @@ type CartItemTopping struct {
 	CartItemID uuid.UUID `json:"cart_item_id"`
 	MenuID     uuid.UUID `json:"menu_id"`
 	ToppingID  uuid.UUID `json:"topping_id"`
+	StoreID    uuid.UUID `json:"store_id"`
 }
 
 type Guest struct {
@@ -213,6 +258,44 @@ type MenuTopping struct {
 	MenuID    uuid.UUID `json:"menu_id"`
 	ToppingID uuid.UUID `json:"topping_id"`
 	StoreID   uuid.UUID `json:"store_id"`
+}
+
+type Order struct {
+	ID                       uuid.UUID          `json:"id"`
+	StoreID                  uuid.UUID          `json:"store_id"`
+	GuestID                  uuid.UUID          `json:"guest_id"`
+	Status                   OrderStatus        `json:"status"`
+	TotalAmount              int64              `json:"total_amount"`
+	DisplayNumber            int32              `json:"display_number"`
+	Version                  int32              `json:"version"`
+	OriginCartID             uuid.UUID          `json:"origin_cart_id"`
+	OriginCartVersion        int32              `json:"origin_cart_version"`
+	LimitExemptedByAccountID *uuid.UUID         `json:"limit_exempted_by_account_id"`
+	StoreName                string             `json:"store_name"`
+	RoomName                 string             `json:"room_name"`
+	ReadyAt                  pgtype.Timestamptz `json:"ready_at"`
+	CompletedAt              pgtype.Timestamptz `json:"completed_at"`
+	CancelledAt              pgtype.Timestamptz `json:"cancelled_at"`
+	CreatedAt                pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt                pgtype.Timestamptz `json:"updated_at"`
+}
+
+type OrderItem struct {
+	ID        uuid.UUID `json:"id"`
+	OrderID   uuid.UUID `json:"order_id"`
+	StoreID   uuid.UUID `json:"store_id"`
+	MenuID    uuid.UUID `json:"menu_id"`
+	MenuName  string    `json:"menu_name"`
+	UnitPrice int32     `json:"unit_price"`
+	Quantity  int32     `json:"quantity"`
+}
+
+type OrderItemTopping struct {
+	OrderItemID uuid.UUID `json:"order_item_id"`
+	StoreID     uuid.UUID `json:"store_id"`
+	ToppingID   uuid.UUID `json:"topping_id"`
+	ToppingName string    `json:"topping_name"`
+	UnitPrice   int32     `json:"unit_price"`
 }
 
 type Review struct {
@@ -264,6 +347,11 @@ type StoreMember struct {
 	AccountID uuid.UUID          `json:"account_id"`
 	Role      StoreMemberRole    `json:"role"`
 	JoinedAt  pgtype.Timestamptz `json:"joined_at"`
+}
+
+type StoreOrderCounter struct {
+	StoreID    uuid.UUID `json:"store_id"`
+	LastNumber int32     `json:"last_number"`
 }
 
 type Topping struct {

@@ -57,6 +57,14 @@ SELECT *
 FROM stores
 WHERE id = $1;
 
+-- name: LockStoreForUpdate :one
+-- 商品・関連・Membershipの変更は、同じStore行を排他ロックしてから行う。
+SELECT * FROM stores WHERE id = $1 FOR UPDATE;
+
+-- name: LockStoreForShare :one
+-- 注文・カートは販売情報の変更を防ぎつつ、別Guestの処理と共有ロックを共存させる。
+SELECT * FROM stores WHERE id = $1 FOR SHARE;
+
 -- name: UpdateStore :one
 UPDATE stores
 SET

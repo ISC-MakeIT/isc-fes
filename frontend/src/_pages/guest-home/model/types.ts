@@ -1,6 +1,10 @@
 import { Room } from "@/entities/room";
 
-export type Floor = 1 | 5 | 6 | 7 | 8;
+export const floorLevels = [1, 5, 6, 7] as const;
+
+export type Floor = (typeof floorLevels)[number];
+
+export const defaultFloor = 1 satisfies Floor;
 
 export const roomFloorMap = {
   "1F": 1,
@@ -23,5 +27,6 @@ export const roomFloorMap = {
   "608教室": 6,
   "707教室": 7,
   iCrossArena: 7,
-  "8Fステージ": 8,
-} as const satisfies Record<Room, Floor>;
+  // 今年(2026)は8階ステージはなさげ
+  "8Fステージ": null,
+} as const satisfies Record<Room, Floor | null>;

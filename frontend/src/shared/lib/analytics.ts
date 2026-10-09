@@ -42,7 +42,9 @@ export type AnalyticsEventName =
   | "topping_updated"
   | "topping_deleted"
   | "item_availability_changed"
-  | "store_application_reviewed";
+  | "store_application_reviewed"
+  | "open_review"
+  | "submit_review";
 
 declare global {
   interface Window {

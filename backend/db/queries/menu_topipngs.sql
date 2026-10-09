@@ -27,4 +27,4 @@ WHERE menu_id = $1;
 
 -- name: DeleteMenuToppingsByToppingID :exec
 DELETE FROM menu_toppings
-WHERE topping_id = $1;
+WHERE topping_id = sqlc.arg(topping_id) AND store_id = sqlc.arg(store_id);

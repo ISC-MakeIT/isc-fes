@@ -2,14 +2,12 @@
 
 import { HeadingCard } from "@/shared/ui/heading-card";
 import Image from "next/image";
-import { useState } from "react";
 import { DotText } from "@/shared/ui/dot-text";
 import { cn } from "@/shared/lib/utils";
 import floor1Image from "./assets/floor-1f.svg";
 import floor5Image from "./assets/floor-5f.svg";
 import floor6Image from "./assets/floor-6f.svg";
 import floor7Image from "./assets/floor-7f.svg";
-import floor8Image from "./assets/floor-8f.svg";
 import type { StaticImageData } from "next/image";
 import { Floor } from "../model/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -21,6 +19,9 @@ import { ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
 import { guestStoreDetailUrl } from "@/shared/config";
 import { trackEvent } from "@/shared/lib/analytics";
+import { useQueryState } from "nuqs";
+import { floorParser } from "../model/floor-search-params";
+import { StoreCongestionBadge } from "@/entities/store";
 
 export type Floors = {
   level: Floor;
@@ -28,18 +29,16 @@ export type Floors = {
   image: StaticImageData;
 }[];
 
-export const floors: Floors = [
-  { level: 8, label: "８階", image: floor8Image },
+export const floors = [
   { level: 7, label: "７階", image: floor7Image },
   { level: 6, label: "６階", image: floor6Image },
   { level: 5, label: "５階", image: floor5Image },
   { level: 1, label: "１階", image: floor1Image },
-];
+] satisfies Floors;
 
 export function FloorGuide() {
-  const [selectedFloor, setSelectedFloor] = useState<Floor | null>(
-    floors.at(-1)?.level ?? null,
-  );
+  const [selectedFloor, setSelectedFloor] = useQueryState("floor", floorParser);
+
   return (
     <section className="flex w-full flex-col items-center gap-16 pt-8 pb-16">
       <HeadingCard className="px-14 py-2">フロアガイド</HeadingCard>
@@ -76,7 +75,7 @@ export function FloorGuide() {
                 )}
                 style={{ zIndex: floor.level }}
                 onClick={() => {
-                  setSelectedFloor(floor.level);
+                  void setSelectedFloor(floor.level);
                   trackEvent("select_floor", { floor_number: floor.level });
                 }}
               >
@@ -91,7 +90,7 @@ export function FloorGuide() {
           ))}
         </ul>
       </div>
-      {selectedFloor && <FloorStoreList floor={selectedFloor} />}
+      <FloorStoreList floor={selectedFloor} />
     </section>
   );
 }
@@ -103,9 +102,7 @@ type FloorStoreListProps = {
 function FloorStoreList({ floor }: FloorStoreListProps) {
   const { data: stores } = useSuspenseQuery({
     ...visibleStoresQueryOptions(),
-    // FloorStoreListは学園祭当日用のページで、当日は店舗が更新されることはない想定
-    // visibleStoreは店舗側でも使うので呼び出し側からstaleTimeを設定
-    staleTime: Infinity,
+    staleTime: 30_000,
   });
   const storesByFloor = selectApprovedStoresByFloor(stores, floor);
 
@@ -129,10 +126,20 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
             imagePath={store.imageUrl}
             className="w-28 shrink-0"
           />
-          <div>
-            <p className="line-clamp-2 text-lg">{store.name}</p>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row justify-start gap-6">
+              <StoreCongestionBadge congestionLevel={store.congestionLevel} />
+              <p>{store.room}</p>
+            </div>
+            <p className="line-clamp-2 text-lg leading-6 font-semibold">
+              {store.name}
+            </p>
           </div>
-          <ChevronRightIcon strokeWidth={0.5} className="ml-auto" size={40} />
+          <ChevronRightIcon
+            strokeWidth={0.5}
+            className="ml-auto shrink-0"
+            size={40}
+          />
         </Link>
       ))}
     </div>

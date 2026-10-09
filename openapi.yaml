@@ -44,6 +44,281 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /orders:
+    get:
+      operationId: getOrders
+      summary: 自分の注文一覧を取得する
+      description: |
+        Guestセッションに紐づく自分の注文を全店舗横断で、新しい注文から取得する。
+        statusesを省略した場合はすべての状態を対象にする。
+        Guestセッションが未発行の場合は空の一覧を返し、GETではGuestを新規発行しない。
+        注文後の店舗の閉店・販売状況にかかわらず取得できる。
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/OrderStatuses"
+      responses:
+        "200":
+          description: 自分の注文一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetOrdersResponse"
+        "400":
+          description: クエリパラメータが不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createOrder
+      summary: カートから注文を確定する
+      description: |
+        同じGuest・店舗・元カートversionの再送は、現在の販売状況や権限にかかわらず同じ注文を返す。
+        通常のpending/ready注文は全店舗合計で2件まで。当該店舗のStaff/Managerによる注文は件数制限を免除し、集計から除外する。
+        成功時は同じカートの明細を消去してversionを1増やす。明細順序は保証しない。
+      security:
+        - GuestSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderInput"
+      responses:
+        "201":
+          description: 注文を作成した
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "200":
+          description: 成立済み注文への再送
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: 空カート・数量・メニュー種類数などの入力が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない、または承認されていない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: カートversion競合・閉店・利用不可の選択・同時注文件数制限
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /orders/{order_id}:
+    get:
+      operationId: getOrderByID
+      summary: 自分の注文詳細を取得する
+      description: Guestセッションに紐づく自分の注文を取得する。
+      security: []
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+      responses:
+        "200":
+          description: |
+            自分の注文が存在する場合、注文時に保存した店舗・商品・トッピングの情報を含む詳細を返す。
+            注文後の店舗の閉店・販売状況にかかわらず取得できる。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: 注文IDの形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: |
+            Guestセッションが未発行または無効、注文が存在しない、または自分の注文ではない場合。
+            Guestを新規発行せず、いずれの場合も同じエラーを返す。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /stores/{store_id}/orders:
+    get:
+      operationId: getOrdersByStoreID
+      summary: 店舗の注文一覧を取得する
+      description: 店舗の注文一覧を取得する。
+      security:
+        - AccountSession: []
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        - $ref: "#/components/parameters/OrderStatuses"
+      responses:
+        "200":
+          description: |
+            当該店舗のStaff/Managerの場合、全Guestの注文を注文時の明細付きで古い注文から返す。
+            statusesを省略した場合はpending/ready、指定した場合は指定した状態のいずれかに一致する注文を返す。
+            キッチンはstatuses=pending、受け渡しはstatuses=pending&statuses=readyで取得できる。
+            店舗の閉店・現在の販売状況にかかわらず取得でき、該当する注文がなければ空の一覧を返す。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetOrdersResponse"
+        "400":
+          description: 店舗IDがUUID形式ではない、またはstatusesに不正な値・重複した値を指定した場合。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 未ログインまたはセッションが無効
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: ログイン中のAccountが当該店舗のStaff/Managerではない場合。Adminというだけでは閲覧できない。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /stores/{store_id}/orders/{order_id}:
+    patch:
+      operationId: updateOrderByStoreIDAndOrderID
+      summary: 店舗の注文状態を更新する
+      description: 店舗に所属する注文の状態を更新する。
+      security:
+        - AccountSession: []
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderInput"
+      responses:
+        "200":
+          description: |
+            状態更新に成功した場合、更新後の注文を返す。更新時刻はサーバー側で決定する。
+            すでに要求したstatusの場合はexpectedVersionにかかわらず同じ注文を返し、version・日時を変更しない。
+            店舗の閉店・現在の販売状況は状態更新を妨げない。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: |
+            店舗ID・注文IDがUUID形式ではない、必須項目がない、statusが定義された値ではない、
+            expectedVersionが1以上の整数ではない、またはリクエスト形式が不正な場合。
+            status・expectedVersion以外の項目（金額・明細など）を指定した場合も返す。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Accountセッションが存在しない、無効、または有効期限切れの場合。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: ログイン中のAccountが当該店舗のStaff/Managerではない場合。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない、または指定した注文が当該店舗に存在しない場合。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: |
+            要求したstatusが現在と異なり、expectedVersionが現在のversionと一致しない場合。
+            pendingからready、readyからcompletedまたはcancelled以外の状態遷移を要求した場合。
+            readyからcancelledへの遷移を、呼び出し開始（readyAt）から15分が経過する前に要求した場合。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: 注文の読み取り・更新など、サーバー内部の処理で予期しないエラーが発生した場合。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "501":
+          description: |
+            現時点ではインターフェースのみの実装のため、リクエスト形式とAccountセッションの検証を通過した場合に返す。
+            店舗の存在・Membership・注文の検証と状態更新は未実装。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /reviews:
     post:
       operationId: createReview
@@ -1154,6 +1429,7 @@ paths:
     put:
       operationId: updateStoreCart
       summary: 店舗の自分のカートを更新する（Guestセッションがない場合、カートがない場合はそれぞれが新規作成される）
+      description: 新しく選ぶトッピングは対象メニューに紐づく同店舗のものに限る。同じ明細に保存済みの選択は関連解除後も保持・削除できる。
       parameters:
         - name: store_id
           in: path
@@ -1269,6 +1545,23 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
 components:
+  parameters:
+    OrderStatuses:
+      name: statuses
+      in: query
+      required: false
+      description: |
+        取得対象の注文状態。複数指定はOR条件。
+        statuses=pending&statuses=readyのように同じキーを繰り返して指定する。
+      style: form
+      explode: true
+      schema:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          $ref: "#/components/schemas/OrderStatus"
+      example: [pending, ready]
   securitySchemes:
     AccountSession:
       type: apiKey
@@ -1607,6 +1900,148 @@ components:
           format: uuid
         role:
           $ref: "#/components/schemas/StoreMemberRole"
+    GetOrdersResponse:
+      type: object
+      required: [data, total]
+      properties:
+        total:
+          type: integer
+          minimum: 0
+          description: 指定した条件に一致する注文の総数
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+    UpdateOrderInput:
+      type: object
+      additionalProperties: false
+      required: [status, expectedVersion]
+      properties:
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        expectedVersion:
+          type: integer
+          format: int32
+          minimum: 1
+          description: 更新対象の注文のversion。同じ状態への再送にも同じ値を使用する。
+    CreateOrderInput:
+      type: object
+      additionalProperties: false
+      required: [storeId, expectedCartVersion]
+      properties:
+        storeId:
+          type: string
+          format: uuid
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        expectedCartVersion:
+          type: integer
+          format: int32
+          minimum: 1
+          description: 注文に使うカートのversion。成立済み注文の再送にも同じ値を使用する。
+    OrderStatus:
+      type: string
+      enum: [pending, ready, completed, cancelled]
+    Order:
+      type: object
+      required:
+        [
+          id,
+          storeId,
+          status,
+          totalAmount,
+          displayNumber,
+          version,
+          storeName,
+          roomName,
+          items,
+          readyAt,
+          completedAt,
+          cancelledAt,
+          createdAt,
+          updatedAt,
+        ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        storeId:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        totalAmount:
+          type: integer
+          format: int64
+          description: トッピングを含む合計金額（円）
+        displayNumber:
+          type: integer
+          format: int32
+        version:
+          type: integer
+          format: int32
+        storeName:
+          type: string
+          description: 注文時の店舗名
+        roomName:
+          type: string
+          description: 注文時の教室名
+        items:
+          type: array
+          description: 注文時の明細。カート内の順序は保証しない。
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        readyAt:
+          type: string
+          format: date-time
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        cancelledAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    OrderItem:
+      type: object
+      required: [id, menuId, menuName, unitPrice, quantity, toppings]
+      properties:
+        id:
+          type: string
+          format: uuid
+        menuId:
+          type: string
+          format: uuid
+        menuName:
+          type: string
+        unitPrice:
+          type: integer
+          format: int32
+        quantity:
+          type: integer
+          format: int32
+        toppings:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItemTopping"
+    OrderItemTopping:
+      type: object
+      required: [toppingId, toppingName, unitPrice]
+      properties:
+        toppingId:
+          type: string
+          format: uuid
+        toppingName:
+          type: string
+        unitPrice:
+          type: integer
+          format: int32
     UpdateCartInput:
       type: object
       required:
@@ -1728,7 +2163,7 @@ components:
           format: int32
         available:
           type: boolean
-          description: トッピングが現在利用可能かどうか。店舗がトッピングを削除した場合や在庫切れはfalseになる。
+          description: トッピングが現在利用可能かどうか。削除・売り切れ・対象メニューとの関連解除の場合はfalseになる。選択自体はカートに残る。
     StoreCongestionLevel:
       type: integer
       format: int32
