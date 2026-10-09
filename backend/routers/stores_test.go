@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 	"time"
@@ -8,6 +9,25 @@ import (
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 )
+
+func TestStoreResponsesIncludeOrderEnabled(t *testing.T) {
+	for _, enabled := range []bool{true, false} {
+		store := entities.StoreOutput{OrderEnabled: enabled}
+		for _, response := range []any{toStoreResponse(store), toStoreApplicationResponse(store)} {
+			encoded, err := json.Marshal(response)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var fields map[string]any
+			if err := json.Unmarshal(encoded, &fields); err != nil {
+				t.Fatal(err)
+			}
+			if got, present := fields["orderEnabled"]; !present || got != enabled {
+				t.Errorf("%T orderEnabled = %v (present=%t), want %t", response, got, present, enabled)
+			}
+		}
+	}
+}
 
 func TestStoreResponsesIncludeAllergens(t *testing.T) {
 	storeID := uuid.New()

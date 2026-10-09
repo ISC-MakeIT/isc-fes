@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -95,6 +96,7 @@ func (r *recordingStoreRepository) CreateStoreApplication(_ context.Context, inp
 	return entities.Store{
 		ID:             input.ID,
 		ImageObjectKey: input.ImageObjectKey,
+		OrderEnabled:   input.OrderEnabled,
 	}, nil
 }
 
@@ -290,7 +292,7 @@ func TestStoreServiceToStoreOutputsIncludesAllergens(t *testing.T) {
 		imgGenerator:       stubStoreImageURLGenerator{},
 	}
 	stores := []entities.Store{
-		{ID: storeIDWithAllergens, ImageObjectKey: entities.NewStoreImageObjectKey(storeIDWithAllergens)},
+		{ID: storeIDWithAllergens, ImageObjectKey: entities.NewStoreImageObjectKey(storeIDWithAllergens), OrderEnabled: true},
 		{ID: storeIDWithoutAllergens, ImageObjectKey: entities.NewStoreImageObjectKey(storeIDWithoutAllergens)},
 	}
 
@@ -314,6 +316,82 @@ func TestStoreServiceToStoreOutputsIncludesAllergens(t *testing.T) {
 	}
 	if len(outputs[1].Allergens) != 0 {
 		t.Errorf("allergens length = %d, want 0", len(outputs[1].Allergens))
+	}
+	for i, store := range stores {
+		if outputs[i].OrderEnabled != store.OrderEnabled {
+			t.Errorf("outputs[%d].OrderEnabled = %t, want %t", i, outputs[i].OrderEnabled, store.OrderEnabled)
+		}
+	}
+}
+
+func TestCreateStoreApplicationPersistsOrderEnabled(t *testing.T) {
+	for _, enabled := range []bool{true, false} {
+		t.Run(fmt.Sprintf("enabled=%t", enabled), func(t *testing.T) {
+			repository := &recordingStoreRepository{}
+			service := &StoreService{storeRepository: repository, roomsRepository: existingRoomRepository{}}
+			ctx := WithAuthenticatedAccount(t.Context(), entities.Account{ID: uuid.New()})
+			store, err := service.CreateStoreApplication(ctx, CreateStoreApplicationServiceInput{
+				Name: "test", Room: "605教室", Description: "test",
+				ImageObjectKey: entities.NewStoreImageObjectKey(uuid.New()), OrderEnabled: enabled,
+			})
+			if err != nil {
+				t.Fatalf("CreateStoreApplication() error = %v", err)
+			}
+			if repository.createCalls != 1 || repository.createInput.OrderEnabled != enabled {
+				t.Errorf("create calls = %d, orderEnabled = %t, want 1, %t", repository.createCalls, repository.createInput.OrderEnabled, enabled)
+			}
+			if store.OrderEnabled != enabled {
+				t.Errorf("OrderEnabled = %t, want %t", store.OrderEnabled, enabled)
+			}
+		})
+	}
+}
+
+func TestUpdateStoreOrderEnabled(t *testing.T) {
+	enabled, disabled := true, false
+	description := "updated"
+	tests := []struct {
+		name      string
+		current   bool
+		input     UpdateStoreInput
+		want      bool
+		wantCalls int
+	}{
+		{name: "enable", input: UpdateStoreInput{OrderEnabled: &enabled}, want: true, wantCalls: 1},
+		{name: "disable", current: true, input: UpdateStoreInput{OrderEnabled: &disabled}, wantCalls: 1},
+		{name: "omitted when enabled", current: true, input: UpdateStoreInput{Description: &description}, want: true, wantCalls: 1},
+		{name: "omitted when disabled", input: UpdateStoreInput{Description: &description}, wantCalls: 1},
+		{name: "empty update", current: true, want: true},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			current := entities.Store{
+				ID: uuid.New(), ImageObjectKey: entities.NewStoreImageObjectKey(uuid.New()),
+				ReviewStatus: entities.StoreReviewStatusApproved, OrderEnabled: test.current,
+			}
+			updated := current
+			updated.OrderEnabled = test.want
+			repository := &updateStoreRepositoryStub{approvedStore: current, updatedStore: updated}
+			service := &StoreService{
+				storeRepository:           repository,
+				storeMembershipRepository: &storeMembershipRepositoryStub{membership: entities.StoreMembership{Role: entities.StoreMemberRoleManager}},
+				allergenRepository:        &stubAllergenRepository{}, imgGenerator: stubStoreImageURLGenerator{},
+			}
+			ctx := WithAuthenticatedAccount(t.Context(), entities.Account{ID: uuid.New()})
+			store, err := service.UpdateStore(ctx, current.ID, test.input)
+			if err != nil {
+				t.Fatalf("UpdateStore() error = %v", err)
+			}
+			if repository.updateCalls != test.wantCalls {
+				t.Errorf("update calls = %d, want %d", repository.updateCalls, test.wantCalls)
+			}
+			if !reflect.DeepEqual(repository.updatedInput.OrderEnabled, test.input.OrderEnabled) {
+				t.Errorf("update orderEnabled = %v, want %v", repository.updatedInput.OrderEnabled, test.input.OrderEnabled)
+			}
+			if store.OrderEnabled != test.want {
+				t.Errorf("OrderEnabled = %t, want %t", store.OrderEnabled, test.want)
+			}
+		})
 	}
 }
 

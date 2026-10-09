@@ -34,6 +34,7 @@ func (s *Server) GetStoreApplications(c *gin.Context) {
 
 func toStoreApplicationResponse(application entities.StoreOutput) StoreApplication {
 	return StoreApplication{
+		OrderEnabled:    application.OrderEnabled,
 		Id:              application.ID,
 		Name:            application.Name,
 		Description:     application.Description,
@@ -58,6 +59,7 @@ func (s *Server) CreateStoreApplication(c *gin.Context) {
 	}
 
 	storeApplication, err := s.store.CreateStoreApplication(ctx, services.CreateStoreApplicationServiceInput{
+		OrderEnabled:   body.OrderEnabled,
 		Name:           body.Name,
 		Description:    body.Description,
 		Room:           body.Room,

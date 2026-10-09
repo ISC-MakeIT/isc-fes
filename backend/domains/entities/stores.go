@@ -60,6 +60,7 @@ func (l StoreCongestionLevel) IsValid() bool {
 }
 
 type Store struct {
+	OrderEnabled    bool
 	ID              uuid.UUID
 	Name            string
 	Room            string
@@ -74,6 +75,7 @@ type Store struct {
 }
 
 type StoreOutput struct {
+	OrderEnabled    bool
 	ID              uuid.UUID
 	Name            string
 	Room            string

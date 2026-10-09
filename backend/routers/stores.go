@@ -41,6 +41,7 @@ func (s *Server) UpdateStore(c *gin.Context, storeID uuid.UUID) {
 	}
 
 	update := services.UpdateStoreInput{
+		OrderEnabled:    input.OrderEnabled,
 		Closed:          input.Closed,
 		Room:            input.Room,
 		Description:     input.Description,
@@ -63,6 +64,7 @@ func (s *Server) UpdateStore(c *gin.Context, storeID uuid.UUID) {
 
 func toStoreResponse(store entities.StoreOutput) Store {
 	return Store{
+		OrderEnabled:    store.OrderEnabled,
 		Id:              store.ID,
 		Name:            store.Name,
 		Room:            store.Room,

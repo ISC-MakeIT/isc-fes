@@ -1692,12 +1692,16 @@ components:
     CreateStoreApplicationInput:
       type: object
       required:
+        - orderEnabled
         - name
         - room
         - description
         - allergenIds
         - imageObjectKey
       properties:
+        orderEnabled:
+          type: boolean
+          description: 店舗のモバイルオーダーが有効かどうか。
         name:
           type: string
           minLength: 1
@@ -2174,6 +2178,7 @@ components:
     Store:
       type: object
       required:
+        - orderEnabled
         - id
         - name
         - room
@@ -2184,6 +2189,9 @@ components:
         - closedAt
         - congestionLevel
       properties:
+        orderEnabled:
+          type: boolean
+          description: 店舗のモバイルオーダーが有効かどうか。
         id:
           type: string
           format: uuid
@@ -2209,8 +2217,11 @@ components:
           $ref: "#/components/schemas/StoreCongestionLevel"
     UpdateStoreInput:
       type: object
-      description: 指定した項目のみ更新する。混雑度も省略した場合は変更しない。
+      description: 指定した項目のみ更新する。混雑度とモバイルオーダーの有効設定も省略した場合は変更しない。
       properties:
+        orderEnabled:
+          type: boolean
+          description: trueでモバイルオーダーを有効、falseで無効にする。
         congestionLevel:
           $ref: "#/components/schemas/StoreCongestionLevel"
         closed:
@@ -2263,6 +2274,7 @@ components:
     StoreApplication:
       type: object
       required:
+        - orderEnabled
         - id
         - name
         - room
@@ -2273,6 +2285,9 @@ components:
         - allergens
         - congestionLevel
       properties:
+        orderEnabled:
+          type: boolean
+          description: 店舗のモバイルオーダーが有効かどうか。
         id:
           type: string
           format: uuid

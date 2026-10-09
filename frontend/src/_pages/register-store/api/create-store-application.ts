@@ -24,6 +24,8 @@ export async function createStoreApplication({
     body: {
       ...storeApplication,
       imageObjectKey: uploadResult.data.imageObjectKey,
+      // TODO: フォームにモバイルオーダーの有効・無効の入力を追加し、その値を送信する。
+      orderEnabled: true,
     },
   });
 

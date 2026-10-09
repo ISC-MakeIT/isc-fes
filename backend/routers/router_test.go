@@ -423,22 +423,22 @@ func TestOpenAPIRequestValidatorValidatesStoreApplicationAllergenIDs(t *testing.
 	}{
 		{
 			name:       "空配列を受け付ける",
-			body:       `{"name":"test","room":"605教室","description":"test","allergenIds":[],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			body:       `{"name":"test","room":"605教室","description":"test","allergenIds":[],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001","orderEnabled":true}`,
 			wantStatus: http.StatusNoContent,
 		},
 		{
 			name:       "フィールドの省略を拒否する",
-			body:       `{"name":"test","room":"605教室","description":"test","imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			body:       `{"name":"test","room":"605教室","description":"test","imageObjectKey":"images/00000000-0000-0000-0000-000000000001","orderEnabled":true}`,
 			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "不正なUUIDを拒否する",
-			body:       `{"name":"test","room":"605教室","description":"test","allergenIds":["invalid"],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			body:       `{"name":"test","room":"605教室","description":"test","allergenIds":["invalid"],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001","orderEnabled":true}`,
 			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "重複したIDを拒否する",
-			body:       `{"name":"test","room":"605教室","description":"test","allergenIds":["` + allergenID + `","` + allergenID + `"],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001"}`,
+			body:       `{"name":"test","room":"605教室","description":"test","allergenIds":["` + allergenID + `","` + allergenID + `"],"imageObjectKey":"images/00000000-0000-0000-0000-000000000001","orderEnabled":true}`,
 			wantStatus: http.StatusBadRequest,
 		},
 	}
@@ -469,6 +469,60 @@ func TestOpenAPIRequestValidatorValidatesStoreApplicationAllergenIDs(t *testing.
 
 			if response.Code != tt.wantStatus {
 				t.Errorf("HTTPステータス = %d、期待値 %d", response.Code, tt.wantStatus)
+			}
+		})
+	}
+}
+
+func TestOpenAPIRequestValidatorRequiresStoreApplicationOrderEnabled(t *testing.T) {
+	tests := []struct {
+		name       string
+		value      any
+		omitted    bool
+		wantStatus int
+	}{
+		{name: "enabled", value: true, wantStatus: http.StatusNoContent},
+		{name: "disabled", value: false, wantStatus: http.StatusNoContent},
+		{name: "omitted", omitted: true, wantStatus: http.StatusBadRequest},
+		{name: "null", value: nil, wantStatus: http.StatusBadRequest},
+		{name: "string", value: "false", wantStatus: http.StatusBadRequest},
+		{name: "number", value: 0, wantStatus: http.StatusBadRequest},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			body := map[string]any{
+				"name": "test", "room": "605教室", "description": "test",
+				"allergenIds": []string{}, "imageObjectKey": "images/00000000-0000-0000-0000-000000000001",
+			}
+			if !test.omitted {
+				body["orderEnabled"] = test.value
+			}
+			encoded, err := json.Marshal(body)
+			if err != nil {
+				t.Fatal(err)
+			}
+			router := gin.New()
+			called := false
+			router.POST("/store-applications", mustOpenAPIRequestValidator(t, &stubCurrentAccountLoader{}), func(c *gin.Context) {
+				called = true
+				var input CreateStoreApplicationInput
+				if err := c.ShouldBindJSON(&input); err != nil {
+					t.Fatalf("ShouldBindJSON() error = %v", err)
+				}
+				if input.OrderEnabled != test.value {
+					t.Errorf("orderEnabled = %t, want %v", input.OrderEnabled, test.value)
+				}
+				c.Status(http.StatusNoContent)
+			})
+			request := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/store-applications", strings.NewReader(string(encoded)))
+			request.Header.Set("Content-Type", "application/json")
+			response := httptest.NewRecorder()
+			router.ServeHTTP(response, request)
+			if response.Code != test.wantStatus {
+				t.Errorf("status = %d, want %d", response.Code, test.wantStatus)
+			}
+			if called != (test.wantStatus == http.StatusNoContent) {
+				t.Errorf("handler called = %t", called)
 			}
 		})
 	}
@@ -522,6 +576,11 @@ func TestOpenAPIRequestValidatorValidatesUpdateStoreInput(t *testing.T) {
 		{name: "description only", body: `{"description":"新しい説明"}`, wantStatus: http.StatusNoContent},
 		{name: "closed must be boolean", body: `{"closed":"true"}`, wantStatus: http.StatusBadRequest},
 		{name: "description must not be empty", body: `{"description":""}`, wantStatus: http.StatusBadRequest},
+		{name: "enable mobile order", body: `{"orderEnabled":true}`, wantStatus: http.StatusNoContent},
+		{name: "disable mobile order", body: `{"orderEnabled":false}`, wantStatus: http.StatusNoContent},
+		{name: "mobile order must not be null", body: `{"orderEnabled":null}`, wantStatus: http.StatusBadRequest},
+		{name: "mobile order must not be string", body: `{"orderEnabled":"false"}`, wantStatus: http.StatusBadRequest},
+		{name: "mobile order must not be number", body: `{"orderEnabled":0}`, wantStatus: http.StatusBadRequest},
 	}
 
 	for _, test := range tests {
@@ -531,6 +590,22 @@ func TestOpenAPIRequestValidatorValidatesUpdateStoreInput(t *testing.T) {
 			})
 			router := gin.New()
 			router.PATCH("/stores/:store_id", validator, func(c *gin.Context) {
+				var input UpdateStoreInput
+				if err := c.ShouldBindJSON(&input); err != nil {
+					t.Fatalf("ShouldBindJSON() error = %v", err)
+				}
+				var sent map[string]json.RawMessage
+				if err := json.Unmarshal([]byte(test.body), &sent); err != nil {
+					t.Fatal(err)
+				}
+				if raw, present := sent["orderEnabled"]; present {
+					want := string(raw) == "true"
+					if input.OrderEnabled == nil || *input.OrderEnabled != want {
+						t.Errorf("orderEnabled = %v, want %t", input.OrderEnabled, want)
+					}
+				} else if input.OrderEnabled != nil {
+					t.Errorf("omitted orderEnabled = %v, want nil", input.OrderEnabled)
+				}
 				c.Status(http.StatusNoContent)
 			})
 

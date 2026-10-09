@@ -325,6 +325,7 @@ type Store struct {
 	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 	ClosedAt        pgtype.Timestamptz `json:"closed_at"`
 	CongestionLevel int32              `json:"congestion_level"`
+	OrderEnabled    bool               `json:"order_enabled"`
 }
 
 type StoreAllergen struct {

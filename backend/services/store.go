@@ -38,6 +38,7 @@ type CurrentAccountSession interface {
 }
 
 type CreateStoreApplicationInput struct {
+	OrderEnabled   bool
 	AccountID      uuid.UUID
 	ID             uuid.UUID
 	Name           string
@@ -48,6 +49,7 @@ type CreateStoreApplicationInput struct {
 }
 
 type CreateStoreApplicationServiceInput struct {
+	OrderEnabled   bool
 	Name           string
 	Room           string
 	Description    string
@@ -56,6 +58,7 @@ type CreateStoreApplicationServiceInput struct {
 }
 
 type UpdateStoreInput struct {
+	OrderEnabled    *bool
 	Closed          *bool
 	Room            *string
 	Description     *string
@@ -65,7 +68,7 @@ type UpdateStoreInput struct {
 }
 
 func (i UpdateStoreInput) IsAllNil() bool {
-	return i.Closed == nil && i.Room == nil && i.Description == nil && i.ImageObjectKey == nil && i.AllergenIDs == nil && i.CongestionLevel == nil
+	return i.Closed == nil && i.Room == nil && i.Description == nil && i.ImageObjectKey == nil && i.AllergenIDs == nil && i.CongestionLevel == nil && i.OrderEnabled == nil
 }
 
 type StoreService struct {
@@ -143,6 +146,7 @@ func (s *StoreService) CreateStoreApplication(ctx context.Context, input CreateS
 		return entities.Store{}, fmt.Errorf("failed to generate UUID: %w", err)
 	}
 	store, err := s.storeRepository.CreateStoreApplication(ctx, CreateStoreApplicationInput{
+		OrderEnabled:   input.OrderEnabled,
 		ID:             storeID,
 		AccountID:      account.ID,
 		Name:           input.Name,
@@ -366,6 +370,7 @@ func (s *StoreService) buildStoreOutput(ctx context.Context, store entities.Stor
 
 	return entities.StoreOutput{
 		ID:              store.ID,
+		OrderEnabled:    store.OrderEnabled,
 		Name:            store.Name,
 		Room:            store.Room,
 		Description:     store.Description,
