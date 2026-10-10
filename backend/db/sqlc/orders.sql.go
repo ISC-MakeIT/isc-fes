@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const countActiveNonExemptOrders = `-- name: CountActiveNonExemptOrders :one
@@ -349,6 +350,18 @@ func (q *Queries) GetOrderItemsByOrderIDs(ctx context.Context, orderIds []uuid.U
 	return items, nil
 }
 
+const getOrderUpdateTime = `-- name: GetOrderUpdateTime :one
+SELECT clock_timestamp()::timestamptz AS at
+`
+
+// now()は取引開始時刻なので、ロック待機後の状態遷移の判定には使わない。
+func (q *Queries) GetOrderUpdateTime(ctx context.Context) (pgtype.Timestamptz, error) {
+	row := q.db.QueryRow(ctx, getOrderUpdateTime)
+	var at pgtype.Timestamptz
+	err := row.Scan(&at)
+	return at, err
+}
+
 const getOrdersByGuestID = `-- name: GetOrdersByGuestID :many
 SELECT id, store_id, guest_id, status, total_amount, display_number, version, origin_cart_id, origin_cart_version, limit_exempted_by_account_id, store_name, room_name, ready_at, completed_at, cancelled_at, created_at, updated_at FROM orders
 WHERE guest_id = $1
@@ -452,6 +465,42 @@ func (q *Queries) GetOrdersByStoreID(ctx context.Context, arg GetOrdersByStoreID
 	return items, nil
 }
 
+const lockOrderByIDAndStoreID = `-- name: LockOrderByIDAndStoreID :one
+SELECT id, store_id, guest_id, status, total_amount, display_number, version, origin_cart_id, origin_cart_version, limit_exempted_by_account_id, store_name, room_name, ready_at, completed_at, cancelled_at, created_at, updated_at FROM orders
+WHERE id = $1 AND store_id = $2
+FOR UPDATE
+`
+
+type LockOrderByIDAndStoreIDParams struct {
+	OrderID uuid.UUID `json:"order_id"`
+	StoreID uuid.UUID `json:"store_id"`
+}
+
+func (q *Queries) LockOrderByIDAndStoreID(ctx context.Context, arg LockOrderByIDAndStoreIDParams) (Order, error) {
+	row := q.db.QueryRow(ctx, lockOrderByIDAndStoreID, arg.OrderID, arg.StoreID)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.StoreID,
+		&i.GuestID,
+		&i.Status,
+		&i.TotalAmount,
+		&i.DisplayNumber,
+		&i.Version,
+		&i.OriginCartID,
+		&i.OriginCartVersion,
+		&i.LimitExemptedByAccountID,
+		&i.StoreName,
+		&i.RoomName,
+		&i.ReadyAt,
+		&i.CompletedAt,
+		&i.CancelledAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const lockOrderCart = `-- name: LockOrderCart :one
 SELECT id, guest_id, store_id, version FROM carts
 WHERE guest_id = $1 AND store_id = $2
@@ -510,4 +559,59 @@ func (q *Queries) NextOrderDisplayNumber(ctx context.Context, storeID uuid.UUID)
 	var last_number int32
 	err := row.Scan(&last_number)
 	return last_number, err
+}
+
+const updateOrderStatus = `-- name: UpdateOrderStatus :one
+UPDATE orders
+SET status = $1, version = version + 1,
+    ready_at = $2, completed_at = $3,
+    cancelled_at = $4, updated_at = $5
+WHERE id = $6 AND store_id = $7
+    AND version = $8
+RETURNING id, store_id, guest_id, status, total_amount, display_number, version, origin_cart_id, origin_cart_version, limit_exempted_by_account_id, store_name, room_name, ready_at, completed_at, cancelled_at, created_at, updated_at
+`
+
+type UpdateOrderStatusParams struct {
+	Status          OrderStatus        `json:"status"`
+	ReadyAt         pgtype.Timestamptz `json:"ready_at"`
+	CompletedAt     pgtype.Timestamptz `json:"completed_at"`
+	CancelledAt     pgtype.Timestamptz `json:"cancelled_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	OrderID         uuid.UUID          `json:"order_id"`
+	StoreID         uuid.UUID          `json:"store_id"`
+	ExpectedVersion int32              `json:"expected_version"`
+}
+
+func (q *Queries) UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) (Order, error) {
+	row := q.db.QueryRow(ctx, updateOrderStatus,
+		arg.Status,
+		arg.ReadyAt,
+		arg.CompletedAt,
+		arg.CancelledAt,
+		arg.UpdatedAt,
+		arg.OrderID,
+		arg.StoreID,
+		arg.ExpectedVersion,
+	)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.StoreID,
+		&i.GuestID,
+		&i.Status,
+		&i.TotalAmount,
+		&i.DisplayNumber,
+		&i.Version,
+		&i.OriginCartID,
+		&i.OriginCartVersion,
+		&i.LimitExemptedByAccountID,
+		&i.StoreName,
+		&i.RoomName,
+		&i.ReadyAt,
+		&i.CompletedAt,
+		&i.CancelledAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

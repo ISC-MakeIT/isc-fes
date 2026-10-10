@@ -53,8 +53,28 @@ func (s *Server) GetOrdersByStoreID(c *gin.Context, storeID uuid.UUID, params Ge
 }
 
 func (s *Server) UpdateOrderByStoreIDAndOrderID(c *gin.Context, storeID uuid.UUID, orderID uuid.UUID) {
-	// TODO: 当該店舗のStaff/Managerと注文のversion・状態遷移を検証して更新する。
-	c.JSON(http.StatusNotImplemented, ErrorResponse{Message: "注文の状態更新は未実装です"})
+	var body UpdateOrderByStoreIDAndOrderIDJSONRequestBody
+	if err := c.ShouldBindJSON(&body); err != nil {
+		s.handleCommonServiceErrors(c, services.ErrInvalidInput)
+		return
+	}
+	order, err := s.orders.UpdateOrder(c.Request.Context(), orderservice.UpdateInput{
+		StoreID: storeID, OrderID: orderID, Status: domain.OrderStatus(body.Status), ExpectedVersion: body.ExpectedVersion,
+	})
+	if err != nil {
+		messages := CommonErrorMessages{NotFound: "店舗または注文が見つかりません"}
+		switch {
+		case errors.Is(err, orderservice.ErrOrderVersionConflict):
+			messages.Conflict = "注文が更新されています。再読み込みしてください"
+		case errors.Is(err, orderservice.ErrOrderStateConflict):
+			messages.Conflict = "注文の状態を変更できません"
+		case errors.Is(err, orderservice.ErrCancelTooEarly):
+			messages.Conflict = "呼び出し開始から15分が経過するまでキャンセルできません"
+		}
+		s.handleCommonServiceErrors(c, err, messages)
+		return
+	}
+	c.JSON(http.StatusOK, toOrderResponse(order))
 }
 
 func (s *Server) CreateOrder(c *gin.Context) {

@@ -73,6 +73,24 @@ ORDER BY created_at ASC, id ASC;
 SELECT * FROM orders
 WHERE id = sqlc.arg(order_id) AND guest_id = sqlc.arg(guest_id);
 
+-- name: LockOrderByIDAndStoreID :one
+SELECT * FROM orders
+WHERE id = sqlc.arg(order_id) AND store_id = sqlc.arg(store_id)
+FOR UPDATE;
+
+-- name: GetOrderUpdateTime :one
+-- now()は取引開始時刻なので、ロック待機後の状態遷移の判定には使わない。
+SELECT clock_timestamp()::timestamptz AS at;
+
+-- name: UpdateOrderStatus :one
+UPDATE orders
+SET status = sqlc.arg(status), version = version + 1,
+    ready_at = sqlc.narg(ready_at), completed_at = sqlc.narg(completed_at),
+    cancelled_at = sqlc.narg(cancelled_at), updated_at = sqlc.arg(updated_at)
+WHERE id = sqlc.arg(order_id) AND store_id = sqlc.arg(store_id)
+    AND version = sqlc.arg(expected_version)
+RETURNING *;
+
 -- name: GetOrderItemsByOrderIDs :many
 SELECT * FROM order_items
 WHERE order_id = ANY(sqlc.arg(order_ids)::uuid[])

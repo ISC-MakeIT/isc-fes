@@ -46,6 +46,22 @@ jobs:
 
   go-test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: isc-fes-test
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: isc-fes-test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U isc-fes-test -d isc-fes-test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      TEST_ORDER_DATABASE_URL: postgresql://isc-fes-test:testpassword@localhost:5432/isc-fes-test?sslmode=disable
     defaults:
       run:
         working-directory: backend
