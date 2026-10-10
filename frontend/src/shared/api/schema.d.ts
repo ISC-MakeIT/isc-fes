@@ -1306,18 +1306,6 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /**
-       * @description 現時点ではインターフェースのみの実装のため、リクエスト形式とAccountセッションの検証を通過した場合に返す。
-       *     店舗の存在・Membership・注文の検証と状態更新は未実装。
-       */
-      501: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
     };
   };
   createReview: {

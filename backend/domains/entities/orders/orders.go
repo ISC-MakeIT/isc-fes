@@ -63,6 +63,11 @@ func CanViewStoreOrders(storeID uuid.UUID, membership entities.StoreMembership) 
 		(membership.Role == entities.StoreMemberRoleStaff || membership.Role == entities.StoreMemberRoleManager)
 }
 
+// CanUpdateStoreOrders は閲覧と同じく、当該店舗のStaff/Managerに限る。
+func CanUpdateStoreOrders(storeID uuid.UUID, membership entities.StoreMembership) bool {
+	return CanViewStoreOrders(storeID, membership)
+}
+
 // IsOrderLimitReached は、全店舗を通じた免除なしのpending/ready注文数が上限に達しているか判定する。
 // 件数制限を免除する注文では、この判定を適用しない。
 func IsOrderLimitReached(activeNonExemptOrderCount int64) bool {
