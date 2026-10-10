@@ -4,6 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { fetchOrderByidQueryOptions } from "../api/fetch-order-by-id";
 import Image from "next/image";
 import TicketSvg from "./assets/ticket.svg";
+import { notFound } from "next/navigation";
 
 type TicketProps = {
   orderId: string;
@@ -11,6 +12,11 @@ type TicketProps = {
 
 export function Ticket({ orderId }: TicketProps) {
   const { data: order } = useSuspenseQuery(fetchOrderByidQueryOptions(orderId));
+
+  if (!order) {
+    notFound();
+  }
+
   return (
     <div className="relative">
       <Image src={TicketSvg} alt="" />

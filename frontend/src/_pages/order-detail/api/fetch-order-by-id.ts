@@ -1,6 +1,6 @@
 import { Order } from "@/entities/order";
 import { createApiClient } from "@/shared/api";
-import { getStatusMessage, orderDetailKey } from "@/shared/config";
+import { getStatusMessage, HTTP_STATUS, orderDetailKey } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { queryOptions } from "@tanstack/react-query";
 
@@ -19,6 +19,9 @@ export async function fetchOrderById({ orderId }: FetchOrderByIdParams) {
   });
 
   if (error) {
+    if (response.status === HTTP_STATUS.NOT_FOUND.code) {
+      return null;
+    }
     throw new Error(getStatusMessage(response.status));
   }
 

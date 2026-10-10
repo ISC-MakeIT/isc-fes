@@ -16,6 +16,7 @@ import { OrderItem } from "@/entities/order";
 import { formatYen } from "@/shared/lib/formatYen";
 import { PlusIcon } from "lucide-react";
 import { FESTIVAL_TIME_ZONE } from "@/shared/config";
+import { notFound } from "next/navigation";
 
 type ReceiptProps = {
   orderId: string;
@@ -23,6 +24,10 @@ type ReceiptProps = {
 
 export function Receipt({ orderId }: ReceiptProps) {
   const { data: order } = useSuspenseQuery(fetchOrderByidQueryOptions(orderId));
+
+  if (!order) {
+    notFound();
+  }
 
   const createdDate = order.createdAt.toLocaleDateString("ja-JP", {
     timeZone: FESTIVAL_TIME_ZONE,
