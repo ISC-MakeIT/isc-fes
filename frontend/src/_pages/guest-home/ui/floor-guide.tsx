@@ -22,6 +22,7 @@ import { trackEvent } from "@/shared/lib/analytics";
 import { useQueryState } from "nuqs";
 import { floorParser } from "../model/floor-search-params";
 import { StoreCongestionBadge } from "@/entities/store";
+import { roomNames } from "@/entities/room";
 
 export type Floors = {
   level: Floor;
@@ -99,10 +100,14 @@ type FloorStoreListProps = {
   floor: Floor;
 };
 
+const roomOrder = new Map(roomNames.map((room, index) => [room, index]));
+
 function FloorStoreList({ floor }: FloorStoreListProps) {
   const { data: stores } = useSuspenseQuery({
     ...visibleStoresQueryOptions(),
     staleTime: 30_000,
+    select: (data) =>
+      [...data].sort((a, b) => roomOrder.get(a.room)! - roomOrder.get(b.room)!),
   });
   const storesByFloor = selectApprovedStoresByFloor(stores, floor);
 
