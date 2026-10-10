@@ -11,7 +11,7 @@ export function GuestFooter() {
       <div className="space-y-30 md:space-y-12">
         <div className="space-y-10 md:space-y-4">
           <div className="flex flex-row items-center justify-center">
-            <Image src={appLogo} alt={"アプリのロゴ"} />
+            <Image src={appLogo} alt={"アプリのロゴ"} draggable={false} />
             <DotText className="text-[1.375rem]">ふぇすNavi</DotText>
           </div>
           <nav className="flex flex-col items-center gap-4 md:flex-row">
