@@ -7,9 +7,11 @@ import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { Card } from "@/shared/ui/card";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import Link from "next/link";
 import { trackEvent } from "@/shared/lib/analytics";
 import { useEffect, useRef } from "react";
+import Image from "next/image";
+import { SoldOutLabel } from "@/entities/menu";
+import { AppLink } from "@/shared/ui/app-link";
 
 type MenuListProps = {
   storeId: string;
@@ -47,25 +49,7 @@ export function MenuList({ storeId }: MenuListProps) {
       {/* NOTE: カードを2列表示には画面幅428px必要で、ほとんどのスマホだと1列になってしまうかもなので、メニューカードを可変にして最小2列を維持 */}
       <div className="grid grid-cols-[repeat(2,minmax(0,11.375rem))] justify-center gap-4 md:grid-cols-[repeat(auto-fit,11.375rem)]">
         {menus.map((menu) => (
-          <Link
-            href={guestMenuDetailUrl(storeId, menu.id)}
-            key={menu.id}
-            onClick={() =>
-              trackEvent("select_item", {
-                item_list_id: `store:${storeId}`,
-                store_id: storeId,
-                items: [
-                  {
-                    item_id: menu.id,
-                    price: menu.unitPrice,
-                    affiliation: storeId,
-                  },
-                ],
-              })
-            }
-          >
-            <MenuCard menu={menu} />
-          </Link>
+          <MenuCard key={menu.id} storeId={storeId} menu={menu} />
         ))}
       </div>
     </section>
@@ -73,22 +57,50 @@ export function MenuList({ storeId }: MenuListProps) {
 }
 
 type MenuCardProps = {
+  storeId: string;
   menu: Menu;
 };
 
-function MenuCard({ menu }: MenuCardProps) {
+function MenuCard({ menu, storeId }: MenuCardProps) {
   return (
-    <Card className="shadow-primary border-foreground space-y-2 rounded-sm border px-4 py-6 shadow-[4px_4px_0]">
-      <AspectRatioImage
-        ratio={MENU_IMAGE_ASPECT}
-        alt={`${menu.name}の画像`}
-        src={menu.imageUrl}
-        className="max-w-38.5"
-      />
-      <div className="text-left">
-        <p className="line-clamp-2 h-[2lh] font-bold">{menu.name}</p>
-        <p>{formatYen(menu.unitPrice)}</p>
-      </div>
-    </Card>
+    <div className="relative">
+      <AppLink
+        href={guestMenuDetailUrl(storeId, menu.id)}
+        key={menu.id}
+        disabled={menu.soldOut}
+        onClick={() =>
+          trackEvent("select_item", {
+            item_list_id: `store:${storeId}`,
+            store_id: storeId,
+            items: [
+              {
+                item_id: menu.id,
+                price: menu.unitPrice,
+                affiliation: storeId,
+              },
+            ],
+          })
+        }
+      >
+        <Card className="shadow-primary border-foreground space-y-2 rounded-sm border px-4 py-6 shadow-[4px_4px_0]">
+          <AspectRatioImage
+            ratio={MENU_IMAGE_ASPECT}
+            alt={`${menu.name}の画像`}
+            src={menu.imageUrl}
+            className="max-w-38.5"
+          />
+          <div className="text-left">
+            <p className="line-clamp-2 h-[2lh] font-bold">{menu.name}</p>
+            <p>{formatYen(menu.unitPrice)}</p>
+          </div>
+        </Card>
+      </AppLink>
+
+      {menu.soldOut && (
+        <div className="bg-soldout-overlay pointer-events-none absolute inset-0 px-4 py-18">
+          <Image src={SoldOutLabel} alt="売り切れ" />
+        </div>
+      )}
+    </div>
   );
 }

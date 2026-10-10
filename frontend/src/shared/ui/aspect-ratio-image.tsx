@@ -19,7 +19,15 @@ export function AspectRatioImage({
       ratio={ratio}
       className={cn("bg-muted overflow-hidden", className)}
     >
-      {src && <Image src={src} alt={alt} className="object-cover" fill />}
+      {src && (
+        <Image
+          src={src}
+          alt={alt}
+          className="object-cover"
+          fill
+          draggable={false}
+        />
+      )}
     </AspectRatio>
   );
 }
