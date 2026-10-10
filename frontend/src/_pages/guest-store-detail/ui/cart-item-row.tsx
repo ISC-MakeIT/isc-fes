@@ -66,7 +66,7 @@ function CartItemSoldOutOverlay({ cartItem }: CartItemSoldOutOverlayProps) {
   return (
     <div className="bg-soldout-overlay absolute inset-0 z-10 flex flex-col items-center justify-center">
       <div className="flex flex-col gap-2">
-        <Image src={SoldOutLabel} alt="" className="w-60" />
+        <Image src={SoldOutLabel} alt="" className="w-60" draggable={false} />
         <p className="text-xs">こちらの商品は只今売り切れとなりました。</p>
       </div>
       <Button
@@ -100,7 +100,7 @@ function CartItemToppingRow({ topping }: CartItemToppingRowProps) {
 
         {!topping.available && (
           <div className="bg-soldout-overlay pointer-events-none absolute inset-0 flex items-center justify-center px-4">
-            <Image src={ToppingSoldOut} alt="" />
+            <Image src={ToppingSoldOut} alt="" draggable={false} />
           </div>
         )}
       </div>
