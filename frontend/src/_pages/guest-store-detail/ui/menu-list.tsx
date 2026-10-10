@@ -7,12 +7,11 @@ import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { Card } from "@/shared/ui/card";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import Link from "next/link";
 import { trackEvent } from "@/shared/lib/analytics";
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { SoldOutLabel } from "@/entities/menu";
-import { cn } from "@/shared/lib/utils";
+import { AppLink } from "@/shared/ui/app-link";
 
 type MenuListProps = {
   storeId: string;
@@ -65,10 +64,10 @@ type MenuCardProps = {
 function MenuCard({ menu, storeId }: MenuCardProps) {
   return (
     <div className="relative">
-      <Link
+      <AppLink
         href={guestMenuDetailUrl(storeId, menu.id)}
         key={menu.id}
-        className={cn(menu.soldOut && "pointer-events-none")}
+        disabled={menu.soldOut}
         onClick={() =>
           trackEvent("select_item", {
             item_list_id: `store:${storeId}`,
@@ -95,7 +94,7 @@ function MenuCard({ menu, storeId }: MenuCardProps) {
             <p>{formatYen(menu.unitPrice)}</p>
           </div>
         </Card>
-      </Link>
+      </AppLink>
 
       {menu.soldOut && (
         <div className="bg-soldout-overlay pointer-events-none absolute inset-0 px-4 py-18">
