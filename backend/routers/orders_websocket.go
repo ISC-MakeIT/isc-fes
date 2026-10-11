@@ -3,6 +3,7 @@ package routers
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -10,13 +11,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/coder/websocket"
-	"github.com/coder/websocket/wsjson"
 	"github.com/gin-gonic/gin"
+	"github.com/isc-makeit/isc-fes/backend/realtime"
 	"golang.org/x/net/http/httpguts"
 )
 
-const ordersWebSocketWriteTimeout = 10 * time.Second
+type guestSessionDeadline interface {
+	Deadline(context.Context) time.Time
+}
 
 type connectionReady struct {
 	Type string              `json:"type"`
@@ -43,42 +45,37 @@ func (s *Server) ordersWebSocket(allowedOrigins []string) gin.HandlerFunc {
 			return
 		}
 
-		if _, err := s.guestResolver.ResolveOrCreateGuest(c.Request.Context()); err != nil {
+		guestID, err := s.guestResolver.ResolveOrCreateGuest(c.Request.Context())
+		if err != nil {
 			captureUnexpectedError(c, fmt.Errorf("resolve WebSocket guest: %w", err))
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+		expires := s.guestSession.Deadline(c.Request.Context())
 
 		// Originは上でスキーム・ホスト・ポートを含む完全一致で検証済み。
 		// coderの同一Host自動許可やパターンマッチは使用しない。
-		conn, err := websocket.Accept(c.Writer, c.Request, &websocket.AcceptOptions{
-			InsecureSkipVerify: true,
-		})
+		conn, err := realtime.Accept(c.Writer, c.Request)
 		if err != nil {
 			captureUnexpectedError(c, err)
 			return
 		}
 		defer conn.CloseNow()
-
-		// Hijack後の接続をHTTPリクエストのキャンセルから独立させる。
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		writeCtx, cancelWrite := context.WithTimeout(ctx, ordersWebSocketWriteTimeout)
-		err = wsjson.Write(writeCtx, conn, connectionReady{
+		subscription, err := s.ordersHub.Subscribe(guestID)
+		if err != nil {
+			return // 停止中は登録せず、deferで通信を解放する。
+		}
+		defer subscription.Close()
+		ready, err := json.Marshal(connectionReady{
 			Type: "connection.ready",
 			Data: connectionReadyData{Orders: []Order{}},
 		})
-		cancelWrite()
 		if err != nil {
-			captureUnexpectedError(c, fmt.Errorf("write connection.ready: %w", err))
+			captureUnexpectedError(c, fmt.Errorf("encode connection.ready: %w", err))
 			return
 		}
-
-		// ReaderはPing/Pong/Closeを処理し、最初のアプリデータで戻る。
-		// CloseRead内部からCloseすると終了待ちが遅れるため、ここで閉じる。
-		if _, _, err := conn.Reader(ctx); err == nil {
-			_ = conn.Close(websocket.StatusPolicyViolation, "unexpected data message")
+		if err := conn.Run(subscription, ready, expires); err != nil {
+			captureUnexpectedError(c, err)
 		}
 	}
 }

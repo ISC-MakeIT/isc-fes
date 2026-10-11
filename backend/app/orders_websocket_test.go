@@ -20,6 +20,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/auth"
 	db "github.com/isc-makeit/isc-fes/backend/db/sqlc"
+	"github.com/isc-makeit/isc-fes/backend/realtime"
 	"github.com/isc-makeit/isc-fes/backend/repositories"
 	"github.com/isc-makeit/isc-fes/backend/routers"
 	"github.com/isc-makeit/isc-fes/backend/services"
@@ -33,6 +34,7 @@ type ordersWebSocketFixture struct {
 	pool     *pgxpool.Pool
 	server   *httptest.Server
 	finished chan struct{}
+	hub      *realtime.Hub
 }
 
 // 本番のGin・二重scsミドルウェア・GuestService・pgxstoreを実接続で確認する。
@@ -90,7 +92,8 @@ func newOrdersWebSocketFixture(t *testing.T) *ordersWebSocketFixture {
 	t.Cleanup(stopAccount)
 	t.Cleanup(stopGuest)
 	resolver := services.NewGuestService(guest, repositories.NewGuestRepository(db.New(pool)))
-	s := routers.NewServer(nil, nil, "", nil, nil, resolver, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	hub := realtime.NewHub()
+	s := routers.NewServer(nil, nil, "", nil, nil, resolver, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, hub, guest)
 	gin.SetMode(gin.TestMode)
 	router, err := routers.NewRouter(s, []string{wsTestOrigin})
 	if err != nil {
@@ -105,7 +108,7 @@ func newOrdersWebSocketFixture(t *testing.T) *ordersWebSocketFixture {
 		}
 		c.JSON(http.StatusOK, id.String())
 	})
-	fixture := &ordersWebSocketFixture{pool: pool, finished: make(chan struct{}, 8)}
+	fixture := &ordersWebSocketFixture{pool: pool, finished: make(chan struct{}, 8), hub: hub}
 	handler := guardSessionUpgrade(account.LoadAndSave(guest.LoadAndSave(router)))
 	fixture.server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/ws/orders" {
@@ -114,7 +117,63 @@ func newOrdersWebSocketFixture(t *testing.T) *ordersWebSocketFixture {
 		handler.ServeHTTP(w, r)
 	}))
 	t.Cleanup(fixture.server.Close)
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		if err := hub.Shutdown(ctx); err != nil {
+			t.Error(err)
+		}
+	})
 	return fixture
+}
+
+func TestOrdersHubFanoutAndAppShutdown(t *testing.T) {
+	f := newOrdersWebSocketFixture(t)
+	client := newWebSocketClient(t)
+	first, second := f.dial(t, client), f.dial(t, client)
+	guestID := uuid.MustParse(f.guestID(t, client))
+	otherClient := newWebSocketClient(t)
+	other := f.dial(t, otherClient)
+	otherID := uuid.MustParse(f.guestID(t, otherClient))
+	if guestID == otherID {
+		t.Fatal("different browser cookies resolved to the same Guest")
+	}
+	const event = `{"type":"test.changed","data":{"version":1}}`
+	const otherEvent = `{"type":"test.changed","data":{"version":2}}`
+	if err := f.hub.Publish(guestID, []byte(event)); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.hub.Publish(otherID, []byte(otherEvent)); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
+	defer cancel()
+	for _, item := range []struct {
+		conn *websocket.Conn
+		want string
+	}{{first, event}, {second, event}, {other, otherEvent}} {
+		_, message, err := item.conn.Read(ctx)
+		if err != nil || string(message) != item.want {
+			t.Fatalf("event = %s, error = %v; want %s", message, err, item.want)
+		}
+	}
+	statuses := make(chan websocket.StatusCode, 3)
+	for _, conn := range []*websocket.Conn{first, second, other} {
+		go func() {
+			_, _, err := conn.Read(ctx)
+			statuses <- websocket.CloseStatus(err)
+		}()
+	}
+	application := &App{httpServer: f.server.Config, dependencies: &dependencies{ordersHub: f.hub}}
+	if err := application.shutdown(ctx); err != nil {
+		t.Fatal(err)
+	}
+	for range 3 {
+		if status := <-statuses; status != websocket.StatusGoingAway {
+			t.Fatalf("app shutdown close = %v, want 1001", status)
+		}
+		f.waitFinished(t)
+	}
 }
 
 func (f *ordersWebSocketFixture) dial(t *testing.T, client *http.Client) *websocket.Conn {

@@ -43,6 +43,8 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 }
 
 func (a *App) Close() {
+	// Runで接続終了を待った後にDBを解放する。ここで終了期限を再延長しない。
+	a.dependencies.ordersHub.Stop()
 	a.dependencies.stopSessionCleanup()
 	a.dependencies.pool.Close()
 }

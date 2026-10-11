@@ -12,6 +12,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/coder/websocket"
 	"github.com/gin-gonic/gin"
+	"github.com/isc-makeit/isc-fes/backend/realtime"
 )
 
 type failingSessionStore struct{ scs.Store }
@@ -37,7 +38,7 @@ func TestSessionUpgradeStopsWhenEitherSessionSaveFails(t *testing.T) {
 			router.GET("/ws/orders", func(c *gin.Context) {
 				account.Put(c.Request.Context(), "account_id", "account")
 				guest.Put(c.Request.Context(), "guest_id", "guest")
-				conn, err := websocket.Accept(c.Writer, c.Request, nil)
+				conn, err := realtime.Accept(c.Writer, c.Request)
 				accepted <- err == nil
 				if conn != nil {
 					conn.CloseNow()

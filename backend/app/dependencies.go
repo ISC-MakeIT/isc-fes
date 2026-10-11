@@ -12,6 +12,7 @@ import (
 	"github.com/isc-makeit/isc-fes/backend/auth"
 	db "github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/media"
+	"github.com/isc-makeit/isc-fes/backend/realtime"
 	"github.com/isc-makeit/isc-fes/backend/repositories"
 	allergens_repository "github.com/isc-makeit/isc-fes/backend/repositories/allergens"
 	"github.com/isc-makeit/isc-fes/backend/repositories/imageurl"
@@ -49,6 +50,7 @@ type dependencies struct {
 	guestSession       sessionMiddleware
 	stopSessionCleanup func()
 	apiServer          *routers.Server
+	ordersHub          *realtime.Hub
 }
 
 func buildDependencies(
@@ -160,6 +162,7 @@ func buildDependencies(
 		roomsRepository,
 	)
 
+	ordersHub := realtime.NewHub()
 	apiServer := routers.NewServer(
 		queries,
 		googleAuthenticator,
@@ -178,6 +181,8 @@ func buildDependencies(
 		roomsService,
 		reviewService,
 		orderService,
+		ordersHub,
+		guestSession,
 	)
 
 	return &dependencies{
@@ -186,6 +191,7 @@ func buildDependencies(
 		guestSession:       guestSession,
 		stopSessionCleanup: stopSessionCleanup,
 		apiServer:          apiServer,
+		ordersHub:          ordersHub,
 	}, nil
 }
 
