@@ -10,15 +10,24 @@ import {
 import Image from "next/image";
 import CartIcon from "./assets/cart-icon.svg";
 import { Button } from "@/shared/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/shared/ui/badge";
 import { formatYen } from "@/shared/lib/formatYen";
 import { CartContents } from "./cart-contents";
 import { useCartOperation } from "../model/cart-operation-context";
 import { calculateCartTotal } from "../lib/calculate-cart-total";
+import { useIsMobile } from "@/shared/lib/hooks";
+import { guestStoreDetailParsers } from "@/shared/config";
+import { useQueryStates } from "nuqs";
 
 export function CartList() {
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [{ isOpenCart }, setSearchParams] = useQueryStates(
+    guestStoreDetailParsers,
+  );
+
+  const [isSheetOpen, setIsSheetOpen] = useState(isOpenCart);
+
+  const isMobile = useIsMobile();
 
   const {
     clearCart,
@@ -39,89 +48,91 @@ export function CartList() {
     return null;
   }
 
-  return (
-    <>
-      {/* モバイル表示 */}
-      <div className="lg:hidden">
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <div className="bg-background shadow-bottom-bar fixed inset-x-0 bottom-0 z-60 flex w-full flex-row items-center gap-4 px-6">
-            <SheetTrigger className="flex h-20 flex-1 flex-row items-center gap-4">
-              <CartBadge totalQuantity={totalQuantity} />
-              <span className="text-xl font-medium">
-                {formatYen(totalAmount)}
-              </span>
-            </SheetTrigger>
+  useEffect(() => {
+    void setSearchParams({ isOpenCart: false }, { history: "replace" });
+  });
 
-            <Button
-              type="button"
-              variant="secondary"
-              className="rounded-sm px-6 py-2 text-base font-semibold shadow-none"
-              disabled={isSaving || hasPendingChanges || !canCheckout}
-              onClick={checkout}
-            >
-              注文画面へ ＞
-            </Button>
-          </div>
+  if (isMobile) {
+    return (
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <div className="bg-background shadow-bottom-bar fixed inset-x-0 bottom-0 z-60 flex w-full flex-row items-center gap-4 px-6">
+          <SheetTrigger className="flex h-20 flex-1 flex-row items-center gap-4">
+            <CartBadge totalQuantity={totalQuantity} />
+            <span className="text-xl font-medium">
+              {formatYen(totalAmount)}
+            </span>
+          </SheetTrigger>
 
-          <SheetContent
-            side="bottom"
-            showCloseButton={false}
-
-            className="max-h-[calc(100vh-5rem)] gap-0 overflow-hidden rounded-t-2xl data-[side=bottom]:bottom-20"
-          >
-            <SheetHeader className="bg-cart-sheet-header flex h-10 flex-row items-center justify-between py-0">
-              <SheetTitle className="text-sm">カート内の商品</SheetTitle>
-              <Button
-                type="button"
-                variant="ghost"
-                className="text-notice text-sm"
-                onClick={clearCart}
-                disabled={isSaving}
-              >
-                全て削除
-              </Button>
-            </SheetHeader>
-
-            <CartContents />
-          </SheetContent>
-        </Sheet>
-      </div>
-
-      {/* PC表示 */}
-      <aside className="shadow-secondary/50 hidden min-h-svh shadow-[-4px_0_4px] lg:sticky lg:top-0 lg:right-0 lg:block lg:w-full lg:self-start">
-        <header className="bg-cart-sheet-header flex flex-row items-center justify-between px-6 pt-10">
-          <h2 className="text-sm">カート内の商品</h2>
-          <Button
-            type="button"
-            variant="ghost"
-            className="text-notice text-sm"
-            disabled={isSaving}
-            onClick={clearCart}
-          >
-            全て削除
-          </Button>
-        </header>
-        <CartContents />
-
-        <div className="flex h-20 flex-row items-center justify-center gap-4">
-          <CartBadge totalQuantity={totalQuantity} />
-          <span className="text-xl font-medium">{formatYen(totalAmount)}</span>
-        </div>
-
-        {/* TODO: チェックアウト処理 */}
-        <div className="px-6 pb-6">
           <Button
             type="button"
             variant="secondary"
-            className="w-full rounded-sm px-6 py-2 font-semibold"
+            className="h-auto rounded-sm px-6 py-2 text-base font-semibold shadow-none"
             disabled={isSaving || hasPendingChanges || !canCheckout}
             onClick={checkout}
           >
             注文画面へ ＞
           </Button>
         </div>
-      </aside>
-    </>
+
+        <SheetContent
+          side="bottom"
+          showCloseButton={false}
+
+          className="max-h-[calc(100vh-5rem)] gap-0 overflow-hidden rounded-t-2xl data-[side=bottom]:bottom-20"
+        >
+          <SheetHeader className="bg-cart-sheet-header flex h-10 flex-row items-center justify-between py-0">
+            <SheetTitle className="text-sm">カート内の商品</SheetTitle>
+            <Button
+              type="button"
+              variant="ghost"
+              className="text-notice text-sm"
+              onClick={clearCart}
+              disabled={isSaving}
+            >
+              全て削除
+            </Button>
+          </SheetHeader>
+
+          <CartContents />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <aside className="shadow-secondary/50 sticky top-0 right-0 min-h-svh w-full self-start shadow-[-4px_0_4px]">
+      <header className="bg-cart-sheet-header flex flex-row items-center justify-between px-6 pt-10">
+        <h2 className="text-sm">カート内の商品</h2>
+        <Button
+          type="button"
+          variant="ghost"
+          className="text-notice text-sm"
+          disabled={isSaving}
+          onClick={clearCart}
+        >
+          全て削除
+        </Button>
+      </header>
+      <CartContents />
+
+      <div className="flex h-20 flex-row items-center justify-center gap-4">
+        <CartBadge totalQuantity={totalQuantity} />
+        <span className="text-xl font-medium">{formatYen(totalAmount)}</span>
+      </div>
+
+      {/* TODO: チェックアウト処理 */}
+      <div className="px-6 pb-6">
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full rounded-sm px-6 py-2 font-semibold"
+          disabled={isSaving || hasPendingChanges || !canCheckout}
+          onClick={checkout}
+        >
+          注文画面へ ＞
+        </Button>
+      </div>
+    </aside>
   );
 }
 

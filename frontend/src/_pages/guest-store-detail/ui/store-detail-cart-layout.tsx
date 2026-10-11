@@ -18,7 +18,7 @@ export function StoreDetailCartLayout({
     <div
       className={cn(
         "mx-auto w-full",
-        hasCartItems && "lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10",
+        hasCartItems && "md:grid md:grid-cols-[minmax(0,1fr)_20rem] md:gap-10",
       )}
     >
       {children}
