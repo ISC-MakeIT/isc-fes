@@ -156,12 +156,13 @@ func TestOrdersHubFanoutAndAppShutdown(t *testing.T) {
 	if guestID == otherID {
 		t.Fatal("different browser cookies resolved to the same Guest")
 	}
-	const event = `{"type":"test.changed","data":{"version":1}}`
-	const otherEvent = `{"type":"test.changed","data":{"version":2}}`
-	if err := f.hub.Publish(guestID, []byte(event)); err != nil {
+	orderID, otherOrderID := uuid.New(), uuid.New()
+	event, _ := json.Marshal(map[string]any{"type": "orders.changed", "data": map[string]any{"orders": []routers.Order{}, "changedOrderId": orderID}})
+	otherEvent, _ := json.Marshal(map[string]any{"type": "orders.changed", "data": map[string]any{"orders": []routers.Order{}, "changedOrderId": otherOrderID}})
+	if err := f.hub.Publish(guestID, orderID); err != nil {
 		t.Fatal(err)
 	}
-	if err := f.hub.Publish(otherID, []byte(otherEvent)); err != nil {
+	if err := f.hub.Publish(otherID, otherOrderID); err != nil {
 		t.Fatal(err)
 	}
 	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
@@ -169,9 +170,9 @@ func TestOrdersHubFanoutAndAppShutdown(t *testing.T) {
 	for _, item := range []struct {
 		conn *websocket.Conn
 		want string
-	}{{first, event}, {second, event}, {other, otherEvent}} {
+	}{{first, string(event)}, {second, string(event)}, {other, string(otherEvent)}} {
 		_, message, err := item.conn.Read(ctx)
-		if err != nil || string(message) != item.want {
+		if err != nil || !sameJSON(message, []byte(item.want)) {
 			t.Fatalf("event = %s, error = %v; want %s", message, err, item.want)
 		}
 	}
@@ -204,6 +205,11 @@ func TestOrdersWebSocketInitialOrdersAndReconnect(t *testing.T) {
 	f.waitFinished(t)
 	f.waitFinished(t)
 	expected := f.seedOrders(t, guestID, otherID)
+	for id, status := range expected {
+		if status != "pending" && status != "ready" {
+			delete(expected, id)
+		}
+	}
 	conn, rawOrders := f.dialReady(t, client)
 	if len(rawOrders) != len(expected) {
 		t.Fatalf("ready order count = %d, want %d", len(rawOrders), len(expected))
@@ -242,7 +248,7 @@ func TestOrdersWebSocketInitialOrdersAndReconnect(t *testing.T) {
 		}
 		wsOrders = append(wsOrders, order)
 	}
-	response, err := client.Get(f.server.URL + "/orders")
+	response, err := client.Get(f.server.URL + "/orders?statuses=pending&statuses=ready")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -532,4 +538,9 @@ func TestOrdersWebSocketReplacesInvalidOrExpiredSession(t *testing.T) {
 			f.waitFinished(t)
 		})
 	}
+}
+
+func sameJSON(left, right []byte) bool {
+	var a, b any
+	return json.Unmarshal(left, &a) == nil && json.Unmarshal(right, &b) == nil && reflect.DeepEqual(a, b)
 }

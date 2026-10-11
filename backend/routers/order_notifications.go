@@ -1,7 +1,6 @@
 package routers
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -22,19 +21,10 @@ func NewOrderStatusNotifier(hub *realtime.Hub) *OrderStatusNotifier {
 	return &OrderStatusNotifier{hub: hub}
 }
 
-// NotifyStatusChangedはRESTと同じ公開Orderを、注文の所有Guestの全接続へ投入する。
+// NotifyStatusChangedは注文の所有Guestの全接続へOrder IDを投入する。
 // ネットワーク送信は待たない。更新は既にコミット済みなので通知失敗を呼び出し元へ返さない。
 func (n *OrderStatusNotifier) NotifyStatusChanged(order domain.Order) {
-	payload, err := json.Marshal(struct {
-		Type string `json:"type"`
-		Data Order  `json:"data"`
-	}{Type: "order.status_changed", Data: toOrderResponse(order)})
-	if err != nil {
-		n.hub.ResyncGuest(order.GuestID)
-		n.report(fmt.Errorf("encode order status notification for order %s: %w", order.ID, err))
-		return
-	}
-	if err := n.hub.Publish(order.GuestID, payload); err != nil && !errors.Is(err, realtime.ErrHubStopped) {
+	if err := n.hub.Publish(order.GuestID, order.ID); err != nil && !errors.Is(err, realtime.ErrHubStopped) {
 		n.report(fmt.Errorf("publish order status notification for order %s: %w", order.ID, err))
 	}
 }

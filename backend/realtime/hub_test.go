@@ -3,7 +3,6 @@ package realtime
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 	"testing"
 
@@ -20,23 +19,24 @@ func subscribe(t *testing.T, h *Hub, id uuid.UUID) *Subscription {
 	return s
 }
 
-func TestHubGuestIsolationMultipleConnectionsAndImmutableMessages(t *testing.T) {
+func TestHubGuestIsolationMultipleConnectionsAndValueChanges(t *testing.T) {
 	h := NewHub()
 	id := uuid.New()
 	first, second := subscribe(t, h, id), subscribe(t, h, id)
 	other := subscribe(t, h, uuid.New())
-	message := []byte(`{"version":1}`)
+	orderID, secondOrderID, thirdOrderID := uuid.New(), uuid.New(), uuid.New()
+	message := orderID
 	if err := h.Publish(id, message); err != nil {
 		t.Fatal(err)
 	}
-	message[0] = 'x'
-	if err := h.Publish(id, []byte(`{"version":2}`)); err != nil {
+	message[0] ^= 0xff
+	if err := h.Publish(id, secondOrderID); err != nil {
 		t.Fatal(err)
 	}
 	for _, s := range []*Subscription{first, second} {
-		for _, expected := range []string{`{"version":1}`, `{"version":2}`} {
+		for _, expected := range []uuid.UUID{orderID, secondOrderID} {
 			select {
-			case actual := <-s.Messages():
+			case actual := <-s.Changes():
 				if actual != expected {
 					t.Fatalf("message = %s, want %s", actual, expected)
 				}
@@ -46,19 +46,19 @@ func TestHubGuestIsolationMultipleConnectionsAndImmutableMessages(t *testing.T) 
 		}
 	}
 	select {
-	case <-other.Messages():
+	case <-other.Changes():
 		t.Fatal("message leaked to another Guest")
 	default:
 	}
 	first.Close()
 	first.Close()
-	if err := h.Publish(id, []byte(`{"version":3}`)); err != nil {
+	if err := h.Publish(id, thirdOrderID); err != nil {
 		t.Fatal(err)
 	}
-	if actual := <-second.Messages(); actual != `{"version":3}` {
+	if actual := <-second.Changes(); actual != thirdOrderID {
 		t.Fatalf("remaining connection message = %s", actual)
 	}
-	if len(first.Messages()) != 0 {
+	if len(first.Changes()) != 0 {
 		t.Fatal("unregistered connection received a new message")
 	}
 }
@@ -68,11 +68,11 @@ func TestHubQueueOverflowOnlyStopsSlowConnection(t *testing.T) {
 	id := uuid.New()
 	slow, healthy := subscribe(t, h, id), subscribe(t, h, id)
 	for i := 0; i <= QueueCapacity; i++ {
-		message := fmt.Sprintf(`{"version":%d}`, i)
-		if err := h.Publish(id, []byte(message)); err != nil {
+		message := uuid.New()
+		if err := h.Publish(id, message); err != nil {
 			t.Fatal(err)
 		}
-		if actual := <-healthy.Messages(); actual != message {
+		if actual := <-healthy.Changes(); actual != message {
 			t.Fatalf("healthy message = %s, want %s", actual, message)
 		}
 	}
@@ -99,7 +99,7 @@ func TestHubShutdownRejectsNewWorkAndWaitsForCleanup(t *testing.T) {
 	if _, err := h.Subscribe(uuid.New()); !errors.Is(err, ErrHubStopped) {
 		t.Fatalf("subscribe after stop = %v", err)
 	}
-	if err := h.Publish(uuid.New(), []byte(`{}`)); !errors.Is(err, ErrHubStopped) {
+	if err := h.Publish(uuid.New(), uuid.New()); !errors.Is(err, ErrHubStopped) {
 		t.Fatalf("publish after stop = %v", err)
 	}
 	if !errors.Is(s.Err(), ErrHubStopped) {
@@ -108,7 +108,7 @@ func TestHubShutdownRejectsNewWorkAndWaitsForCleanup(t *testing.T) {
 	aborted := false
 	s.setAbort(func() {
 		// 強制切断コールバック中にHubを使用できること＝ロックを保持しないこと。
-		_ = h.Publish(uuid.New(), nil)
+		_ = h.Publish(uuid.New(), uuid.New())
 		aborted = true
 	})
 	ctx, cancel := context.WithCancel(t.Context())
@@ -152,7 +152,7 @@ func TestHubConcurrentPublishUnsubscribeAndStop(t *testing.T) {
 			}
 			subscribed.Done()
 			<-start
-			_ = h.Publish(id, []byte(`{"version":0}`))
+			_ = h.Publish(id, uuid.New())
 			first.Close()
 			for range 100 {
 				s, err := h.Subscribe(id)
@@ -163,7 +163,7 @@ func TestHubConcurrentPublishUnsubscribeAndStop(t *testing.T) {
 					t.Error(err)
 					return
 				}
-				_ = h.Publish(id, []byte(`{"version":1}`))
+				_ = h.Publish(id, uuid.New())
 				_ = s.Err()
 				s.Close()
 				s.Close()
@@ -187,7 +187,14 @@ func TestHubRejectsNilGuest(t *testing.T) {
 	if _, err := h.Subscribe(uuid.Nil); !errors.Is(err, ErrInvalidGuestID) {
 		t.Fatalf("subscribe(nil) = %v", err)
 	}
-	if err := h.Publish(uuid.Nil, nil); !errors.Is(err, ErrInvalidGuestID) {
+	if err := h.Publish(uuid.Nil, uuid.New()); !errors.Is(err, ErrInvalidGuestID) {
 		t.Fatalf("publish(nil) = %v", err)
+	}
+}
+
+func TestHubRejectsNilOrder(t *testing.T) {
+	h := NewHub()
+	if err := h.Publish(uuid.New(), uuid.Nil); !errors.Is(err, ErrInvalidOrderID) {
+		t.Fatalf("publish(nil order) = %v", err)
 	}
 }

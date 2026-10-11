@@ -16,6 +16,7 @@ var (
 	ErrSlowConsumer   = errors.New("realtime connection queue is full")
 	ErrResyncRequired = errors.New("realtime order resync is required")
 	ErrInvalidGuestID = errors.New("realtime guest ID is nil")
+	ErrInvalidOrderID = errors.New("realtime order ID is nil")
 )
 
 type Hub struct {
@@ -47,7 +48,7 @@ func (h *Hub) Subscribe(guestID uuid.UUID) (*Subscription, error) {
 	}
 	s := &Subscription{
 		hub: h, guestID: guestID,
-		messages: make(chan string, QueueCapacity), done: make(chan struct{}),
+		changes: make(chan uuid.UUID, QueueCapacity), done: make(chan struct{}),
 	}
 	if h.subscriptions[guestID] == nil {
 		h.subscriptions[guestID] = make(map[*Subscription]struct{})
@@ -57,14 +58,16 @@ func (h *Hub) Subscribe(guestID uuid.UUID) (*Subscription, error) {
 	return s, nil
 }
 
-// Publishは、Guestの全接続へエンコード済みJSONを投入する。
-// JSONはstringへコピーして以後不変とし、呼び出し側のバッファ変更から分離する。
+// Publishは、Guestの全接続へ再取得のきっかけとなったOrder IDを投入する。
+// 注文一覧は保持せず、各接続の送信ループが通知を処理するときに取得する。
 // ネットワーク送信は待たず、キューが満杯の接続だけ解除する。
-func (h *Hub) Publish(guestID uuid.UUID, message []byte) error {
+func (h *Hub) Publish(guestID, orderID uuid.UUID) error {
 	if guestID == uuid.Nil {
 		return ErrInvalidGuestID
 	}
-	encoded := string(message)
+	if orderID == uuid.Nil {
+		return ErrInvalidOrderID
+	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if h.stopped {
@@ -72,7 +75,7 @@ func (h *Hub) Publish(guestID uuid.UUID, message []byte) error {
 	}
 	for s := range h.subscriptions[guestID] {
 		select {
-		case s.messages <- encoded:
+		case s.changes <- orderID:
 		default:
 			h.removeLocked(s, ErrSlowConsumer)
 		}
@@ -143,20 +146,20 @@ func (h *Hub) removeLocked(s *Subscription, err error) {
 	}
 	s.err = err
 	close(s.done)
-	// messagesは閉じない。終了はdoneで通知し、送信とのclose競合を避ける。
+	// changesは閉じない。終了はdoneで通知し、送信とのclose競合を避ける。
 }
 
 type Subscription struct {
-	hub      *Hub
-	guestID  uuid.UUID
-	messages chan string
-	done     chan struct{}
-	err      error  // doneを閉じる前に設定し、その後は変更しない。
-	abort    func() // hub.muで保護する。ネットワーク操作はロック外で行う。
+	hub     *Hub
+	guestID uuid.UUID
+	changes chan uuid.UUID
+	done    chan struct{}
+	err     error  // doneを閉じる前に設定し、その後は変更しない。
+	abort   func() // hub.muで保護する。ネットワーク操作はロック外で行う。
 }
 
-// Messagesは登録後のイベントをFIFOで返す。Doneが閉じたら残りは破棄する。
-func (s *Subscription) Messages() <-chan string { return s.messages }
+// Changesは登録後の変更通知をFIFOで返す。Doneが閉じたら残りは破棄する。
+func (s *Subscription) Changes() <-chan uuid.UUID { return s.changes }
 
 func (s *Subscription) Done() <-chan struct{} { return s.done }
 

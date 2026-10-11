@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/realtime"
 	"github.com/isc-makeit/isc-fes/backend/utils"
 	"golang.org/x/net/http/httpguts"
@@ -28,6 +29,16 @@ type connectionReady struct {
 
 type connectionReadyData struct {
 	Orders []Order `json:"orders"` // GET /orders などと同じ Order 構造体を使用する
+}
+
+type ordersChanged struct {
+	Type string            `json:"type"`
+	Data ordersChangedData `json:"data"`
+}
+
+type ordersChangedData struct {
+	Orders         []Order   `json:"orders"`
+	ChangedOrderID uuid.UUID `json:"changedOrderId"`
 }
 
 func (s *Server) ordersWebSocket(allowedOrigins []string) gin.HandlerFunc {
@@ -77,7 +88,19 @@ func (s *Server) ordersWebSocket(allowedOrigins []string) gin.HandlerFunc {
 				Data: connectionReadyData{Orders: utils.Map(orders, toOrderResponse)},
 			})
 		}
-		if err := conn.Run(subscription, loadReady, expires); err != nil {
+		loadChanged := func(ctx context.Context, orderID uuid.UUID) ([]byte, error) {
+			orders, err := s.orders.GetOrdersForGuest(ctx, guestID)
+			if err != nil {
+				return nil, fmt.Errorf("get changed WebSocket orders: %w", err)
+			}
+			return json.Marshal(ordersChanged{
+				Type: "orders.changed",
+				Data: ordersChangedData{
+					Orders: utils.Map(orders, toOrderResponse), ChangedOrderID: orderID,
+				},
+			})
+		}
+		if err := conn.Run(subscription, loadReady, loadChanged, expires); err != nil {
 			captureUnexpectedError(c, err)
 		}
 	}
