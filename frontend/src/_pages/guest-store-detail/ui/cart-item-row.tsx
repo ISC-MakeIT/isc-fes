@@ -12,6 +12,7 @@ import { QuantityController } from "@/widgets/quantity-controller";
 import { CornerLeftUpIcon, XIcon } from "lucide-react";
 import Image from "next/image";
 import { useCartOperation } from "../model/cart-operation-context";
+import ToppingSoldOut from "./assets/topping-sold-out.svg";
 
 type CartItemRowProps = {
   cartItem: CartItem;
@@ -65,7 +66,7 @@ function CartItemSoldOutOverlay({ cartItem }: CartItemSoldOutOverlayProps) {
   return (
     <div className="bg-soldout-overlay absolute inset-0 z-10 flex flex-col items-center justify-center">
       <div className="flex flex-col gap-2">
-        <Image src={SoldOutLabel} alt="" className="w-60" />
+        <Image src={SoldOutLabel} alt="" className="w-60" draggable={false} />
         <p className="text-xs">こちらの商品は只今売り切れとなりました。</p>
       </div>
       <Button
@@ -89,15 +90,26 @@ function CartItemToppingRow({ topping }: CartItemToppingRowProps) {
   return (
     <div
       key={topping.id}
-      className="border-foreground flex min-h-13.75 flex-row gap-2 border-b border-dashed py-2 pl-20"
+      className="border-foreground flex flex-row items-center gap-2 border-b border-dashed py-2"
     >
-      <CornerLeftUpIcon size={15} className="shrink-0 justify-start" />
-      <p className="line-clamp-2 font-semibold">{topping.name}</p>
+      <div className="relative flex min-w-0 flex-1 items-center justify-start self-stretch pl-20">
+        <div className="flex flex-row items-start justify-start">
+          <CornerLeftUpIcon size={15} className="shrink-0 justify-start" />
+          <p className="font-semibold">{topping.name}</p>
+        </div>
+
+        {!topping.available && (
+          <div className="bg-soldout-overlay pointer-events-none absolute inset-0 flex items-center justify-center px-4">
+            <Image src={ToppingSoldOut} alt="" draggable={false} />
+          </div>
+        )}
+      </div>
+
       <Button
         type="button"
         variant="ghost"
         aria-label={`${topping.name}を削除`}
-        className="text-notice ml-auto px-2"
+        className="text-notice flex"
         disabled={isSaving}
         onClick={() => removeTopping(topping.cartItemId, topping.toppingId)}
       >

@@ -18,13 +18,13 @@ export async function GuestHeader() {
   return (
     <header className="bg-primary text-background flex flex-row items-center justify-between px-6 py-4">
       <Link href={homeUrl()} className="flex flex-row gap-1">
-        <Image src={appLogo} alt="" />
+        <Image src={appLogo} alt="" draggable={false} />
         <DotText className="text-[1.375rem]">ふぇすNavi</DotText>
       </Link>
 
       {hasAccountSession && (
         <Link href={storeListUrl()} className="flex flex-row gap-2">
-          <Image src={homeIcon} alt="" />
+          <Image src={homeIcon} alt="" draggable={false} />
           <p className="text-sm">店舗へ</p>
         </Link>
       )}

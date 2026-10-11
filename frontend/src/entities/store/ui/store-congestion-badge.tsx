@@ -42,6 +42,7 @@ export function StoreCongestionBadge({
       src={congestion.icon}
       alt={congestion.alt}
       className={cn("shrink-0", className)}
+      draggable={false}
     />
   );
 }
