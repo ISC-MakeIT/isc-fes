@@ -45,7 +45,7 @@ export const QUESTIONNAIRE_AUDIENCE_BY_TRIGGER = {
 } satisfies Record<QuestionnaireTrigger, AudienceTarget>;
 
 export const QUESTIONNAIRE_COOLDOWN = {
-  hours: 24,
+  hours: 120, // 5 days
 } as const;
 
 export const LAST_REVIEW_SUBMITTED_AT_STORAGE_KEY =

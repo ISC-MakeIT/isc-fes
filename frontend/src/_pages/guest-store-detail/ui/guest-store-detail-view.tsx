@@ -100,6 +100,7 @@ export async function GuestStoreDetailView({
                   alt={`${store.room}のマップ`}
                   src={mapImage}
                   className="w-75"
+                  draggable={false}
                 />
               )}
             </section>

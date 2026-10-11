@@ -72,7 +72,7 @@ export function ToppingSelector({
                 className="hidden size-5 group-data-pressed/toggle:block"
               />
             </span>
-            <div className="min-w-0 gap-3 space-y-3 text-left text-lg">
+            <div className="min-w-0 space-y-2 text-left text-lg">
               <p className="truncate">{topping.name}</p>
               <p>{formatYen(topping.unitPrice)}</p>
             </div>
