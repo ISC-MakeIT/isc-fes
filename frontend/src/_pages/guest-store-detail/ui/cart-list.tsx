@@ -132,7 +132,12 @@ type CartBadgeProps = {
 function CartBadge({ totalQuantity }: CartBadgeProps) {
   return (
     <div className="relative">
-      <Image src={CartIcon} alt={"カートのアイコン"} className="h-10" />
+      <Image
+        src={CartIcon}
+        alt={"カートのアイコン"}
+        className="h-10"
+        draggable={false}
+      />
       {totalQuantity > 0 && (
         <Badge className="text-foreground bg-cart-quantity-badge absolute top-1 -left-1 z-10 h-5 min-w-5 rounded-full p-0 font-medium">
           {totalQuantity}

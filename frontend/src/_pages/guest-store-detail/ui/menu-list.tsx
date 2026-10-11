@@ -98,7 +98,7 @@ function MenuCard({ menu, storeId }: MenuCardProps) {
 
       {menu.soldOut && (
         <div className="bg-soldout-overlay pointer-events-none absolute inset-0 px-4 py-18">
-          <Image src={SoldOutLabel} alt="売り切れ" />
+          <Image src={SoldOutLabel} alt="売り切れ" draggable={false} />
         </div>
       )}
     </div>
