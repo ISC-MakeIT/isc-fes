@@ -88,6 +88,9 @@ func NewRouter(s *Server, corsAllowedOrigins []string) (*gin.Engine, error) {
 	// OpenAPI 検証 Middleware を適用しない。
 	RegisterAuthRoutes(router, s)
 
+	// WebSocketはOpenAPIのHTTPリクエスト検証の対象外。
+	router.GET("/ws/orders", s.ordersWebSocket(corsAllowedOrigins))
+
 	return router, nil
 }
 

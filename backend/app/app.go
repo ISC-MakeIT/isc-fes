@@ -30,9 +30,9 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return nil, fmt.Errorf("initialize router: %w", err)
 	}
 
-	handler := deps.accountSession.LoadAndSave(
+	handler := guardSessionUpgrade(deps.accountSession.LoadAndSave(
 		deps.guestSession.LoadAndSave(router),
-	)
+	))
 
 	httpServer := newHTTPServer(cfg.HTTP, handler)
 
