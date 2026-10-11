@@ -28,7 +28,7 @@ export function AppQuestionnaireProvider({
     useState<QuestionnaireTrigger | null>(null);
 
   function requestQuestionnaire(_trigger: QuestionnaireTrigger) {
-    return  // TODO: もう少しレビューの仕様を詰めてから有効化する
+    return; // TODO: もう少しレビューの仕様を詰めてから有効化する
   }
 
   function handleSubmitted() {
