@@ -14,6 +14,7 @@ const QueueCapacity = 64
 var (
 	ErrHubStopped     = errors.New("realtime hub is stopped")
 	ErrSlowConsumer   = errors.New("realtime connection queue is full")
+	ErrResyncRequired = errors.New("realtime order resync is required")
 	ErrInvalidGuestID = errors.New("realtime guest ID is nil")
 )
 
@@ -77,6 +78,16 @@ func (h *Hub) Publish(guestID uuid.UUID, message []byte) error {
 		}
 	}
 	return nil
+}
+
+// ResyncGuestは通知を生成できなかったGuestの接続を解除し、再接続での初期同期を促す。
+// ネットワークCloseは接続ハンドラが担当する。
+func (h *Hub) ResyncGuest(guestID uuid.UUID) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for s := range h.subscriptions[guestID] {
+		h.removeLocked(s, ErrResyncRequired)
+	}
 }
 
 // Stopは、新規登録と配信を停止し、全接続へ終了を通知する。

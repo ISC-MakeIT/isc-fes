@@ -188,8 +188,8 @@ func TestConnectionInitialSyncFailureAndDeadline(t *testing.T) {
 	}
 }
 
-func TestConnectionInitialLoadCanceledByStopOverflowAndClient(t *testing.T) {
-	for _, scenario := range []string{"stop", "overflow", "client data", "client disconnect"} {
+func TestConnectionInitialLoadCanceledByStopOverflowResyncAndClient(t *testing.T) {
+	for _, scenario := range []string{"stop", "overflow", "resync", "client data", "client disconnect"} {
 		t.Run(scenario, func(t *testing.T) {
 			loading, canceled := make(chan struct{}), make(chan struct{})
 			f := newSocketFixture(t, socketTestConfig{
@@ -219,6 +219,9 @@ func TestConnectionInitialLoadCanceledByStopOverflowAndClient(t *testing.T) {
 					_ = f.hub.Publish(id, []byte(`{}`))
 				}
 				wantStatus = websocket.StatusTryAgainLater
+			case "resync":
+				f.hub.ResyncGuest(id)
+				wantStatus = websocket.StatusInternalError
 			case "client data":
 				if err := conn.Write(ctx, websocket.MessageText, []byte(`{}`)); err != nil {
 					t.Fatal(err)

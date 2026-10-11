@@ -26,10 +26,10 @@ type stubOrderUpdateRepository struct {
 	calls int
 }
 
-func (r *stubOrderUpdateRepository) UpdateOrder(_ context.Context, input orderservice.UpdateRepositoryInput) (domain.Order, error) {
+func (r *stubOrderUpdateRepository) UpdateOrder(_ context.Context, input orderservice.UpdateRepositoryInput) (orderservice.UpdateResult, error) {
 	r.calls++
 	r.input = input
-	return r.order, r.err
+	return orderservice.UpdateResult{Order: r.order, Changed: r.err == nil}, r.err
 }
 
 func TestUpdateOrderEndpoint(t *testing.T) {
@@ -66,7 +66,7 @@ func TestUpdateOrderEndpoint(t *testing.T) {
 			}}
 			s := &Server{
 				accountService: &stubCurrentAccountLoader{account: entities.Account{ID: accountID}, err: test.authErr},
-				orders:         orderservice.NewOrderService(repo, nil, nil, nil, nil),
+				orders:         orderservice.NewOrderService(repo, nil, nil, nil, nil, nil),
 			}
 			router, err := NewRouter(s, []string{"http://localhost:3000"})
 			if err != nil {

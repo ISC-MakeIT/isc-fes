@@ -95,9 +95,10 @@ func newOrdersWebSocketFixture(t *testing.T) *ordersWebSocketFixture {
 	t.Cleanup(stopAccount)
 	t.Cleanup(stopGuest)
 	resolver := services.NewGuestService(guest, repositories.NewGuestRepository(db.New(pool)))
-	orderService := orders_service.NewOrderService(orders_repository.NewOrderRepository(db.New(pool), pool), nil, resolver, nil, nil)
 	hub := realtime.NewHub()
-	s := routers.NewServer(nil, nil, "", nil, nil, resolver, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, orderService, hub, guest)
+	accountService := services.NewAccountService(repositories.NewAccountRepository(db.New(pool)), account)
+	orderService := orders_service.NewOrderService(orders_repository.NewOrderRepository(db.New(pool), pool), accountService, resolver, nil, nil, routers.NewOrderStatusNotifier(hub))
+	s := routers.NewServer(nil, nil, "", accountService, nil, resolver, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, orderService, hub, guest)
 	gin.SetMode(gin.TestMode)
 	router, err := routers.NewRouter(s, []string{wsTestOrigin})
 	if err != nil {
@@ -111,6 +112,19 @@ func newOrdersWebSocketFixture(t *testing.T) *ordersWebSocketFixture {
 			return
 		}
 		c.JSON(http.StatusOK, id.String())
+	})
+	// テスト専用のログイン入口。Cookie発行・保存・認証は本番のAccountSessionを使う。
+	router.POST("/test/signin/:account_id", func(c *gin.Context) {
+		id, err := uuid.Parse(c.Param("account_id"))
+		if err != nil {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+		if err := account.SignIn(c.Request.Context(), id); err != nil {
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		c.Status(http.StatusNoContent)
 	})
 	fixture := &ordersWebSocketFixture{pool: pool, finished: make(chan struct{}, 8), hub: hub}
 	handler := guardSessionUpgrade(account.LoadAndSave(guest.LoadAndSave(router)))

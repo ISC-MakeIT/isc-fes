@@ -92,6 +92,8 @@ func (c *Connection) run(s *Subscription, loadReady func(context.Context) ([]byt
 				code, reason = websocket.StatusGoingAway, "server stopping"
 			} else if errors.Is(s.Err(), ErrSlowConsumer) {
 				code, reason = websocket.StatusTryAgainLater, "connection queue full; reconnect"
+			} else if errors.Is(s.Err(), ErrResyncRequired) {
+				code, reason = websocket.StatusInternalError, "order resync required; reconnect"
 			}
 			c.close(code, reason, timing.closeTimeout)
 		case <-finished:

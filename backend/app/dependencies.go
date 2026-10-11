@@ -152,7 +152,8 @@ func buildDependencies(
 	reviewsRepository := reviews_repository.NewReviewRepository(queries)
 	reviewService := reviews_service.NewReviewService(reviewsRepository, guestResolver, accountService)
 	orderRepository := orders_repository.NewOrderRepository(queries, pool)
-	orderService := orders_service.NewOrderService(orderRepository, accountService, guestResolver, storeRepository, storeMemberRepository)
+	ordersHub := realtime.NewHub()
+	orderService := orders_service.NewOrderService(orderRepository, accountService, guestResolver, storeRepository, storeMemberRepository, routers.NewOrderStatusNotifier(ordersHub))
 	storeService := services.NewStoreService(
 		storeRepository,
 		storeMemberRepository,
@@ -162,7 +163,6 @@ func buildDependencies(
 		roomsRepository,
 	)
 
-	ordersHub := realtime.NewHub()
 	apiServer := routers.NewServer(
 		queries,
 		googleAuthenticator,

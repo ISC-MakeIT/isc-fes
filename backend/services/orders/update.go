@@ -29,6 +29,13 @@ type UpdateRepositoryInput struct {
 	AccountID uuid.UUID
 }
 
+// UpdateResultはコミットに成功した注文と、ロックした状態からの変更有無を表す。
+// 同じ状態への再送は、expectedVersionが古くてもChanged=falseとなる。
+type UpdateResult struct {
+	Order   orders.Order
+	Changed bool
+}
+
 func (s *OrderService) UpdateOrder(ctx context.Context, input UpdateInput) (orders.Order, error) {
 	account, err := services.RequireAuthenticatedAccount(ctx)
 	if err != nil {
@@ -38,7 +45,14 @@ func (s *OrderService) UpdateOrder(ctx context.Context, input UpdateInput) (orde
 		return orders.Order{}, services.ErrInvalidInput
 	}
 	// Membershipは削除・変更との競合を防ぐため、Repositoryの取引内で確認する。
-	return s.repository.UpdateOrder(ctx, UpdateRepositoryInput{UpdateInput: input, AccountID: account.ID})
+	result, err := s.repository.UpdateOrder(ctx, UpdateRepositoryInput{UpdateInput: input, AccountID: account.ID})
+	if err != nil {
+		return orders.Order{}, err
+	}
+	if result.Changed && s.statusNotifier != nil {
+		s.statusNotifier.NotifyStatusChanged(result.Order)
+	}
+	return result.Order, nil
 }
 
 // PrepareUpdate はロックした最新の注文に対して再送・競合・状態遷移を判定する。
