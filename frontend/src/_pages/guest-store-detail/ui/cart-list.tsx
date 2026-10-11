@@ -66,7 +66,7 @@ export function CartList() {
           <Button
             type="button"
             variant="secondary"
-            className="rounded-sm px-6 py-2 text-base font-semibold shadow-none"
+            className="h-auto rounded-sm px-6 py-2 text-base font-semibold shadow-none"
             disabled={isSaving || hasPendingChanges || !canCheckout}
             onClick={checkout}
           >
