@@ -50,6 +50,8 @@ export {
   menuToppingsKeys,
   cartKey,
   storeListKeys,
+  storeOrdersKey,
+  orderDetailKey,
 } from "./constants/query-keys";
 
 export {
