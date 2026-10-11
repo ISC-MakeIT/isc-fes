@@ -5,6 +5,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { AnalyticsPageView } from "./analytics-page-view";
 import { AppQuestionnaireProvider } from "@/widgets/app-questionnaire";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "@/shared/ui/toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,10 +39,12 @@ export default function RootLayout({
       <QueryProvider>
         <AppQuestionnaireProvider>
           <body className="flex min-h-full flex-col">
-            <NuqsAdapter>
-              <AnalyticsPageView />
-              {children}
-            </NuqsAdapter>
+            <Toaster>
+              <NuqsAdapter>
+                <AnalyticsPageView />
+                {children}
+              </NuqsAdapter>
+            </Toaster>
           </body>
         </AppQuestionnaireProvider>
       </QueryProvider>

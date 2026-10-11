@@ -4,9 +4,8 @@ import { MAX_CART_ITEM_QUANTITY, MAX_CART_ITEMS_TYPE } from "@/entities/cart";
 import { Menu } from "@/entities/menu";
 import { formatYen } from "@/shared/lib/formatYen";
 import { Button } from "@/shared/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import { toast } from "@/shared/ui/toast";
 import { QuantityController } from "@/widgets/quantity-controller";
-import { useState } from "react";
 
 type MenuOrderActionsProps = {
   storeId: string;
@@ -27,8 +26,6 @@ export function MenuOrderActions({
   onIncrease,
   onAddToCart,
 }: MenuOrderActionsProps) {
-  const [isLimitTooltipOpen, setIsLimitTooltipOpen] = useState(false);
-
   const isAddToCartDisabled = isAddingToCart || isCartItemLimitReached;
 
   return (
@@ -47,39 +44,28 @@ export function MenuOrderActions({
       </div>
 
       <div className="flex justify-center px-6 py-4">
-        <Tooltip
-          disabled={!isCartItemLimitReached}
-          open={isCartItemLimitReached && isLimitTooltipOpen}
-          onOpenChange={setIsLimitTooltipOpen}
-        >
-          <TooltipTrigger
-            render={
-              <span
-                className="w-full"
-                tabIndex={isCartItemLimitReached ? 0 : undefined}
-                onClick={() => {
-                  if (isCartItemLimitReached) {
-                    setIsLimitTooltipOpen(true);
-                  }
-                }}
-              />
+        <span
+          className="w-full"
+          tabIndex={isCartItemLimitReached ? 0 : undefined}
+          onClick={() => {
+            if (isCartItemLimitReached) {
+              toast.add({
+                type: "error",
+                priority: "high",
+                title: "カートに追加できません",
+                description: `カートにいれられるメニューは${MAX_CART_ITEMS_TYPE}種類までです。注文を分けてください`,
+              });
             }
+          }}
+        >
+          <Button
+            disabled={isAddToCartDisabled}
+            className="h-auto w-full truncate rounded-sm p-2 md:text-xl"
+            onClick={onAddToCart}
           >
-            <Button
-              disabled={isAddToCartDisabled}
-              className="h-auto w-full truncate rounded-sm p-2 md:text-xl"
-              onClick={onAddToCart}
-            >
-              カートに入れる
-            </Button>
-          </TooltipTrigger>
-
-          <TooltipContent>
-            カートに入れられるメニューは{MAX_CART_ITEMS_TYPE}種類までです。
-            <br />
-            注文を分けてください。
-          </TooltipContent>
-        </Tooltip>
+            カートに入れる
+          </Button>
+        </span>
       </div>
     </div>
   );
