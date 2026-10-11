@@ -66,10 +66,9 @@ export function CartList() {
           <SheetContent
             side="bottom"
             showCloseButton={false}
-
-            className="max-h-[calc(100vh-5rem)] gap-0 overflow-hidden rounded-t-2xl data-[side=bottom]:bottom-20"
+            className="max-h-[calc(100dvh-5rem-3rem)] gap-0 overflow-hidden rounded-t-2xl data-[side=bottom]:bottom-20"
           >
-            <SheetHeader className="bg-cart-sheet-header flex h-10 flex-row items-center justify-between py-0">
+            <SheetHeader className="bg-cart-sheet-header flex h-10 shrink-0 flex-row items-center justify-between py-0">
               <SheetTitle className="text-sm">カート内の商品</SheetTitle>
               <Button
                 type="button"
