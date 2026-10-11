@@ -35,5 +35,6 @@ export const Order = v.object({
   storeName: v.string(),
   roomName: v.string(),
   items: v.array(OrderItem),
+  createdAt: v.pipe(v.string(), v.toDate()),
 });
 export type Order = v.InferOutput<typeof Order>;
