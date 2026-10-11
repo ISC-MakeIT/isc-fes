@@ -9,6 +9,8 @@ export {
   menuEditorParsers,
 } from "./search-params/menu-editor";
 
+export { guestStoreDetailParsers } from "./search-params/cart-sheet";
+
 export {
   homeUrl,
   loginUrl,

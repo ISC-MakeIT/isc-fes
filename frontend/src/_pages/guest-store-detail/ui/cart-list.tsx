@@ -10,16 +10,22 @@ import {
 import Image from "next/image";
 import CartIcon from "./assets/cart-icon.svg";
 import { Button } from "@/shared/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/shared/ui/badge";
 import { formatYen } from "@/shared/lib/formatYen";
 import { CartContents } from "./cart-contents";
 import { useCartOperation } from "../model/cart-operation-context";
 import { calculateCartTotal } from "../lib/calculate-cart-total";
 import { useIsMobile } from "@/shared/lib/hooks";
+import { guestStoreDetailParsers } from "@/shared/config";
+import { useQueryStates } from "nuqs";
 
 export function CartList() {
-  const [isSheetOpen, setIsSheetOpen] = useState(true);
+  const [{ isOpenCart }, setSearchParams] = useQueryStates(
+    guestStoreDetailParsers,
+  );
+
+  const [isSheetOpen, setIsSheetOpen] = useState(isOpenCart);
 
   const isMobile = useIsMobile();
 
@@ -41,6 +47,10 @@ export function CartList() {
   if (displayedCartItems.length === 0) {
     return null;
   }
+
+  useEffect(() => {
+    void setSearchParams({ isOpenCart: false }, { history: "replace" });
+  });
 
   if (isMobile) {
     return (
