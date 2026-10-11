@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -22,8 +23,10 @@ import (
 	db "github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	"github.com/isc-makeit/isc-fes/backend/realtime"
 	"github.com/isc-makeit/isc-fes/backend/repositories"
+	orders_repository "github.com/isc-makeit/isc-fes/backend/repositories/orders"
 	"github.com/isc-makeit/isc-fes/backend/routers"
 	"github.com/isc-makeit/isc-fes/backend/services"
+	orders_service "github.com/isc-makeit/isc-fes/backend/services/orders"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -38,7 +41,7 @@ type ordersWebSocketFixture struct {
 }
 
 // 本番のGin・二重scsミドルウェア・GuestService・pgxstoreを実接続で確認する。
-// 注文サービスを渡さず、readyで注文の取得を呼ばないことも確認する。
+// 初期一覧には本番のOrderService・RepositoryとREST変換を使用する。
 func newOrdersWebSocketFixture(t *testing.T) *ordersWebSocketFixture {
 	t.Helper()
 	dsn := os.Getenv("TEST_ORDER_DATABASE_URL")
@@ -92,8 +95,9 @@ func newOrdersWebSocketFixture(t *testing.T) *ordersWebSocketFixture {
 	t.Cleanup(stopAccount)
 	t.Cleanup(stopGuest)
 	resolver := services.NewGuestService(guest, repositories.NewGuestRepository(db.New(pool)))
+	orderService := orders_service.NewOrderService(orders_repository.NewOrderRepository(db.New(pool), pool), nil, resolver, nil, nil)
 	hub := realtime.NewHub()
-	s := routers.NewServer(nil, nil, "", nil, nil, resolver, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, hub, guest)
+	s := routers.NewServer(nil, nil, "", nil, nil, resolver, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, orderService, hub, guest)
 	gin.SetMode(gin.TestMode)
 	router, err := routers.NewRouter(s, []string{wsTestOrigin})
 	if err != nil {
@@ -176,7 +180,176 @@ func TestOrdersHubFanoutAndAppShutdown(t *testing.T) {
 	}
 }
 
+func TestOrdersWebSocketInitialOrdersAndReconnect(t *testing.T) {
+	f := newOrdersWebSocketFixture(t)
+	client, otherClient := newWebSocketClient(t), newWebSocketClient(t)
+	first, other := f.dial(t, client), f.dial(t, otherClient)
+	guestID, otherID := uuid.MustParse(f.guestID(t, client)), uuid.MustParse(f.guestID(t, otherClient))
+	first.CloseNow()
+	other.CloseNow()
+	f.waitFinished(t)
+	f.waitFinished(t)
+	expected := f.seedOrders(t, guestID, otherID)
+	conn, rawOrders := f.dialReady(t, client)
+	if len(rawOrders) != len(expected) {
+		t.Fatalf("ready order count = %d, want %d", len(rawOrders), len(expected))
+	}
+	var wsOrders []routers.Order
+	var pendingID uuid.UUID
+	for _, raw := range rawOrders {
+		var order routers.Order
+		if err := json.Unmarshal(raw, &order); err != nil {
+			t.Fatal(err)
+		}
+		if status, found := expected[order.Id]; !found || string(order.Status) != status {
+			t.Fatalf("unexpected Guest order: %+v", order)
+		}
+		if order.StoreName != "snapshot store" || order.RoomName != "snapshot room" || order.TotalAmount != 600 ||
+			len(order.Items) != 1 || order.Items[0].MenuName != "snapshot menu" || order.Items[0].UnitPrice != 250 ||
+			len(order.Items[0].Toppings) != 1 || order.Items[0].Toppings[0].ToppingName != "snapshot topping" || order.Items[0].Toppings[0].UnitPrice != 50 {
+			t.Fatalf("order snapshot changed: %+v", order)
+		}
+		var fields map[string]json.RawMessage
+		if err := json.Unmarshal(raw, &fields); err != nil {
+			t.Fatal(err)
+		}
+		for _, key := range []string{"guestId", "originCartId", "originCartVersion", "limitExemptedByAccountId"} {
+			if _, found := fields[key]; found {
+				t.Fatalf("internal field exposed: %s", key)
+			}
+		}
+		if order.Status == routers.OrderStatus("pending") {
+			pendingID = order.Id
+			for _, key := range []string{"readyAt", "completedAt", "cancelledAt"} {
+				if string(fields[key]) != "null" {
+					t.Fatalf("pending %s = %s, want null", key, fields[key])
+				}
+			}
+		}
+		wsOrders = append(wsOrders, order)
+	}
+	response, err := client.Get(f.server.URL + "/orders")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	var rest routers.GetOrdersResponse
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("REST orders status = %d", response.StatusCode)
+	}
+	if err := json.NewDecoder(response.Body).Decode(&rest); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(wsOrders, rest.Data) {
+		t.Fatalf("WS orders differ from REST: WS=%+v REST=%+v", wsOrders, rest.Data)
+	}
+	conn.CloseNow()
+	f.waitFinished(t)
+	// 切断中に変わった状態はイベント履歴ではなく、再接続時の一覧で同期する。
+	if _, err := f.pool.Exec(t.Context(), `UPDATE orders SET status='ready',version=2,ready_at=updated_at WHERE id=$1`, pendingID); err != nil {
+		t.Fatal(err)
+	}
+	_, reconnected := f.dialReady(t, client)
+	found := false
+	for _, raw := range reconnected {
+		var order routers.Order
+		if err := json.Unmarshal(raw, &order); err != nil {
+			t.Fatal(err)
+		}
+		if order.Id == pendingID {
+			found = true
+			if order.Status != routers.OrderStatus("ready") || order.Version != 2 || order.ReadyAt == nil {
+				t.Fatalf("reconnect did not return current order: %+v", order)
+			}
+		}
+	}
+	if !found {
+		t.Fatal("reconnect lost existing order")
+	}
+	_, otherOrders := f.dialReady(t, otherClient)
+	if len(otherOrders) != 1 {
+		t.Fatalf("other Guest order count = %d, want 1", len(otherOrders))
+	}
+}
+
+func (f *ordersWebSocketFixture) seedOrders(t *testing.T, guestID, otherID uuid.UUID) map[uuid.UUID]string {
+	t.Helper()
+	execSQL := func(query string, args ...any) {
+		t.Helper()
+		if _, err := f.pool.Exec(t.Context(), query, args...); err != nil {
+			t.Fatal(err)
+		}
+	}
+	storeID, menuID, toppingID := uuid.New(), uuid.New(), uuid.New()
+	execSQL(`INSERT INTO rooms (name,sort_order) VALUES ('current room',0)`)
+	execSQL(`INSERT INTO stores (id,name,room,description,image_object_key) VALUES ($1,'current store','current room','','test')`, storeID)
+	execSQL(`INSERT INTO menus (id,store_id,name,description,unit_price,image_object_key) VALUES ($1,$2,'current menu','',999,'test')`, menuID, storeID)
+	execSQL(`INSERT INTO toppings (id,store_id,name,unit_price) VALUES ($1,$2,'current topping',999)`, toppingID, storeID)
+	cartID, otherCartID := uuid.New(), uuid.New()
+	execSQL(`INSERT INTO carts (id,store_id,guest_id) VALUES ($1,$2,$3),($4,$2,$5)`, cartID, storeID, guestID, otherCartID, otherID)
+	expected := make(map[uuid.UUID]string)
+	for i, status := range []string{"pending", "ready", "completed", "cancelled", "ready"} {
+		ownerID, originCartID := guestID, cartID
+		if i == 4 {
+			ownerID, originCartID = otherID, otherCartID
+		}
+		id, itemID := uuid.New(), uuid.New()
+		created := time.Date(2026, 10, 10, 0, i, 0, 0, time.UTC)
+		ready, updated := created.Add(time.Minute), created.Add(2*time.Minute)
+		var readyAt, completedAt, cancelledAt *time.Time
+		version := 1
+		if status != "pending" {
+			readyAt, version = &ready, 2
+		}
+		if status == "completed" {
+			completedAt, version = &updated, 3
+		}
+		if status == "cancelled" {
+			cancelledAt, version = &updated, 3
+		}
+		execSQL(`INSERT INTO orders (id,store_id,guest_id,status,total_amount,display_number,version,origin_cart_id,origin_cart_version,store_name,room_name,ready_at,completed_at,cancelled_at,created_at,updated_at)
+			VALUES ($1,$2,$3,$4,600,$5,$6,$7,$5,'snapshot store','snapshot room',$8,$9,$10,$11,$12)`,
+			id, storeID, ownerID, status, i+1, version, originCartID, readyAt, completedAt, cancelledAt, created, updated)
+		execSQL(`INSERT INTO order_items (id,order_id,store_id,menu_id,menu_name,unit_price,quantity) VALUES ($1,$2,$3,$4,'snapshot menu',250,2)`, itemID, id, storeID, menuID)
+		execSQL(`INSERT INTO order_item_toppings (order_item_id,store_id,topping_id,topping_name,unit_price) VALUES ($1,$2,$3,'snapshot topping',50)`, itemID, storeID, toppingID)
+		if ownerID == guestID {
+			expected[id] = status
+		}
+	}
+	return expected
+}
+
+func TestOrdersWebSocketInitialQueryFailureClosesWithoutReady(t *testing.T) {
+	f := newOrdersWebSocketFixture(t)
+	if _, err := f.pool.Exec(t.Context(), "ALTER TABLE orders RENAME TO unavailable_orders"); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
+	defer cancel()
+	conn, _, err := websocket.Dial(ctx, strings.Replace(f.server.URL, "http", "ws", 1)+"/ws/orders", &websocket.DialOptions{
+		HTTPClient: newWebSocketClient(t), HTTPHeader: http.Header{"Origin": {wsTestOrigin}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.CloseNow()
+	_, _, err = conn.Read(ctx)
+	if websocket.CloseStatus(err) != websocket.StatusInternalError {
+		t.Fatalf("query failure close = %v, want 1011 without ready", err)
+	}
+	f.waitFinished(t)
+}
+
 func (f *ordersWebSocketFixture) dial(t *testing.T, client *http.Client) *websocket.Conn {
+	t.Helper()
+	conn, orders := f.dialReady(t, client)
+	if len(orders) != 0 {
+		t.Fatalf("unexpected orders: %s", orders)
+	}
+	return conn
+}
+
+func (f *ordersWebSocketFixture) dialReady(t *testing.T, client *http.Client) (*websocket.Conn, []json.RawMessage) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
@@ -200,10 +373,10 @@ func (f *ordersWebSocketFixture) dial(t *testing.T, client *http.Client) *websoc
 	if err := json.Unmarshal(message, &ready); err != nil {
 		t.Fatal(err)
 	}
-	if messageType != websocket.MessageText || ready.Type != "connection.ready" || ready.Data.Orders == nil || len(ready.Data.Orders) != 0 {
+	if messageType != websocket.MessageText || ready.Type != "connection.ready" || ready.Data.Orders == nil {
 		t.Fatalf("unexpected ready: %s (type: %v)", message, messageType)
 	}
-	return conn
+	return conn, ready.Data.Orders
 }
 
 func (f *ordersWebSocketFixture) waitFinished(t *testing.T) {

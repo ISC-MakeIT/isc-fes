@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/isc-makeit/isc-fes/backend/realtime"
+	"github.com/isc-makeit/isc-fes/backend/utils"
 	"golang.org/x/net/http/httpguts"
 )
 
@@ -66,15 +67,17 @@ func (s *Server) ordersWebSocket(allowedOrigins []string) gin.HandlerFunc {
 			return // 停止中は登録せず、deferで通信を解放する。
 		}
 		defer subscription.Close()
-		ready, err := json.Marshal(connectionReady{
-			Type: "connection.ready",
-			Data: connectionReadyData{Orders: []Order{}},
-		})
-		if err != nil {
-			captureUnexpectedError(c, fmt.Errorf("encode connection.ready: %w", err))
-			return
+		loadReady := func(ctx context.Context) ([]byte, error) {
+			orders, err := s.orders.GetOrdersForGuest(ctx, guestID)
+			if err != nil {
+				return nil, fmt.Errorf("get initial WebSocket orders: %w", err)
+			}
+			return json.Marshal(connectionReady{
+				Type: "connection.ready",
+				Data: connectionReadyData{Orders: utils.Map(orders, toOrderResponse)},
+			})
 		}
-		if err := conn.Run(subscription, ready, expires); err != nil {
+		if err := conn.Run(subscription, loadReady, expires); err != nil {
 			captureUnexpectedError(c, err)
 		}
 	}

@@ -22,6 +22,7 @@ type socketTestConfig struct {
 	timing    connectionTiming
 	expires   time.Time
 	beforeRun func(*Hub, uuid.UUID)
+	loadReady func(context.Context, *Hub, uuid.UUID) ([]byte, error)
 }
 
 type socketFixture struct {
@@ -36,7 +37,19 @@ func newSocketFixture(t *testing.T, cfg socketTestConfig) *socketFixture {
 		cfg.expires = time.Now().Add(time.Hour)
 	}
 	if cfg.timing.pingInterval == 0 {
-		cfg.timing = connectionTiming{time.Hour, time.Second, time.Second, time.Second}
+		cfg.timing.pingInterval = time.Hour
+	}
+	if cfg.timing.initialSyncTimeout == 0 {
+		cfg.timing.initialSyncTimeout = time.Second
+	}
+	if cfg.timing.pongTimeout == 0 {
+		cfg.timing.pongTimeout = time.Second
+	}
+	if cfg.timing.writeTimeout == 0 {
+		cfg.timing.writeTimeout = time.Second
+	}
+	if cfg.timing.closeTimeout == 0 {
+		cfg.timing.closeTimeout = time.Second
 	}
 	f := &socketFixture{hub: NewHub(), finished: make(chan error, 16)}
 	f.server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +72,13 @@ func newSocketFixture(t *testing.T, cfg socketTestConfig) *socketFixture {
 		if cfg.beforeRun != nil {
 			cfg.beforeRun(f.hub, id)
 		}
-		f.finished <- conn.run(s, []byte(testReady), cfg.expires, cfg.timing)
+		loadReady := func(ctx context.Context) ([]byte, error) {
+			if cfg.loadReady != nil {
+				return cfg.loadReady(ctx, f.hub, id)
+			}
+			return []byte(testReady), nil
+		}
+		f.finished <- conn.run(s, loadReady, cfg.expires, cfg.timing)
 	}))
 	t.Cleanup(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
@@ -111,10 +130,11 @@ func (f *socketFixture) waitFinished(t *testing.T) error {
 
 func TestConnectionReadyPrecedesQueuedEvents(t *testing.T) {
 	const event = `{"type":"test.changed","data":{"version":1}}`
-	f := newSocketFixture(t, socketTestConfig{beforeRun: func(h *Hub, id uuid.UUID) {
+	f := newSocketFixture(t, socketTestConfig{loadReady: func(_ context.Context, h *Hub, id uuid.UUID) ([]byte, error) {
 		if err := h.Publish(id, []byte(event)); err != nil {
 			t.Error(err)
 		}
+		return []byte(testReady), nil
 	}})
 	conn := f.dial(t, uuid.New(), nil)
 	if first := readSocket(t, conn); first != testReady {
@@ -126,6 +146,102 @@ func TestConnectionReadyPrecedesQueuedEvents(t *testing.T) {
 	_ = conn.Close(websocket.StatusNormalClosure, "")
 	if err := f.waitFinished(t); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestConnectionInitialSyncFailureAndDeadline(t *testing.T) {
+	loadFailure := errors.New("order database unavailable")
+	for _, scenario := range []struct {
+		name       string
+		wantError  error
+		wantStatus websocket.StatusCode
+	}{
+		{"load failure", loadFailure, websocket.StatusInternalError},
+		{"initial sync timeout", context.DeadlineExceeded, websocket.StatusInternalError},
+		{"session expiry during load", nil, websocket.StatusPolicyViolation},
+	} {
+		t.Run(scenario.name, func(t *testing.T) {
+			cfg := socketTestConfig{timing: connectionTiming{initialSyncTimeout: 80 * time.Millisecond}}
+			if scenario.name == "session expiry during load" {
+				cfg.expires = time.Now().Add(80 * time.Millisecond)
+				cfg.timing.initialSyncTimeout = time.Second
+			}
+			cfg.loadReady = func(ctx context.Context, _ *Hub, _ uuid.UUID) ([]byte, error) {
+				if scenario.name == "load failure" {
+					return nil, loadFailure
+				}
+				<-ctx.Done()
+				return nil, ctx.Err()
+			}
+			f := newSocketFixture(t, cfg)
+			conn := f.dial(t, uuid.New(), nil)
+			ctx, cancel := context.WithTimeout(t.Context(), 3*time.Second)
+			defer cancel()
+			_, message, err := conn.Read(ctx)
+			if websocket.CloseStatus(err) != scenario.wantStatus {
+				t.Fatalf("initial sync message = %s, error = %v; want close %v without ready", message, err, scenario.wantStatus)
+			}
+			if err := f.waitFinished(t); !errors.Is(err, scenario.wantError) {
+				t.Fatalf("initial sync error = %v, want %v", err, scenario.wantError)
+			}
+		})
+	}
+}
+
+func TestConnectionInitialLoadCanceledByStopOverflowAndClient(t *testing.T) {
+	for _, scenario := range []string{"stop", "overflow", "client data", "client disconnect"} {
+		t.Run(scenario, func(t *testing.T) {
+			loading, canceled := make(chan struct{}), make(chan struct{})
+			f := newSocketFixture(t, socketTestConfig{
+				timing: connectionTiming{initialSyncTimeout: 3 * time.Second},
+				loadReady: func(ctx context.Context, _ *Hub, _ uuid.UUID) ([]byte, error) {
+					close(loading)
+					<-ctx.Done()
+					close(canceled)
+					return nil, ctx.Err()
+				},
+			})
+			id := uuid.New()
+			conn := f.dial(t, id, nil)
+			ctx, cancel := context.WithTimeout(t.Context(), time.Second)
+			defer cancel()
+			select {
+			case <-loading:
+			case <-ctx.Done():
+				t.Fatal("initial load did not start")
+			}
+			wantStatus := websocket.StatusGoingAway
+			switch scenario {
+			case "stop":
+				f.hub.Stop()
+			case "overflow":
+				for range QueueCapacity + 1 {
+					_ = f.hub.Publish(id, []byte(`{}`))
+				}
+				wantStatus = websocket.StatusTryAgainLater
+			case "client data":
+				if err := conn.Write(ctx, websocket.MessageText, []byte(`{}`)); err != nil {
+					t.Fatal(err)
+				}
+				wantStatus = websocket.StatusPolicyViolation
+			case "client disconnect":
+				conn.CloseNow()
+			}
+			select {
+			case <-canceled:
+			case <-ctx.Done():
+				t.Fatal("initial load was not canceled")
+			}
+			if scenario != "client disconnect" {
+				_, _, err := conn.Read(ctx)
+				if websocket.CloseStatus(err) != wantStatus {
+					t.Fatalf("initial load cancellation close = %v, want %v", err, wantStatus)
+				}
+			}
+			if err := f.waitFinished(t); err != nil {
+				t.Fatal(err)
+			}
+		})
 	}
 }
 
@@ -169,7 +285,7 @@ func TestConnectionOverflowDuringInitializationClosesWithoutReady(t *testing.T) 
 }
 
 func TestConnectionPeriodicPingReceivesPong(t *testing.T) {
-	f := newSocketFixture(t, socketTestConfig{timing: connectionTiming{20 * time.Millisecond, time.Second, time.Second, time.Second}})
+	f := newSocketFixture(t, socketTestConfig{timing: connectionTiming{pingInterval: 20 * time.Millisecond}})
 	pings := make(chan struct{}, 8)
 	conn := f.dial(t, uuid.New(), &websocket.DialOptions{OnPingReceived: func(context.Context, []byte) bool {
 		pings <- struct{}{}
@@ -193,7 +309,7 @@ func TestConnectionPeriodicPingReceivesPong(t *testing.T) {
 }
 
 func TestConnectionPongTimeoutUnregisters(t *testing.T) {
-	f := newSocketFixture(t, socketTestConfig{timing: connectionTiming{20 * time.Millisecond, 40 * time.Millisecond, time.Second, time.Second}})
+	f := newSocketFixture(t, socketTestConfig{timing: connectionTiming{pingInterval: 20 * time.Millisecond, pongTimeout: 40 * time.Millisecond}})
 	conn := f.dial(t, uuid.New(), nil)
 	_ = readSocket(t, conn)
 	// 以降は読まない。Goクライアントは受信処理がないとPongを返さない。
@@ -292,40 +408,79 @@ func (c *blockedConnection) Close() error {
 	return c.Conn.Close()
 }
 
-func TestConnectionWriteTimeoutReleasesConnection(t *testing.T) {
-	hub := NewHub()
-	finished := make(chan error, 1)
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		conn, err := Accept(blockedUpgradeWriter{ResponseWriter: w}, r)
-		if err != nil {
-			finished <- err
-			return
-		}
-		defer conn.CloseNow()
-		s, err := hub.Subscribe(uuid.New())
-		if err != nil {
-			finished <- err
-			return
-		}
-		finished <- conn.run(s, []byte(testReady), time.Now().Add(time.Hour), connectionTiming{time.Hour, time.Second, 40 * time.Millisecond, time.Second})
-	}))
-	defer server.Close()
-	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Second)
-	defer cancel()
-	conn, _, err := websocket.Dial(ctx, strings.Replace(server.URL, "http", "ws", 1), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer conn.CloseNow()
-	select {
-	case err := <-finished:
-		if !errors.Is(err, context.DeadlineExceeded) {
-			t.Fatalf("write timeout = %v", err)
-		}
-	case <-ctx.Done():
-		t.Fatal("write timeout did not release connection")
-	}
-	if err := hub.Shutdown(ctx); err != nil {
-		t.Fatal(err)
+func TestConnectionReadyWriteTimeoutAndInitialSyncBudget(t *testing.T) {
+	for _, scenario := range []struct {
+		name                 string
+		initialTimeout       time.Duration
+		writeTimeout         time.Duration
+		consumeInitialBudget bool
+	}{
+		{"write timeout", time.Second, 40 * time.Millisecond, false},
+		{"shared initial sync deadline", 200 * time.Millisecond, time.Second, true},
+	} {
+		t.Run(scenario.name, func(t *testing.T) {
+			hub := NewHub()
+			finished := make(chan error, 1)
+			initialDeadline := make(chan time.Time, 1)
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				conn, err := Accept(blockedUpgradeWriter{ResponseWriter: w}, r)
+				if err != nil {
+					finished <- err
+					return
+				}
+				defer conn.CloseNow()
+				s, err := hub.Subscribe(uuid.New())
+				if err != nil {
+					finished <- err
+					return
+				}
+				loadReady := func(ctx context.Context) ([]byte, error) {
+					deadline, _ := ctx.Deadline()
+					initialDeadline <- deadline
+					if scenario.consumeInitialBudget {
+						delay := time.NewTimer(time.Until(deadline) / 2)
+						defer delay.Stop()
+						select {
+						case <-delay.C:
+						case <-ctx.Done():
+							return nil, ctx.Err()
+						}
+					}
+					return []byte(testReady), nil
+				}
+				finished <- conn.run(s, loadReady, time.Now().Add(time.Hour), connectionTiming{
+					initialSyncTimeout: scenario.initialTimeout, pingInterval: time.Hour, pongTimeout: time.Second,
+					writeTimeout: scenario.writeTimeout, closeTimeout: time.Second,
+				})
+			}))
+			defer server.Close()
+			ctx, cancel := context.WithTimeout(t.Context(), 3*time.Second)
+			defer cancel()
+			conn, _, err := websocket.Dial(ctx, strings.Replace(server.URL, "http", "ws", 1), nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer conn.CloseNow()
+			var deadline time.Time
+			select {
+			case deadline = <-initialDeadline:
+			case <-ctx.Done():
+				t.Fatal("initial load did not start")
+			}
+			// 取得後に送信期限をリセットすると、この共通期限を超えて失敗する。
+			limit := time.NewTimer(time.Until(deadline) + 200*time.Millisecond)
+			defer limit.Stop()
+			select {
+			case err := <-finished:
+				if !errors.Is(err, context.DeadlineExceeded) {
+					t.Fatalf("ready timeout = %v", err)
+				}
+			case <-limit.C:
+				t.Fatal("ready write exceeded the shared initial sync deadline")
+			}
+			if err := hub.Shutdown(ctx); err != nil {
+				t.Fatal(err)
+			}
+		})
 	}
 }
