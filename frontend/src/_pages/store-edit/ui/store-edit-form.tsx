@@ -256,7 +256,7 @@ export function StoreEditForm({ storeId, initialStore }: StoreEditFormProps) {
           name="orderEnabled"
           children={(field) => (
             <Field className="contents">
-              <FieldLabel>
+              <FieldLabel htmlFor={field.name}>
                 モバイル
                 <br />
                 オーダー機能
