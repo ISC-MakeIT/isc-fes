@@ -12,11 +12,17 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
-import { PlusIcon } from "lucide-react";
+import { ChevronLeftIcon, PlusIcon } from "lucide-react";
 import { createOrder } from "../api/create-order";
-import { cartKey, orderDetailKey, orderDetailUrl } from "@/shared/config";
+import {
+  cartKey,
+  guestStoreDetailUrl,
+  orderDetailKey,
+  orderDetailUrl,
+} from "@/shared/config";
 import { useRouter } from "next/navigation";
 import { toast } from "@/shared/ui/toast";
+import { LinkButton } from "@/shared/ui/link-button";
 
 type CartListProps = {
   storeId: string;
@@ -67,16 +73,25 @@ export function CartList({ storeId }: CartListProps) {
         </p>
       </div>
 
-      <ActionButton
-        className="mx-auto mt-8 mb-18 px-14 py-2 text-[1.375rem] font-bold"
-        isDot={false}
-        disabled={mutation.isPending}
-        onClick={() =>
-          mutation.mutate({ storeId, expectedCartVersion: cart.version })
-        }
-      >
-        注文する
-      </ActionButton>
+      <div className="mt-8 mb-18 grid grid-cols-[1fr_auto_1fr] items-center gap-6">
+        <LinkButton
+          href={guestStoreDetailUrl(storeId)}
+          className="justify-self-end px-6 py-2"
+        >
+          <ChevronLeftIcon className="size-8" />
+        </LinkButton>
+
+        <ActionButton
+          className="px-14 py-2 text-[1.375rem] font-bold"
+          isDot={false}
+          disabled={mutation.isPending}
+          onClick={() =>
+            mutation.mutate({ storeId, expectedCartVersion: cart.version })
+          }
+        >
+          注文する
+        </ActionButton>
+      </div>
     </div>
   );
 }
