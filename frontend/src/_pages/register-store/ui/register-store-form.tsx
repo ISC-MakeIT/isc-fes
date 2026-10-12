@@ -28,7 +28,7 @@ import {
 } from "@/entities/allergen";
 import { cn } from "@/shared/lib/utils";
 import { trackEvent } from "@/shared/lib/analytics";
-import { OrderEnabledSwitch } from "./order-enabled-switch";
+import { OrderEnabledSwitch } from "@/entities/store";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",

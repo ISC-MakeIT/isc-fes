@@ -3,7 +3,7 @@ import type { StoreEditFormValues } from "../model/types";
 
 type StoreDetails = Pick<
   StoreEditFormValues,
-  "room" | "description" | "allergenIds"
+  "room" | "description" | "allergenIds" | "orderEnabled"
 >;
 
 export function buildStoreUpdateInput(
@@ -16,6 +16,8 @@ export function buildStoreUpdateInput(
   if (current.description !== initial.description) {
     input.description = current.description;
   }
+  if (current.orderEnabled !== initial.orderEnabled)
+    input.orderEnabled = current.orderEnabled;
   if (
     current.allergenIds.length !== initial.allergenIds.length ||
     current.allergenIds.some((id) => !initial.allergenIds.includes(id))

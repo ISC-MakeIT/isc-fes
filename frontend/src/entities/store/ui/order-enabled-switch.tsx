@@ -24,7 +24,7 @@ export function OrderEnabledSwitch({
       onBlur={onBlur}
       onCheckedChange={onCheckedChange}
       disabled={disabled}
-      className="border-tertiary focus-visible:ring-ring relative flex w-full cursor-pointer flex-row items-center justify-center gap-2 rounded-full border p-2 outline-none select-none"
+      className="border-tertiary focus-visible:ring-ring relative flex w-full cursor-pointer flex-row items-center justify-center gap-2 rounded-full border p-2 text-center outline-none select-none"
     >
       <DotText aria-hidden className="pointer-events-none flex-1">
         使用する　
