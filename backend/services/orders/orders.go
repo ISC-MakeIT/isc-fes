@@ -30,6 +30,7 @@ type CreateRepositoryInput struct {
 	AccountID *uuid.UUID
 }
 
+// CreateResultはコミットに成功した注文と、同じカートversionの再実行かどうかを表す。
 type CreateResult struct {
 	Order    orders.Order
 	Replayed bool
@@ -38,7 +39,7 @@ type CreateResult struct {
 // 注文の作成・取得・店舗による状態更新に必要な操作を要求する。
 type Repository interface {
 	CreateOrder(context.Context, CreateRepositoryInput) (CreateResult, error)
-	UpdateOrder(context.Context, UpdateRepositoryInput) (orders.Order, error)
+	UpdateOrder(context.Context, UpdateRepositoryInput) (UpdateResult, error)
 	GetOrdersByGuestID(context.Context, uuid.UUID, []orders.OrderStatus) ([]orders.Order, error)
 	GetOrdersByStoreID(context.Context, uuid.UUID, []orders.OrderStatus) ([]orders.Order, error)
 	GetOrderByIDAndGuestID(ctx context.Context, orderID, guestID uuid.UUID) (orders.Order, error)
@@ -56,7 +57,14 @@ type GuestResolver interface {
 	ResolveGuest(context.Context) (guestID uuid.UUID, found bool, err error)
 }
 
+// OrderStatusNotifierはコミット済みの新規注文・状態変更を通知する。通知失敗は注文結果を変更しない。
+// HTTPリクエストが終了しても配信できるよう、リクエストcontextは渡さない。
+type OrderStatusNotifier interface {
+	NotifyStatusChanged(orders.Order)
+}
+
 type OrderService struct {
+	statusNotifier            OrderStatusNotifier
 	repository                Repository
 	accountLoader             CurrentAccountLoader
 	guestResolver             GuestResolver
@@ -70,9 +78,10 @@ func NewOrderService(
 	guestResolver GuestResolver,
 	storeRepository StoreRepository,
 	storeMembershipRepository services.StoreMembershipRepository,
+	statusNotifier OrderStatusNotifier,
 ) *OrderService {
 	return &OrderService{
-		repository: repository, accountLoader: accountLoader, guestResolver: guestResolver,
+		statusNotifier: statusNotifier, repository: repository, accountLoader: accountLoader, guestResolver: guestResolver,
 		storeRepository: storeRepository, storeMembershipRepository: storeMembershipRepository,
 	}
 }
@@ -94,7 +103,14 @@ func (s *OrderService) CreateOrder(ctx context.Context, input CreateInput) (Crea
 	if err == nil && account.ID != uuid.Nil {
 		repoInput.AccountID = &account.ID
 	}
-	return s.repository.CreateOrder(ctx, repoInput)
+	result, err := s.repository.CreateOrder(ctx, repoInput)
+	if err != nil {
+		return CreateResult{}, err
+	}
+	if !result.Replayed && s.statusNotifier != nil {
+		s.statusNotifier.NotifyStatusChanged(result.Order)
+	}
+	return result, nil
 }
 
 // PrepareItemsはStore・Cartロック中に取得した最新カートを検証する。

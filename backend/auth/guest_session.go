@@ -93,6 +93,12 @@ func (s *GuestSession) GuestID(ctx context.Context) (guestID uuid.UUID, found bo
 	return guestID, true, nil
 }
 
+// Deadlineは現在のGuestセッションの有効期限を返す。
+// Guest解決・必要なトークン更新の後、WS接続時の期限を確定するために使用する。
+func (s *GuestSession) Deadline(ctx context.Context) time.Time {
+	return s.manager.Deadline(ctx)
+}
+
 // BindGuestは、作成済みのGuestを現在のセッションへ紐づける。
 // Guestとその所有データをDBへコミットした後に呼び出す。
 func (s *GuestSession) BindGuest(ctx context.Context, guestID uuid.UUID) error {

@@ -27,6 +27,18 @@ func (s *OrderService) GetOrders(ctx context.Context, statuses []orders.OrderSta
 	return s.repository.GetOrdersByGuestID(ctx, guestID, statuses)
 }
 
+// GetOrdersForGuestは、接続時に解決済みのGuestのpending/ready注文を返す。
+// guestIDにはサーバーがセッションから確定した値だけを渡す。
+// HTTPセッションを保持せず、WSの初期同期・変更同期用contextで取得できるようにする。
+func (s *OrderService) GetOrdersForGuest(ctx context.Context, guestID uuid.UUID) ([]orders.Order, error) {
+	if guestID == uuid.Nil {
+		return nil, services.ErrInvalidInput
+	}
+	return s.repository.GetOrdersByGuestID(ctx, guestID, []orders.OrderStatus{
+		orders.OrderStatusPending, orders.OrderStatusReady,
+	})
+}
+
 func (s *OrderService) GetOrdersByStoreID(ctx context.Context, storeID uuid.UUID, statuses []orders.OrderStatus) ([]orders.Order, error) {
 	account, err := services.RequireAuthenticatedAccount(ctx)
 	if err != nil {
