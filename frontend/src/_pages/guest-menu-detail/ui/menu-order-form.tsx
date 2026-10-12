@@ -60,6 +60,7 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
   const updateCartMutation = useMutation({
     mutationFn: updateCart,
     onError: async (error) => {
+      // TODO: canCheckoutの詳細がフロントで知れるようになったら、より詳細なエラーメッセージを表示させる
       toast.add({
         type: "error",
         priority: "high",
