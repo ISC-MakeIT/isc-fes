@@ -71,6 +71,10 @@
   --color-cart-sheet-header: var(--cart-sheet-header);
   --color-cart-quantity-badge: var(--yellow-strong);
   --color-soldout-overlay: oklch(from var(--background) l c h / 75%);
+  --color-order-pending-header: var(--purple-strong);
+  --color-order-pending-background: var(--purple-soft);
+  --color-order-ready-header: var(--yellow-strong);
+  --color-order-ready-background: var(--yellow-soft);
 }
 
 :root {
