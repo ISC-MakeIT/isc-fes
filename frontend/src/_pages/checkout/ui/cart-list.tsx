@@ -43,6 +43,7 @@ export function CartList({ storeId }: CartListProps) {
 
       await queryClient.invalidateQueries({
         queryKey: cartKey(storeId),
+        refetchType: "none",
       });
 
       router.replace(orderDetailUrl(order.id));
