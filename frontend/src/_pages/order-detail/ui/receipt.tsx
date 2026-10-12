@@ -123,10 +123,10 @@ function OrderItemRow({ item }: OrderItemRow) {
     item.toppings.reduce((total, topping) => total + topping.unitPrice, 0);
 
   return (
-    <li className="border-foreground flex flex-row justify-between gap-6 border-b py-4 text-lg font-semibold">
-      <div className="w-full">
+    <li className="border-foreground flex flex-col justify-between gap-4 border-b pt-4 pb-2 text-lg font-semibold">
+      <div className="space-y-2">
+        <p>{item.menuName}</p>
         <div>
-          <p>{item.menuName}</p>
           {item.toppings.map((topping) => (
             <div
               key={topping.toppingId}
@@ -137,16 +137,17 @@ function OrderItemRow({ item }: OrderItemRow) {
             </div>
           ))}
         </div>
-        <div className="ml-full gap-2 space-x-2 text-right">
+      </div>
+
+      <div className="ml-auto flex flex-row gap-2 text-right">
+        <div className="flex flex-row gap-2">
           <span>{formatYen(unitPriceWithTopping)}</span>
           <span>×</span>
           <span>{item.quantity}</span>
         </div>
-      </div>
 
-      <p className="mt-auto">
-        {formatYen(unitPriceWithTopping * item.quantity)}
-      </p>
+        <p>{formatYen(unitPriceWithTopping * item.quantity)}</p>
+      </div>
     </li>
   );
 }
