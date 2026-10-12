@@ -15,7 +15,7 @@ export function createStoreNavigationItems(
 ): NavigationItems {
   const navigationItems: NavigationItems = [
     { label: "ホーム", href: storeHomeUrl(storeId) },
-    { label: "作業場", href: storeKitchenUrl(storeId) },
+    { label: "キッチン", href: storeKitchenUrl(storeId) },
     { label: "受け渡し", href: storePickupUrl(storeId) },
     { label: "呼び出し", href: storeCallUrl(storeId) },
   ];
