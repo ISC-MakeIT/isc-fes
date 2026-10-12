@@ -1,5 +1,7 @@
 import { v } from "@/shared/lib/valibot";
 
+export const MAX_ACTIVE_ORDER_COUNT = 2;
+
 export enum OrderStatus {
   Pending = "pending",
   Ready = "ready",

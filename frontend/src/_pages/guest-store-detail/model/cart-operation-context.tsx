@@ -16,6 +16,11 @@ import { removeCartItemTopping } from "../lib/remove-cart-item-toppings";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { useRouter } from "next/navigation";
 import { toast } from "@/shared/ui/toast";
+import {
+  MAX_ACTIVE_ORDER_COUNT,
+  ordersQueryOptions,
+  OrderStatus,
+} from "@/entities/order";
 
 const CART_UPDATE_DELAY_MS = 1000;
 
@@ -150,11 +155,27 @@ export function CartOperationProvider({
     cartUpdateDebouncer.flush();
   }
 
-  function checkout() {
+  async function checkout() {
     if (mutation.isPending) {
       return;
     }
     cartUpdateDebouncer.flush();
+
+    const orders = await queryClient.fetchQuery(
+      ordersQueryOptions([OrderStatus.Pending, OrderStatus.Ready]),
+    );
+
+    if (orders.length > MAX_ACTIVE_ORDER_COUNT) {
+      toast.add({
+        type: "error",
+        priority: "high",
+        title: "注文できません",
+        description:
+          "受け取り前の注文が多すぎます。先に商品を受け取ってください。",
+      });
+      return;
+    }
+
     router.push(guestCheckoutUrl(storeId));
   }
 
