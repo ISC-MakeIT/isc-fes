@@ -31,6 +31,7 @@ export {
   guestMenuDetailUrl,
   storeMenuEditorUrl,
   guestCheckoutUrl,
+  orderDetailUrl,
 } from "./constants/urls";
 
 export {

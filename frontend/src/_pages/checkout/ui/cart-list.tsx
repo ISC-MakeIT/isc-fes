@@ -6,29 +6,77 @@ import {
   summarizeCartItems,
 } from "@/entities/cart";
 import { formatYen } from "@/shared/lib/formatYen";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { ActionButton } from "@/shared/ui/action-button";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
+import { createOrder } from "../api/create-order";
+import { cartKey, orderDetailKey, orderDetailUrl } from "@/shared/config";
+import { useRouter } from "next/navigation";
+import { toast } from "@/shared/ui/toast";
 
 type CartListProps = {
   storeId: string;
 };
 
 export function CartList({ storeId }: CartListProps) {
+  const queryClient = useQueryClient();
   const { data: cart } = useSuspenseQuery(fetchCartQueryOptions(storeId));
   const summarisedItems = summarizeCartItems(cart.items);
+
+  const router = useRouter();
+
+  const mutation = useMutation({
+    mutationFn: createOrder,
+
+    onSuccess: async (order) => {
+      queryClient.setQueryData(orderDetailKey(order.id), order);
+
+      await queryClient.invalidateQueries({
+        queryKey: cartKey(storeId),
+      });
+
+      router.replace(orderDetailUrl(order.id));
+    },
+
+    onError: (error) => {
+      toast.add({
+        type: "error",
+        title: "注文できませんでした",
+        description: error.message,
+      });
+    },
+  });
+
   return (
-    <div className="space-y-[2.31rem] px-6 py-8">
-      <ul>
-        {summarisedItems.map((summarisedItem) => (
-          <CartItemRow
-            key={summarisedItem.identityKey}
-            summarisedItem={summarisedItem}
-          />
-        ))}
-      </ul>
-      <p className="text-right text-[1.375rem] font-bold">
-        合計金額　{formatYen(cart.totalAmount)}
-      </p>
+    <div className="flex flex-col justify-center">
+      <div className="space-y-[2.31rem] px-6 py-8">
+        <ul>
+          {summarisedItems.map((summarisedItem) => (
+            <CartItemRow
+              key={summarisedItem.identityKey}
+              summarisedItem={summarisedItem}
+            />
+          ))}
+        </ul>
+        <p className="text-right text-[1.375rem] font-bold">
+          合計金額　{formatYen(cart.totalAmount)}
+        </p>
+      </div>
+
+      <ActionButton
+        className="mx-auto mt-8 mb-18 px-14 py-2 text-[1.375rem] font-bold"
+        isDot={false}
+        disabled={mutation.isPending}
+        onClick={() =>
+          mutation.mutate({ storeId, expectedCartVersion: cart.version })
+        }
+      >
+        注文する
+      </ActionButton>
     </div>
   );
 }
