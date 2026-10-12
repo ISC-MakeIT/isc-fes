@@ -25,5 +25,6 @@ export function ordersQueryOptions(statuses?: OrderStatus[]) {
   return queryOptions({
     queryFn: () => fetchOrders(statuses),
     queryKey: ordersKey(statuses),
+    staleTime: 0,
   });
 }
