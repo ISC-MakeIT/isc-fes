@@ -1,5 +1,5 @@
 import { components, createApiClient } from "@/shared/api";
-import { getStatusMessage } from "@/shared/config";
+import { getStatusMessage, HTTP_STATUS } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { Cart } from "../model/types";
 
@@ -28,6 +28,11 @@ export async function updateCart({
   );
 
   if (error) {
+    if (response.status === HTTP_STATUS.CONFLICT.code) {
+      throw new Error(
+        "カートが更新されています。最新の内容を確認してもう一度捜査してください。",
+      );
+    }
     throw new Error(getStatusMessage(response.status));
   }
 
