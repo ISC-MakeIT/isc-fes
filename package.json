@@ -1,5 +1,7 @@
 {
   "scripts": {
+    "reset-for-production": "bun run ./scripts/reset-for-production.ts",
+    "typecheck:scripts": "tsc -p scripts/tsconfig.json",
     "test:backup": "bun test ./infra/deploy/tests",
     "typecheck:backup": "tsc -p infra/deploy/tsconfig.json"
   },
