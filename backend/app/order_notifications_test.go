@@ -134,6 +134,94 @@ func readOrderSocket(t *testing.T, conn *websocket.Conn) []byte {
 	return message
 }
 
+func TestNewOrderNotificationsThroughHTTP(t *testing.T) {
+	f := newOrdersWebSocketFixture(t)
+	client, otherClient := newWebSocketClient(t), newWebSocketClient(t)
+	first, _ := f.dialReady(t, client)
+	second, _ := f.dialReady(t, client)
+	other, _ := f.dialReady(t, otherClient)
+	guestID, otherID := uuid.MustParse(f.guestID(t, client)), uuid.MustParse(f.guestID(t, otherClient))
+	storeID, cartID, menuID := uuid.New(), uuid.New(), uuid.New()
+	execSQL := func(query string, args ...any) {
+		t.Helper()
+		if _, err := f.pool.Exec(t.Context(), query, args...); err != nil {
+			t.Fatal(err)
+		}
+	}
+	execSQL(`INSERT INTO rooms (name,sort_order) VALUES ('new order room',0)`)
+	execSQL(`INSERT INTO stores (id,name,room,description,image_object_key,review_status)
+		VALUES ($1,'new order store','new order room','','test','approved')`, storeID)
+	execSQL(`INSERT INTO menus (id,store_id,name,description,unit_price,image_object_key)
+		VALUES ($1,$2,'new order menu','',250,'test')`, menuID, storeID)
+	execSQL(`INSERT INTO carts (id,store_id,guest_id) VALUES ($1,$2,$3)`, cartID, storeID, guestID)
+	execSQL(`INSERT INTO cart_items (cart_id,menu_id,store_id,quantity) VALUES ($1,$2,$3,2)`, cartID, menuID, storeID)
+	create := func(wantStatus int) routers.Order {
+		t.Helper()
+		body := fmt.Sprintf(`{"storeId":%q,"expectedCartVersion":1}`, storeID)
+		response, err := client.Post(f.server.URL+"/orders", "application/json", strings.NewReader(body))
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer response.Body.Close()
+		payload, err := io.ReadAll(response.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if response.StatusCode != wantStatus {
+			t.Fatalf("POST status = %d, want %d: %s", response.StatusCode, wantStatus, payload)
+		}
+		var order routers.Order
+		if err := json.Unmarshal(payload, &order); err != nil {
+			t.Fatal(err)
+		}
+		return order
+	}
+	created := create(http.StatusCreated)
+	if created.Status != routers.OrderStatusPending || created.TotalAmount != 500 {
+		t.Fatalf("unexpected new order: %+v", created)
+	}
+	for _, conn := range []*websocket.Conn{first, second} {
+		message := readOrderSocket(t, conn)
+		var event struct {
+			Type string `json:"type"`
+			Data struct {
+				Orders         []routers.Order `json:"orders"`
+				ChangedOrderID uuid.UUID       `json:"changedOrderId"`
+			} `json:"data"`
+		}
+		if err := json.Unmarshal(message, &event); err != nil {
+			t.Fatal(err)
+		}
+		if event.Type != "orders.changed" || event.Data.ChangedOrderID != created.Id || !reflect.DeepEqual(event.Data.Orders, []routers.Order{created}) {
+			t.Fatalf("new committed order missing from WS snapshot: %s", message)
+		}
+	}
+	if replay := create(http.StatusOK); !reflect.DeepEqual(replay, created) {
+		t.Fatalf("replay changed Order: %+v", replay)
+	}
+	// POSTの応答後に投入したmarkerより前に、再実行や別Guestへの余計な通知がないことを確認する。
+	marker := uuid.New()
+	for _, id := range []uuid.UUID{guestID, otherID} {
+		if err := f.hub.Publish(id, marker); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, conn := range []*websocket.Conn{first, second, other} {
+		message := readOrderSocket(t, conn)
+		var event struct {
+			Data struct {
+				ChangedOrderID uuid.UUID `json:"changedOrderId"`
+			} `json:"data"`
+		}
+		if err := json.Unmarshal(message, &event); err != nil {
+			t.Fatal(err)
+		}
+		if event.Data.ChangedOrderID != marker {
+			t.Fatalf("unexpected creation notification: %s", message)
+		}
+	}
+}
+
 func TestOrderStatusNotificationsThroughAuthenticatedHTTP(t *testing.T) {
 	f := newOrdersWebSocketFixture(t)
 	client, otherClient := newWebSocketClient(t), newWebSocketClient(t)
