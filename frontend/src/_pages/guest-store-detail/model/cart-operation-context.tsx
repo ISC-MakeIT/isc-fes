@@ -13,9 +13,9 @@ import { increaseCartItemQuantity } from "../lib/increase-cart-item-quantity";
 import { decreaseCartItemQuantity } from "../lib/decrease-cart-item-quantity";
 import { removeCartItem } from "../lib/remove-cart-item";
 import { removeCartItemTopping } from "../lib/remove-cart-item-toppings";
-import { ErrorDialog } from "../ui/error-dialog";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { useRouter } from "next/navigation";
+import { toast } from "@/shared/ui/toast";
 
 const CART_UPDATE_DELAY_MS = 1000;
 
@@ -67,7 +67,14 @@ export function CartOperationProvider({
 
   const mutation = useMutation({
     mutationFn: updateCart,
-    onError: async () => {
+    onError: async (error) => {
+      toast.add({
+        type: "error",
+        priority: "high",
+        title: "カートを更新できませんでした",
+        description: error.message,
+      });
+
       await queryClient.invalidateQueries({
         queryKey: cartKey(storeId),
       });
@@ -167,11 +174,6 @@ export function CartOperationProvider({
         displayedCartItems: displayedCartItems,
       }}
     >
-      {mutation.isError && (
-        <ErrorDialog>
-          <p>{mutation.error.message}</p>
-        </ErrorDialog>
-      )}
       {children}
     </CartOperationContext>
   );

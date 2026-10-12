@@ -21,6 +21,7 @@ import {
 import { cartKey, guestStoreDetailUrl } from "@/shared/config";
 import { useRouter } from "next/navigation";
 import { createCartItemIdentityKey } from "@/entities/cart";
+import { toast } from "@/shared/ui/toast";
 
 type MenuOrderFormProps = {
   storeId: string;
@@ -56,12 +57,16 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
   const isCartItemLimitReached =
     groupedItems.length >= MAX_CART_ITEMS_TYPE && !isSelectedItemAlreadyInCart;
 
-  // NOTE:
-  //  カート追加時のエラーはここではあえて処理しない。注文確認前にエラー処理を集約させる。
-  //  売り切れ済みのアイテムなどキャッシュ次第でカートに入りうる & ここではエラーをどこに出すのかが難しい
   const updateCartMutation = useMutation({
     mutationFn: updateCart,
-    onError: async () => {
+    onError: async (error) => {
+      toast.add({
+        type: "error",
+        priority: "high",
+        title: "カートに追加できませんでした",
+        description: error.message,
+      });
+
       await queryClient.invalidateQueries({
         queryKey: cartKey(storeId),
       });
@@ -85,6 +90,17 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
   }
 
   function handleAddToCart() {
+    if (isCartItemLimitReached) {
+      toast.add({
+        type: "error",
+        priority: "high",
+        title: "カートに追加できません",
+        description: `カートにいれられるメニューは${MAX_CART_ITEMS_TYPE}種類までです。注文を分けてください`,
+      });
+
+      return;
+    }
+
     const updateCartInput = buildCartUpdateInput({
       cart,
       menuId: menu.id,
@@ -108,7 +124,6 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
       />
       <MenuOrderActions
         isAddingToCart={updateCartMutation.isPending}
-        isCartItemLimitReached={isCartItemLimitReached}
         storeId={storeId}
         menu={menu}
         quantity={quantity}
