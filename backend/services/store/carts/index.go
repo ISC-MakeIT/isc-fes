@@ -31,7 +31,7 @@ func NewCartService(
 }
 
 func (s *CartService) GetCart(c context.Context, storeID uuid.UUID) (CartOutput, error) {
-	store, err := s.storeRepository.GetApprovedStoreByID(c, storeID)
+	_, err := s.storeRepository.GetApprovedStoreByID(c, storeID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return CartOutput{}, services.ErrNotFound // 店舗が存在しない場合は404を返す
@@ -55,7 +55,7 @@ func (s *CartService) GetCart(c context.Context, storeID uuid.UUID) (CartOutput,
 		return CartOutput{}, err
 	}
 
-	return ToCartOutput(c, cart, store, s.imageURLGenerator)
+	return ToCartOutput(c, cart, s.imageURLGenerator)
 }
 
 func emptyCartOutput(storeID uuid.UUID) CartOutput {
@@ -64,6 +64,5 @@ func emptyCartOutput(storeID uuid.UUID) CartOutput {
 		Version:     1, // CreateCart される時の初期バージョンは 1 なので、空のカートも同じく 1 にするとカートが存在しない時の初回PUTリクエストでバージョン不一致にならない
 		Items:       []CartItemOutput{},
 		TotalAmount: 0,
-		CanCheckout: false,
 	}
 }

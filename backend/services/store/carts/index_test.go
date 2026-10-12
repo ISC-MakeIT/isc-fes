@@ -189,7 +189,4 @@ func assertEmptyCart(t *testing.T, got CartOutput, storeID uuid.UUID) {
 	if got.TotalAmount != 0 {
 		t.Errorf("GetCart().TotalAmount = %d, want 0", got.TotalAmount)
 	}
-	if got.CanCheckout {
-		t.Error("GetCart().CanCheckout = true, want false")
-	}
 }
