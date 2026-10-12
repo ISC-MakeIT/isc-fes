@@ -70,6 +70,9 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, input orderservice.Cr
 	if store.ClosedAt.Valid {
 		return orderservice.CreateResult{}, orderservice.ErrStoreClosed
 	}
+	if !store.OrderEnabled {
+		return orderservice.CreateResult{}, orderservice.ErrStoreOrderDisabled
+	}
 
 	var exemptAccountID *uuid.UUID
 	if input.AccountID != nil {
