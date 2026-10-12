@@ -17,6 +17,7 @@ var (
 	ErrUnavailableItems    = fmt.Errorf("cart contains unavailable selections: %w", services.ErrConflict)
 	ErrOrderLimitReached   = fmt.Errorf("active order limit reached: %w", services.ErrConflict)
 	ErrStoreClosed         = fmt.Errorf("store is closed: %w", services.ErrConflict)
+	ErrStoreOrderDisabled  = fmt.Errorf("store order acceptance is disabled: %w", services.ErrForbidden)
 )
 
 type CreateInput struct {
