@@ -167,6 +167,7 @@ export function CartOperationProvider({
         title: "注文できませんでした",
         description: getCheckoutErrorMessage(code),
       });
+      return;
     }
 
     cartUpdateDebouncer.flush();
