@@ -52,9 +52,13 @@ export async function GuestStoreDetailView({
                 />
 
                 <div className="flex flex-row items-center justify-between px-6 pt-2">
-                  {store.orderEnabled && (
+                  {store.orderEnabled ? (
                     <span className="bg-primary text-primary-foreground rounded-sm px-2 py-1 font-semibold">
                       モバイルオーダー使用店
+                    </span>
+                  ) : (
+                    <span className="bg-notice text-primary-foreground rounded-sm px-2 py-1 font-semibold">
+                      モバイルオーダー不可
                     </span>
                   )}
                   <div className="ml-auto flex flex-row lg:pt-0">
