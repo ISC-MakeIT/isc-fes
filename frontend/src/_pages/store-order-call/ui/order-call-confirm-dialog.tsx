@@ -45,24 +45,22 @@ export function OrderCallConfirmDialog({ order }: OrderCallConfirmDialogProps) {
   });
 
   return (
-    <DialogContent className="shadow-dialog-primary flex flex-col px-10 pt-14 pb-6 sm:max-w-sm">
-      <div>
-        <h2 className="flex flex-row items-center justify-center gap-4 pb-6 text-lg font-semibold">
-          <span>注文番号</span>
-          <span className="text-2xl font-bold">{order.displayNumber}</span>
-          <span>番</span>
-        </h2>
+    <DialogContent className="shadow-dialog-primary flex max-h-[calc(100dvh-2rem)] flex-col px-10 pt-14 pb-6 sm:max-w-sm">
+      <h2 className="flex shrink-0 flex-row items-center justify-center gap-4 pb-6 text-lg font-semibold">
+        <span>注文番号</span>
+        <span className="text-2xl font-bold">{order.displayNumber}</span>
+        <span>番</span>
+      </h2>
 
-        <div className="flex flex-col gap-4 overflow-y-auto">
-          {order.items.map((item) => (
-            <PendingOrderItemRow key={item.id} item={item} />
-          ))}
-        </div>
+      <div className="flex min-h-0 flex-col gap-4 overflow-y-auto">
+        {order.items.map((item) => (
+          <PendingOrderItemRow key={item.id} item={item} />
+        ))}
       </div>
 
       {/* TODO: Buttonのvariantのdefaultをprimary色にする */}
       <ActionButton
-        className="bg-primary hover:bg-primary/80 mx-auto mt-6 rounded-md px-14 py-4 shadow-none"
+        className="bg-primary hover:bg-primary/80 mx-auto mt-6 shrink-0 rounded-md px-14 py-4 shadow-none"
         type="button"
         disabled={mutation.isPending}
         onClick={() => {
