@@ -55,13 +55,13 @@ export function OrderPaymentConfirmDialog({
         <span>番</span>
       </DialogTitle>
 
-      <div className="flex flex-col gap-2 pt-4 pr-4 pl-9">
-        <div className="border-foreground flex min-h-0 flex-col gap-2 overflow-y-auto border-b">
+      <div className="flex min-h-0 flex-col gap-2 pt-4 pr-4 pl-9">
+        <div className="border-foreground flex flex-col gap-2 overflow-y-auto border-b">
           {order.items.map((item) => (
             <ReadyOrderItemRow key={item.id} item={item} />
           ))}
         </div>
-        <p className="ml-auto text-xl font-semibold">
+        <p className="ml-auto shrink-0 text-xl font-semibold">
           合計金額：{formatYen(order.totalAmount)}
         </p>
       </div>
