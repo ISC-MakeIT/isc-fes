@@ -35,26 +35,28 @@ type PendingOrderRowProps = {
 
 function PendingOrderRow({ order }: PendingOrderRowProps) {
   return (
-    <Card className="border-secondary shadow-primary flex flex-row gap-2 rounded-sm border-3 px-6 py-4 shadow-[4px_4px_0]">
-      <div className="flex w-full flex-col">
-        <div className="border-foreground space-y-1 border-b">
-          <h2 className="space-x-2 text-lg font-semibold">
-            <span>注文番号</span>
-            <span className="text-[1.375rem] font-bold">
-              {order.displayNumber}
-            </span>
-          </h2>
+    <li>
+      <Card className="border-secondary shadow-primary flex flex-row gap-2 rounded-sm border-3 px-6 py-4 shadow-[4px_4px_0]">
+        <div className="flex w-full flex-col">
+          <div className="border-foreground space-y-1 border-b">
+            <h2 className="space-x-2 text-lg font-semibold">
+              <span>注文番号</span>
+              <span className="text-[1.375rem] font-bold">
+                {order.displayNumber}
+              </span>
+            </h2>
+          </div>
+
+          <div className="space-y-4 py-2 pr-2">
+            {order.items.map((item) => (
+              <OrderItemRow key={item.id} item={item} />
+            ))}
+          </div>
         </div>
 
-        <div className="space-y-4 py-2 pr-2">
-          {order.items.map((item) => (
-            <OrderItemRow key={item.id} item={item} />
-          ))}
-        </div>
-      </div>
-
-      <SharpCorneredTriangleIcon className="mt-2.5 shrink-0" />
-    </Card>
+        <SharpCorneredTriangleIcon className="mt-2.5 shrink-0" />
+      </Card>
+    </li>
   );
 }
 
