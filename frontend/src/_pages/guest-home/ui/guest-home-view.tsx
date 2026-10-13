@@ -19,24 +19,21 @@ export async function GuestHomeView() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <div className="grid grid-cols-1 lg:grid-cols-[37.5rem_minmax(0,42.5rem)] lg:justify-center">
+      <div className="flex flex-col items-center justify-center">
         <Image
           src={HeroImageMobile}
           alt="キービジュアル"
-          className="block bg-gray-300 lg:col-start-1 lg:hidden lg:w-140 lg:shrink-0"
+          className="block bg-gray-300 lg:hidden"
         />
         <Image
           src={HeroImageDesktop}
           alt="キービジュアル"
-          className="lcol-start-1 hidden w-140 shrink-0 bg-gray-300 lg:block"
+          className="hidden bg-gray-300 lg:block"
         />
 
-        <div className="lg:col-span-2 lg:col-start-1">
-          <EventBanners initialDateTime={initialDateTime} />
-        </div>
-        <div className="lg:col-start-2 lg:row-start-1">
-          <FloorGuide />
-        </div>
+        <EventBanners initialDateTime={initialDateTime} />
+
+        <FloorGuide />
       </div>
     </HydrationBoundary>
   );
