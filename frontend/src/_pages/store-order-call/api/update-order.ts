@@ -1,6 +1,6 @@
 import { Order } from "@/entities/order";
 import { components, createApiClient } from "@/shared/api";
-import { getStatusMessage } from "@/shared/config";
+import { getStatusMessage, HTTP_STATUS } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 
 type UpdateOrderParams = {
@@ -30,6 +30,11 @@ export async function updateOrder({
   );
 
   if (error) {
+    if (response.status === HTTP_STATUS.CONFLICT.code) {
+      throw new Error(
+        "注文の状態が変更されています。最新の状態を確認してください。",
+      );
+    }
     throw new Error(getStatusMessage(response.status));
   }
 

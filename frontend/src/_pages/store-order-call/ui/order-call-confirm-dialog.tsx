@@ -35,11 +35,11 @@ export function OrderCallConfirmDialog({ order }: OrderCallConfirmDialogProps) {
       );
     },
 
-    onError: () => {
+    onError: (error) => {
       toast.add({
         type: "error",
-        title: "エラーが発生しました",
-        description: "時間を置いて再度試してください",
+        title: "呼び出し処理ができませんでした",
+        description: error.message,
       });
     },
   });
