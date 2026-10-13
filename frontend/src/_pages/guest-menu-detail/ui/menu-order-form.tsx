@@ -21,6 +21,7 @@ import {
 import { cartKey, guestStoreDetailUrl } from "@/shared/config";
 import { useRouter } from "next/navigation";
 import { createCartItemIdentityKey } from "@/entities/cart";
+import { storeDetailQueryOptions } from "@/entities/store";
 
 type MenuOrderFormProps = {
   storeId: string;
@@ -36,6 +37,7 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
   const queryClient = useQueryClient();
 
   const { data: cart } = useSuspenseQuery(fetchCartQueryOptions(storeId));
+  const { data: store } = useSuspenseQuery(storeDetailQueryOptions(storeId));
 
   const groupedItems = summarizeCartItems(cart.items);
 
@@ -106,16 +108,19 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
         onValueChange={setSelectedToppingIds}
         value={selectedToppingIds}
       />
-      <MenuOrderActions
-        isAddingToCart={updateCartMutation.isPending}
-        isCartItemLimitReached={isCartItemLimitReached}
-        storeId={storeId}
-        menu={menu}
-        quantity={quantity}
-        onDecrease={() => changeQuantity(-1)}
-        onIncrease={() => changeQuantity(1)}
-        onAddToCart={() => handleAddToCart()}
-      />
+
+      {store.orderEnabled && (
+        <MenuOrderActions
+          isAddingToCart={updateCartMutation.isPending}
+          isCartItemLimitReached={isCartItemLimitReached}
+          storeId={storeId}
+          menu={menu}
+          quantity={quantity}
+          onDecrease={() => changeQuantity(-1)}
+          onIncrease={() => changeQuantity(1)}
+          onAddToCart={() => handleAddToCart()}
+        />
+      )}
     </div>
   );
 }

@@ -42,5 +42,5 @@ func (s *ToppingsService) CreateTopping(c context.Context, input CreateToppingIn
 		return toppings.Topping{}, services.ErrForbidden
 	}
 
-	return s.toppingsRepository.CreateTopping(c, input.StoreID, input.Name, input.UnitPrice)
+	return s.toppingsRepository.CreateTopping(c, input.StoreID, input.Name, input.UnitPrice, account.ID)
 }

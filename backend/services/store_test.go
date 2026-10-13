@@ -53,14 +53,15 @@ type recordingStoreRepository struct {
 
 type updateStoreRepositoryStub struct {
 	StoreRepository
-	approvedStore entities.Store
-	updatedStore  entities.Store
-	getErr        error
-	updateErr     error
-	getCalls      int
-	updateCalls   int
-	updatedID     uuid.UUID
-	updatedInput  UpdateStoreInput
+	approvedStore    entities.Store
+	updatedStore     entities.Store
+	getErr           error
+	updateErr        error
+	getCalls         int
+	updateCalls      int
+	updatedID        uuid.UUID
+	updatedInput     UpdateStoreInput
+	updatedAccountID uuid.UUID
 }
 
 func (r *updateStoreRepositoryStub) GetApprovedStoreByID(_ context.Context, _ uuid.UUID) (entities.Store, error) {
@@ -68,10 +69,11 @@ func (r *updateStoreRepositoryStub) GetApprovedStoreByID(_ context.Context, _ uu
 	return r.approvedStore, r.getErr
 }
 
-func (r *updateStoreRepositoryStub) UpdateStore(_ context.Context, storeID uuid.UUID, input UpdateStoreInput) (entities.Store, error) {
+func (r *updateStoreRepositoryStub) UpdateStore(_ context.Context, storeID uuid.UUID, input UpdateStoreRepositoryInput) (entities.Store, error) {
 	r.updateCalls++
 	r.updatedID = storeID
-	r.updatedInput = input
+	r.updatedInput = input.UpdateStoreInput
+	r.updatedAccountID = input.AccountID
 	return r.updatedStore, r.updateErr
 }
 
@@ -377,7 +379,8 @@ func TestUpdateStoreOrderEnabled(t *testing.T) {
 				storeMembershipRepository: &storeMembershipRepositoryStub{membership: entities.StoreMembership{Role: entities.StoreMemberRoleManager}},
 				allergenRepository:        &stubAllergenRepository{}, imgGenerator: stubStoreImageURLGenerator{},
 			}
-			ctx := WithAuthenticatedAccount(t.Context(), entities.Account{ID: uuid.New()})
+			accountID := uuid.New()
+			ctx := WithAuthenticatedAccount(t.Context(), entities.Account{ID: accountID})
 			store, err := service.UpdateStore(ctx, current.ID, test.input)
 			if err != nil {
 				t.Fatalf("UpdateStore() error = %v", err)
@@ -387,6 +390,9 @@ func TestUpdateStoreOrderEnabled(t *testing.T) {
 			}
 			if !reflect.DeepEqual(repository.updatedInput.OrderEnabled, test.input.OrderEnabled) {
 				t.Errorf("update orderEnabled = %v, want %v", repository.updatedInput.OrderEnabled, test.input.OrderEnabled)
+			}
+			if test.wantCalls > 0 && repository.updatedAccountID != accountID {
+				t.Errorf("repository actor = %v, want authenticated account %v", repository.updatedAccountID, accountID)
 			}
 			if store.OrderEnabled != test.want {
 				t.Errorf("OrderEnabled = %t, want %t", store.OrderEnabled, test.want)

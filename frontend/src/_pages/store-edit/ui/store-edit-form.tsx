@@ -5,7 +5,7 @@ import {
   allergenQueryOptions,
 } from "@/entities/allergen";
 import { activeRoomsQueryOptions } from "@/entities/room";
-import type { Store } from "@/entities/store";
+import { OrderEnabledSwitch, type Store } from "@/entities/store";
 import {
   STORE_IMAGE_ASPECT,
   storeDetailKey,
@@ -55,6 +55,7 @@ export function StoreEditForm({ storeId, initialStore }: StoreEditFormProps) {
     description: store.description,
     allergenIds: store.allergens.map((allergen) => allergen.id),
     image: undefined,
+    orderEnabled: store.orderEnabled,
   });
   const roomChoices = rooms.includes(store.room)
     ? rooms
@@ -250,6 +251,27 @@ export function StoreEditForm({ storeId, initialStore }: StoreEditFormProps) {
             </Field>
           )}
         </form.Field>
+
+        <form.Field
+          name="orderEnabled"
+          children={(field) => (
+            <Field className="contents">
+              <FieldLabel htmlFor={field.name}>
+                モバイル
+                <br />
+                オーダー機能
+              </FieldLabel>
+              <FieldContent>
+                <OrderEnabledSwitch
+                  id={field.name}
+                  checked={field.state.value}
+                  onBlur={field.handleBlur}
+                  onCheckedChange={field.handleChange}
+                />
+              </FieldContent>
+            </Field>
+          )}
+        />
       </div>
 
       {mutation.isError && (

@@ -74,7 +74,7 @@ export function CartList({ storeId }: CartListProps) {
         </p>
       </div>
 
-      <div className="mt-8 mb-18 grid grid-cols-[1fr_auto_1fr] items-center gap-6">
+      <div className="mt-8 mb-18 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-6">
         <LinkButton
           href={guestStoreDetailUrl(storeId)}
           className="justify-self-end px-6 py-2"
@@ -108,7 +108,7 @@ function CartItemRow({ summarisedItem }: CartItemRowProps) {
     item.toppings.reduce((total, topping) => total + topping.unitPrice, 0);
 
   return (
-    <li className="border-foreground grid grid-cols-[minmax(0,1fr)_3.8125rem] items-end gap-6 border-b py-4">
+    <li className="border-foreground flex flex-col gap-4 border-b py-4">
       <div>
         <p className="text-lg font-semibold">{item.name}</p>
         {item.toppings.map((topping) => (
@@ -116,21 +116,23 @@ function CartItemRow({ summarisedItem }: CartItemRowProps) {
             key={topping.id}
             className="flex items-center gap-2 pt-2 pl-10 font-semibold"
           >
-            <PlusIcon size={20} />
+            <PlusIcon size={20} className="shrink-0" />
             <p>{topping.name}</p>
           </div>
         ))}
+      </div>
 
-        <div className="flex flex-row items-center justify-end gap-2 text-right text-lg font-medium">
+      <div className="flex flex-row justify-end gap-6 text-right text-lg font-medium">
+        <div className="flex flex-row gap-2">
           <span>{formatYen(unitPriceWithTopping)}</span>
           <span>×</span>
           <span>{summarisedItem.quantity}</span>
         </div>
-      </div>
 
-      <p className="ml-auto text-lg font-medium">
-        {formatYen(unitPriceWithTopping * summarisedItem.quantity)}
-      </p>
+        <p className="text-lg font-medium">
+          {formatYen(unitPriceWithTopping * summarisedItem.quantity)}
+        </p>
+      </div>
     </li>
   );
 }

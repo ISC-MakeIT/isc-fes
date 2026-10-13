@@ -7,7 +7,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
+	domainactivity "github.com/isc-makeit/isc-fes/backend/domains/activity"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	domain "github.com/isc-makeit/isc-fes/backend/domains/entities/orders"
+	"github.com/isc-makeit/isc-fes/backend/repositories/activity"
 	"github.com/isc-makeit/isc-fes/backend/repositories/db2entities"
 	orderservice "github.com/isc-makeit/isc-fes/backend/services/orders"
 	"github.com/jackc/pgx/v5"
@@ -87,6 +90,16 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, input orderservice.Cr
 	}
 	order, err := loadSnapshot(ctx, qtx, saved)
 	if err != nil {
+		return orderservice.CreateResult{}, err
+	}
+	if err := activity.Record(ctx, qtx, domainactivity.Event{
+		Type: domainactivity.OrderCreated, StoreID: saved.StoreID, SubjectID: saved.ID,
+		Actor: domainactivity.Actor{AccountID: input.AccountID, GuestID: &input.GuestID},
+		Payload: domainactivity.Payload{After: domainactivity.Snapshot{
+			"status": saved.Status, "version": saved.Version, "guest_id": saved.GuestID,
+			"total_amount": saved.TotalAmount, "display_number": saved.DisplayNumber,
+		}},
+	}); err != nil {
 		return orderservice.CreateResult{}, err
 	}
 	if err := tx.Commit(ctx); err != nil {

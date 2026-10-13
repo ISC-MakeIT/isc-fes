@@ -5,8 +5,10 @@ import (
 	"fmt"
 
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
+	domainactivity "github.com/isc-makeit/isc-fes/backend/domains/activity"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
 	"github.com/isc-makeit/isc-fes/backend/repositories"
+	"github.com/isc-makeit/isc-fes/backend/repositories/activity"
 	"github.com/isc-makeit/isc-fes/backend/repositories/db2entities"
 	menu_service "github.com/isc-makeit/isc-fes/backend/services/store/menus"
 )
@@ -19,6 +21,14 @@ func (r *MenuRepository) UpdateMenuWithToppings(c context.Context, input menu_se
 	defer tx.Rollback(c)
 
 	if _, err := qtx.LockStoreForUpdate(c, input.StoreID); err != nil {
+		return menus.Menu{}, err
+	}
+	current, err := qtx.GetMenuByStoreIDAndMenuID(c, sqlc.GetMenuByStoreIDAndMenuIDParams{ID: input.ID, StoreID: input.StoreID})
+	if err != nil {
+		return menus.Menu{}, err
+	}
+	before, err := activity.MenuSnapshot(c, qtx, current)
+	if err != nil {
 		return menus.Menu{}, err
 	}
 
@@ -39,10 +49,7 @@ func (r *MenuRepository) UpdateMenuWithToppings(c context.Context, input menu_se
 		toppingIDs := *input.ToppingIds
 		// 空配列の場合でも、既存のトッピング関連付けを全て削除するために処理を続行する
 
-		// 既存のトッピング関連付けを全て削除し、新しいトッピング関連付けを作成する
-		// 既存のトッピング関連づけと新しいトッピング関連付けの差分を計算して、必要な追加・削除をすることもできるが、
-		// その場合 SELECT が必要になり、また実装も複雑になるため、ここでは単純に全削除して新規作成する方法を採用する。
-		// 関連付けの件数は少ないはずなので全削除・全追加のコストも小さい
+		// 関連の全置換後に実際の集合を比較し、順序だけの違いは履歴に残さない。
 		err = qtx.DeleteAllMenuToppingsByMenuID(c, input.ID)
 		if err != nil {
 			return menus.Menu{}, fmt.Errorf("failed to delete menu toppings: %w", err)
@@ -55,6 +62,18 @@ func (r *MenuRepository) UpdateMenuWithToppings(c context.Context, input menu_se
 		})
 		if err != nil {
 			return menus.Menu{}, fmt.Errorf("failed to create menu toppings: %w", err)
+		}
+	}
+	after, err := activity.MenuSnapshot(c, qtx, m)
+	if err != nil {
+		return menus.Menu{}, err
+	}
+	if payload, changed := domainactivity.Diff(before, after); changed {
+		if err := activity.Record(c, qtx, domainactivity.Event{
+			Type: domainactivity.MenuUpdated, StoreID: m.StoreID, SubjectID: m.ID,
+			Actor: domainactivity.AccountActor(input.AccountID), Payload: payload,
+		}); err != nil {
+			return menus.Menu{}, err
 		}
 	}
 

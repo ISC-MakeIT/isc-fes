@@ -16,3 +16,5 @@ export {
 } from "./api/fetch-store-detail";
 
 export { StoreCongestionBadge } from "./ui/store-congestion-badge";
+
+export { OrderEnabledSwitch } from "./ui/order-enabled-switch";
