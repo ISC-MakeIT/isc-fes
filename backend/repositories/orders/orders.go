@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	domainactivity "github.com/isc-makeit/isc-fes/backend/domains/activity"
-	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	domain "github.com/isc-makeit/isc-fes/backend/domains/entities/orders"
 	"github.com/isc-makeit/isc-fes/backend/repositories/activity"
 	"github.com/isc-makeit/isc-fes/backend/repositories/db2entities"
