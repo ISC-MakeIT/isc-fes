@@ -101,8 +101,8 @@ export function comparableConfig(c: Config): string {
 export function compareReports(small: Report, medium: Report, requiredConnections: number, requiredRate: number) {
   if (small.instanceType !== "t4g.small" || medium.instanceType !== "t4g.medium") throw new Error("Comparison requires t4g.small and t4g.medium reports");
   if (small.sourceFingerprint !== medium.sourceFingerprint || comparableConfig(small.config) !== comparableConfig(medium.config)) throw new Error("Different source/scenario/SLO: reports cannot be compared");
-  const runtime = (r: Report) => JSON.stringify([r.generator.bunVersion, r.generator.platform, r.generator.arch, r.generator.cpuCount]);
-  if (runtime(small) !== runtime(medium)) throw new Error("Generator runtime/architecture/CPU count differ");
+  const runtime = (r: Report) => JSON.stringify([r.generator.hostname, r.generator.bunVersion, r.generator.platform, r.generator.arch, r.generator.cpuCount]);
+  if (runtime(small) !== runtime(medium)) throw new Error("Generator host/runtime/architecture/CPU count differ");
   const choose = (r: Report) => r.runStatus === "completed" ? r.stages.find(s => s.stage.connections >= requiredConnections && s.stage.workflowsPerSecond >= requiredRate && s.gate.status === "pass") : undefined;
   const smallPass = choose(small), mediumPass = choose(medium);
   const recommendation = smallPass ? "t4g.small" : mediumPass ? "t4g.medium" : "inconclusive";

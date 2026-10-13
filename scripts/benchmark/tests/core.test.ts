@@ -171,6 +171,13 @@ describe("SLO and sizing decisions", () => {
     expect(compareReports({ ...small, runStatus: "interrupted" }, { ...medium, runStatus: "interrupted" }, 1000, 40).recommendation).toBe("inconclusive");
     expect(() => compareReports(small, { ...medium, sourceFingerprint: "other-source" }, 1000, 40)).toThrow();
     expect(() => compareReports(small, { ...medium, config: { ...medium.config, seed: 42 } }, 1000, 40)).toThrow();
+    for (const generator of [
+      { ...medium.generator, hostname: "another-generator" },
+      { ...medium.generator, bunVersion: "another-version" },
+      { ...medium.generator, platform: "linux" },
+      { ...medium.generator, arch: "x64" },
+      { ...medium.generator, cpuCount: 8 },
+    ]) expect(() => compareReports(small, { ...medium, generator }, 1000, 40)).toThrow("Generator");
     expect(buildReport(runResult()).highestPassingConnections).toBe(0);
   });
 });
