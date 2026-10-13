@@ -225,7 +225,11 @@ func (s *StoreService) UpdateStoreApplicationReviewStatus(ctx context.Context, s
 		return ErrInvalidStoreReviewStatusTransition
 	}
 
-	return s.storeRepository.UpdateStoreReviewStatus(ctx, storeID, newStatus, account.ID)
+	err = s.storeRepository.UpdateStoreReviewStatus(ctx, storeID, newStatus, account.ID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ErrNotFound
+	}
+	return err
 }
 
 func (s *StoreService) GetApprovedStores(ctx context.Context) ([]entities.StoreOutput, error) {
