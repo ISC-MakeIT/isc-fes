@@ -5,7 +5,7 @@ import { parseConfig, random, dueArrivals } from "../config";
 import { Histogram, Recorder } from "../stats";
 import { parseCpu, cpuDelta, parseMemory, parseNetwork, networkDelta, parseDisks, diskDelta, parseMachineSamples, parseCredits, creditProjection, summarizeMachine, type MachineSample } from "../metrics";
 import { evaluate, buildReport, compareReports } from "../report";
-import type { StageResult, RunResult } from "../runner";
+import { run, type StageResult, type RunResult } from "../runner";
 import { Api, guestCookie, newGuest, staffCookie, cart, changedOrders, OrderSocket, type Fetcher } from "../client";
 import { workflow } from "../scenario";
 import { main } from "../index";
@@ -231,6 +231,48 @@ describe("HTTP isolation and offline checkout workflow", () => {
     expect(calls.filter(c => c.method === "PATCH").every(c => c.cookie === "isc_fes_account_session=staff")).toBe(true);
     expect(changedOrders({ type: "orders.changed", data: { changedOrderId: "created", orders: [{ id: "created", version: 2, status: "ready" }] } }).orders[0]!.version).toBe(2);
   });
+});
+
+describe("WS recovery between stages without a server", () => {
+  for (const failure of ["connect", "close"] as const) {
+    test(`replaces ${failure} failures on the next ramp, retains healthy tabs and closes excess guests`, async () => {
+      const c = parseConfig({ ...ws, socketsPerGuest: 2, connectPerSecond: 10_000, warmupSeconds: 0,
+        stages: [2, 4, 2].map((connections, i) => ({ name: `stage-${i}`, connections, workflowsPerSecond: 0, durationSeconds: 1 })) });
+      let attempts = 0, terminated = 0;
+      const closed = new Set<number>();
+      const fetcher: Fetcher = async input => {
+        const path = new URL(String(input)).pathname;
+        if (path === "/health") return Response.json({ status: "ok", commitHash: c.backendCommit });
+        if (path.endsWith("/carts")) return Response.json({ version: 1, canCheckout: false, items: [] }, { headers: { "Set-Cookie": "isc_fes_guest_session=test" } });
+        return Response.json({ id: c.stores[0]!.storeId });
+      };
+      const result = await run(c, "test", async () => {}, async saved => {
+        if (saved.stages.length === 2) expect([...closed].sort()).toEqual(failure === "connect" ? [] : [1]);
+        if (saved.stages.length === 3 && saved.status !== "completed") expect(closed.has(4) && closed.has(5)).toBe(true);
+      }, { fetcher, socketFactory: () => {
+        const attempt = ++attempts;
+        if (attempt === 1 && failure === "connect") throw new Error("temporary connection failure");
+        const socket = {
+          onmessage: null as ((event: MessageEvent) => void) | null,
+          onerror: null as ((event: Event) => void) | null,
+          onclose: null as ((event: CloseEvent) => void) | null,
+          terminate: () => { terminated++; closed.add(attempt); },
+        };
+        queueMicrotask(() => socket.onmessage?.(new MessageEvent("message", { data: JSON.stringify({ type: "connection.ready", data: { orders: [] } }) })));
+        if (attempt === 1 && failure === "close") setTimeout(() => socket.onclose?.({ code: 1013 } as CloseEvent), 100);
+        return socket;
+      } });
+      expect(result.status).toBe("completed");
+      expect(attempts).toBe(5);
+      expect(terminated).toBe(failure === "connect" ? 4 : 5);
+      expect(result.stages[0]!.measurements.ws.availability).toBeLessThan(1);
+      if (failure === "connect") expect(result.stages[0]!.ramp.operations["ws.ready"]!.failures).toBe(1);
+      else expect(result.stages[0]!.measurements.ws.unexpectedCloses["1013"]).toBe(1);
+      expect(result.stages[1]!.ramp.operations["ws.ready"]!.count).toBe(3);
+      expect(result.stages[1]!.measurements.ws.availability).toBeCloseTo(1, 3);
+      expect(result.stages[2]!.measurements.ws.availability).toBeCloseTo(1, 3);
+    });
+  }
 });
 
 describe("WS protocol without a server", () => {

@@ -1,5 +1,5 @@
 import { hostname, cpus } from "node:os";
-import { Api, cart, list, newGuest, OrderSocket, staffCookie, type Guest } from "./client";
+import { Api, cart, list, newGuest, OrderSocket, staffCookie, type Guest, type Fetcher, type SocketFactory } from "./client";
 import { random, dueArrivals, type Config, type Stage, type StoreFixture } from "./config";
 import { Recorder, type Measurements } from "./stats";
 import { pause, workflow } from "./scenario";
@@ -16,10 +16,10 @@ export type RunResult = {
   preflight: Measurements; stages: StageResult[];
 };
 
-export async function run(c: Config, sourceFingerprint: string, onProgress: (value: unknown) => Promise<void>, onSave: (result: RunResult) => Promise<void>): Promise<RunResult> {
+export async function run(c: Config, sourceFingerprint: string, onProgress: (value: unknown) => Promise<void>, onSave: (result: RunResult) => Promise<void>, transport: { fetcher?: Fetcher; socketFactory?: SocketFactory } = {}): Promise<RunResult> {
   const abort = new AbortController(), stop = () => abort.abort();
   process.on("SIGINT", stop); process.on("SIGTERM", stop);
-  const api = new Api(c, abort.signal), rng = random(c.seed), guests: Guest[] = [];
+  const api = new Api(c, abort.signal, transport.fetcher), rng = random(c.seed), guests: Guest[] = [];
   const preflight = new Recorder("preflight");
   let active = preflight;
   const result: RunResult = {
@@ -143,9 +143,13 @@ export async function run(c: Config, sourceFingerprint: string, onProgress: (val
       if (abort.signal.aborted) break;
       const ramp = new Recorder(`${stage.name}:ramp`), rampAt = performance.now();
       activate(ramp);
-      // Retain established connections across increasing stages; close only excess sockets.
+      // Retain healthy connections; retry failed/closed sockets only in the next stage's ramp.
       guests.forEach((guest, index) => {
-        if (index >= stage.connections / c.socketsPerGuest) { guest.sockets.forEach(s => s.close()); guest.sockets = []; }
+        if (index >= stage.connections / c.socketsPerGuest) { guest.sockets.forEach(s => s.close()); guest.sockets = []; return; }
+        guest.sockets = guest.sockets.filter(socket => {
+          if (socket.ready) return true;
+          socket.close(); return false;
+        });
       });
       const needed = Math.max(c.httpUsers, stage.connections / c.socketsPerGuest);
       poolSize = needed;
@@ -162,7 +166,7 @@ export async function run(c: Config, sourceFingerprint: string, onProgress: (val
         if (index < stage.connections / c.socketsPerGuest) {
           for (let tab = guest.sockets.length; tab < c.socketsPerGuest; tab++) {
             if (abort.signal.aborted) return;
-            const socket = new OrderSocket(c, guest, () => active, gauge);
+            const socket = new OrderSocket(c, guest, () => active, gauge, transport.socketFactory);
             guest.sockets.push(socket);
             await socket.connect().catch(() => {}); // Failures remain visible in ramp and availability.
           }
