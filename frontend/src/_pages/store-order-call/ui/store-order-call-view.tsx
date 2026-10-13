@@ -2,6 +2,7 @@ import { storeOrdersQueryOptions } from "@/entities/order";
 import { createQueryClient } from "@/shared/api";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { PendingOrderList } from "./pending-order-list";
+import { ReadyOrderList } from "./ready-order-list";
 
 type StoreOrderCallViewProps = {
   storeId: string;
@@ -27,7 +28,9 @@ export async function StoreOrderCallView({ storeId }: StoreOrderCallViewProps) {
           <h2 className="bg-order-ready-header flex h-18 w-full items-center justify-center text-[1.375rem]">
             呼び出し中番号
           </h2>
-          <div className="bg-order-ready-background flex-1"></div>
+          <div className="bg-order-ready-background flex-1">
+            <ReadyOrderList storeId={storeId} />
+          </div>
         </section>
       </main>
     </HydrationBoundary>
