@@ -35,6 +35,12 @@ export const menuToppingsKeys = {
 
 export const cartKey = (storeId: string) => ["store", storeId, "cart"];
 
+export const checkCheckoutKey = (storeId: string) => [
+  "store",
+  storeId,
+  "checkCheckout",
+];
+
 export const storeListKeys = {
   all: () => ["stores"] as const,
   visible: () => [...storeListKeys.all(), "visible"] as const,
