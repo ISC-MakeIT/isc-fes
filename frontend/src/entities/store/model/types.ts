@@ -33,6 +33,7 @@ export const Store = v.object({
   reviewStatus: StoreReviewStatusSchema,
   allergens: v.array(Allergen),
   congestionLevel: StoreCongestionLevel,
+  orderEnabled: v.boolean(),
 });
 
 export type Store = v.InferOutput<typeof Store>;

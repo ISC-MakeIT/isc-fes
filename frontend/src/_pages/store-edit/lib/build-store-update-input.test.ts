@@ -5,6 +5,7 @@ const initial = {
   room: "605教室" as const,
   description: "現在の説明",
   allergenIds: ["egg", "milk"],
+  orderEnabled: true,
 };
 
 describe("buildStoreUpdateInput", () => {

@@ -28,6 +28,7 @@ import {
 } from "@/entities/allergen";
 import { cn } from "@/shared/lib/utils";
 import { trackEvent } from "@/shared/lib/analytics";
+import { OrderEnabledSwitch } from "@/entities/store";
 
 const defaultFormValue: CreateStoreForm = {
   name: "",
@@ -35,6 +36,7 @@ const defaultFormValue: CreateStoreForm = {
   description: "",
   allergenIds: [],
   image: undefined,
+  orderEnabled: true,
 };
 
 export function RegisterStoreForm() {
@@ -241,6 +243,27 @@ export function RegisterStoreForm() {
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
+              </FieldContent>
+            </Field>
+          )}
+        />
+
+        <form.Field
+          name="orderEnabled"
+          children={(field) => (
+            <Field className="contents">
+              <FieldLabel htmlFor={field.name}>
+                モバイル
+                <br />
+                オーダー機能
+              </FieldLabel>
+              <FieldContent>
+                <OrderEnabledSwitch
+                  id={field.name}
+                  checked={field.state.value}
+                  onBlur={field.handleBlur}
+                  onCheckedChange={field.handleChange}
+                />
               </FieldContent>
             </Field>
           )}
