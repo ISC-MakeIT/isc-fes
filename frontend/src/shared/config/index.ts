@@ -61,6 +61,7 @@ export {
   ICON_IMAGE_ASPECT,
   MENU_IMAGE_ASPECT,
   STORE_IMAGE_ASPECT,
+  HERO_IMAGE_ASPECT,
   EVENT_IMAGE_ASPECT,
 } from "./constants/image-aspect-ratios";
 
