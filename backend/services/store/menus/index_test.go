@@ -145,6 +145,9 @@ func TestCreateMenuUsesSuppliedImageObjectKey(t *testing.T) {
 	if menuRepository.createInput.ImageObjectKey != imageObjectKey {
 		t.Errorf("repository image object key = %q, want %q", menuRepository.createInput.ImageObjectKey, imageObjectKey)
 	}
+	if menuRepository.createInput.AccountID != accountID {
+		t.Errorf("repository actor = %v, want authenticated account %v", menuRepository.createInput.AccountID, accountID)
+	}
 	if len(imageRepository.deleteKeys) != 0 {
 		t.Errorf("deleted image object keys = %v, want none", imageRepository.deleteKeys)
 	}
@@ -224,6 +227,9 @@ func TestUpdateMenuReplacesImageUsingSuppliedObjectKey(t *testing.T) {
 
 	if menuRepository.updateInput.ImageObjectKey == nil || *menuRepository.updateInput.ImageObjectKey != newObjectKey {
 		t.Errorf("repository image object key = %v, want %q", menuRepository.updateInput.ImageObjectKey, newObjectKey)
+	}
+	if menuRepository.updateInput.AccountID != accountID {
+		t.Errorf("repository actor = %v, want authenticated account %v", menuRepository.updateInput.AccountID, accountID)
 	}
 	if len(imageRepository.deleteKeys) != 1 || imageRepository.deleteKeys[0] != oldObjectKey {
 		t.Errorf("deleted image object keys = %v, want [%q]", imageRepository.deleteKeys, oldObjectKey)

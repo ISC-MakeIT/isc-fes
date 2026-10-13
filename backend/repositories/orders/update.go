@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
+	domainactivity "github.com/isc-makeit/isc-fes/backend/domains/activity"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	domain "github.com/isc-makeit/isc-fes/backend/domains/entities/orders"
+	"github.com/isc-makeit/isc-fes/backend/repositories/activity"
 	"github.com/isc-makeit/isc-fes/backend/repositories/db2entities"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	orderservice "github.com/isc-makeit/isc-fes/backend/services/orders"
@@ -76,6 +78,17 @@ func (r *OrderRepository) UpdateOrder(ctx context.Context, input orderservice.Up
 		}
 		if err != nil {
 			return orderservice.UpdateResult{}, fmt.Errorf("update order status: %w", err)
+		}
+		if err := activity.Record(ctx, qtx, domainactivity.Event{
+			Type: domainactivity.OrderStatusChanged, StoreID: row.StoreID, SubjectID: row.ID,
+			Actor: domainactivity.AccountActor(input.AccountID), At: updated.UpdatedAt,
+			Payload: domainactivity.Payload{
+				Before:  domainactivity.Snapshot{"status": current.Status},
+				After:   domainactivity.Snapshot{"status": updated.Status},
+				Context: map[string]any{"version": row.Version},
+			},
+		}); err != nil {
+			return orderservice.UpdateResult{}, err
 		}
 	}
 	order, err := loadSnapshot(ctx, qtx, row)

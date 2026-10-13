@@ -12,7 +12,6 @@ import (
 )
 
 const addAllergensToStore = `-- name: AddAllergensToStore :exec
-
 INSERT INTO store_allergens (
     store_id,
     allergen_id
@@ -29,7 +28,6 @@ type AddAllergensToStoreParams struct {
 	AllergenIds []uuid.UUID `json:"allergen_ids"`
 }
 
-// pending からしか遷移できないので pending の場合のみ更新する
 func (q *Queries) AddAllergensToStore(ctx context.Context, arg AddAllergensToStoreParams) error {
 	_, err := q.db.Exec(ctx, addAllergensToStore, arg.StoreID, arg.AllergenIds)
 	return err
@@ -427,13 +425,14 @@ func (q *Queries) UpdateStore(ctx context.Context, arg UpdateStoreParams) (Store
 	return i, err
 }
 
-const updateStoreReviewStatusById = `-- name: UpdateStoreReviewStatusById :exec
+const updateStoreReviewStatusById = `-- name: UpdateStoreReviewStatusById :one
 UPDATE stores
 SET
     review_status = $2,
     updated_at = now()
 WHERE id = $1
-    AND review_status = 'pending'
+    AND review_status = 'pending' -- pending からしか遷移できない
+RETURNING id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at, congestion_level, order_enabled
 `
 
 type UpdateStoreReviewStatusByIdParams struct {
@@ -441,7 +440,22 @@ type UpdateStoreReviewStatusByIdParams struct {
 	ReviewStatus StoreReviewStatus `json:"review_status"`
 }
 
-func (q *Queries) UpdateStoreReviewStatusById(ctx context.Context, arg UpdateStoreReviewStatusByIdParams) error {
-	_, err := q.db.Exec(ctx, updateStoreReviewStatusById, arg.ID, arg.ReviewStatus)
-	return err
+func (q *Queries) UpdateStoreReviewStatusById(ctx context.Context, arg UpdateStoreReviewStatusByIdParams) (Store, error) {
+	row := q.db.QueryRow(ctx, updateStoreReviewStatusById, arg.ID, arg.ReviewStatus)
+	var i Store
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Room,
+		&i.Description,
+		&i.ImageObjectKey,
+		&i.ReviewStatus,
+		&i.SubmittedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ClosedAt,
+		&i.CongestionLevel,
+		&i.OrderEnabled,
+	)
+	return i, err
 }

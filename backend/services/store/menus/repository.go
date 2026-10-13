@@ -9,6 +9,7 @@ import (
 )
 
 type CreateMenuRepositoryInput struct {
+	AccountID      uuid.UUID
 	ID             uuid.UUID
 	StoreID        uuid.UUID
 	Name           string
@@ -21,6 +22,7 @@ type CreateMenuRepositoryInput struct {
 // メニューの更新のためのリポジトリ入力構造体
 // ID, StoreID は更新不可で、where 句に使用される
 type UpdateMenuRepositoryInput struct {
+	AccountID      uuid.UUID
 	ID             uuid.UUID
 	StoreID        uuid.UUID
 	Name           *string
@@ -36,5 +38,5 @@ type MenuRepository interface {
 	GetToppingsByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID) ([]toppings.Topping, error)
 	CreateMenuWithToppings(c context.Context, input CreateMenuRepositoryInput) (menus.Menu, error)
 	UpdateMenuWithToppings(c context.Context, input UpdateMenuRepositoryInput) (menus.Menu, error)
-	DeleteMenuByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID) (int64, error)
+	DeleteMenuByStoreIDAndMenuID(c context.Context, storeID, menuID, accountID uuid.UUID) (int64, error)
 }

@@ -72,6 +72,7 @@ func (s *MenuService) UpdateMenuByStoreIDAndMenuID(c context.Context, storeID uu
 		toppingIDs = &input.ToppingIds
 	}
 	updatedMenu, err := s.menuRepository.UpdateMenuWithToppings(c, UpdateMenuRepositoryInput{
+		AccountID:      account.ID,
 		ID:             menu.ID,
 		StoreID:        menu.StoreID,
 		Name:           input.Name,

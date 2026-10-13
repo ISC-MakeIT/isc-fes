@@ -64,6 +64,7 @@ func (s *MenuService) CreateMenu(c context.Context, storeID uuid.UUID, input Cre
 	}
 
 	menu, err := s.menuRepository.CreateMenuWithToppings(c, CreateMenuRepositoryInput{
+		AccountID:      account.ID,
 		ID:             menuID,
 		StoreID:        storeID,
 		Name:           input.Name,

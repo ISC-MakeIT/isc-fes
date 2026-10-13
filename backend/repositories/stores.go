@@ -5,10 +5,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
+	domainactivity "github.com/isc-makeit/isc-fes/backend/domains/activity"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
+	"github.com/isc-makeit/isc-fes/backend/repositories/activity"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/services/store/carts"
 	"github.com/isc-makeit/isc-fes/backend/utils"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -58,8 +61,6 @@ func (r *StoreRepository) CreateStoreApplication(ctx context.Context, input serv
 		return entities.Store{}, err
 	}
 
-	// TODO: 状態変更履歴の要件が有効なら、初期 pending イベントを store_status_events へ同じトランザクション内で記録する。
-
 	// アカウントに店舗IDを紐付ける
 	_, err = qtx.CreateStoreMember(ctx, sqlc.CreateStoreMemberParams{
 		StoreID:   store.ID,
@@ -67,6 +68,16 @@ func (r *StoreRepository) CreateStoreApplication(ctx context.Context, input serv
 		Role:      sqlc.StoreMemberRoleManager,
 	})
 	if err != nil {
+		return entities.Store{}, err
+	}
+	after, err := activity.StoreSnapshot(ctx, qtx, store)
+	if err != nil {
+		return entities.Store{}, err
+	}
+	if err := activity.Record(ctx, qtx, domainactivity.Event{
+		Type: domainactivity.StoreCreated, StoreID: store.ID, SubjectID: store.ID,
+		Actor: domainactivity.AccountActor(input.AccountID), Payload: domainactivity.Payload{After: after},
+	}); err != nil {
 		return entities.Store{}, err
 	}
 
@@ -129,7 +140,7 @@ func (r *StoreRepository) GetStoreByID(ctx context.Context, storeID uuid.UUID) (
 	return r.toStore(dbStore), nil
 }
 
-func (r *StoreRepository) UpdateStore(ctx context.Context, storeID uuid.UUID, input services.UpdateStoreInput) (entities.Store, error) {
+func (r *StoreRepository) UpdateStore(ctx context.Context, storeID uuid.UUID, input services.UpdateStoreRepositoryInput) (entities.Store, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return entities.Store{}, err
@@ -137,6 +148,17 @@ func (r *StoreRepository) UpdateStore(ctx context.Context, storeID uuid.UUID, in
 	defer tx.Rollback(ctx)
 
 	qtx := r.queries.WithTx(tx)
+	current, err := qtx.LockStoreForUpdate(ctx, storeID)
+	if err != nil {
+		return entities.Store{}, err
+	}
+	if current.ReviewStatus != sqlc.StoreReviewStatusApproved {
+		return entities.Store{}, pgx.ErrNoRows
+	}
+	before, err := activity.StoreSnapshot(ctx, qtx, current)
+	if err != nil {
+		return entities.Store{}, err
+	}
 	dbStore, err := qtx.UpdateStore(ctx, sqlc.UpdateStoreParams{
 		OrderEnabled:    input.OrderEnabled,
 		Closed:          input.Closed,
@@ -161,6 +183,18 @@ func (r *StoreRepository) UpdateStore(ctx context.Context, storeID uuid.UUID, in
 			return entities.Store{}, err
 		}
 	}
+	after, err := activity.StoreSnapshot(ctx, qtx, dbStore)
+	if err != nil {
+		return entities.Store{}, err
+	}
+	if payload, changed := domainactivity.Diff(before, after); changed {
+		if err := activity.Record(ctx, qtx, domainactivity.Event{
+			Type: domainactivity.StoreUpdated, StoreID: storeID, SubjectID: storeID,
+			Actor: domainactivity.AccountActor(input.AccountID), Payload: payload,
+		}); err != nil {
+			return entities.Store{}, err
+		}
+	}
 
 	if err := tx.Commit(ctx); err != nil {
 		return entities.Store{}, err
@@ -169,11 +203,38 @@ func (r *StoreRepository) UpdateStore(ctx context.Context, storeID uuid.UUID, in
 	return r.toStore(dbStore), nil
 }
 
-func (r *StoreRepository) UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error {
-	return r.queries.UpdateStoreReviewStatusById(ctx, sqlc.UpdateStoreReviewStatusByIdParams{
+func (r *StoreRepository) UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus, accountID uuid.UUID) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	qtx := r.queries.WithTx(tx)
+	current, err := qtx.LockStoreForUpdate(ctx, storeID)
+	if err != nil {
+		return err
+	}
+	currentStatus := entities.StoreReviewStatus(current.ReviewStatus)
+	if !currentStatus.CanUpdateTo(newStatus) {
+		return services.ErrInvalidStoreReviewStatusTransition
+	}
+	updated, err := qtx.UpdateStoreReviewStatusById(ctx, sqlc.UpdateStoreReviewStatusByIdParams{
 		ID:           storeID,
 		ReviewStatus: sqlc.StoreReviewStatus(newStatus),
 	})
+	if err != nil {
+		return err
+	}
+	if err := activity.Record(ctx, qtx, domainactivity.Event{
+		Type: domainactivity.StoreReviewStatusChanged, StoreID: storeID, SubjectID: storeID,
+		Actor: domainactivity.AccountActor(accountID), Payload: domainactivity.Payload{
+			Before: domainactivity.Snapshot{"review_status": current.ReviewStatus},
+			After:  domainactivity.Snapshot{"review_status": updated.ReviewStatus},
+		},
+	}); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
 }
 
 // Converts sqlc.Store to entities.Store

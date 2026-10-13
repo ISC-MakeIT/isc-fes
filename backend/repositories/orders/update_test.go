@@ -208,6 +208,13 @@ func TestUpdateOrderPostgresCommitFailureHasNoChangedResult(t *testing.T) {
 	if status != "pending" || version != 1 {
 		t.Fatalf("failed commit changed DB: %s, %d", status, version)
 	}
+	var logCount int
+	if err := r.pool.QueryRow(ctx, `SELECT count(*) FROM activity_log WHERE subject_id=$1`, input.OrderID).Scan(&logCount); err != nil {
+		t.Fatal(err)
+	}
+	if logCount != 0 {
+		t.Fatalf("failed commit left %d activity logs", logCount)
+	}
 }
 
 func TestUpdateOrderPostgresConcurrentSameStateChangesOnce(t *testing.T) {
@@ -238,6 +245,13 @@ func TestUpdateOrderPostgresConcurrentSameStateChangesOnce(t *testing.T) {
 	}
 	if changed != 1 {
 		t.Fatalf("Changed=true results = %d, want 1", changed)
+	}
+	var logCount int
+	if err := r.pool.QueryRow(ctx, `SELECT count(*) FROM activity_log WHERE subject_id=$1 AND event_type='order.status_changed'`, input.OrderID).Scan(&logCount); err != nil {
+		t.Fatal(err)
+	}
+	if logCount != 1 {
+		t.Fatalf("concurrent replay recorded %d logs, want 1", logCount)
 	}
 }
 
