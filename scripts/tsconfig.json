@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "ESNext",
+    "lib": ["ESNext"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "types": ["bun"],
@@ -9,5 +10,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["*.ts", "tests/**/*.ts"]
+  "include": ["**/*.ts"]
 }
