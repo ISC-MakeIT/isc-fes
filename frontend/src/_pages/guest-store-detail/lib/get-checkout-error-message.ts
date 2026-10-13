@@ -7,7 +7,8 @@ const checkoutErrorMessage = {
   cart_empty: "カートに商品がありません。",
   cart_items_unavailable: "購入できない商品またはトッピングが含まれています。",
   invalid_cart: "カートの内容が不正です。内容を確認してください。",
-  order_limit_reached: "同時に注文できる件数の上限に達しています。",
+  order_limit_reached:
+    "同時に注文できる件数の上限に達しています。先に商品を受け取ってください。",
 } satisfies Record<CheckoutCode, string>;
 
 export function getCheckoutErrorMessage(code: CheckoutCode) {
