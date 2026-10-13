@@ -51,10 +51,10 @@ export async function GuestStoreDetailView({
                   alt="店舗のバナー画像"
                 />
 
-                <div className="flex flex-row items-center justify-between px-6 pt-2">
+                <div className="flex flex-row items-center justify-between px-6 pt-2 lg:px-0">
                   {store.orderEnabled ? (
                     <span className="bg-primary text-primary-foreground rounded-sm px-2 py-1 font-semibold">
-                      モバイルオーダー使用店
+                      モバイルオーダー可能
                     </span>
                   ) : (
                     <span className="bg-notice text-primary-foreground rounded-sm px-2 py-1 font-semibold">
