@@ -29,7 +29,7 @@ type CartOperationContextValue = {
   removeTopping: (cartItemId: string, toppingId: string) => void;
   clearCart: () => void;
   checkout: () => void;
-  isSaving: boolean;
+  isBusy: boolean;
   hasPendingChanges: boolean;
   canCheckout: boolean;
   displayedCartItems: CartItem[];
@@ -68,7 +68,7 @@ export function CartOperationProvider({
     );
 
   function updateDraftCartItems(update: (items: CartItem[]) => CartItem[]) {
-    if (mutation.isPending) {
+    if (isBusy) {
       return;
     }
     setDraftCartItems((currentItems) =>
@@ -76,7 +76,7 @@ export function CartOperationProvider({
     );
   }
 
-  const mutation = useMutation({
+  const updateCartMutation = useMutation({
     mutationFn: updateCart,
     onError: async () => {
       await queryClient.invalidateQueries({
@@ -90,12 +90,40 @@ export function CartOperationProvider({
     },
   });
 
+  const checkoutMutation = useMutation({
+    mutationFn: (expectedCartVersion: number) =>
+      fetchCheckoutable(storeId, expectedCartVersion),
+
+    onSuccess: ({ code }) => {
+      if (code) {
+        toast.add({
+          type: "error",
+          title: "注文できませんでした",
+          description: getCheckoutErrorMessage(code),
+        });
+        return;
+      }
+
+      router.push(guestCheckoutUrl(storeId));
+    },
+
+    onError: () => {
+      toast.add({
+        type: "error",
+        title: "注文できませんでした",
+        description: "しばらく時間を置いて再度お試しください",
+      });
+    },
+  });
+
+  const isBusy = checkoutMutation.isPending || updateCartMutation.isPending;
+
   const cartUpdateDebouncer = useDebouncer(
     async (items: CartItem[]) => {
       await queryClient.cancelQueries({
         queryKey: cartKey(storeId),
       });
-      mutation.mutate({
+      updateCartMutation.mutate({
         storeId,
         updateCartInput: {
           expectedVersion: fetchedCart.version,
@@ -112,7 +140,7 @@ export function CartOperationProvider({
   );
 
   useEffect(() => {
-    if (!draftCartItems || mutation.isPending) {
+    if (!draftCartItems || updateCartMutation.isPending) {
       return;
     }
 
@@ -121,7 +149,7 @@ export function CartOperationProvider({
     return () => {
       cartUpdateDebouncer.cancel();
     };
-  }, [mutation.isPending, draftCartItems, storeId]);
+  }, [updateCartMutation.isPending, draftCartItems, storeId]);
 
   function increaseItemQuantity(cartItemId: string) {
     updateDraftCartItems((items) =>
@@ -145,8 +173,8 @@ export function CartOperationProvider({
     );
   }
 
-  async function clearCart() {
-    if (mutation.isPending) {
+  function clearCart() {
+    if (isBusy) {
       return;
     }
     setDraftCartItems([]);
@@ -154,25 +182,12 @@ export function CartOperationProvider({
     cartUpdateDebouncer.flush();
   }
 
-  async function checkout() {
-    if (mutation.isPending) {
+  function checkout() {
+    if (isBusy || draftCartItems !== null || !canCheckout) {
       return;
     }
 
-    const { code } = await fetchCheckoutable(storeId, fetchedCart.version);
-
-    if (code) {
-      toast.add({
-        type: "error",
-        title: "注文できませんでした",
-        description: getCheckoutErrorMessage(code),
-      });
-      return;
-    }
-
-    cartUpdateDebouncer.flush();
-
-    router.push(guestCheckoutUrl(storeId));
+    checkoutMutation.mutate(fetchedCart.version);
   }
 
   return (
@@ -183,7 +198,7 @@ export function CartOperationProvider({
         removeItem,
         removeTopping,
         clearCart,
-        isSaving: mutation.isPending,
+        isBusy,
         hasPendingChanges: !!draftCartItems,
         // チェックアウトできる条件は 売り切れ or 削除済みのアイテムがカートに含まれていないこと
         canCheckout,
@@ -191,9 +206,9 @@ export function CartOperationProvider({
         displayedCartItems: displayedCartItems,
       }}
     >
-      {mutation.isError && (
+      {updateCartMutation.isError && (
         <ErrorDialog>
-          <p>{mutation.error.message}</p>
+          <p>{updateCartMutation.error.message}</p>
         </ErrorDialog>
       )}
       {children}
