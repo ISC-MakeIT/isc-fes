@@ -1,5 +1,9 @@
 {
   "scripts": {
+    "benchmark": "bun run ./scripts/benchmark/index.ts",
+    "benchmark:metrics": "bun run ./scripts/benchmark/collect-metrics.ts",
+    "benchmark:credits": "bun run ./scripts/benchmark/export-credits.ts",
+    "test:benchmark": "bun test ./scripts/benchmark/tests",
     "reset-for-production": "bun run ./scripts/reset-for-production.ts",
     "typecheck:scripts": "tsc -p scripts/tsconfig.json",
     "test:backup": "bun test ./infra/deploy/tests",

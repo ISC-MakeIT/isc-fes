@@ -1,0 +1,53 @@
+{
+  "label": "small-ws-1",
+  "instanceType": "t4g.small",
+  "backendCommit": "REPLACE_WITH_DEPLOYED_COMMIT_HASH",
+  "databaseFixture": "festival-clone-v1",
+  "baseUrl": "https://api.benchmark.invalid",
+  "origin": "https://benchmark.invalid",
+  "seed": 20261013,
+  "httpUsers": 1,
+  "socketsPerGuest": 1,
+  "connectPerSecond": 25,
+  "maxInFlight": 128,
+  "warmupSeconds": 30,
+  "requestTimeoutMs": 15000,
+  "notificationTimeoutMs": 10000,
+  "thinkTimeMs": 0,
+  "kitchenDelayMs": 0,
+  "kitchenPollingSeconds": 0,
+  "checkoutProbability": 0,
+  "cartProbability": 0,
+  "festivalHours": 8,
+  "stages": [
+    { "name": "ws-100", "connections": 100, "workflowsPerSecond": 0, "durationSeconds": 300 },
+    { "name": "ws-250", "connections": 250, "workflowsPerSecond": 0, "durationSeconds": 300 },
+    { "name": "ws-500", "connections": 500, "workflowsPerSecond": 0, "durationSeconds": 300 },
+    { "name": "ws-1000", "connections": 1000, "workflowsPerSecond": 0, "durationSeconds": 300 },
+    { "name": "ws-2000", "connections": 2000, "workflowsPerSecond": 0, "durationSeconds": 300 },
+    { "name": "ws-4000", "connections": 4000, "workflowsPerSecond": 0, "durationSeconds": 300 }
+  ],
+  "stores": [
+    {
+      "storeId": "11111111-1111-4111-8111-111111111111",
+      "menuId": "22222222-2222-4222-8222-222222222222",
+      "toppingIds": [],
+      "staffCookieEnv": "BENCH_STAFF_COOKIE",
+      "weight": 1
+    }
+  ],
+  "slo": {
+    "httpP95Ms": 500,
+    "httpP99Ms": 1500,
+    "errorRate": 0.01,
+    "workflowErrorRate": 0.01,
+    "notificationP95Ms": 1000,
+    "notificationErrorRate": 0.001,
+    "wsAvailability": 0.999,
+    "droppedRate": 0.01,
+    "cpuMaxPercent": 70,
+    "memoryMaxPercent": 75,
+    "generatorLagP99Ms": 100,
+    "minSamples": 30
+  }
+}
