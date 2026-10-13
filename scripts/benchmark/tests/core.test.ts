@@ -9,6 +9,7 @@ import { run, type StageResult, type RunResult } from "../runner";
 import { Api, guestCookie, newGuest, staffCookie, cart, changedOrders, OrderSocket, type Fetcher } from "../client";
 import { workflow } from "../scenario";
 import { main } from "../index";
+import { main as exportCredits } from "../export-credits";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -16,7 +17,7 @@ import { tmpdir } from "node:os";
 const config = parseConfig(mixed);
 const from = "2026-10-13T00:00:00.000Z", to = "2026-10-13T00:05:00.000Z";
 function sample(at: string, intervalSeconds = 5): MachineSample {
-  return { schemaVersion: 1, at, intervalSeconds, label: config.label, instanceType: config.instanceType, hostname: "target",
+  return { schemaVersion: 1, at, intervalSeconds, label: config.label, instanceType: config.instanceType, instanceId: config.targetInstanceId, hostname: "target",
     cpuPercent: 30, ioWaitPercent: 2, stealPercent: 0, memoryPercent: 40, memoryAvailableBytes: 1200, memoryTotalBytes: 2000, swapUsedBytes: 0,
     load1: 0.5, openFiles: 100, pressure: { cpu: 0, memory: 0, io: 0 }, network: {}, disks: {}, containers: [], dockerError: false };
 }
@@ -53,6 +54,8 @@ describe("configuration and schedule", () => {
     expect(() => parseConfig({ ...mixed, baseUrl: "https://user:password@host" })).toThrow();
     expect(() => parseConfig({ ...mixed, baseUrl: "https://host/api" })).toThrow();
     expect(() => parseConfig({ ...mixed, seed: 0 })).toThrow();
+    expect(() => parseConfig({ ...mixed, targetInstanceId: undefined })).toThrow("instance ID");
+    expect(() => parseConfig({ ...mixed, targetInstanceId: "i-test" })).toThrow("instance ID");
   });
   test("arrival counts are independent of response times and fractional rates work", () => {
     expect(dueArrivals(0, 20)).toBe(0);
@@ -101,9 +104,12 @@ describe("target metrics and credits", () => {
     expect(summary.coverage).toBe(1); expect(summary.cpuMeanPercent).toBe(30);
     expect(summarizeMachine(samples.slice(30), from, to).coverage).toBe(.5);
     const text = samples.map(s => JSON.stringify(s)).join("\n");
-    expect(parseMachineSamples(text, config.label, config.instanceType)).toHaveLength(60);
-    expect(() => parseMachineSamples(text, "different", config.instanceType)).toThrow();
-    expect(() => parseMachineSamples(JSON.stringify({ ...sample(to), cpuPercent: null }), config.label, config.instanceType)).toThrow();
+    expect(parseMachineSamples(text, config.label, config.instanceType, config.targetInstanceId)).toHaveLength(60);
+    expect(() => parseMachineSamples(text, "different", config.instanceType, config.targetInstanceId)).toThrow();
+    expect(() => parseMachineSamples(JSON.stringify({ ...sample(to), cpuPercent: null }), config.label, config.instanceType, config.targetInstanceId)).toThrow();
+    expect(() => parseMachineSamples(JSON.stringify({ ...sample(to), instanceId: "i-0123456789abcdef1" }), config.label, config.instanceType, config.targetInstanceId)).toThrow("instance ID");
+    expect(() => parseMachineSamples(JSON.stringify({ ...sample(to), instanceId: undefined }), config.label, config.instanceType, config.targetInstanceId)).toThrow("instance ID");
+    expect(() => parseMachineSamples(`${text}\n${JSON.stringify({ ...sample(to), hostname: "other-host" })}`, config.label, config.instanceType, config.targetInstanceId)).toThrow("multiple hosts");
   });
   test("CPU projection requires bracketing points and rejects partial CloudWatch results", () => {
     expect(creditProjection("t4g.small", 8, 30, credits, from, to)).toMatchObject({ drainPerHour: 12, requiredCredits: 120, sufficient: true });
@@ -137,15 +143,70 @@ test("offline report CLI writes reviewable JSON/Markdown and refuses mismatched 
     const resultPath = join(dir, "result.json"), metricsPath = join(dir, "metrics.jsonl"), creditsPath = join(dir, "credits.json");
     await writeFile(resultPath, JSON.stringify(runResult()));
     await writeFile(metricsPath, samples.map(s => JSON.stringify(s)).join("\n"));
-    const creditInput = { label: config.label, instanceType: config.instanceType, instanceId: "i-test", creditsMode: "standard", cloudWatch: { MetricDataResults: [{ Id: "creditbalance", StatusCode: "Complete", Timestamps: credits.map(p => p.at), Values: credits.map(p => p.balance) }] } };
+    const creditInput = { label: config.label, instanceType: config.instanceType, instanceId: config.targetInstanceId, creditsMode: "standard", cloudWatch: { MetricDataResults: [{ Id: "creditbalance", StatusCode: "Complete", Timestamps: credits.map(p => p.at), Values: credits.map(p => p.balance) }] } };
     await writeFile(creditsPath, JSON.stringify(creditInput));
     await main(["report", "--result", resultPath, "--metrics", metricsPath, "--credits", creditsPath, "--out", join(dir, "report")]);
     expect((await Bun.file(join(dir, "report/report.json")).json()).stages[0].gate.status).toBe("pass");
     expect(await Bun.file(join(dir, "report/report.md")).text()).toContain("POST order");
     await writeFile(creditsPath, JSON.stringify({ ...creditInput, label: "other" }));
     await expect(main(["report", "--result", resultPath, "--credits", creditsPath, "--out", join(dir, "bad")])).rejects.toThrow("Mismatched credits metadata");
+    for (const instanceId of ["i-0123456789abcdef1", undefined]) {
+      await writeFile(creditsPath, JSON.stringify({ ...creditInput, instanceId }));
+      await expect(main(["report", "--result", resultPath, "--metrics", metricsPath, "--credits", creditsPath, "--out", join(dir, "bad")])).rejects.toThrow("Mismatched credits metadata");
+    }
+    await writeFile(creditsPath, JSON.stringify(creditInput));
+    await writeFile(metricsPath, samples.map(s => JSON.stringify({ ...s, instanceId: "i-0123456789abcdef1" })).join("\n"));
+    await expect(main(["report", "--result", resultPath, "--metrics", metricsPath, "--credits", creditsPath, "--out", join(dir, "bad")])).rejects.toThrow("instance ID");
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
+test("credit export binds AWS queries and metadata to the configured target before accepting evidence", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "isc-fes-benchmark-credits-test-"));
+  try {
+    const resultPath = join(dir, "result.json"), out = join(dir, "credits.json");
+    await writeFile(resultPath, JSON.stringify(runResult()));
+    const calls: string[][] = [];
+    let describedId = config.targetInstanceId, describedType = config.instanceType;
+    const requestAws = async (args: string[]): Promise<unknown> => {
+      calls.push(args);
+      if (args[1] === "describe-instances") return { Reservations: [{ Instances: [{ InstanceId: describedId, InstanceType: describedType }] }] };
+      if (args[1] === "describe-instance-credit-specifications") return { InstanceCreditSpecifications: [{ InstanceId: config.targetInstanceId, CpuCredits: "standard" }] };
+      return { MetricDataResults: [{ Id: "creditbalance", StatusCode: "Complete", Timestamps: credits.map(p => p.at), Values: credits.map(p => p.balance) }] };
+    };
+    const args = ["--result", resultPath, "--instance-id", config.targetInstanceId, "--out", out, "--execute"];
+    await expect(exportCredits(["--result", resultPath, "--instance-id", "i-0123456789abcdef1", "--out", out, "--execute"], requestAws)).rejects.toThrow("instance ID");
+    expect(calls).toHaveLength(0);
+    describedId = "i-0123456789abcdef1";
+    await expect(exportCredits(args, requestAws)).rejects.toThrow("instance identity");
+    expect(calls).toHaveLength(1);
+    describedId = config.targetInstanceId; describedType = "t4g.medium";
+    await expect(exportCredits(args, requestAws)).rejects.toThrow("instance identity");
+    expect(calls).toHaveLength(2);
+    describedType = config.instanceType;
+    await exportCredits(args, requestAws);
+    const cloudWatchArgs = calls.at(-1)!;
+    const queries = JSON.parse(cloudWatchArgs[cloudWatchArgs.indexOf("--metric-data-queries") + 1]!);
+    expect(queries.map((query: { MetricStat: { Metric: { Dimensions: unknown[] } } }) => query.MetricStat.Metric.Dimensions)).toEqual([
+      [{ Name: "InstanceId", Value: config.targetInstanceId }], [{ Name: "InstanceId", Value: config.targetInstanceId }],
+    ]);
+    expect(await Bun.file(out).json()).toMatchObject({ instanceId: config.targetInstanceId, instanceType: config.instanceType, label: config.label });
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test("comparison CLI accepts distinct target IDs but refuses legacy reports without target identity", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "isc-fes-benchmark-compare-test-"));
+  try {
+    const small = buildReport(runResult(), samples, credits);
+    const medium = { ...small, instanceType: "t4g.medium", config: { ...small.config, instanceType: "t4g.medium", targetInstanceId: "i-0123456789abcdef1", label: "medium-1" } };
+    const smallPath = join(dir, "small.json"), mediumPath = join(dir, "medium.json"), out = join(dir, "comparison");
+    await writeFile(smallPath, JSON.stringify(small)); await writeFile(mediumPath, JSON.stringify(medium));
+    const args = ["compare", "--small", smallPath, "--medium", mediumPath, "--connections", "1000", "--rate", "40", "--out", out];
+    await main(args);
+    expect((await Bun.file(join(out, "comparison.json")).json()).recommendation).toBe("t4g.small");
+    await writeFile(smallPath, JSON.stringify({ ...small, config: { ...small.config, targetInstanceId: undefined } }));
+    await expect(main(args)).rejects.toThrow("instance ID");
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
 describe("SLO and sizing decisions", () => {
   const machine = summarizeMachine(samples, from, to);
   const projection = creditProjection(config.instanceType, 8, machine.cpuMeanPercent, credits, from, to);
@@ -165,7 +226,7 @@ describe("SLO and sizing decisions", () => {
   });
   test("does not recommend an untested size/load, incompatible reports or interrupted runs", () => {
     const small = buildReport(runResult(), samples, credits);
-    const medium = { ...small, instanceType: "t4g.medium", config: { ...small.config, instanceType: "t4g.medium", label: "medium-1" } };
+    const medium = { ...small, instanceType: "t4g.medium", config: { ...small.config, instanceType: "t4g.medium", targetInstanceId: "i-0123456789abcdef1", label: "medium-1" } };
     expect(compareReports(small, medium, 1000, 40).recommendation).toBe("t4g.small");
     expect(compareReports(small, medium, 2000, 80).recommendation).toBe("inconclusive");
     expect(compareReports({ ...small, runStatus: "interrupted" }, { ...medium, runStatus: "interrupted" }, 1000, 40).recommendation).toBe("inconclusive");

@@ -95,7 +95,7 @@ export function markdownReport(r: Report): string {
 }
 
 export function comparableConfig(c: Config): string {
-  const { label: _label, instanceType: _instanceType, baseUrl: _baseUrl, origin: _origin, ...scenario } = c;
+  const { label: _label, instanceType: _instanceType, targetInstanceId: _targetInstanceId, baseUrl: _baseUrl, origin: _origin, ...scenario } = c;
   return JSON.stringify(scenario);
 }
 export function compareReports(small: Report, medium: Report, requiredConnections: number, requiredRate: number) {

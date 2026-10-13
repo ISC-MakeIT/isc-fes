@@ -50,7 +50,7 @@ export function diskDelta(before: DiskCounters, after: DiskCounters, seconds: nu
   }]));
 }
 export type MachineSample = {
-  schemaVersion: 1; at: string; intervalSeconds: number; label: string; instanceType: string; hostname: string;
+  schemaVersion: 1; at: string; intervalSeconds: number; label: string; instanceType: string; instanceId: string; hostname: string;
   cpuPercent: number; ioWaitPercent: number; stealPercent: number;
   memoryPercent: number; memoryTotalBytes: number; memoryAvailableBytes: number; swapUsedBytes: number;
   load1: number; openFiles: number | null;
@@ -86,10 +86,11 @@ export function summarizeMachine(samples: MachineSample[], start: string, end: s
   };
 }
 
-export function parseMachineSamples(text: string, label: string, instanceType: string): MachineSample[] {
+export function parseMachineSamples(text: string, label: string, instanceType: string, targetInstanceId: string): MachineSample[] {
   const rows = text.split("\n").filter(line => line.trim()).map(line => JSON.parse(line) as MachineSample);
   const finite = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n);
   for (const row of rows) {
+    if (row.instanceId !== targetInstanceId) throw new Error("Machine metrics instance ID does not match benchmark target");
     if (row.schemaVersion !== 1 || row.label !== label || row.instanceType !== instanceType || typeof row.hostname !== "string" || !Number.isFinite(Date.parse(row.at)) || !finite(row.intervalSeconds) || row.intervalSeconds <= 0 || !row.pressure || !finite(row.cpuPercent) || row.cpuPercent < 0 || row.cpuPercent > 100 || !finite(row.memoryPercent) || row.memoryPercent < 0 || row.memoryPercent > 100 || !finite(row.swapUsedBytes) || !finite(row.ioWaitPercent) || !finite(row.stealPercent)) throw new Error("Invalid or mismatched machine metrics file");
   }
   if (new Set(rows.map(r => r.hostname)).size > 1) throw new Error("Metrics from multiple hosts cannot be combined");

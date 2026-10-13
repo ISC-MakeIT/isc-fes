@@ -46,6 +46,7 @@ bun run benchmark plan --config scripts/benchmark/ws.example.json
 | --- | --- |
 | `label` | run ごとの識別名。Linux collector とクレジットファイルにも同じ値を使う |
 | `instanceType` | `t4g.small` または `t4g.medium` |
+| `targetInstanceId` | 測定対象 EC2 の instance ID。run の設定に保存し、マシン計測・クレジットの両方と照合する |
 | `backendCommit` | 対象の `/health` の `commitHash`。実行前に一致を検証する |
 | `databaseFixture` | 同じ DB 初期状態を表す任意の名前。実際の同一性は利用者が保証する |
 | `baseUrl` | 対象 API の origin。HTTPS / Caddy を含む本番と同じ通信経路を推奨 |
@@ -55,6 +56,7 @@ bun run benchmark plan --config scripts/benchmark/ws.example.json
 | `weight` | 店舗選択の相対確率。複数店舗と人気店舗への偏りを設定できる |
 
 Staff cookie の値は `isc_fes_account_session=<token>` の **1 cookie のみ**。設定ファイルに token を書かない。
+`baseUrl` が `targetInstanceId` の EC2 を指すことは実行前に確認する。URL と EC2 の対応を自動検証する機能はない。
 公開 API の fixture 検証とスタッフの権限検証に通ってから Guest / Cart を作成する。
 通常の OAuth ログインはスクリプトでは行わない。WS 専用設定ではスタッフのログインは不要。
 
@@ -65,7 +67,7 @@ Staff cookie の値は `isc_fes_account_session=<token>` の **1 cookie のみ**
 DB の既存注文数や各 Guest の注文履歴の長さも揃える。
 
 1. ベンチマーク専用の DB / 店舗 / Staff セッションを準備し、設定の仮値を置き換える。
-2. 対象 Linux ホストにこのディレクトリと Bun を用意する。API / DB / Caddy が同居する **ホスト上** で collector を起動する。コンテナ内ではホストのメモリ使用率を正しく比較できない。
+2. 対象 Linux ホストにこのディレクトリと Bun を用意する。API / DB / Caddy が同居する **ホスト上** で collector を起動する。コンテナ内ではホストのメモリ使用率を正しく比較できない。collector は [IMDSv2 の instance identity document](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-identity-documents.html) から実際の instance ID と型を取得するため、ホストから IMDSv2 にアクセスできることが必要。
 3. 別マシンで負荷生成を実行する。
 4. collector のファイルを負荷生成機へコピーし、CloudWatch の最後の datapoint が公開された後にクレジットを取得する。
 5. オフラインで結合・比較する。
@@ -91,7 +93,7 @@ bun run benchmark run --config scripts/benchmark/mixed.local.json \
 レポートの判定は中断・失敗した run をインスタンス推奨の根拠にしない。
 
 CloudWatch export は AWS CLI と `cloudwatch:GetMetricData`、`ec2:DescribeInstances`、`ec2:DescribeInstanceCreditSpecifications` 権限が必要。
-instance type と credit mode が一致することを確認し、run 前後のクレジットを取得する。AWS / EC2 の設定は変更しない。
+指定した instance ID が run の `targetInstanceId` と一致することに加え、AWS が返す instance ID / type と credit mode を確認し、run 前後のクレジットを取得する。AWS / EC2 の設定は変更しない。
 
 ```sh
 bun run benchmark:credits --result benchmark-results/small-1/result.json \
@@ -108,7 +110,7 @@ bun run benchmark report --result benchmark-results/small-1/result.json \
 測定終了直後は最後の点がまだ公開されていないことがある。前後の点が不足する場合は後で export をやり直す。
 `standard` のみを対象とし、`unlimited` の追加料金を含む比較は扱わない。
 
-medium でも同じ手順を行う。設定の `label`、`instanceType`、URL / origin 以外は揃える。
+medium でも同じ手順を行う。設定の `label`、`instanceType`、`targetInstanceId`、URL / origin 以外は揃える。
 再実行する場合は専用 DB を同じ snapshot に戻し、出力先と label を変える。
 
 ```sh
@@ -141,7 +143,8 @@ WS 維持率は接続数 × 時間の積分で求める。Guest ごとの通知�
 measure 終了後の drain も開始した段階に帰属させ、warmup とは混ぜない。
 そのため HTTP 件数 / 観測時間は概算 throughput。target metrics の結合対象は measure の時刻範囲のみ。
 collector の時刻は UTC、カウンター差分は単調時計を使う。生成機 / 対象ホストとも NTP で時計を合わせる。
-90% 未満のカバー率・15 秒超の欠落・別 label / instance type / host のメトリクスを、揃った証拠として扱わない。
+90% 未満のカバー率・15 秒超の欠落・別 label / instance type / instance ID のメトリクスを、揃った証拠として扱わない。ファイル内の hostname の混在も拒否する。
+`targetInstanceId` のない旧設定・run や、instance ID のない旧マシン計測は読み込めない。新しい設定で再計測する。
 NIC / disk は個別に記録し、veth・bridge・partition を一緒に足して二重計上しない。
 Docker stats は `--docker` のときだけ。権限不足 / timeout は `dockerError` として残す。
 

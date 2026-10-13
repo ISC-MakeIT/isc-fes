@@ -4,6 +4,7 @@ import { dirname } from "node:path";
 import { parseCpu, cpuDelta, parseMemory, parseNetwork, networkDelta, parseDisks, diskDelta, parsePressure, type MachineSample } from "./metrics";
 import { parseArgs } from "node:util";
 import { pause } from "./scenario";
+import { readInstanceIdentity } from "./identity";
 
 async function optional(path: string): Promise<string> { try { return await Bun.file(path).text(); } catch { return ""; } }
 async function read() {
@@ -40,6 +41,8 @@ async function main(): Promise<void> {
   if (!values.execute) { console.log(`Plan only: collect CPU/memory/network/disk/pressure${values.docker ? "/Docker" : ""} every ${interval}s for ${seconds}s. Add --execute to collect.`); return; }
   if (process.platform !== "linux") throw new Error("Collector requires Linux on the target host");
   if (await Bun.file(values.out).exists()) throw new Error("Output file already exists");
+  const identity = await readInstanceIdentity();
+  if (identity.instanceType !== values["instance-type"]) throw new Error("EC2 instance type does not match collector configuration");
   await mkdir(dirname(values.out), { recursive: true });
   const writer = Bun.file(values.out).writer();
   const abort = new AbortController(), stop = () => abort.abort();
@@ -51,7 +54,7 @@ async function main(): Promise<void> {
       await pause(Math.min(interval * 1000, seconds * 1000 - (performance.now() - started)), abort.signal);
       const current = await read(), elapsed = (current.monotonic - previous.monotonic) / 1000;
       const sample: MachineSample = {
-        schemaVersion: 1, at: current.at, intervalSeconds: elapsed, label: values.label, instanceType: values["instance-type"], hostname: hostname(),
+        schemaVersion: 1, at: current.at, intervalSeconds: elapsed, label: values.label, ...identity, hostname: hostname(),
         ...cpuDelta(previous.cpu, current.cpu), ...current.memory, load1: current.load1, openFiles: current.openFiles, pressure: current.pressure,
         network: networkDelta(previous.network, current.network, elapsed), disks: diskDelta(previous.disks, current.disks, elapsed),
         ...(values.docker ? await dockerStats() : { containers: null, dockerError: false }),

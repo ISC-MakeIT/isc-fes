@@ -24,7 +24,7 @@ async function atomicJson(path: string, value: unknown): Promise<void> {
 }
 async function sourceFingerprint(): Promise<string> {
   const hash = new Bun.CryptoHasher("sha256");
-  for (const name of ["config.ts", "stats.ts", "client.ts", "scenario.ts", "runner.ts", "metrics.ts", "collect-metrics.ts", "report.ts", "index.ts"]) {
+  for (const name of ["config.ts", "identity.ts", "stats.ts", "client.ts", "scenario.ts", "runner.ts", "metrics.ts", "collect-metrics.ts", "report.ts", "index.ts"]) {
     hash.update(name); hash.update(await Bun.file(resolve(import.meta.dir, name)).arrayBuffer());
   }
   return hash.digest("hex");
@@ -81,10 +81,10 @@ export async function main(args: string[] = Bun.argv.slice(2)): Promise<void> {
     const input = await Bun.file(values.result).json() as RunResult;
     if (input.schemaVersion !== 1 || !Array.isArray(input.stages) || !["completed", "interrupted", "failed"].includes(input.status) || typeof input.sourceFingerprint !== "string") throw new Error("Invalid result file");
     input.config = parseConfig(input.config);
-    const samples = values.metrics ? parseMachineSamples(await Bun.file(values.metrics).text(), input.config.label, input.config.instanceType) : [];
+    const samples = values.metrics ? parseMachineSamples(await Bun.file(values.metrics).text(), input.config.label, input.config.instanceType, input.config.targetInstanceId) : [];
     const credits = values.credits ? await Bun.file(values.credits).json() : null;
     // The export wrapper binds otherwise anonymous CloudWatch results to the intended run/host.
-    if (credits && (credits.label !== input.config.label || credits.instanceType !== input.config.instanceType || credits.creditsMode !== "standard" || typeof credits.instanceId !== "string")) throw new Error("Mismatched credits metadata or unsupported creditsMode (standard required)");
+    if (credits && (credits.label !== input.config.label || credits.instanceType !== input.config.instanceType || credits.creditsMode !== "standard" || credits.instanceId !== input.config.targetInstanceId)) throw new Error("Mismatched credits metadata or unsupported creditsMode (standard required)");
     const report = buildReport(input, samples, credits ? parseCredits(credits.cloudWatch) : []);
     await atomicJson(resolve(out, "report.json"), report);
     await writeFile(resolve(out, "report.md"), markdownReport(report));
@@ -96,6 +96,7 @@ export async function main(args: string[] = Bun.argv.slice(2)): Promise<void> {
   if (!Number.isInteger(connections) || connections < 1 || !Number.isFinite(rate) || rate < 0) throw new Error("Positive connections and nonnegative rate must be specified");
   const small = await Bun.file(values.small).json() as Report, medium = await Bun.file(values.medium).json() as Report;
   if (small.schemaVersion !== 1 || medium.schemaVersion !== 1 || !Array.isArray(small.stages) || !Array.isArray(medium.stages)) throw new Error("Invalid report files");
+  small.config = parseConfig(small.config); medium.config = parseConfig(medium.config);
   const comparison = compareReports(small, medium, connections, rate);
   await atomicJson(resolve(out, "comparison.json"), comparison);
   await writeFile(resolve(out, "comparison.md"), `# Instance comparison\n\n候補: ${comparison.recommendation}\n\n${comparison.reason}\n\n必要負荷: ${connections} WS / ${rate} workflows/s\n\n${comparison.caveat}\n`);

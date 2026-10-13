@@ -1,6 +1,7 @@
 {
   "label": "small-ws-1",
   "instanceType": "t4g.small",
+  "targetInstanceId": "i-0123456789abcdef0",
   "backendCommit": "REPLACE_WITH_DEPLOYED_COMMIT_HASH",
   "databaseFixture": "festival-clone-v1",
   "baseUrl": "https://api.benchmark.invalid",

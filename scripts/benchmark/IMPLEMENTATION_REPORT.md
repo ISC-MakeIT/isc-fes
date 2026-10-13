@@ -53,7 +53,8 @@ warmup と測定を分け、リクエストは開始時の段階に帰属させ�
 
 不足したメトリクスやサンプル、負荷生成機の停滞では合格を出さない。
 CPU クレジットのない t4g レポートも、容量観察には使えるがインスタンス判定は保留になる。
-比較は同じバックエンド commit、負荷設定、fixture 名、SLO、スクリプト hash、生成機の Bun / OS / architecture / CPU 数を要求する。
+比較は同じバックエンド commit、負荷設定、fixture 名、SLO、スクリプト hash、生成機の hostname / Bun / OS / architecture / CPU 数を要求する。
+run の設定には `targetInstanceId` を記録する。collector は IMDSv2 でホストの instance ID / type を取得し、レポートはマシン計測とクレジットの ID を対象に照合する。識別情報のない旧結果は再計測する。
 DB snapshot の実際の同一性、EC2 / EBS 設定、回線条件は利用者が揃える。
 
 small が指定負荷で全条件を満たせば small を暫定候補にする。
@@ -68,7 +69,9 @@ CPU が原因の劣化には medium への変更だけで改善する保証が�
 ## 検証結果と範囲
 
 - Bun 1.4.2 で型検査 `bun run typecheck:scripts` が成功。
-- ネットワークなしの 20 テストが成功。固定レートの計算、histogram、接続数の時間積分、Linux カウンター、メトリクス結合、クレジット、比較条件、オフライン CLI のレポート出力、初期同期中のキャンセルを検証。
+- ネットワークなしの 28 テストが成功。固定レートの計算、histogram、接続数の時間積分、Linux カウンター、メトリクス結合、クレジットの欠落、生成機の照合、オフライン CLI のレポート出力、初期同期中のキャンセルを検証。
+- 段階間で失敗・切断した WS を再接続し、正常なタブを維持し、縮小時に余分な接続を閉じることをオフラインのランナーで検証。
+- IMDSv2 の取得・不正応答と、AWS export / report / compare の対象 instance ID 検証を、外部接続なしで検証。
 - メモリ上の transport で Guest cookie 更新、Staff 分離、Cart / Order の version、通知が HTTP 応答前に届く場合、WS timeout / 切断 / 不正メッセージを検証。
 - API / WS の実接続、Linux collector / Docker stats の実行、AWS CLI export は未実行。
 - 本番相当の性能、実際の同接上限、small / medium の適合性は未検証。初期 SLO と比率は測定後に当日の見込みと照らして調整する。

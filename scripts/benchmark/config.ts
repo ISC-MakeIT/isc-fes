@@ -1,8 +1,11 @@
+import { parseInstanceId } from "./identity";
+
 export type Stage = { name: string; connections: number; workflowsPerSecond: number; durationSeconds: number };
 export type StoreFixture = { storeId: string; menuId: string; toppingIds: string[]; staffCookieEnv: string; weight: number };
 export type Config = {
   label: string;
   instanceType: string;
+  targetInstanceId: string;
   backendCommit: string;
   databaseFixture: string;
   baseUrl: string;
@@ -65,7 +68,7 @@ function id(value: unknown, field: string): string {
 
 export function parseConfig(input: unknown): Config {
   const c = object(input, "config");
-  keys(c, ["label", "instanceType", "backendCommit", "databaseFixture", "baseUrl", "origin", "seed", "httpUsers", "socketsPerGuest", "connectPerSecond", "maxInFlight", "warmupSeconds", "requestTimeoutMs", "notificationTimeoutMs", "thinkTimeMs", "kitchenDelayMs", "kitchenPollingSeconds", "checkoutProbability", "cartProbability", "festivalHours", "stages", "stores", "slo"], "config");
+  keys(c, ["label", "instanceType", "targetInstanceId", "backendCommit", "databaseFixture", "baseUrl", "origin", "seed", "httpUsers", "socketsPerGuest", "connectPerSecond", "maxInFlight", "warmupSeconds", "requestTimeoutMs", "notificationTimeoutMs", "thinkTimeMs", "kitchenDelayMs", "kitchenPollingSeconds", "checkoutProbability", "cartProbability", "festivalHours", "stages", "stores", "slo"], "config");
   if (!Array.isArray(c.stages) || !c.stages.length || !Array.isArray(c.stores) || !c.stores.length) throw new Error("stages and stores must be nonempty arrays");
   const stages = c.stages.map((v, i) => {
     const s = object(v, `stages[${i}]`);
@@ -96,6 +99,7 @@ export function parseConfig(input: unknown): Config {
   keys(s, Object.keys(slo), "slo");
   const config: Config = {
     label: str(c.label, "label"), instanceType: str(c.instanceType, "instanceType"), baseUrl: url(c.baseUrl, "baseUrl"), origin: url(c.origin, "origin"),
+    targetInstanceId: parseInstanceId(c.targetInstanceId),
     backendCommit: str(c.backendCommit, "backendCommit"), databaseFixture: str(c.databaseFixture, "databaseFixture"),
     seed: num(c.seed, "seed", 1, 0xffffffff, true), httpUsers: num(c.httpUsers, "httpUsers", 1, 100_000, true),
     socketsPerGuest: num(c.socketsPerGuest, "socketsPerGuest", 1, 16, true), connectPerSecond: num(c.connectPerSecond, "connectPerSecond", 1, 10_000),
