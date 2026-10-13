@@ -11,6 +11,7 @@ import { workflow } from "../scenario";
 import { main } from "../index";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
 
 const config = parseConfig(mixed);
 const from = "2026-10-13T00:00:00.000Z", to = "2026-10-13T00:05:00.000Z";
@@ -117,7 +118,7 @@ describe("target metrics and credits", () => {
 });
 
 test("offline report CLI writes reviewable JSON/Markdown and refuses mismatched credit metadata", async () => {
-  const dir = await mkdtemp("/private/tmp/isc-fes-benchmark-test-");
+  const dir = await mkdtemp(join(tmpdir(), "isc-fes-benchmark-test-"));
   try {
     const resultPath = join(dir, "result.json"), metricsPath = join(dir, "metrics.jsonl"), creditsPath = join(dir, "credits.json");
     await writeFile(resultPath, JSON.stringify(runResult()));
