@@ -1,5 +1,5 @@
 import { Order, OrderStatus } from "@/entities/order";
-import { DialogContent } from "@/shared/ui/dialog";
+import { DialogContent, DialogTitle } from "@/shared/ui/dialog";
 import { PendingOrderItemRow } from "./pending-order-item-row";
 import { ActionButton } from "@/shared/ui/action-button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -46,11 +46,11 @@ export function OrderCallConfirmDialog({ order }: OrderCallConfirmDialogProps) {
 
   return (
     <DialogContent className="shadow-dialog-primary flex max-h-[calc(100dvh-2rem)] flex-col px-10 pt-14 pb-6 sm:max-w-sm">
-      <h2 className="flex shrink-0 flex-row items-center justify-center gap-4 pb-6 text-lg font-semibold">
+      <DialogTitle className="flex shrink-0 flex-row items-center justify-center gap-4 pb-6 text-lg font-semibold">
         <span>注文番号</span>
         <span className="text-2xl font-bold">{order.displayNumber}</span>
         <span>番</span>
-      </h2>
+      </DialogTitle>
 
       <div className="flex min-h-0 flex-col gap-4 overflow-y-auto">
         {order.items.map((item) => (
