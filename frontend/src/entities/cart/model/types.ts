@@ -1,5 +1,4 @@
 import { v } from "@/shared/lib/valibot";
-import { boolean } from "valibot";
 
 export const MAX_CART_ITEMS_TYPE = 3;
 
@@ -38,7 +37,6 @@ export const Cart = v.object({
   storeId: v.string(),
   version: v.number(),
   totalAmount: v.number(),
-  canCheckout: boolean(),
   items: v.array(CartItem),
 });
 export type Cart = v.InferOutput<typeof Cart>;
