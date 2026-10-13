@@ -1,8 +1,12 @@
-import { createApiClient } from "@/shared/api";
-import { checkCheckoutKey, getStatusMessage } from "@/shared/config";
+import { components, createApiClient } from "@/shared/api";
+import { checkoutableKey, getStatusMessage } from "@/shared/config";
 import { queryOptions } from "@tanstack/react-query";
 
-export async function checkCheckout(
+export type CheckoutCode = NonNullable<
+  components["schemas"]["CheckoutCheckResponse"]["code"]
+>;
+
+export async function fetchCheckoutable(
   storeId: string,
   expectedCartVersion: number,
 ) {
@@ -33,7 +37,7 @@ export function checkCheckoutQueryOptions(
   expectedCartVersion: number,
 ) {
   return queryOptions({
-    queryFn: () => checkCheckout(storeId, expectedCartVersion),
-    queryKey: checkCheckoutKey(storeId),
+    queryFn: () => fetchCheckoutable(storeId, expectedCartVersion),
+    queryKey: checkoutableKey(storeId),
   });
 }

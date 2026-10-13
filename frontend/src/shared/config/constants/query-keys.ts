@@ -35,10 +35,10 @@ export const menuToppingsKeys = {
 
 export const cartKey = (storeId: string) => ["store", storeId, "cart"];
 
-export const checkCheckoutKey = (storeId: string) => [
+export const checkoutableKey = (storeId: string) => [
   "store",
   storeId,
-  "checkCheckout",
+  "checkoutable",
 ];
 
 export const storeListKeys = {

@@ -16,6 +16,9 @@ import { removeCartItemTopping } from "../lib/remove-cart-item-toppings";
 import { ErrorDialog } from "../ui/error-dialog";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { useRouter } from "next/navigation";
+import { fetchCheckoutable } from "../api/fetch-checkoutable";
+import { toast } from "@/shared/ui/toast";
+import { getCheckoutErrorMessage } from "../lib/get-checkout-error-message";
 
 const CART_UPDATE_DELAY_MS = 1000;
 
@@ -55,6 +58,14 @@ export function CartOperationProvider({
   const displayedCartItems = draftCartItems ?? fetchedCart.items;
 
   const router = useRouter();
+
+  // チェックアウトできる条件はカート内の全アイテムが売り切れ、または削除されていないこと
+  const canCheckout =
+    displayedCartItems.length > 0 &&
+    displayedCartItems.every(
+      (item) =>
+        item.available && item.toppings.every((topping) => topping.available),
+    );
 
   function updateDraftCartItems(update: (items: CartItem[]) => CartItem[]) {
     if (mutation.isPending) {
@@ -143,11 +154,23 @@ export function CartOperationProvider({
     cartUpdateDebouncer.flush();
   }
 
-  function checkout() {
+  async function checkout() {
     if (mutation.isPending) {
       return;
     }
+
+    const { code } = await fetchCheckoutable(storeId, fetchedCart.version);
+
+    if (code) {
+      toast.add({
+        type: "error",
+        title: "注文できませんでした",
+        description: getCheckoutErrorMessage(code),
+      });
+    }
+
     cartUpdateDebouncer.flush();
+
     router.push(guestCheckoutUrl(storeId));
   }
 
@@ -162,7 +185,7 @@ export function CartOperationProvider({
         isSaving: mutation.isPending,
         hasPendingChanges: !!draftCartItems,
         // チェックアウトできる条件は 売り切れ or 削除済みのアイテムがカートに含まれていないこと
-        canCheckout: fetchedCart.canCheckout,
+        canCheckout,
         checkout,
         displayedCartItems: displayedCartItems,
       }}
