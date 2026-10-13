@@ -40,7 +40,7 @@ func (s *MenuService) UpdateMenuByStoreIDAndMenuID(c context.Context, storeID uu
 		return menus.MenuDisplay{}, err
 	}
 
-	storeMembership, err := s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(c, account.ID, storeID)
+	storeMembership, err := services.StoreMembershipForAuthorization(c, s.storeMemberRepository, account, storeID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return menus.MenuDisplay{}, services.ErrForbidden
 	}

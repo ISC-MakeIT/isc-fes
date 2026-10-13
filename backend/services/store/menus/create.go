@@ -39,7 +39,7 @@ func (s *MenuService) CreateMenu(c context.Context, storeID uuid.UUID, input Cre
 		return menus.MenuDisplay{}, services.ErrNotFound
 	}
 
-	member, err := s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(c, account.ID, store.ID)
+	member, err := services.StoreMembershipForAuthorization(c, s.storeMemberRepository, account, store.ID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return menus.MenuDisplay{}, services.ErrForbidden
 	}

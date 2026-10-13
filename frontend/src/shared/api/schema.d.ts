@@ -56,7 +56,7 @@ export interface paths {
     /**
      * カートから注文を確定する
      * @description 同じGuest・店舗・元カートversionの再送は、現在の販売状況や権限にかかわらず同じ注文を返す。
-     *     通常のpending/ready注文は全店舗合計で2件まで。当該店舗のStaff/Managerによる注文は件数制限を免除し、集計から除外する。
+     *     通常のpending/ready注文は全店舗合計で2件まで。当該店舗のStaff/ManagerまたはAdminによる注文は件数制限を免除し、集計から除外する。
      *     成功時は同じカートの明細を消去してversionを1増やす。明細順序は保証しない。
      */
     post: operations["createOrder"];
@@ -242,7 +242,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** 承認済みの店舗を取得する */
+    /** 承認済みの店舗を取得する（admin は未承認も取得可能） */
     get: operations["getApprovedStoreByID"];
     put?: never;
     post?: never;
@@ -1196,7 +1196,7 @@ export interface operations {
     requestBody?: never;
     responses: {
       /**
-       * @description 当該店舗のStaff/Managerの場合、全Guestの注文を注文時の明細付きで古い注文から返す。
+       * @description 当該店舗のStaff/ManagerまたはAdminの場合、全Guestの注文を注文時の明細付きで古い注文から返す。
        *     statusesを省略した場合はpending/ready、指定した場合は指定した状態のいずれかに一致する注文を返す。
        *     キッチンはstatuses=pending、受け渡しはstatuses=pending&statuses=readyで取得できる。
        *     店舗の閉店・現在の販売状況にかかわらず取得でき、該当する注文がなければ空の一覧を返す。
@@ -1227,7 +1227,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description ログイン中のAccountが当該店舗のStaff/Managerではない場合。Adminというだけでは閲覧できない。 */
+      /** @description ログイン中のAccountがAdminではなく、当該店舗のStaff/Managerでもない場合。 */
       403: {
         headers: {
           [name: string]: unknown;
@@ -1307,7 +1307,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description ログイン中のAccountが当該店舗のStaff/Managerではない場合。 */
+      /** @description ログイン中のAccountがAdminではなく、当該店舗のStaff/Managerでもない場合。 */
       403: {
         headers: {
           [name: string]: unknown;
@@ -1697,7 +1697,7 @@ export interface operations {
   getVisibleStores: {
     parameters: {
       query?: {
-        /** @description true の場合、ログイン中のアカウントが所属する承認済み・申請中の店舗を取得する */
+        /** @description true の場合、ログイン中のアカウントが所属する承認済み・申請中の店舗を取得する。admin は指定によらず全店舗を取得する */
         member_only?: boolean;
       };
       header?: never;
@@ -1706,7 +1706,7 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description 店舗一覧。member_only が false の場合は承認済みの店舗と自分が管理者である申請中の店舗 */
+      /** @description 店舗一覧。member_only が false の場合は承認済みの店舗と自分がmanagerである申請中の店舗。admin は指定によらず全店舗 */
       200: {
         headers: {
           [name: string]: unknown;
@@ -2138,7 +2138,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description 権限不足（店舗のメンバーでない、または店舗マネージャーでない） */
+      /** @description 権限不足（adminではなく、店舗マネージャーでもない） */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2204,7 +2204,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description 権限不足（店舗のメンバーでない、または店舗マネージャーでない） */
+      /** @description 権限不足（adminではなく、店舗マネージャーでもない） */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2276,7 +2276,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description 権限不足（店舗のメンバーでない、または店舗マネージャーでない） */
+      /** @description 権限不足（adminではなく、店舗マネージャーでもない） */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2464,7 +2464,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description 権限不足（店舗のメンバーでない、または店舗マネージャーでない） */
+      /** @description 権限不足（adminではなく、店舗マネージャーでもない） */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2530,7 +2530,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description 権限不足（店舗のメンバーでない、または店舗マネージャーでない） */
+      /** @description 権限不足（adminではなく、店舗マネージャーでもない） */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2602,7 +2602,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description 権限不足（店舗のメンバーでない、または店舗マネージャーでない） */
+      /** @description 権限不足（adminではなく、店舗マネージャーでもない） */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2681,7 +2681,7 @@ export interface operations {
           "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description 権限不足（店舗マネージャーでない） */
+      /** @description 権限不足（adminではなく、店舗マネージャーでもない） */
       403: {
         headers: {
           [name: string]: unknown;

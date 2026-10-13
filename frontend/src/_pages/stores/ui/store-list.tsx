@@ -1,3 +1,4 @@
+import { AccountRole, fetchCurrentAccount } from "@/entities/account";
 import { Card } from "@/shared/ui/card";
 import { Store, StoreReviewStatus } from "@/entities/store";
 import { Mask } from "@/shared/ui/mask";
@@ -7,13 +8,17 @@ import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { fetchCurrentAccountStores } from "../api/fetch-current-account-stores";
 
 export async function StoreList() {
-  const stores = await fetchCurrentAccountStores();
+  const [stores, account] = await Promise.all([
+    fetchCurrentAccountStores(),
+    fetchCurrentAccount(),
+  ]);
+  const isAdmin = account?.role === AccountRole.Admin;
 
   return (
     <ul className="w-full space-y-6">
       {stores.map((store) => (
         <li key={store.id}>
-          <StoreCard store={store} />
+          <StoreCard store={store} isAdmin={isAdmin} />
         </li>
       ))}
     </ul>
@@ -21,14 +26,15 @@ export async function StoreList() {
 }
 
 type StoreCardProps = {
+  isAdmin: boolean;
   store: Store;
 };
 
-function StoreCard({ store }: StoreCardProps) {
+function StoreCard({ store, isAdmin }: StoreCardProps) {
   return (
     <Card className="border-primary w-full overflow-hidden rounded-sm border-2 p-0">
       <Mask
-        active={store.reviewStatus === StoreReviewStatus.Pending}
+        active={!isAdmin && store.reviewStatus === StoreReviewStatus.Pending}
         label="申請中"
       >
         <Link href={storeHomeUrl(store.id)}>

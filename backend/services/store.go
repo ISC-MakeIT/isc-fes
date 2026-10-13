@@ -247,16 +247,9 @@ func (s *StoreService) GetApprovedStores(ctx context.Context) ([]entities.StoreO
 }
 
 func (s *StoreService) GetApprovedStoreByID(ctx context.Context, storeID uuid.UUID) (entities.StoreOutput, error) {
-	store, err := s.storeRepository.GetStoreByID(ctx, storeID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return entities.StoreOutput{}, ErrNotFound
-	}
+	store, err := GetStoreForRead(ctx, s.storeRepository, storeID)
 	if err != nil {
-		return entities.StoreOutput{}, fmt.Errorf("failed to get store by store id: %w", err)
-	}
-
-	if store.ReviewStatus != entities.StoreReviewStatusApproved {
-		return entities.StoreOutput{}, ErrNotFound
+		return entities.StoreOutput{}, err
 	}
 
 	return s.toStoreOutput(ctx, store)
@@ -276,7 +269,7 @@ func (s *StoreService) UpdateStore(ctx context.Context, storeID uuid.UUID, input
 		return entities.StoreOutput{}, fmt.Errorf("failed to get approved store by store id: %w", err)
 	}
 
-	membership, err := s.storeMembershipRepository.GetStoreMembershipByAccountIDAndStoreID(ctx, account.ID, storeID)
+	membership, err := StoreMembershipForAuthorization(ctx, s.storeMembershipRepository, account, storeID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return entities.StoreOutput{}, ErrForbidden
 	}
@@ -323,7 +316,8 @@ func (s *StoreService) UpdateStore(ctx context.Context, storeID uuid.UUID, input
 
 // GetVisibleStores は、ユーザーが閲覧可能な店舗一覧を取得する。
 // memberOnly が true の場合は、承認済み・申請中の所属店舗のみ返す。
-// false の場合は承認済みの店舗をすべて返し、申請中の店舗は管理者にのみ返す。
+// false の場合は承認済みの店舗をすべて返し、申請中の店舗は店舗managerにのみ返す。
+// admin は memberOnly によらず全店舗を返す。
 func (s *StoreService) GetVisibleStores(ctx context.Context, memberOnly bool) ([]entities.StoreOutput, error) {
 	accountID, err := s.accountSession.AccountID(ctx)
 	if err != nil {

@@ -7,7 +7,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
-	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	domain "github.com/isc-makeit/isc-fes/backend/domains/entities/orders"
 	"github.com/isc-makeit/isc-fes/backend/repositories/db2entities"
 	"github.com/isc-makeit/isc-fes/backend/services"
@@ -36,7 +35,7 @@ type checkoutPreparation struct {
 }
 
 // prepareCheckoutはGETの事前チェックとPOSTの新規注文で同じ条件・順序を適用する。
-// POSTではGuestロックと再送の解決後に呼び、Store → Membership → Cartの順にロックする。
+// POSTではGuestロックと再送の解決後に呼び、Store → Account → Membership → Cartの順にロックする。
 // GETは同じ読み取りsnapshot内で呼び、ロックも書き込みも行わない。
 func prepareCheckout(ctx context.Context, q *sqlc.Queries, input orderservice.CreateRepositoryInput, lockRows bool) (checkoutPreparation, error) {
 	var result checkoutPreparation
@@ -63,23 +62,11 @@ func prepareCheckout(ctx context.Context, q *sqlc.Queries, input orderservice.Cr
 	}
 
 	if input.AccountID != nil {
-		var membership sqlc.StoreMember
-		if lockRows {
-			membership, err = q.LockOrderMembership(ctx, sqlc.LockOrderMembershipParams{
-				StoreID: input.StoreID, AccountID: *input.AccountID,
-			})
-		} else {
-			membership, err = q.GetStoreMembershipByAccountIDAndStoreID(ctx, sqlc.GetStoreMembershipByAccountIDAndStoreIDParams{
-				StoreID: input.StoreID, AccountID: *input.AccountID,
-			})
-		}
+		membership, err := authorizedMembership(ctx, q, *input.AccountID, input.StoreID, lockRows)
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			return result, err
 		}
-		if err == nil && domain.CanExemptOrderLimit(input.StoreID, entities.StoreMembership{
-			StoreID: membership.StoreID, AccountID: membership.AccountID,
-			Role: entities.StoreMemberRole(membership.Role), JoinedAt: membership.JoinedAt.Time,
-		}) {
+		if err == nil && domain.CanExemptOrderLimit(input.StoreID, membership) {
 			result.exemptAccountID = input.AccountID
 		}
 	}

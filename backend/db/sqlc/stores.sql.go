@@ -164,14 +164,14 @@ func (q *Queries) GetApprovedStores(ctx context.Context) ([]Store, error) {
 const getMemberStoresByAccountID = `-- name: GetMemberStoresByAccountID :many
 SELECT stores.id, stores.name, stores.room, stores.description, stores.image_object_key, stores.review_status, stores.submitted_at, stores.created_at, stores.updated_at, stores.closed_at, stores.congestion_level, stores.order_enabled
 FROM stores
-JOIN store_members ON store_members.store_id = stores.id
-WHERE store_members.account_id = $1
-  AND stores.review_status IN ('approved', 'pending')
+WHERE EXISTS (SELECT 1 FROM accounts WHERE accounts.id = $1 AND accounts.role = 'admin')
+   OR (stores.review_status IN ('approved', 'pending')
+       AND EXISTS (SELECT 1 FROM store_members WHERE store_members.store_id = stores.id AND store_members.account_id = $1))
 ORDER BY stores.created_at DESC
 `
 
-func (q *Queries) GetMemberStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]Store, error) {
-	rows, err := q.db.Query(ctx, getMemberStoresByAccountID, accountID)
+func (q *Queries) GetMemberStoresByAccountID(ctx context.Context, id uuid.UUID) ([]Store, error) {
+	rows, err := q.db.Query(ctx, getMemberStoresByAccountID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,8 @@ func (q *Queries) GetStoreByID(ctx context.Context, id uuid.UUID) (Store, error)
 const getVisibleStoresByAccountID = `-- name: GetVisibleStoresByAccountID :many
 SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at, congestion_level, order_enabled
 FROM stores
-WHERE review_status = 'approved'
+WHERE EXISTS (SELECT 1 FROM accounts WHERE accounts.id = $1 AND accounts.role = 'admin')
+   OR review_status = 'approved'
    OR (
        review_status = 'pending'
        AND id IN (
@@ -285,8 +286,8 @@ WHERE review_status = 'approved'
 ORDER BY created_at DESC
 `
 
-func (q *Queries) GetVisibleStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]Store, error) {
-	rows, err := q.db.Query(ctx, getVisibleStoresByAccountID, accountID)
+func (q *Queries) GetVisibleStoresByAccountID(ctx context.Context, id uuid.UUID) ([]Store, error) {
+	rows, err := q.db.Query(ctx, getVisibleStoresByAccountID, id)
 	if err != nil {
 		return nil, err
 	}

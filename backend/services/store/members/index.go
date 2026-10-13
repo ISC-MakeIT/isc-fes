@@ -12,11 +12,13 @@ import (
 )
 
 type StoreMemberService struct {
+	storeRepository       services.StoreReader
 	storeMemberRepository repositoryinterfaces.StoreMembersRepository
 }
 
-func NewStoreMemberService(storeMemberRepository repositoryinterfaces.StoreMembersRepository) *StoreMemberService {
+func NewStoreMemberService(storeRepository services.StoreReader, storeMemberRepository repositoryinterfaces.StoreMembersRepository) *StoreMemberService {
 	return &StoreMemberService{
+		storeRepository:       storeRepository,
 		storeMemberRepository: storeMemberRepository,
 	}
 }
@@ -27,7 +29,14 @@ func (s *StoreMemberService) GetStoreMembersByStoreID(ctx context.Context, store
 		return nil, err
 	}
 
-	_, err = s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(ctx, account.ID, storeID)
+	if _, err := s.storeRepository.GetStoreByID(ctx, storeID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, services.ErrNotFound
+		}
+		return nil, err
+	}
+
+	_, err = services.StoreMembershipForAuthorization(ctx, s.storeMemberRepository, account, storeID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, services.ErrNotFound
@@ -44,9 +53,16 @@ func (s *StoreMemberService) GetStoreMemberByAccountIDAndStoreID(ctx context.Con
 		return entities.StoreMember{}, err
 	}
 
-	if account.ID != accountID {
+	if _, err := s.storeRepository.GetStoreByID(ctx, storeID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return entities.StoreMember{}, services.ErrNotFound
+		}
+		return entities.StoreMember{}, err
+	}
+
+	if account.ID != accountID && account.Role != entities.RoleAdmin {
 		// 自分以外のメンバー情報を取得する場合は、店舗のメンバーである必要がある
-		_, err = s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(ctx, account.ID, storeID)
+		_, err = services.StoreMembershipForAuthorization(ctx, s.storeMemberRepository, account, storeID)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 				return entities.StoreMember{}, services.ErrNotFound
@@ -72,7 +88,14 @@ func (s *StoreMemberService) RemoveStoreMemberByAccountIDAndStoreID(ctx context.
 		return err
 	}
 
-	authorizedMember, err := s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(ctx, authorizedAccount.ID, storeID)
+	if _, err := s.storeRepository.GetStoreByID(ctx, storeID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return services.ErrNotFound
+		}
+		return err
+	}
+
+	authorizedMember, err := services.StoreMembershipForAuthorization(ctx, s.storeMemberRepository, authorizedAccount, storeID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return services.ErrNotFound

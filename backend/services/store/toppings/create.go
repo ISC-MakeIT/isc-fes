@@ -30,7 +30,7 @@ func (s *ToppingsService) CreateTopping(c context.Context, input CreateToppingIn
 		return toppings.Topping{}, err
 	}
 
-	member, err := s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(c, account.ID, input.StoreID)
+	member, err := services.StoreMembershipForAuthorization(c, s.storeMemberRepository, account, input.StoreID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return toppings.Topping{}, services.ErrForbidden

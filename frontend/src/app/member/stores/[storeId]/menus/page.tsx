@@ -1,5 +1,5 @@
 import { StoreMenusView } from "@/_pages/store-menus";
-import { currentAccountQueryOptions } from "@/entities/account";
+import { AccountRole, currentAccountQueryOptions } from "@/entities/account";
 import {
   storeMemberByAccountIdQueryOptions,
   StoreMemberRole,
@@ -27,11 +27,10 @@ export default async function StoreMenusPage({
   const currentMember = await queryClient.fetchQuery(
     storeMemberByAccountIdQueryOptions(storeId, account.id),
   );
-  if (!currentMember) {
-    notFound();
-  }
-
-  if (currentMember.role !== StoreMemberRole.Manager) {
+  if (
+    account.role !== AccountRole.Admin &&
+    currentMember?.role !== StoreMemberRole.Manager
+  ) {
     notFound();
   }
 

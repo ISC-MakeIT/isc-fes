@@ -487,6 +487,27 @@ func (q *Queries) GetOrdersByStoreID(ctx context.Context, arg GetOrdersByStoreID
 	return items, nil
 }
 
+const lockOrderAccount = `-- name: LockOrderAccount :one
+SELECT id, google_sub, email, display_name, picture_url, role, last_login_at, created_at, updated_at FROM accounts WHERE id = $1 FOR SHARE
+`
+
+func (q *Queries) LockOrderAccount(ctx context.Context, id uuid.UUID) (Account, error) {
+	row := q.db.QueryRow(ctx, lockOrderAccount, id)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.GoogleSub,
+		&i.Email,
+		&i.DisplayName,
+		&i.PictureUrl,
+		&i.Role,
+		&i.LastLoginAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const lockOrderByIDAndStoreID = `-- name: LockOrderByIDAndStoreID :one
 SELECT id, store_id, guest_id, status, total_amount, display_number, version, origin_cart_id, origin_cart_version, limit_exempted_by_account_id, store_name, room_name, ready_at, completed_at, cancelled_at, created_at, updated_at FROM orders
 WHERE id = $1 AND store_id = $2

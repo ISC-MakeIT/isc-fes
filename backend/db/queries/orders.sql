@@ -20,6 +20,9 @@ SELECT * FROM store_members
 WHERE store_id = sqlc.arg(store_id) AND account_id = sqlc.arg(account_id)
 FOR UPDATE;
 
+-- name: LockOrderAccount :one
+SELECT * FROM accounts WHERE id = $1 FOR SHARE;
+
 -- name: CountActiveNonExemptOrders :one
 SELECT count(*) FROM orders
 WHERE guest_id = $1 AND status IN ('pending', 'ready')
