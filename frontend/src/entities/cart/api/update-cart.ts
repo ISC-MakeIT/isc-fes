@@ -30,7 +30,7 @@ export async function updateCart({
   if (error) {
     if (response.status === HTTP_STATUS.CONFLICT.code) {
       throw new Error(
-        "カートが更新されています。最新の内容を確認してもう一度捜査してください。",
+        "カートが更新されています。最新の内容を確認してもう一度操作してください。",
       );
     }
     throw new Error(getStatusMessage(response.status));
