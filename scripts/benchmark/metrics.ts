@@ -110,8 +110,11 @@ export function parseCredits(input: unknown): CreditPoint[] {
 export function creditProjection(instanceType: string, hours: number, cpuPercent: number | null, points: CreditPoint[], start: string, end: string) {
   // Explicitly support the two candidates; no guessed baselines for other families.
   const supported = ["t4g.small", "t4g.medium"].includes(instanceType);
-  const selected = points.filter(p => Date.parse(p.at) >= Date.parse(start) - 300_000 && Date.parse(p.at) <= Date.parse(end) + 300_000);
+  const selected = points.filter(p => Date.parse(p.at) >= Date.parse(start) - 300_000 && Date.parse(p.at) <= Date.parse(end) + 300_000)
+    .sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
   if (!supported || cpuPercent === null || selected.length < 2 || !selected.some(p => Date.parse(p.at) <= Date.parse(start)) || !selected.some(p => Date.parse(p.at) >= Date.parse(end))) return null;
+  // CloudWatch publishes credit metrics every five minutes. Bracketing alone cannot cover gaps.
+  if (selected.some((point, index) => index > 0 && Date.parse(point.at) - Date.parse(selected[index - 1]!.at) > 300_000)) return null;
   const minimumBalance = selected.reduce((minimum, p) => Math.min(minimum, p.balance), Infinity);
   const drainPerHour = Math.max(0, 2 * 60 * cpuPercent / 100 - 24);
   return { minimumBalance, drainPerHour, hoursUntilEmpty: drainPerHour ? minimumBalance / drainPerHour : null,

@@ -115,6 +115,20 @@ describe("target metrics and credits", () => {
     expect(() => parseCredits({ MetricDataResults: [{ Id: "creditbalance", StatusCode: "PartialData", Timestamps: [], Values: [] }] })).toThrow();
     expect(parseCredits({ MetricDataResults: [{ Id: "creditbalance", StatusCode: "Complete", Timestamps: [to, from], Values: [490, 500] }] })).toEqual(credits);
   });
+  test("missing five-minute credit points cannot produce a passing report", () => {
+    const end = "2026-10-13T00:15:00.000Z";
+    const complete = Array.from({ length: 4 }, (_, i) => ({ at: new Date(Date.parse(from) + i * 300_000).toISOString(), balance: 500 }));
+    expect(creditProjection("t4g.small", 8, 30, complete.toReversed(), from, end)?.sufficient).toBe(true);
+    const missing = [complete[0]!, complete[3]!];
+    expect(creditProjection("t4g.small", 8, 30, missing, from, end)).toBeNull();
+    expect(creditProjection("t4g.small", 8, 30, complete.filter((_, i) => i !== 1), from, end)).toBeNull();
+    const entry = goodStage();
+    entry.end = end; entry.stage.durationSeconds = 900; entry.measurements.durationMs = 900_000;
+    const run = { ...runResult(), end, stages: [entry] };
+    const fullSamples = Array.from({ length: 180 }, (_, i) => sample(new Date(Date.parse(from) + (i + 1) * 5000).toISOString()));
+    expect(buildReport(run, fullSamples, complete).stages[0]!.gate.status).toBe("pass");
+    expect(buildReport(run, fullSamples, missing).stages[0]!.gate.status).toBe("inconclusive");
+  });
 });
 
 test("offline report CLI writes reviewable JSON/Markdown and refuses mismatched credit metadata", async () => {
