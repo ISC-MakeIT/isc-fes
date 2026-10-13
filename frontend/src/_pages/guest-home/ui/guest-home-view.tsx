@@ -1,12 +1,13 @@
-import { FESTIVAL_TIME_ZONE, HERO_IMAGE_ASPECT } from "@/shared/config";
+import { FESTIVAL_TIME_ZONE } from "@/shared/config";
 import { FloorGuide } from "./floor-guide";
 import { createQueryClient } from "@/shared/api";
 import { visibleStoresQueryOptions } from "@/entities/store";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { EventBanners } from "./event-banners";
 import { Temporal } from "temporal-polyfill-lite";
-import HeroImage from "./assets/hero-image.jpg";
+import HeroImageMobile from "./assets/hero-image-mobile.jpg";
+import HeroImageDesktop from "./assets/hero-image-desktop.jpg";
+import Image from "next/image";
 
 export async function GuestHomeView() {
   const queryClient = createQueryClient();
@@ -19,12 +20,17 @@ export async function GuestHomeView() {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <div className="grid grid-cols-1 lg:grid-cols-[37.5rem_minmax(0,42.5rem)] lg:justify-center">
-        <AspectRatioImage
-          ratio={HERO_IMAGE_ASPECT}
-          src={HeroImage}
+        <Image
+          src={HeroImageMobile}
           alt="キービジュアル"
-          className="bg-gray-300 lg:col-start-1 lg:w-140 lg:shrink-0"
+          className="block bg-gray-300 lg:col-start-1 lg:hidden lg:w-140 lg:shrink-0"
         />
+        <Image
+          src={HeroImageDesktop}
+          alt="キービジュアル"
+          className="lcol-start-1 hidden w-140 shrink-0 bg-gray-300 lg:block"
+        />
+
         <div className="lg:col-span-2 lg:col-start-1">
           <EventBanners initialDateTime={initialDateTime} />
         </div>
