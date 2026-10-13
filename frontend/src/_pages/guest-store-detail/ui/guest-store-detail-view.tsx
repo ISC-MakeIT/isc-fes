@@ -51,10 +51,17 @@ export async function GuestStoreDetailView({
                   alt="店舗のバナー画像"
                 />
 
-                <div className="flex flex-row items-center justify-between px-6">
-                  {/* TODO: モバイルオーダー使用店バッジ */}
-                  <div />
-                  <div className="flex flex-row pt-2 lg:pt-0">
+                <div className="flex flex-row items-center justify-between px-6 pt-2 lg:px-0">
+                  {store.orderEnabled ? (
+                    <span className="bg-primary text-primary-foreground rounded-sm px-2 py-1 font-semibold">
+                      モバイルオーダー可能
+                    </span>
+                  ) : (
+                    <span className="bg-notice text-primary-foreground rounded-sm px-2 py-1 font-semibold">
+                      モバイルオーダー不可
+                    </span>
+                  )}
+                  <div className="ml-auto flex flex-row lg:pt-0">
                     {/* StoreCongestionBadge側に混雑状況を含むaltがある */}
                     <p className="text-lg font-semibold" aria-hidden>
                       混雑状況：

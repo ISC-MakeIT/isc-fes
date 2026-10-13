@@ -8,6 +8,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { MinusIcon, PlusIcon } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { trackEvent } from "@/shared/lib/analytics";
+import { storeDetailQueryOptions } from "@/entities/store";
 
 type ToppingSelectorType = {
   storeId: string;
@@ -25,6 +26,7 @@ export function ToppingSelector({
   const { data: toppings } = useSuspenseQuery(
     menuToppingsQueryOptions({ storeId, menuId }),
   );
+  const { data: store } = useSuspenseQuery(storeDetailQueryOptions(storeId));
 
   if (toppings.length === 0) return;
 
@@ -35,6 +37,7 @@ export function ToppingSelector({
       </h2>
       <ToggleGroup
         multiple
+        disabled={!store.orderEnabled}
         onValueChange={(nextIds) => {
           const changedId =
             nextIds.find((id) => !value.includes(id)) ??

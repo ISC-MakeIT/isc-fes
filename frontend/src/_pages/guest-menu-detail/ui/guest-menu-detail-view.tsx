@@ -7,6 +7,8 @@ import { notFound } from "next/navigation";
 import { fetchCartQueryOptions } from "@/entities/cart";
 import { MenuOrderForm } from "./menu-order-form";
 import { MenuViewAnalytics } from "./menu-view-analytics";
+import { storeDetailQueryOptions } from "@/entities/store";
+import { cn } from "@/shared/lib/utils";
 
 type GuestMenuDetailViewProps = {
   storeId: string;
@@ -21,6 +23,7 @@ export async function GuestMenuDetailView({
 
   const [menus] = await Promise.all([
     queryClient.fetchQuery(storeMenusQueryOptions(storeId)),
+    queryClient.prefetchQuery(storeDetailQueryOptions(storeId)),
     queryClient.prefetchQuery(fetchCartQueryOptions(storeId)),
     queryClient.prefetchQuery(menuToppingsQueryOptions({ storeId, menuId })),
   ]);
@@ -39,7 +42,11 @@ export async function GuestMenuDetailView({
         unitPrice={menu.unitPrice}
       />
       <div className="px-6 py-8 pb-32">
-        <div className="justify-center gap-8 space-y-8 md:grid md:grid-cols-[minmax(0,35rem)_27.5rem]">
+        <div
+          className={cn(
+            "justify-center gap-8 space-y-8 md:grid md:grid-cols-[minmax(0,35rem)_27.5rem]",
+          )}
+        >
           <MenuInfo menu={menu} />
           <MenuOrderForm storeId={storeId} menu={menu} />
         </div>
