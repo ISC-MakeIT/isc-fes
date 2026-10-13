@@ -18,8 +18,8 @@ type StoreRepository interface {
 	GetVisibleStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error)
 	GetMemberStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error)
 	GetStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error)
-	UpdateStore(ctx context.Context, storeID uuid.UUID, input UpdateStoreInput) (entities.Store, error)
-	UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus) error
+	UpdateStore(ctx context.Context, storeID uuid.UUID, input UpdateStoreRepositoryInput) (entities.Store, error)
+	UpdateStoreReviewStatus(ctx context.Context, storeID uuid.UUID, newStatus entities.StoreReviewStatus, accountID uuid.UUID) error
 	GetStoreApplications(ctx context.Context) ([]entities.Store, error)
 }
 
@@ -65,6 +65,11 @@ type UpdateStoreInput struct {
 	ImageObjectKey  *entities.ImageObjectKey
 	AllergenIDs     *[]uuid.UUID
 	CongestionLevel *entities.StoreCongestionLevel
+}
+
+type UpdateStoreRepositoryInput struct {
+	UpdateStoreInput
+	AccountID uuid.UUID
 }
 
 func (i UpdateStoreInput) IsAllNil() bool {
@@ -220,7 +225,7 @@ func (s *StoreService) UpdateStoreApplicationReviewStatus(ctx context.Context, s
 		return ErrInvalidStoreReviewStatusTransition
 	}
 
-	return s.storeRepository.UpdateStoreReviewStatus(ctx, storeID, newStatus)
+	return s.storeRepository.UpdateStoreReviewStatus(ctx, storeID, newStatus, account.ID)
 }
 
 func (s *StoreService) GetApprovedStores(ctx context.Context) ([]entities.StoreOutput, error) {
@@ -301,7 +306,7 @@ func (s *StoreService) UpdateStore(ctx context.Context, storeID uuid.UUID, input
 		}
 	}
 
-	store, err := s.storeRepository.UpdateStore(ctx, storeID, input)
+	store, err := s.storeRepository.UpdateStore(ctx, storeID, UpdateStoreRepositoryInput{UpdateStoreInput: input, AccountID: account.ID})
 	if errors.Is(err, pgx.ErrNoRows) {
 		return entities.StoreOutput{}, ErrNotFound
 	}

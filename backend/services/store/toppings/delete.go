@@ -34,7 +34,7 @@ func (s *ToppingsService) DeleteTopping(c context.Context, storeID, toppingID uu
 		return services.ErrForbidden
 	}
 
-	err = s.toppingsRepository.DeleteTopping(c, storeID, toppingID)
+	err = s.toppingsRepository.DeleteTopping(c, storeID, toppingID, account.ID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return services.ErrNotFound

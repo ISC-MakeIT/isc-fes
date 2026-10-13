@@ -88,13 +88,14 @@ RETURNING *;
 DELETE FROM store_allergens
 WHERE store_id = sqlc.arg(store_id);
 
--- name: UpdateStoreReviewStatusById :exec
+-- name: UpdateStoreReviewStatusById :one
 UPDATE stores
 SET
     review_status = $2,
     updated_at = now()
 WHERE id = $1
-    AND review_status = 'pending'; -- pending からしか遷移できないので pending の場合のみ更新する
+    AND review_status = 'pending' -- pending からしか遷移できない
+RETURNING *;
 
 -- name: AddAllergensToStore :exec
 INSERT INTO store_allergens (

@@ -49,6 +49,7 @@ func (s *ToppingsService) UpdateToppingByStoreIDAndToppingID(c context.Context, 
 	}
 
 	topping, err := s.toppingsRepository.UpdateToppingByToppingIDAndStoreID(c, toppingID, storeID, UpdateToppingRepositoryInput{
+		AccountID: account.ID,
 		Name:      input.Name,
 		UnitPrice: input.UnitPrice,
 		SoldOut:   input.SoldOut,
