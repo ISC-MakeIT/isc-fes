@@ -1,4 +1,4 @@
-import { storeOrdersQueryOptions } from "@/entities/order";
+import { OrderStatus, storeOrdersQueryOptions } from "@/entities/order";
 import { createQueryClient } from "@/shared/api";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { PendingOrderList } from "./pending-order-list";
@@ -11,7 +11,15 @@ type StoreOrderCallViewProps = {
 export async function StoreOrderCallView({ storeId }: StoreOrderCallViewProps) {
   const queryClient = createQueryClient();
 
-  await queryClient.prefetchQuery(storeOrdersQueryOptions(storeId));
+  await Promise.all([
+    // 子のquery fetchではPending, Readyそれぞれでfetchしてるので、prefetchも分けないとキャッシュが効かない
+    queryClient.prefetchQuery(
+      storeOrdersQueryOptions(storeId, [OrderStatus.Pending]),
+    ),
+    queryClient.prefetchQuery(
+      storeOrdersQueryOptions(storeId, [OrderStatus.Ready]),
+    ),
+  ]);
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
