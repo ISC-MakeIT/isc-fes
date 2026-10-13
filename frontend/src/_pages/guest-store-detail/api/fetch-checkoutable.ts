@@ -38,6 +38,6 @@ export function checkCheckoutQueryOptions(
 ) {
   return queryOptions({
     queryFn: () => fetchCheckoutable(storeId, expectedCartVersion),
-    queryKey: checkoutableKey(storeId),
+    queryKey: checkoutableKey(storeId, expectedCartVersion),
   });
 }
