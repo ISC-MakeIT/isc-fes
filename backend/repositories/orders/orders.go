@@ -4,16 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	domainactivity "github.com/isc-makeit/isc-fes/backend/domains/activity"
-	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	domain "github.com/isc-makeit/isc-fes/backend/domains/entities/orders"
 	"github.com/isc-makeit/isc-fes/backend/repositories/activity"
 	"github.com/isc-makeit/isc-fes/backend/repositories/db2entities"
-	"github.com/isc-makeit/isc-fes/backend/services"
 	orderservice "github.com/isc-makeit/isc-fes/backend/services/orders"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -59,76 +56,19 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, input orderservice.Cr
 		return orderservice.CreateResult{}, err
 	}
 
-	store, err := qtx.LockStoreForShare(ctx, input.StoreID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return orderservice.CreateResult{}, services.ErrNotFound
-	}
+	prepared, err := prepareCheckout(ctx, qtx, input, true)
 	if err != nil {
 		return orderservice.CreateResult{}, err
 	}
-	if store.ReviewStatus != sqlc.StoreReviewStatusApproved {
-		return orderservice.CreateResult{}, services.ErrNotFound
-	}
-	if store.ClosedAt.Valid {
-		return orderservice.CreateResult{}, orderservice.ErrStoreClosed
-	}
-	if !store.OrderEnabled {
-		return orderservice.CreateResult{}, orderservice.ErrStoreOrderDisabled
-	}
+	store, items, total := prepared.store, prepared.items, prepared.total
 
-	var exemptAccountID *uuid.UUID
-	if input.AccountID != nil {
-		membership, err := qtx.LockOrderMembership(ctx, sqlc.LockOrderMembershipParams{
-			StoreID: input.StoreID, AccountID: *input.AccountID,
-		})
-		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			return orderservice.CreateResult{}, err
-		}
-		if err == nil && domain.CanExemptOrderLimit(input.StoreID, entities.StoreMembership{
-			StoreID: membership.StoreID, AccountID: membership.AccountID,
-			Role: entities.StoreMemberRole(membership.Role), JoinedAt: membership.JoinedAt.Time,
-		}) {
-			exemptAccountID = input.AccountID
-		}
-	}
-
-	cart, err := qtx.LockOrderCart(ctx, sqlc.LockOrderCartParams{GuestID: input.GuestID, StoreID: input.StoreID})
-	if errors.Is(err, pgx.ErrNoRows) {
-		return orderservice.CreateResult{}, services.ErrInvalidInput
-	}
-	if err != nil {
-		return orderservice.CreateResult{}, err
-	}
-	if cart.Version != input.ExpectedCartVersion || cart.Version == math.MaxInt32 {
-		return orderservice.CreateResult{}, orderservice.ErrCartVersionConflict
-	}
-	rows, err := qtx.GetCartByGuestIDAndStoreID(ctx, sqlc.GetCartByGuestIDAndStoreIDParams{
-		GuestID: input.GuestID, StoreID: input.StoreID,
-	})
-	if err != nil {
-		return orderservice.CreateResult{}, err
-	}
-	items, total, err := orderservice.PrepareItems(db2entities.ToCart(rows))
-	if err != nil {
-		return orderservice.CreateResult{}, err
-	}
-
-	if exemptAccountID == nil {
-		count, err := qtx.CountActiveNonExemptOrders(ctx, input.GuestID)
-		if err != nil {
-			return orderservice.CreateResult{}, err
-		}
-		if domain.IsOrderLimitReached(count) {
-			return orderservice.CreateResult{}, orderservice.ErrOrderLimitReached
-		}
-	}
 	number, err := qtx.NextOrderDisplayNumber(ctx, input.StoreID)
 	if err != nil {
 		return orderservice.CreateResult{}, err
 	}
 	saved, err = qtx.CreateOrder(ctx, sqlc.CreateOrderParams{
 		StoreID: store.ID, GuestID: input.GuestID, TotalAmount: total, DisplayNumber: number,
-		OriginCartID: cart.ID, OriginCartVersion: cart.Version, LimitExemptedByAccountID: exemptAccountID,
+		OriginCartID: prepared.cart.ID, OriginCartVersion: prepared.cart.Version, LimitExemptedByAccountID: prepared.exemptAccountID,
 		StoreName: store.Name, RoomName: store.Room,
 	})
 	if err != nil {
@@ -138,12 +78,12 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, input orderservice.Cr
 		return orderservice.CreateResult{}, err
 	}
 	if err := qtx.DeleteCartItemsNotIn(ctx, sqlc.DeleteCartItemsNotInParams{
-		CartID: cart.ID, RemainingItemIds: []uuid.UUID{},
+		CartID: prepared.cart.ID, RemainingItemIds: []uuid.UUID{},
 	}); err != nil {
 		return orderservice.CreateResult{}, err
 	}
 	if _, err := qtx.BumpCartVersion(ctx, sqlc.BumpCartVersionParams{
-		GuestID: input.GuestID, StoreID: input.StoreID, ExpectedVersion: cart.Version,
+		GuestID: input.GuestID, StoreID: input.StoreID, ExpectedVersion: prepared.cart.Version,
 	}); err != nil {
 		return orderservice.CreateResult{}, err
 	}

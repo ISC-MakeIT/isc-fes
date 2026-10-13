@@ -394,6 +394,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/stores/{store_id}/carts/checkoutable": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * 自分のカートで新規注文できるか確認する
+     * @description 注文確定と同じ条件で事前チェックする。結果は取得時点の状態で、注文枠は予約しない。
+     */
+    get: operations["getStoreCartCheckoutable"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/stores/{store_id}/carts": {
     parameters: {
       query?: never;
@@ -704,14 +724,35 @@ export interface components {
       quantity: number;
       toppingIds: string[];
     };
+    CheckoutCheckResponse: {
+      /**
+       * @description nullなら取得時点で新規注文可能。成立済み注文へのPOST再送は判定対象外。
+       *     注文できない場合は、以下の優先順位で該当する理由を1つ返す。
+       *     - store_closed: 店舗が閉店している。
+       *     - store_order_disabled: 店舗が注文受付を停止している。
+       *     - cart_version_conflict: カートのversionがexpectedCartVersionと一致しない、またはint32の上限に達している。
+       *     - cart_empty: カートが未作成または空。Guestセッションが未発行の場合もカートなしとして扱い、Guestやカートは作成しない。
+       *     - cart_items_unavailable: 商品・トッピングが売り切れまたは削除済み、あるいはトッピングのメニューとの関連が解除されている。
+       *     - invalid_cart: 数量・メニュー種類数・金額などが注文の制約を満たさない。メニューは最大3種類。
+       *     - order_limit_reached: 免除対象でないpending/ready注文が全店舗合計で2件以上ある。Accountログイン済みで注文先のStaff/Managerなら免除され、免除注文は件数にも含めない。
+       * @enum {string|null}
+       */
+      code:
+        | "store_closed"
+        | "store_order_disabled"
+        | "cart_version_conflict"
+        | "cart_empty"
+        | "cart_items_unavailable"
+        | "invalid_cart"
+        | "order_limit_reached"
+        | null;
+    };
     Cart: {
       /** Format: uuid */
       storeId: string;
       /** Format: int32 */
       version: number;
       totalAmount: number;
-      /** @description カートの内容で注文可能かどうか。店舗が閉店している場合、カートに利用できないアイテムが含まれている場合、カートがからの場合はfalseになる。 */
-      canCheckout: boolean;
       items: components["schemas"]["CartItem"][];
     };
     CartItem: {
@@ -2650,6 +2691,60 @@ export interface operations {
         };
       };
       /** @description 店舗が存在しないか、店舗のメンバーではない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getStoreCartCheckoutable: {
+    parameters: {
+      query: {
+        /** @description フロントエンドが表示しているカートのversion。 */
+        expectedCartVersion: number;
+      };
+      header?: never;
+      path: {
+        store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 新規注文の可否。注文できない場合も200を返す。 */
+      200: {
+        headers: {
+          /** @description 結果をキャッシュせず、チェックのたびに取得する。 */
+          "Cache-Control"?: "no-store";
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CheckoutCheckResponse"];
+        };
+      };
+      /** @description リクエスト形式が不正 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない、または承認済みではない */
       404: {
         headers: {
           [name: string]: unknown;

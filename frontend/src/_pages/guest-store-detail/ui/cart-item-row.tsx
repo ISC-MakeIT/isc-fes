@@ -18,7 +18,7 @@ type CartItemRowProps = {
   cartItem: CartItem;
 };
 export function CartItemRow({ cartItem }: CartItemRowProps) {
-  const { increaseItemQuantity, decreaseItemQuantity, isSaving } =
+  const { increaseItemQuantity, decreaseItemQuantity, isBusy } =
     useCartOperation();
 
   return (
@@ -48,9 +48,9 @@ export function CartItemRow({ cartItem }: CartItemRowProps) {
           onDecrease={() => decreaseItemQuantity(cartItem.id)}
           onIncrease={() => increaseItemQuantity(cartItem.id)}
           quantity={cartItem.quantity}
-          isDisabledDecreaseButton={isSaving || cartItem.quantity <= 0}
+          isDisabledDecreaseButton={isBusy || cartItem.quantity <= 0}
           isDisabledIncreaseButton={
-            isSaving || cartItem.quantity >= MAX_CART_ITEM_QUANTITY
+            isBusy || cartItem.quantity >= MAX_CART_ITEM_QUANTITY
           }
         />
       </div>
@@ -62,7 +62,7 @@ type CartItemSoldOutOverlayProps = {
   cartItem: CartItem;
 };
 function CartItemSoldOutOverlay({ cartItem }: CartItemSoldOutOverlayProps) {
-  const { removeItem, isSaving } = useCartOperation();
+  const { removeItem, isBusy } = useCartOperation();
   return (
     <div className="bg-soldout-overlay absolute inset-0 z-10 flex flex-col items-center justify-center">
       <div className="flex flex-col gap-2">
@@ -72,7 +72,7 @@ function CartItemSoldOutOverlay({ cartItem }: CartItemSoldOutOverlayProps) {
       <Button
         variant="ghost"
         className="text-notice text-xs font-bold underline underline-offset-2"
-        disabled={isSaving}
+        disabled={isBusy}
         onClick={() => removeItem(cartItem.id)}
       >
         削除する
@@ -86,7 +86,7 @@ type CartItemToppingRowProps = {
 };
 
 function CartItemToppingRow({ topping }: CartItemToppingRowProps) {
-  const { removeTopping, isSaving } = useCartOperation();
+  const { removeTopping, isBusy } = useCartOperation();
   return (
     <div
       key={topping.id}
@@ -110,7 +110,7 @@ function CartItemToppingRow({ topping }: CartItemToppingRowProps) {
         variant="ghost"
         aria-label={`${topping.name}を削除`}
         className="text-notice flex"
-        disabled={isSaving}
+        disabled={isBusy}
         onClick={() => removeTopping(topping.cartItemId, topping.toppingId)}
       >
         <XIcon size={10} strokeWidth={3} aria-hidden />

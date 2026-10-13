@@ -1,13 +1,46 @@
 package routers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	orderservice "github.com/isc-makeit/isc-fes/backend/services/orders"
 	servicecarts "github.com/isc-makeit/isc-fes/backend/services/store/carts"
 	"github.com/isc-makeit/isc-fes/backend/utils"
 )
+
+func (s *Server) GetStoreCartCheckoutable(c *gin.Context, storeID uuid.UUID, params GetStoreCartCheckoutableParams) {
+	c.Header("Cache-Control", "no-store")
+	err := s.orders.CheckCheckout(c.Request.Context(), orderservice.CreateInput{
+		StoreID: storeID, ExpectedCartVersion: params.ExpectedCartVersion,
+	})
+	var code CheckoutCheckResponseCode
+	switch {
+	case err == nil:
+		c.JSON(http.StatusOK, CheckoutCheckResponse{Code: nil})
+		return
+	case errors.Is(err, orderservice.ErrStoreClosed):
+		code = StoreClosed
+	case errors.Is(err, orderservice.ErrStoreOrderDisabled):
+		code = StoreOrderDisabled
+	case errors.Is(err, orderservice.ErrCartVersionConflict):
+		code = CartVersionConflict
+	case errors.Is(err, orderservice.ErrCartEmpty):
+		code = CartEmpty
+	case errors.Is(err, orderservice.ErrUnavailableItems):
+		code = CartItemsUnavailable
+	case errors.Is(err, orderservice.ErrInvalidCart):
+		code = InvalidCart
+	case errors.Is(err, orderservice.ErrOrderLimitReached):
+		code = OrderLimitReached
+	default:
+		s.handleCommonServiceErrors(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, CheckoutCheckResponse{Code: &code})
+}
 
 func (s *Server) GetStoreCart(c *gin.Context, storeID uuid.UUID) {
 	cart, err := s.cart.GetCart(c.Request.Context(), storeID)
@@ -48,7 +81,6 @@ func (s *Server) UpdateStoreCart(c *gin.Context, storeID uuid.UUID) {
 
 func toCartResponse(cart servicecarts.CartOutput) Cart {
 	return Cart{
-		CanCheckout: cart.CanCheckout,
 		StoreId:     cart.StoreID,
 		Version:     cart.Version,
 		Items:       utils.Map(cart.Items, toCartItemResponse),

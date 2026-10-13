@@ -2,7 +2,6 @@ package orders
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -18,6 +17,8 @@ var (
 	ErrOrderLimitReached   = fmt.Errorf("active order limit reached: %w", services.ErrConflict)
 	ErrStoreClosed         = fmt.Errorf("store is closed: %w", services.ErrConflict)
 	ErrStoreOrderDisabled  = fmt.Errorf("store order acceptance is disabled: %w", services.ErrForbidden)
+	ErrCartEmpty           = fmt.Errorf("cart is empty: %w", services.ErrInvalidInput)
+	ErrInvalidCart         = fmt.Errorf("invalid cart: %w", services.ErrInvalidInput)
 )
 
 type CreateInput struct {
@@ -40,6 +41,7 @@ type CreateResult struct {
 // 注文の作成・取得・店舗による状態更新に必要な操作を要求する。
 type Repository interface {
 	CreateOrder(context.Context, CreateRepositoryInput) (CreateResult, error)
+	CheckCheckout(context.Context, CreateRepositoryInput) error
 	UpdateOrder(context.Context, UpdateRepositoryInput) (UpdateResult, error)
 	GetOrdersByGuestID(context.Context, uuid.UUID, []orders.OrderStatus) ([]orders.Order, error)
 	GetOrdersByStoreID(context.Context, uuid.UUID, []orders.OrderStatus) ([]orders.Order, error)
@@ -96,14 +98,11 @@ func (s *OrderService) CreateOrder(ctx context.Context, input CreateInput) (Crea
 		return CreateResult{}, err
 	}
 	// Accountは任意。IDは検証済みセッションからのみ取得し、免除の判定は取引内で行う。
-	account, err := s.accountLoader.GetCurrentAccount(ctx)
-	if err != nil && !errors.Is(err, services.ErrUnauthenticated) {
-		return CreateResult{}, fmt.Errorf("resolve order account: %w", err)
+	accountID, err := s.resolveOptionalAccountID(ctx)
+	if err != nil {
+		return CreateResult{}, err
 	}
-	repoInput := CreateRepositoryInput{CreateInput: input, GuestID: guestID}
-	if err == nil && account.ID != uuid.Nil {
-		repoInput.AccountID = &account.ID
-	}
+	repoInput := CreateRepositoryInput{CreateInput: input, GuestID: guestID, AccountID: accountID}
 	result, err := s.repository.CreateOrder(ctx, repoInput)
 	if err != nil {
 		return CreateResult{}, err
@@ -114,9 +113,12 @@ func (s *OrderService) CreateOrder(ctx context.Context, input CreateInput) (Crea
 	return result, nil
 }
 
-// PrepareItemsはStore・Cartロック中に取得した最新カートを検証する。
+// PrepareItemsは注文確定または事前チェックで取得したカートを検証する。
 // 利用不可の選択を除外せず、全体を拒否する。金額は注文ドメインに委ねる。
 func PrepareItems(cart carts.Cart) ([]orders.OrderItem, int64, error) {
+	if len(cart.Items) == 0 {
+		return nil, 0, ErrCartEmpty
+	}
 	items := make([]orders.OrderItem, 0, len(cart.Items))
 	for _, item := range cart.Items {
 		if item.Soldout || item.DeletedAt != nil {
@@ -136,7 +138,7 @@ func PrepareItems(cart carts.Cart) ([]orders.OrderItem, int64, error) {
 	}
 	total, err := orders.CalculateTotalAmount(cart.StoreID, items)
 	if err != nil {
-		return nil, 0, fmt.Errorf("invalid order items (%v): %w", err, services.ErrInvalidInput)
+		return nil, 0, fmt.Errorf("invalid order items (%v): %w", err, ErrInvalidCart)
 	}
 	return items, total, nil
 }

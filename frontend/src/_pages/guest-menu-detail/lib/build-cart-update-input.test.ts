@@ -6,7 +6,6 @@ const cart = {
   storeId: "store-1",
   version: 3,
   totalAmount: 800,
-  canCheckout: true,
   items: [
     {
       id: "cart-item-1",
@@ -62,7 +61,6 @@ describe("buildCartUpdateInput", () => {
       storeId: "store-1",
       version: 0,
       totalAmount: 0,
-      canCheckout: false,
       items: [],
     };
 
