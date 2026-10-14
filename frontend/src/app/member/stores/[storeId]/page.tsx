@@ -25,7 +25,7 @@ export default async function StoreHomePage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <StoreHomeView storeId={storeId} />;
+      <StoreHomeView storeId={storeId} />
     </HydrationBoundary>
   );
 }
