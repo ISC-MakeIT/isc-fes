@@ -99,7 +99,11 @@ function ReadyOrderRow({ order, now }: ReadyOrderRowProps) {
 
           <Dialog>
             <DialogTrigger className="cursor-pointer" disabled={!canCancel}>
-              <XIcon className="text-close-button size-7" strokeWidth="4" />
+              <XIcon
+                className="text-close-button size-7"
+                strokeWidth="4"
+                aria-label="注文をキャンセル"
+              />
             </DialogTrigger>
 
             <OrderCancelConfirmDialog order={order} />
