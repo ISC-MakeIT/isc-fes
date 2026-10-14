@@ -89,7 +89,6 @@ function CloseStoreDialog({ store, onSuccess }: CloseStoreDialogProps) {
               mutation.mutate({
                 storeId: store.id,
                 input: {
-                  ...store,
                   closed: false,
                 },
               });
@@ -106,7 +105,6 @@ function CloseStoreDialog({ store, onSuccess }: CloseStoreDialogProps) {
               mutation.mutate({
                 storeId: store.id,
                 input: {
-                  ...store,
                   closed: true,
                 },
               });
