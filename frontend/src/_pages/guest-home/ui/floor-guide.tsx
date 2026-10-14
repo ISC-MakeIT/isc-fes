@@ -16,13 +16,14 @@ import { selectApprovedStoresByFloor } from "../lib/select-approved-stores-by-fl
 import { PreviewImage } from "@/shared/ui/preview-image";
 import { STORE_IMAGE_ASPECT } from "@/shared/config";
 import { ChevronRightIcon } from "lucide-react";
-import Link from "next/link";
 import { guestStoreDetailUrl } from "@/shared/config";
 import { trackEvent } from "@/shared/lib/analytics";
 import { useQueryState } from "nuqs";
 import { floorParser } from "../model/floor-search-params";
 import { StoreCongestionBadge } from "@/entities/store";
 import { roomNames } from "@/entities/room";
+import { AppLink } from "@/shared/ui/app-link";
+import StoreClosedIcon from "./assets/closed.svg";
 
 export type Floors = {
   level: Floor;
@@ -114,38 +115,51 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
   return (
     <div className="flex w-full flex-col items-center px-4">
       {storesByFloor.map((store) => (
-        <Link
-          href={guestStoreDetailUrl(store.id)}
-          key={store.id}
-          onClick={() =>
-            trackEvent("select_store", {
-              store_id: store.id,
-              floor_number: floor,
-            })
-          }
-          className="border-foreground flex w-full flex-row items-center gap-2 border-b border-dashed px-2 py-4 lg:max-w-115.5"
-        >
-          <PreviewImage
-            ratio={STORE_IMAGE_ASPECT}
-            alt={`${store.name}の店舗画像`}
-            imagePath={store.imageUrl}
-            className="w-28 shrink-0"
-          />
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-row justify-start gap-6">
-              <StoreCongestionBadge congestionLevel={store.congestionLevel} />
-              <p>{store.room}</p>
+        <div className="relative inset-0" key={store.id}>
+          <AppLink
+            disabled={!!store.closedAt}
+            href={guestStoreDetailUrl(store.id)}
+            onClick={() =>
+              trackEvent("select_store", {
+                store_id: store.id,
+                floor_number: floor,
+              })
+            }
+          >
+            <div className="border-foreground flex w-full flex-row items-center gap-2 border-b border-dashed px-2 py-4 lg:max-w-115.5">
+              <PreviewImage
+                ratio={STORE_IMAGE_ASPECT}
+                alt={`${store.name}の店舗画像`}
+                imagePath={store.imageUrl}
+                className="w-28 shrink-0"
+              />
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-row justify-start gap-6">
+                  <StoreCongestionBadge
+                    congestionLevel={store.congestionLevel}
+                  />
+                  <p>{store.room}</p>
+                </div>
+                <p className="line-clamp-2 text-lg leading-6 font-semibold">
+                  {store.name}
+                </p>
+              </div>
+              <ChevronRightIcon
+                strokeWidth={0.5}
+                className="ml-auto shrink-0"
+                size={40}
+              />
             </div>
-            <p className="line-clamp-2 text-lg leading-6 font-semibold">
-              {store.name}
-            </p>
-          </div>
-          <ChevronRightIcon
-            strokeWidth={0.5}
-            className="ml-auto shrink-0"
-            size={40}
-          />
-        </Link>
+          </AppLink>
+
+          {store.closedAt && (
+            <Image
+              src={StoreClosedIcon}
+              alt={`${store.name}は閉店しています`}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            />
+          )}
+        </div>
       ))}
     </div>
   );
