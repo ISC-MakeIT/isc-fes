@@ -98,9 +98,12 @@ function ReadyOrderRow({ order, now }: ReadyOrderRowProps) {
           </Dialog>
 
           <Dialog>
-            <DialogTrigger className="cursor-pointer" disabled={!canCancel}>
+            <DialogTrigger
+              className="group mt-1.5 cursor-pointer disabled:cursor-default"
+              disabled={!canCancel}
+            >
               <XIcon
-                className="text-close-button size-7"
+                className="text-close-button group-disabled:text-muted size-7"
                 strokeWidth="4"
                 aria-label="注文をキャンセル"
               />
