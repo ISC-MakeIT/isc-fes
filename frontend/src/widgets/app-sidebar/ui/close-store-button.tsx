@@ -17,7 +17,7 @@ import {
 import { Store, storeDetailQueryOptions, updateStore } from "@/entities/store";
 import { cn } from "@/shared/lib/utils";
 import { ActionButton } from "@/shared/ui/action-button";
-import { storeDetailKey } from "@/shared/config";
+import { storeDetailKey, storeListKeys } from "@/shared/config";
 import { toast } from "@/shared/ui/toast";
 import { useState } from "react";
 
@@ -61,6 +61,7 @@ function CloseStoreDialog({ store, onSuccess }: CloseStoreDialogProps) {
     mutationFn: updateStore,
     onSuccess: (store) => {
       queryClient.setQueryData(storeDetailKey(store.id), store);
+      queryClient.invalidateQueries({ queryKey: storeListKeys.all() });
       onSuccess();
     },
 
