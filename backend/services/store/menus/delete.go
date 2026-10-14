@@ -36,7 +36,10 @@ func (s *MenuService) DeleteMenuByStoreIDAndMenuID(c context.Context, storeID uu
 		return services.ErrForbidden
 	}
 
-	deleteCount, err := s.menuRepository.DeleteMenuByStoreIDAndMenuID(c, storeID, menuID)
+	deleteCount, err := s.menuRepository.DeleteMenuByStoreIDAndMenuID(c, storeID, menuID, account.ID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return services.ErrNotFound
+	}
 	if err != nil {
 		return err
 	}

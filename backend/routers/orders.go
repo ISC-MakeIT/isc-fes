@@ -97,6 +97,8 @@ func (s *Server) CreateOrder(c *gin.Context) {
 			messages.Conflict = fmt.Sprintf("同時に注文できるのは%d件までです", domain.MaxActiveOrders)
 		case errors.Is(err, orderservice.ErrStoreClosed):
 			messages.Conflict = "店舗は閉店しています"
+		case errors.Is(err, orderservice.ErrStoreOrderDisabled):
+			messages.Forbidden = "店舗は注文受付を停止しています"
 		}
 		s.handleCommonServiceErrors(c, err, messages)
 		return

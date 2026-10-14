@@ -11,6 +11,10 @@ SELECT * FROM carts
 WHERE guest_id = sqlc.arg(guest_id) AND store_id = sqlc.arg(store_id)
 FOR UPDATE;
 
+-- name: GetOrderCart :one
+SELECT * FROM carts
+WHERE guest_id = sqlc.arg(guest_id) AND store_id = sqlc.arg(store_id);
+
 -- name: LockOrderMembership :one
 SELECT * FROM store_members
 WHERE store_id = sqlc.arg(store_id) AND account_id = sqlc.arg(account_id)

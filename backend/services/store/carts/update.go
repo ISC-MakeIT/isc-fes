@@ -15,7 +15,7 @@ func (s CartService) UpdateCartByStoreID(c context.Context, input UpdateCartInpu
 		return CartOutput{}, err
 	}
 
-	store, err := s.storeRepository.GetApprovedStoreByID(c, input.StoreID)
+	_, err = s.storeRepository.GetApprovedStoreByID(c, input.StoreID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return CartOutput{}, services.ErrNotFound // 店舗が存在しない場合は404を返す
@@ -56,5 +56,5 @@ func (s CartService) UpdateCartByStoreID(c context.Context, input UpdateCartInpu
 		return CartOutput{}, err
 	}
 
-	return ToCartOutput(c, cart, store, s.imageURLGenerator)
+	return ToCartOutput(c, cart, s.imageURLGenerator)
 }

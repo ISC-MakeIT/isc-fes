@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/carts"
 	"github.com/isc-makeit/isc-fes/backend/services"
 )
@@ -14,7 +13,6 @@ type CartOutput struct {
 	Version     int32
 	Items       []CartItemOutput
 	TotalAmount int64
-	CanCheckout bool
 }
 
 type CartItemOutput struct {
@@ -41,7 +39,6 @@ type CartItemToppingOutput struct {
 func ToCartOutput(
 	ctx context.Context,
 	cart carts.Cart,
-	store entities.Store,
 	imageURLGenerator services.ImageURLGenerator,
 ) (CartOutput, error) {
 	output := CartOutput{
@@ -49,7 +46,6 @@ func ToCartOutput(
 		Version:     cart.Version,
 		Items:       make([]CartItemOutput, len(cart.Items)),
 		TotalAmount: cart.TotalAmount(),
-		CanCheckout: canCheckout(store, cart.Items),
 	}
 
 	for i, item := range cart.Items {
@@ -88,25 +84,6 @@ func ToCartOutput(
 	}
 
 	return output, nil
-}
-
-func canCheckout(store entities.Store, items []carts.CartItem) bool {
-	if store.ClosedAt != nil || len(items) == 0 {
-		return false
-	}
-
-	for _, item := range items {
-		if !isCartItemAvailable(item) {
-			return false
-		}
-		for _, topping := range item.Toppings {
-			if !isCartItemToppingAvailable(topping) {
-				return false
-			}
-		}
-	}
-
-	return true
 }
 
 func isCartItemAvailable(item carts.CartItem) bool {

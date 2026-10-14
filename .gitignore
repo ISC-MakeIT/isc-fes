@@ -13,3 +13,7 @@
 crash.log
 
 node_modules
+
+# Benchmark reports and local configuration (may contain session references)
+benchmark-results/
+scripts/benchmark/*.local.json

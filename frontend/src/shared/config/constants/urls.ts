@@ -70,3 +70,4 @@ export const guestMenuDetailUrl = (storeId: string, menuId: string) =>
   `/stores/${storeId}/menus/${menuId}`;
 export const guestCheckoutUrl = (storeId: string) =>
   `/stores/${storeId}/checkout`;
+export const orderDetailUrl = (orderId: string) => `${ordersUrl()}/${orderId}`;

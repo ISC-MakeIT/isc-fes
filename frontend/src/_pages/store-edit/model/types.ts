@@ -8,6 +8,7 @@ export const StoreEditFormValues = v.object({
   description: StoreDescription,
   allergenIds: v.array(v.string()),
   image: v.optional(UploadImage),
+  orderEnabled: v.boolean(),
 });
 
 export type StoreEditFormValues = v.InferOutput<typeof StoreEditFormValues>;

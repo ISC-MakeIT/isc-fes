@@ -106,11 +106,12 @@ func execOrderSQL(t *testing.T, ctx context.Context, pool *pgxpool.Pool, query s
 
 func TestUpdateOrderPostgresLifecycle(t *testing.T) {
 	ctx, r, input := orderUpdateFixture(t)
-	ready, err := r.UpdateOrder(ctx, input)
+	readyResult, err := r.UpdateOrder(ctx, input)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if ready.Status != domain.OrderStatusReady || ready.Version != 2 || ready.ReadyAt == nil || !ready.ReadyAt.Equal(ready.UpdatedAt) {
+	ready := readyResult.Order
+	if !readyResult.Changed || ready.Status != domain.OrderStatusReady || ready.Version != 2 || ready.ReadyAt == nil || !ready.ReadyAt.Equal(ready.UpdatedAt) {
 		t.Fatalf("unexpected ready order: %+v", ready)
 	}
 	if ready.TotalAmount != 600 || ready.StoreName != "snapshot store" || ready.RoomName != "snapshot room" ||
@@ -119,7 +120,7 @@ func TestUpdateOrderPostgresLifecycle(t *testing.T) {
 		t.Fatalf("snapshot changed: %+v", ready)
 	}
 	replay, err := r.UpdateOrder(ctx, input)
-	if err != nil || !reflect.DeepEqual(replay, ready) {
+	if err != nil || replay.Changed || !reflect.DeepEqual(replay.Order, ready) {
 		t.Fatalf("replay = %+v, %v", replay, err)
 	}
 	input.Status = domain.OrderStatusCompleted
@@ -131,15 +132,16 @@ func TestUpdateOrderPostgresLifecycle(t *testing.T) {
 		t.Fatalf("early cancel error = %v", err)
 	}
 	input.Status = domain.OrderStatusCompleted
-	completed, err := r.UpdateOrder(ctx, input)
+	completedResult, err := r.UpdateOrder(ctx, input)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if completed.Version != 3 || completed.CompletedAt == nil || !completed.ReadyAt.Equal(*ready.ReadyAt) || !reflect.DeepEqual(completed.Items, ready.Items) {
+	completed := completedResult.Order
+	if !completedResult.Changed || completed.Version != 3 || completed.CompletedAt == nil || !completed.ReadyAt.Equal(*ready.ReadyAt) || !reflect.DeepEqual(completed.Items, ready.Items) {
 		t.Fatalf("completed = %+v", completed)
 	}
 	replay, err = r.UpdateOrder(ctx, input)
-	if err != nil || !reflect.DeepEqual(replay, completed) {
+	if err != nil || replay.Changed || !reflect.DeepEqual(replay.Order, completed) {
 		t.Fatalf("completed replay = %+v, %v", replay, err)
 	}
 	input.Status, input.ExpectedVersion = domain.OrderStatusReady, 3
@@ -184,6 +186,72 @@ func TestUpdateOrderPostgresAuthorization(t *testing.T) {
 	row, err := r.queries.LockOrderByIDAndStoreID(ctx, sqlc.LockOrderByIDAndStoreIDParams{OrderID: input.OrderID, StoreID: input.StoreID})
 	if err != nil || row.Version != 1 || row.Status != sqlc.OrderStatusPending {
 		t.Fatalf("denied requests changed order: %+v, %v", row, err)
+	}
+}
+
+func TestUpdateOrderPostgresCommitFailureHasNoChangedResult(t *testing.T) {
+	ctx, r, input := orderUpdateFixture(t)
+	// 更新SQLとsnapshot取得が成功した後、コミット時の遅延制約だけを失敗させる。
+	execOrderSQL(t, ctx, r.pool, `CREATE FUNCTION reject_order_commit() RETURNS trigger LANGUAGE plpgsql AS $$
+		BEGIN RAISE EXCEPTION 'test commit failure'; END $$;
+		CREATE CONSTRAINT TRIGGER reject_order_commit AFTER UPDATE ON orders
+		DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION reject_order_commit()`)
+	result, err := r.UpdateOrder(ctx, input)
+	if err == nil || !reflect.DeepEqual(result, orderservice.UpdateResult{}) {
+		t.Fatalf("failed commit returned changed order: %+v, %v", result, err)
+	}
+	var status string
+	var version int32
+	if err := r.pool.QueryRow(ctx, `SELECT status,version FROM orders WHERE id=$1`, input.OrderID).Scan(&status, &version); err != nil {
+		t.Fatal(err)
+	}
+	if status != "pending" || version != 1 {
+		t.Fatalf("failed commit changed DB: %s, %d", status, version)
+	}
+	var logCount int
+	if err := r.pool.QueryRow(ctx, `SELECT count(*) FROM activity_log WHERE subject_id=$1`, input.OrderID).Scan(&logCount); err != nil {
+		t.Fatal(err)
+	}
+	if logCount != 0 {
+		t.Fatalf("failed commit left %d activity logs", logCount)
+	}
+}
+
+func TestUpdateOrderPostgresConcurrentSameStateChangesOnce(t *testing.T) {
+	ctx, r, input := orderUpdateFixture(t)
+	start := make(chan struct{})
+	type outcome struct {
+		result orderservice.UpdateResult
+		err    error
+	}
+	results := make(chan outcome, 2)
+	for range 2 {
+		go func() {
+			<-start
+			result, err := r.UpdateOrder(ctx, input)
+			results <- outcome{result: result, err: err}
+		}()
+	}
+	close(start)
+	changed := 0
+	for range 2 {
+		got := <-results
+		if got.err != nil || got.result.Order.Status != domain.OrderStatusReady || got.result.Order.Version != 2 {
+			t.Fatalf("concurrent replay = %+v, %v", got.result, got.err)
+		}
+		if got.result.Changed {
+			changed++
+		}
+	}
+	if changed != 1 {
+		t.Fatalf("Changed=true results = %d, want 1", changed)
+	}
+	var logCount int
+	if err := r.pool.QueryRow(ctx, `SELECT count(*) FROM activity_log WHERE subject_id=$1 AND event_type='order.status_changed'`, input.OrderID).Scan(&logCount); err != nil {
+		t.Fatal(err)
+	}
+	if logCount != 1 {
+		t.Fatalf("concurrent replay recorded %d logs, want 1", logCount)
 	}
 }
 

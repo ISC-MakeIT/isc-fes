@@ -3,6 +3,7 @@ package routers
 import (
 	"github.com/isc-makeit/isc-fes/backend/auth"
 	db "github.com/isc-makeit/isc-fes/backend/db/sqlc"
+	"github.com/isc-makeit/isc-fes/backend/realtime"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/services/allergens"
 	"github.com/isc-makeit/isc-fes/backend/services/orders"
@@ -22,6 +23,8 @@ type Server struct {
 	accountService      currentAccountLoader
 	auth                *services.AuthService
 	guestResolver       guestResolver
+	guestSession        guestSessionDeadline
+	ordersHub           *realtime.Hub
 	allergen            *allergens.AllergenService
 	image               *services.ImageService
 	store               *services.StoreService
@@ -53,6 +56,8 @@ func NewServer(
 	roomsService *rooms.RoomsService,
 	reviewService *reviews.ReviewService,
 	orderService *orders.OrderService,
+	ordersHub *realtime.Hub,
+	guestSession guestSessionDeadline,
 ) *Server {
 	return &Server{
 		queries:             queries,
@@ -61,6 +66,8 @@ func NewServer(
 		accountService:      accountService,
 		auth:                authService,
 		guestResolver:       guestResolver,
+		guestSession:        guestSession,
+		ordersHub:           ordersHub,
 		allergen:            allergenService,
 		image:               imageService,
 		store:               storeService,

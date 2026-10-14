@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
+	domainactivity "github.com/isc-makeit/isc-fes/backend/domains/activity"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	domain "github.com/isc-makeit/isc-fes/backend/domains/entities/orders"
+	"github.com/isc-makeit/isc-fes/backend/repositories/activity"
 	"github.com/isc-makeit/isc-fes/backend/repositories/db2entities"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	orderservice "github.com/isc-makeit/isc-fes/backend/services/orders"
@@ -16,10 +18,10 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func (r *OrderRepository) UpdateOrder(ctx context.Context, input orderservice.UpdateRepositoryInput) (domain.Order, error) {
+func (r *OrderRepository) UpdateOrder(ctx context.Context, input orderservice.UpdateRepositoryInput) (orderservice.UpdateResult, error) {
 	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
 	if err != nil {
-		return domain.Order{}, fmt.Errorf("begin order update transaction: %w", err)
+		return orderservice.UpdateResult{}, fmt.Errorf("begin order update transaction: %w", err)
 	}
 	defer tx.Rollback(ctx)
 	qtx := r.queries.WithTx(tx)
@@ -28,63 +30,75 @@ func (r *OrderRepository) UpdateOrder(ctx context.Context, input orderservice.Up
 	// Storeの共有ロックはMembership変更・削除の排他ロックと競合する。
 	// 閉店や販売状況は既存の注文の状態更新を妨げない。
 	if _, err := qtx.LockStoreForShare(ctx, input.StoreID); errors.Is(err, pgx.ErrNoRows) {
-		return domain.Order{}, services.ErrNotFound
+		return orderservice.UpdateResult{}, services.ErrNotFound
 	} else if err != nil {
-		return domain.Order{}, fmt.Errorf("lock order update store: %w", err)
+		return orderservice.UpdateResult{}, fmt.Errorf("lock order update store: %w", err)
 	}
 	membership, err := qtx.LockOrderMembership(ctx, sqlc.LockOrderMembershipParams{
 		StoreID: input.StoreID, AccountID: input.AccountID,
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
-		return domain.Order{}, services.ErrForbidden
+		return orderservice.UpdateResult{}, services.ErrForbidden
 	}
 	if err != nil {
-		return domain.Order{}, fmt.Errorf("lock order update membership: %w", err)
+		return orderservice.UpdateResult{}, fmt.Errorf("lock order update membership: %w", err)
 	}
 	if !domain.CanUpdateStoreOrders(input.StoreID, entities.StoreMembership{
 		StoreID: membership.StoreID, AccountID: membership.AccountID, Role: entities.StoreMemberRole(membership.Role),
 	}) {
-		return domain.Order{}, services.ErrForbidden
+		return orderservice.UpdateResult{}, services.ErrForbidden
 	}
 	row, err := qtx.LockOrderByIDAndStoreID(ctx, sqlc.LockOrderByIDAndStoreIDParams{
 		OrderID: input.OrderID, StoreID: input.StoreID,
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
-		return domain.Order{}, services.ErrNotFound
+		return orderservice.UpdateResult{}, services.ErrNotFound
 	}
 	if err != nil {
-		return domain.Order{}, fmt.Errorf("lock order update order: %w", err)
+		return orderservice.UpdateResult{}, fmt.Errorf("lock order update order: %w", err)
 	}
 	at, err := qtx.GetOrderUpdateTime(ctx)
 	if err != nil {
-		return domain.Order{}, fmt.Errorf("get order update time: %w", err)
+		return orderservice.UpdateResult{}, fmt.Errorf("get order update time: %w", err)
 	}
 	current := db2entities.ToOrders([]sqlc.Order{row}, nil, nil)[0]
 	updated, err := orderservice.PrepareUpdate(current, input.Status, input.ExpectedVersion, at.Time)
 	if err != nil {
-		return domain.Order{}, err
+		return orderservice.UpdateResult{}, err
 	}
-	if updated.Status != current.Status {
+	changed := updated.Status != current.Status
+	if changed {
 		row, err = qtx.UpdateOrderStatus(ctx, sqlc.UpdateOrderStatusParams{
 			OrderID: input.OrderID, StoreID: input.StoreID, ExpectedVersion: input.ExpectedVersion,
 			Status: sqlc.OrderStatus(updated.Status), UpdatedAt: timestamp(&updated.UpdatedAt),
 			ReadyAt: timestamp(updated.ReadyAt), CompletedAt: timestamp(updated.CompletedAt), CancelledAt: timestamp(updated.CancelledAt),
 		})
 		if errors.Is(err, pgx.ErrNoRows) {
-			return domain.Order{}, orderservice.ErrOrderVersionConflict
+			return orderservice.UpdateResult{}, orderservice.ErrOrderVersionConflict
 		}
 		if err != nil {
-			return domain.Order{}, fmt.Errorf("update order status: %w", err)
+			return orderservice.UpdateResult{}, fmt.Errorf("update order status: %w", err)
+		}
+		if err := activity.Record(ctx, qtx, domainactivity.Event{
+			Type: domainactivity.OrderStatusChanged, StoreID: row.StoreID, SubjectID: row.ID,
+			Actor: domainactivity.AccountActor(input.AccountID), At: updated.UpdatedAt,
+			Payload: domainactivity.Payload{
+				Before:  domainactivity.Snapshot{"status": current.Status},
+				After:   domainactivity.Snapshot{"status": updated.Status},
+				Context: map[string]any{"version": row.Version},
+			},
+		}); err != nil {
+			return orderservice.UpdateResult{}, err
 		}
 	}
 	order, err := loadSnapshot(ctx, qtx, row)
 	if err != nil {
-		return domain.Order{}, fmt.Errorf("load updated order: %w", err)
+		return orderservice.UpdateResult{}, fmt.Errorf("load updated order: %w", err)
 	}
 	if err := tx.Commit(ctx); err != nil {
-		return domain.Order{}, fmt.Errorf("commit order update: %w", err)
+		return orderservice.UpdateResult{}, fmt.Errorf("commit order update: %w", err)
 	}
-	return order, nil
+	return orderservice.UpdateResult{Order: order, Changed: changed}, nil
 }
 
 func timestamp(at *time.Time) pgtype.Timestamptz {

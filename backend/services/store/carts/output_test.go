@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/carts"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
 	"github.com/isc-makeit/isc-fes/backend/services"
@@ -46,7 +45,7 @@ func TestToCartOutputGeneratesImageURLForEachCartItem(t *testing.T) {
 		},
 	}
 
-	got, err := ToCartOutput(t.Context(), cart, entities.Store{}, generator)
+	got, err := ToCartOutput(t.Context(), cart, generator)
 	if err != nil {
 		t.Fatalf("ToCartOutput() error = %v", err)
 	}
@@ -73,123 +72,39 @@ func TestToCartOutputReturnsImageURLGenerationError(t *testing.T) {
 		Items: []carts.CartItem{{ImageObjectKey: menus.MenuImageObjectKey("menus/first/image")}},
 	}
 
-	_, err := ToCartOutput(t.Context(), cart, entities.Store{}, generator)
+	_, err := ToCartOutput(t.Context(), cart, generator)
 	if !errors.Is(err, wantErr) {
 		t.Fatalf("ToCartOutput() error = %v, want %v", err, wantErr)
 	}
 }
 
-func TestToCartOutputCanCheckout(t *testing.T) {
+func TestToCartOutputAvailability(t *testing.T) {
 	now := time.Now()
-	availableItem := carts.CartItem{
-		ImageObjectKey: menus.NewMenuImageObjectKey(uuid.New()),
-	}
-	availableTopping := carts.CartItemTopping{LinkedToMenu: true}
-
-	tests := []struct {
-		name                 string
-		store                entities.Store
-		items                []carts.CartItem
-		want                 bool
-		wantToppingAvailable bool
+	for _, test := range []struct {
+		name        string
+		item        carts.CartItem
+		wantItem    bool
+		wantTopping bool
 	}{
-		{
-			name:  "available cart",
-			items: []carts.CartItem{availableItem},
-			want:  true,
-		},
-		{
-			name:  "empty cart",
-			items: []carts.CartItem{},
-			want:  false,
-		},
-		{
-			name:  "closed store",
-			store: entities.Store{ClosedAt: &now},
-			items: []carts.CartItem{availableItem},
-			want:  false,
-		},
-		{
-			name: "sold out menu",
-			items: []carts.CartItem{{
-				ImageObjectKey: menus.NewMenuImageObjectKey(uuid.New()),
-				Soldout:        true,
-			}},
-			want: false,
-		},
-		{
-			name: "deleted menu",
-			items: []carts.CartItem{{
-				ImageObjectKey: menus.NewMenuImageObjectKey(uuid.New()),
-				DeletedAt:      &now,
-			}},
-			want: false,
-		},
-		{
-			name: "sold out topping",
-			items: []carts.CartItem{{
-				ImageObjectKey: menus.NewMenuImageObjectKey(uuid.New()),
-				Toppings: []carts.CartItemTopping{{
-					Soldout:      true,
-					LinkedToMenu: true,
-				}},
-			}},
-			want: false,
-		},
-		{
-			name: "deleted topping",
-			items: []carts.CartItem{{
-				ImageObjectKey: menus.NewMenuImageObjectKey(uuid.New()),
-				Toppings: []carts.CartItemTopping{{
-					DeletedAt:    &now,
-					LinkedToMenu: true,
-				}},
-			}},
-			want: false,
-		},
-		{
-			name: "detached topping",
-			items: []carts.CartItem{{
-				ImageObjectKey: menus.NewMenuImageObjectKey(uuid.New()),
-				Toppings:       []carts.CartItemTopping{{LinkedToMenu: false}},
-			}},
-			want: false,
-		},
-		{
-			name: "available topping",
-			items: []carts.CartItem{{
-				ImageObjectKey: menus.NewMenuImageObjectKey(uuid.New()),
-				Toppings:       []carts.CartItemTopping{availableTopping},
-			}},
-			want:                 true,
-			wantToppingAvailable: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			generator := &recordingMenuImageURLGenerator{
-				urls: map[menus.MenuImageObjectKey]string{},
-			}
-			cart := carts.Cart{Items: tt.items}
-
-			got, err := ToCartOutput(t.Context(), cart, tt.store, generator)
+		{"available", carts.CartItem{Toppings: []carts.CartItemTopping{{LinkedToMenu: true}}}, true, true},
+		{"sold out menu", carts.CartItem{Soldout: true}, false, false},
+		{"deleted menu", carts.CartItem{DeletedAt: &now}, false, false},
+		{"sold out topping", carts.CartItem{Toppings: []carts.CartItemTopping{{Soldout: true, LinkedToMenu: true}}}, true, false},
+		{"deleted topping", carts.CartItem{Toppings: []carts.CartItemTopping{{DeletedAt: &now, LinkedToMenu: true}}}, true, false},
+		{"detached topping", carts.CartItem{Toppings: []carts.CartItemTopping{{LinkedToMenu: false}}}, true, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := ToCartOutput(t.Context(), carts.Cart{Items: []carts.CartItem{test.item}}, &recordingMenuImageURLGenerator{})
 			if err != nil {
-				t.Fatalf("ToCartOutput() error = %v", err)
+				t.Fatal(err)
 			}
-			for i, item := range tt.items {
-				if len(got.Items[i].Toppings) != len(item.Toppings) {
-					t.Fatal("cart topping selections were lost")
-				}
-				for j, topping := range item.Toppings {
-					wantAvailable := tt.wantToppingAvailable
-					if got.Items[i].Toppings[j].Available != wantAvailable {
-						t.Errorf("topping %v available = %v, want %v", topping.ToppingID, got.Items[i].Toppings[j].Available, wantAvailable)
-					}
-				}
+			if len(got.Items) != 1 || got.Items[0].Available != test.wantItem || len(got.Items[0].Toppings) != len(test.item.Toppings) {
+				t.Fatalf("unexpected item: %+v", got.Items)
 			}
-			if got.CanCheckout != tt.want {
-				t.Errorf("ToCartOutput().CanCheckout = %v, want %v", got.CanCheckout, tt.want)
+			for _, topping := range got.Items[0].Toppings {
+				if topping.Available != test.wantTopping {
+					t.Fatalf("unexpected topping: %+v", topping)
+				}
 			}
 		})
 	}
@@ -204,7 +119,7 @@ func TestToCartOutputKeepsDetachedSelectionAndAmount(t *testing.T) {
 			LinkedToMenu: false,
 		}},
 	}}}
-	got, err := ToCartOutput(t.Context(), cart, entities.Store{}, &recordingMenuImageURLGenerator{})
+	got, err := ToCartOutput(t.Context(), cart, &recordingMenuImageURLGenerator{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -215,7 +130,7 @@ func TestToCartOutputKeepsDetachedSelectionAndAmount(t *testing.T) {
 	if topping.ToppingID != toppingID || topping.Name != "目玉焼き" || topping.UnitPrice != 50 {
 		t.Fatalf("selection changed: %#v", topping)
 	}
-	if topping.Available || got.CanCheckout || got.TotalAmount != 700 {
-		t.Fatalf("detached cart: available=%v, canCheckout=%v, amount=%d", topping.Available, got.CanCheckout, got.TotalAmount)
+	if topping.Available || got.TotalAmount != 700 {
+		t.Fatalf("detached cart: available=%v, amount=%d", topping.Available, got.TotalAmount)
 	}
 }

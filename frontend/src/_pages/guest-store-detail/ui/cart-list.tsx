@@ -32,7 +32,7 @@ export function CartList() {
   const {
     clearCart,
     displayedCartItems,
-    isSaving,
+    isBusy,
     hasPendingChanges,
     canCheckout,
     checkout,
@@ -67,7 +67,7 @@ export function CartList() {
             type="button"
             variant="secondary"
             className="h-auto rounded-sm px-6 py-2 text-base font-semibold shadow-none"
-            disabled={isSaving || hasPendingChanges || !canCheckout}
+            disabled={isBusy || hasPendingChanges || !canCheckout}
             onClick={checkout}
           >
             注文画面へ ＞
@@ -86,7 +86,7 @@ export function CartList() {
               variant="ghost"
               className="text-notice text-sm"
               onClick={clearCart}
-              disabled={isSaving}
+              disabled={isBusy}
             >
               全て削除
             </Button>
@@ -106,7 +106,7 @@ export function CartList() {
           type="button"
           variant="ghost"
           className="text-notice text-sm"
-          disabled={isSaving}
+          disabled={isBusy}
           onClick={clearCart}
         >
           全て削除
@@ -125,7 +125,7 @@ export function CartList() {
           type="button"
           variant="secondary"
           className="w-full rounded-sm px-6 py-2 font-semibold"
-          disabled={isSaving || hasPendingChanges || !canCheckout}
+          disabled={isBusy || hasPendingChanges || !canCheckout}
           onClick={checkout}
         >
           注文画面へ ＞

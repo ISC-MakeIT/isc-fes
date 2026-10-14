@@ -283,6 +283,28 @@ func (q *Queries) GetOrderByIDAndGuestID(ctx context.Context, arg GetOrderByIDAn
 	return i, err
 }
 
+const getOrderCart = `-- name: GetOrderCart :one
+SELECT id, guest_id, store_id, version FROM carts
+WHERE guest_id = $1 AND store_id = $2
+`
+
+type GetOrderCartParams struct {
+	GuestID uuid.UUID `json:"guest_id"`
+	StoreID uuid.UUID `json:"store_id"`
+}
+
+func (q *Queries) GetOrderCart(ctx context.Context, arg GetOrderCartParams) (Cart, error) {
+	row := q.db.QueryRow(ctx, getOrderCart, arg.GuestID, arg.StoreID)
+	var i Cart
+	err := row.Scan(
+		&i.ID,
+		&i.GuestID,
+		&i.StoreID,
+		&i.Version,
+	)
+	return i, err
+}
+
 const getOrderItemToppingsByOrderIDs = `-- name: GetOrderItemToppingsByOrderIDs :many
 SELECT order_item_toppings.order_item_id, order_item_toppings.store_id, order_item_toppings.topping_id, order_item_toppings.topping_name, order_item_toppings.unit_price FROM order_item_toppings
 JOIN order_items ON order_items.id = order_item_toppings.order_item_id

@@ -1,0 +1,275 @@
+package realtime
+
+import (
+	"bufio"
+	"context"
+	"errors"
+	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"time"
+
+	"github.com/coder/websocket"
+	"github.com/google/uuid"
+)
+
+const (
+	InitialSyncTimeout = 10 * time.Second
+	UpdateSyncTimeout  = 10 * time.Second
+	PingInterval       = 30 * time.Second
+	PongTimeout        = 10 * time.Second
+	WriteTimeout       = 10 * time.Second
+	CloseTimeout       = 10 * time.Second
+)
+
+type Connection struct {
+	socket    *websocket.Conn
+	transport net.Conn
+}
+
+// Acceptは検証済みのOriginを持つHTTPリクエストをWSへ切り替える。
+// HijackしたTCP接続も保持し、停止期限を超えた場合に確実に閉じられるようにする。
+func Accept(w http.ResponseWriter, r *http.Request) (*Connection, error) {
+	writer := &upgradeWriter{ResponseWriter: w}
+	socket, err := websocket.Accept(writer, r, &websocket.AcceptOptions{InsecureSkipVerify: true})
+	if err != nil {
+		return nil, err
+	}
+	return &Connection{socket: socket, transport: writer.transport}, nil
+}
+
+// CloseNowはHTTPハンドラがHubへ登録できなかった場合にも通信を解放する。
+func (c *Connection) CloseNow() {
+	_ = c.transport.Close()
+	_ = c.socket.CloseNow()
+}
+
+type connectionTiming struct {
+	initialSyncTimeout time.Duration
+	updateSyncTimeout  time.Duration
+	pingInterval       time.Duration
+	pongTimeout        time.Duration
+	writeTimeout       time.Duration
+	closeTimeout       time.Duration
+}
+
+// Runはreadyを先頭に送り、その後は変更通知ごとに一覧を取得して送信する。
+// 取得と送信はこのループで直列実行し、古い一覧が新しい一覧を上書きするのを防ぐ。
+// 各loaderはcontextの期限・キャンセルに従い、取得と送信に共通の期限を適用する。
+// expiresは接続時に確定した期限。HTTPリクエストのcontextや期限更新には追従しない。
+// 終了時は通信・受信goroutineを終了してからSubscriptionを解除する。
+func (c *Connection) Run(s *Subscription, loadReady func(context.Context) ([]byte, error), loadChanged func(context.Context, uuid.UUID) ([]byte, error), expires time.Time) error {
+	return c.run(s, loadReady, loadChanged, expires, connectionTiming{
+		initialSyncTimeout: InitialSyncTimeout,
+		updateSyncTimeout:  UpdateSyncTimeout,
+		pingInterval:       PingInterval, pongTimeout: PongTimeout,
+		writeTimeout: WriteTimeout, closeTimeout: CloseTimeout,
+	})
+}
+
+func (c *Connection) run(s *Subscription, loadReady func(context.Context) ([]byte, error), loadChanged func(context.Context, uuid.UUID) ([]byte, error), expires time.Time, timing connectionTiming) error {
+	s.setAbort(func() { _ = c.transport.Close() })
+	loadsCtx, cancelLoads := context.WithCancel(context.Background())
+	defer cancelLoads()
+	readCtx, cancelRead := context.WithCancel(context.Background())
+	readResult := make(chan error, 1)
+	readerDone := make(chan struct{})
+	go func() {
+		defer close(readerDone)
+		_, _, err := c.socket.Reader(readCtx)
+		readResult <- err // nilはクライアントのアプリケーションデータを意味する。
+		cancelLoads()     // 初期同期・更新一覧の取得中でも、クライアント切断でDB処理を中断する。
+	}()
+
+	finished := make(chan struct{})
+	closerDone := make(chan struct{})
+	go func() {
+		defer close(closerDone)
+		select {
+		case <-s.Done():
+			// DB取得だけ中断する。WS書き込みをキャンセルしてCloseの機会を失わない。
+			cancelLoads()
+			code, reason := websocket.StatusNormalClosure, "connection closed"
+			if errors.Is(s.Err(), ErrHubStopped) {
+				code, reason = websocket.StatusGoingAway, "server stopping"
+			} else if errors.Is(s.Err(), ErrSlowConsumer) {
+				code, reason = websocket.StatusTryAgainLater, "connection queue full; reconnect"
+			} else if errors.Is(s.Err(), ErrResyncRequired) {
+				code, reason = websocket.StatusInternalError, "order resync required; reconnect"
+			}
+			c.close(code, reason, timing.closeTimeout)
+		case <-finished:
+		}
+	}()
+	defer func() {
+		close(finished)
+		// TCPを先に閉じ、Closeの応答待ちや受信処理も確実に解放する。
+		c.CloseNow()
+		cancelRead()
+		<-readerDone
+		<-closerDone
+		s.Close()
+	}()
+
+	if !time.Now().Before(expires) {
+		c.close(websocket.StatusPolicyViolation, "guest session expired", timing.closeTimeout)
+		return nil
+	}
+	select {
+	case <-s.Done():
+		<-closerDone
+		return nil
+	default:
+	}
+	if err := c.loadAndWrite(loadsCtx, expires, timing.initialSyncTimeout, timing.writeTimeout, loadReady); err != nil {
+		return c.handleSyncFailure(s, expires, err, readResult, closerDone, timing.closeTimeout)
+	}
+
+	ping := time.NewTicker(timing.pingInterval)
+	defer ping.Stop()
+	expiry := time.NewTimer(time.Until(expires))
+	defer expiry.Stop()
+	for {
+		// 終了後は残っているキューを排出しない。
+		select {
+		case <-s.Done():
+			<-closerDone
+			return nil
+		default:
+		}
+		select {
+		case <-s.Done():
+			<-closerDone
+			return nil
+		case err := <-readResult:
+			return c.handleReadResult(s, expires, err, timing.closeTimeout)
+		case <-expiry.C:
+			c.close(websocket.StatusPolicyViolation, "guest session expired", timing.closeTimeout)
+			return nil
+		case <-ping.C:
+			ctx, cancel := operationContext(expires, timing.pongTimeout)
+			err := c.socket.Ping(ctx)
+			cancel()
+			if err != nil {
+				return connectionFailure(s, expires, fmt.Errorf("ping WebSocket: %w", err))
+			}
+		case orderID := <-s.Changes():
+			load := func(ctx context.Context) ([]byte, error) { return loadChanged(ctx, orderID) }
+			if err := c.loadAndWrite(loadsCtx, expires, timing.updateSyncTimeout, timing.writeTimeout, load); err != nil {
+				return c.handleSyncFailure(s, expires, err, readResult, closerDone, timing.closeTimeout)
+			}
+		}
+	}
+}
+
+// DB取得を接続終了で中断しつつ、Closeフレームの送信には独立したcontextを使う。
+// 一覧取得から書き込みまで、同じ同期期限を共有する。
+func (c *Connection) loadAndWrite(loadsCtx context.Context, expires time.Time, syncTimeout, writeTimeout time.Duration, load func(context.Context) ([]byte, error)) error {
+	syncCtx, cancelSync := operationContext(expires, syncTimeout)
+	defer cancelSync()
+	loadCtx, cancelLoad := context.WithCancel(syncCtx)
+	defer cancelLoad()
+	stopCancel := context.AfterFunc(loadsCtx, cancelLoad)
+	defer stopCancel()
+	if err := loadsCtx.Err(); err != nil {
+		return err
+	}
+	message, err := load(loadCtx)
+	if err != nil {
+		return err
+	}
+	if err := loadCtx.Err(); err != nil {
+		return err
+	}
+	if err := loadsCtx.Err(); err != nil {
+		return err
+	}
+	writeCtx, cancelWrite := context.WithTimeout(syncCtx, writeTimeout)
+	defer cancelWrite()
+	return c.socket.Write(writeCtx, websocket.MessageText, message)
+}
+
+func (c *Connection) handleSyncFailure(s *Subscription, expires time.Time, err error, readResult <-chan error, closerDone <-chan struct{}, closeTimeout time.Duration) error {
+	select {
+	case <-s.Done():
+		<-closerDone
+		return nil
+	default:
+	}
+	if !time.Now().Before(expires) {
+		c.close(websocket.StatusPolicyViolation, "guest session expired", closeTimeout)
+		return nil
+	}
+	if !errors.Is(err, context.DeadlineExceeded) {
+		select {
+		case readErr := <-readResult:
+			return c.handleReadResult(s, expires, readErr, closeTimeout)
+		default:
+		}
+	}
+	c.close(websocket.StatusInternalError, "order sync failed; reconnect", closeTimeout)
+	return fmt.Errorf("synchronize WebSocket orders: %w", err)
+}
+
+func (c *Connection) handleReadResult(s *Subscription, expires time.Time, err error, closeTimeout time.Duration) error {
+	if err == nil {
+		c.close(websocket.StatusPolicyViolation, "unexpected data message", closeTimeout)
+		return nil
+	}
+	if websocket.CloseStatus(err) == websocket.StatusNormalClosure || websocket.CloseStatus(err) == websocket.StatusGoingAway ||
+		errors.Is(err, io.EOF) || errors.Is(err, net.ErrClosed) {
+		return nil
+	}
+	return connectionFailure(s, expires, fmt.Errorf("read WebSocket: %w", err))
+}
+
+// 停止やセッション期限による意図した切断を、サーバー障害として記録しない。
+func connectionFailure(s *Subscription, expires time.Time, err error) error {
+	select {
+	case <-s.Done():
+		return nil
+	default:
+	}
+	if !time.Now().Before(expires) {
+		return nil
+	}
+	return err
+}
+
+func operationContext(expires time.Time, timeout time.Duration) (context.Context, context.CancelFunc) {
+	return context.WithDeadline(context.Background(), minTime(expires, time.Now().Add(timeout)))
+}
+
+func minTime(a, b time.Time) time.Time {
+	if a.Before(b) {
+		return a
+	}
+	return b
+}
+
+func (c *Connection) close(code websocket.StatusCode, reason string, timeout time.Duration) {
+	// coderのClose応答待ちが停滞しても、この期限でTCPを切断する。
+	force := time.AfterFunc(timeout, func() { _ = c.transport.Close() })
+	defer force.Stop()
+	_ = c.socket.Close(code, reason)
+}
+
+type upgradeWriter struct {
+	http.ResponseWriter
+	transport net.Conn
+}
+
+func (w *upgradeWriter) WriteHeaderNow() {
+	if ginWriter, ok := w.ResponseWriter.(interface{ WriteHeaderNow() }); ok {
+		ginWriter.WriteHeaderNow()
+	}
+}
+
+func (w *upgradeWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	conn, buffered, err := http.NewResponseController(w.ResponseWriter).Hijack()
+	if err == nil {
+		w.transport = conn
+	}
+	return conn, buffered, err
+}

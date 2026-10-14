@@ -201,6 +201,19 @@ type AccountSession struct {
 	Expiry pgtype.Timestamptz `json:"expiry"`
 }
 
+type ActivityLog struct {
+	ID             uuid.UUID          `json:"id"`
+	OccurredAt     pgtype.Timestamptz `json:"occurred_at"`
+	EventType      string             `json:"event_type"`
+	StoreID        uuid.UUID          `json:"store_id"`
+	SubjectType    string             `json:"subject_type"`
+	SubjectID      uuid.UUID          `json:"subject_id"`
+	ActorAccountID *uuid.UUID         `json:"actor_account_id"`
+	ActorGuestID   *uuid.UUID         `json:"actor_guest_id"`
+	PayloadVersion int16              `json:"payload_version"`
+	Payload        []byte             `json:"payload"`
+}
+
 type Allergen struct {
 	ID   uuid.UUID `json:"id"`
 	Name string    `json:"name"`

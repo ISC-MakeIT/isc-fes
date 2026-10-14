@@ -1,4 +1,4 @@
-import { Store } from "@/entities/store";
+import { Store } from "../model/types";
 import { createApiClient } from "@/shared/api";
 import { getStatusMessage, HTTP_STATUS, storeDetailKey } from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
