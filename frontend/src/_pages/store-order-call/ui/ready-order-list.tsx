@@ -3,7 +3,7 @@
 import { Order, OrderStatus, storeOrdersQueryOptions } from "@/entities/order";
 import { Card } from "@/shared/ui/card";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Button, buttonVariants } from "@/shared/ui/button";
+import { buttonVariants } from "@/shared/ui/button";
 import { XIcon } from "lucide-react";
 import {
   Accordion,
@@ -17,6 +17,7 @@ import { ReadyOrderItemRow } from "./ready-order-item-row";
 import { Dialog, DialogTrigger } from "@/shared/ui/dialog";
 import { OrderPaymentConfirmDialog } from "./order-payment-confirm-dialog";
 import { cn } from "@/shared/lib/utils";
+import { OrderCancelConfirmDialog } from "./order-cancel-confirm-dialog";
 
 const MAX_OPEN_ORDERS = 3;
 
@@ -54,28 +55,28 @@ type ReadyOrderRowProps = {
 
 function ReadyOrderRow({ order }: ReadyOrderRowProps) {
   return (
-    <Dialog>
-      <AccordionItem value={order.id}>
-        <Card className="border-primary flex flex-row gap-4 rounded-sm border-4 px-4">
-          <div className="flex w-full flex-col">
-            <AccordionTrigger className="flex flex-row gap-4 pb-3">
-              <h2 className="space-x-2 text-lg font-semibold">
-                <span>注文番号</span>
-                <span className="text-[1.375rem] font-bold">
-                  {order.displayNumber}
-                </span>
-              </h2>
-              <h2 className="mr-10 ml-auto text-[1.375rem] font-bold">{`合計金額：${formatYen(order.totalAmount)}`}</h2>
-            </AccordionTrigger>
+    <AccordionItem value={order.id}>
+      <Card className="border-primary flex flex-row gap-4 rounded-sm border-4 px-4">
+        <div className="flex w-full flex-col">
+          <AccordionTrigger className="flex flex-row gap-4 pb-3">
+            <h2 className="space-x-2 text-lg font-semibold">
+              <span>注文番号</span>
+              <span className="text-[1.375rem] font-bold">
+                {order.displayNumber}
+              </span>
+            </h2>
+            <h2 className="mr-10 ml-auto text-[1.375rem] font-bold">{`合計金額：${formatYen(order.totalAmount)}`}</h2>
+          </AccordionTrigger>
 
-            <AccordionContent className="border-foreground space-y-4 border-t py-2 pr-2 pl-8.5">
-              {order.items.map((item) => (
-                <ReadyOrderItemRow key={item.id} item={item} />
-              ))}
-            </AccordionContent>
-          </div>
+          <AccordionContent className="border-foreground space-y-4 border-t py-2 pr-2 pl-8.5">
+            {order.items.map((item) => (
+              <ReadyOrderItemRow key={item.id} item={item} />
+            ))}
+          </AccordionContent>
+        </div>
 
-          <div className="flex flex-row items-start justify-start gap-4">
+        <div className="flex flex-row items-start justify-start gap-4">
+          <Dialog>
             <DialogTrigger
               className={cn(
                 buttonVariants({ variant: "secondary" }),
@@ -84,14 +85,19 @@ function ReadyOrderRow({ order }: ReadyOrderRowProps) {
             >
               決済完了
             </DialogTrigger>
-            <Button variant="ghost">
-              <XIcon className="text-close-button size-7" strokeWidth="4" />
-            </Button>
-          </div>
-        </Card>
-      </AccordionItem>
 
-      <OrderPaymentConfirmDialog order={order} />
-    </Dialog>
+            <OrderPaymentConfirmDialog order={order} />
+          </Dialog>
+
+          <Dialog>
+            <DialogTrigger>
+              <XIcon className="text-close-button size-7" strokeWidth="4" />
+            </DialogTrigger>
+
+            <OrderCancelConfirmDialog order={order} />
+          </Dialog>
+        </div>
+      </Card>
+    </AccordionItem>
   );
 }
