@@ -90,7 +90,7 @@ function ReadyOrderRow({ order }: ReadyOrderRowProps) {
           </Dialog>
 
           <Dialog>
-            <DialogTrigger>
+            <DialogTrigger className="cursor-pointer">
               <XIcon className="text-close-button size-7" strokeWidth="4" />
             </DialogTrigger>
 

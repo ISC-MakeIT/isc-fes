@@ -34,7 +34,7 @@ function PendingOrderRow({ order }: PendingOrderRowProps) {
   return (
     <li>
       <Dialog>
-        <DialogTrigger className="w-full text-left">
+        <DialogTrigger className="w-full cursor-pointer text-left">
           <Card className="border-secondary shadow-primary flex flex-row gap-2 rounded-sm border-3 px-6 py-4 shadow-[4px_4px_0]">
             <div className="flex w-full flex-col">
               <div className="border-foreground space-y-1 border-b">
