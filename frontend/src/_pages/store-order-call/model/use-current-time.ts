@@ -9,6 +9,8 @@ export function useCurrentTime(): Temporal.Instant | null {
   const [now, setNow] = useState<Temporal.Instant | null>(null);
 
   useEffect(() => {
+    setNow(Temporal.Now.instant());
+
     const intervalId = setInterval(() => {
       setNow(Temporal.Now.instant());
     }, CLOCK_UPDATE_INTERVAL_MS);
