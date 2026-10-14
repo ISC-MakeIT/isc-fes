@@ -18,6 +18,9 @@ import { Dialog, DialogTrigger } from "@/shared/ui/dialog";
 import { OrderPaymentConfirmDialog } from "./order-payment-confirm-dialog";
 import { cn } from "@/shared/lib/utils";
 import { OrderCancelConfirmDialog } from "./order-cancel-confirm-dialog";
+import { useCurrentTime } from "../model/use-current-time";
+import { Temporal } from "temporal-polyfill-lite";
+import { canCancelOrder } from "../lib/can-cancel-order";
 
 const MAX_OPEN_ORDERS = 3;
 
@@ -35,6 +38,8 @@ export function ReadyOrderList({ storeId }: ReadyOrderListProps) {
     MAX_OPEN_ORDERS,
   );
 
+  const now = useCurrentTime();
+
   return (
     <Accordion
       className="flex flex-col gap-6 px-8 py-6"
@@ -43,7 +48,7 @@ export function ReadyOrderList({ storeId }: ReadyOrderListProps) {
       onValueChange={accordionOnValueChange}
     >
       {readyOrders.map((order) => (
-        <ReadyOrderRow key={order.id} order={order} />
+        <ReadyOrderRow key={order.id} order={order} now={now} />
       ))}
     </Accordion>
   );
@@ -51,9 +56,12 @@ export function ReadyOrderList({ storeId }: ReadyOrderListProps) {
 
 type ReadyOrderRowProps = {
   order: Order;
+  now: Temporal.Instant | null;
 };
 
-function ReadyOrderRow({ order }: ReadyOrderRowProps) {
+function ReadyOrderRow({ order, now }: ReadyOrderRowProps) {
+  const canCancel = now !== null && canCancelOrder(order, now);
+
   return (
     <AccordionItem value={order.id}>
       <Card className="border-primary flex flex-row gap-4 rounded-sm border-4 px-4">
@@ -90,7 +98,7 @@ function ReadyOrderRow({ order }: ReadyOrderRowProps) {
           </Dialog>
 
           <Dialog>
-            <DialogTrigger className="cursor-pointer">
+            <DialogTrigger className="cursor-pointer" disabled={!canCancel}>
               <XIcon className="text-close-button size-7" strokeWidth="4" />
             </DialogTrigger>
 
