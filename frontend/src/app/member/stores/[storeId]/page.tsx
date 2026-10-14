@@ -1,5 +1,5 @@
 import { StoreHomeView } from "@/_pages/store-home";
-import { storeMemberQueryOptions } from "@/_pages/store-home/api/fetch-store-members";
+import { storeMemberQueryOptions } from "@/_pages/store-home";
 import { storeMenusQueryOptions } from "@/entities/menu";
 import { storeDetailQueryOptions } from "@/entities/store";
 import { createQueryClient } from "@/shared/api";
