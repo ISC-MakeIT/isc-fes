@@ -34,6 +34,7 @@ export const Store = v.object({
   allergens: v.array(Allergen),
   congestionLevel: StoreCongestionLevel,
   orderEnabled: v.boolean(),
+  closedAt: v.nullable(v.pipe(v.string(), v.toDate())),
 });
 
 export type Store = v.InferOutput<typeof Store>;

@@ -16,6 +16,7 @@ import { SidebarNavigation } from "./sidebar-navigation";
 import { SidebarSupportNavigation } from "./sidebar-support-navigation";
 import { StoreListNavigation } from "./store-list-navigation";
 import { GuestHomeNavigation } from "./guest-home-navigation";
+import { CloseStoreButton } from "./close-store-button";
 
 export type AppSidebarProps =
   | { variant: "admin" }
@@ -57,6 +58,12 @@ export function AppSidebar(props: AppSidebarProps) {
         <SidebarMenu>
           <SidebarSupportNavigation />
         </SidebarMenu>
+
+        {props.variant === "store" && (
+          <SidebarMenu className="mt-auto mb-2">
+            <CloseStoreButton storeId={props.storeId} />
+          </SidebarMenu>
+        )}
       </SidebarContent>
     </Sidebar>
   );
