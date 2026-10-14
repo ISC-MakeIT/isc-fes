@@ -1,5 +1,9 @@
-import { storeMemberByAccountIdQueryOptions } from "@/entities/store-member";
-import { currentAccountQueryOptions } from "@/entities/account";
+import { storeDetailQueryOptions } from "@/entities/store";
+import {
+  StoreMemberRole,
+  storeMemberByAccountIdQueryOptions,
+} from "@/entities/store-member";
+import { AccountRole, currentAccountQueryOptions } from "@/entities/account";
 import { createQueryClient } from "@/shared/api";
 import { loginUrl, storeListUrl } from "@/shared/config";
 import { notFound, redirect } from "next/navigation";
@@ -16,17 +20,29 @@ export default async function StoreMemberLayout(
     redirect(loginUrl(storeListUrl()));
   }
 
+  if (account.role === AccountRole.Admin) {
+    await queryClient.fetchQuery(storeDetailQueryOptions(storeId));
+  }
+
   const currentMember = await queryClient.fetchQuery(
     storeMemberByAccountIdQueryOptions(storeId, account.id),
   );
 
-  if (!currentMember) {
+  const memberRole =
+    account.role === AccountRole.Admin
+      ? StoreMemberRole.Manager
+      : currentMember?.role;
+  if (!memberRole) {
     notFound();
   }
 
   return (
     <AppSidebarLayout
-      sidebar={{ variant: "store", storeId, memberRole: currentMember.role }}
+      sidebar={{
+        variant: "store",
+        storeId,
+        memberRole,
+      }}
     >
       {props.children}
     </AppSidebarLayout>

@@ -79,6 +79,7 @@ func NewRouter(s *Server, corsAllowedOrigins []string) (*gin.Engine, error) {
 	openAPIRoutes := router.Group("")
 	openAPIRoutes.Use(limitRequestBody(maxRequestBodySize))
 	openAPIRoutes.Use(openAPIValidator)
+	openAPIRoutes.Use(resolveOptionalStoreAccount(s.accountService, handleAuthenticationError))
 	openAPIRoutes.Use(resolveRequiredGuestSession(s.guestResolver, handleAuthenticationError))
 	RegisterHandlersWithOptions(openAPIRoutes, s, GinServerOptions{
 		ErrorHandler: handleOpenAPIBindingError,

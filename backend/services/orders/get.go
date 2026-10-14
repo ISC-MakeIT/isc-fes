@@ -55,7 +55,7 @@ func (s *OrderService) GetOrdersByStoreID(ctx context.Context, storeID uuid.UUID
 		}
 		return nil, fmt.Errorf("get order store: %w", err)
 	}
-	membership, err := s.storeMembershipRepository.GetStoreMembershipByAccountIDAndStoreID(ctx, account.ID, storeID)
+	membership, err := services.StoreMembershipForAuthorization(ctx, s.storeMembershipRepository, account, storeID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, services.ErrForbidden
 	}

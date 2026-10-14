@@ -35,7 +35,7 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, input orderservice.Cr
 	defer tx.Rollback(ctx)
 	qtx := r.queries.WithTx(tx)
 
-	// 全経路で Guest → Store → Membership → Cart → Counter の順序を守る。
+	// 全経路で Guest → Store → Account → Membership → Cart → Counter の順序を守る。
 	if _, err := qtx.LockGuest(ctx, input.GuestID); err != nil {
 		return orderservice.CreateResult{}, fmt.Errorf("lock order guest: %w", err)
 	}

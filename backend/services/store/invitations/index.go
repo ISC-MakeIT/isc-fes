@@ -13,12 +13,14 @@ import (
 )
 
 type StoreInvitationService struct {
+	storeRepository            services.StoreReader
 	storeMembersRepository     repositoryinterfaces.StoreMembersRepository
 	storeInvitationsRepository repositoryinterfaces.StoreInvitationsRepository
 }
 
-func NewStoreInvitationService(storeMembersRepository repositoryinterfaces.StoreMembersRepository, storeInvitationsRepository repositoryinterfaces.StoreInvitationsRepository) *StoreInvitationService {
+func NewStoreInvitationService(storeRepository services.StoreReader, storeMembersRepository repositoryinterfaces.StoreMembersRepository, storeInvitationsRepository repositoryinterfaces.StoreInvitationsRepository) *StoreInvitationService {
 	return &StoreInvitationService{
+		storeRepository:            storeRepository,
 		storeMembersRepository:     storeMembersRepository,
 		storeInvitationsRepository: storeInvitationsRepository,
 	}
@@ -30,7 +32,14 @@ func (s *StoreInvitationService) CreateStoreInvitation(ctx context.Context, stor
 		return entities.StoreInvitation{}, err
 	}
 
-	storeMember, err := s.storeMembersRepository.GetStoreMembershipByAccountIDAndStoreID(ctx, account.ID, storeID)
+	if _, err := s.storeRepository.GetStoreByID(ctx, storeID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return entities.StoreInvitation{}, services.ErrNotFound
+		}
+		return entities.StoreInvitation{}, err
+	}
+
+	storeMember, err := services.StoreMembershipForAuthorization(ctx, s.storeMembersRepository, account, storeID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return entities.StoreInvitation{}, services.ErrNotFound
 	}

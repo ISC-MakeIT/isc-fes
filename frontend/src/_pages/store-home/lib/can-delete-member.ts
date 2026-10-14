@@ -1,17 +1,19 @@
 import { StoreMember, StoreMemberRole } from "@/entities/store-member";
 
 type CanDeleteMemberParams = {
-  currentMember: StoreMember;
+  currentAccountId: string;
+  canManageMembers: boolean;
   targetMember: StoreMember;
 };
 
 export function canDeleteMember({
-  currentMember,
+  currentAccountId,
+  canManageMembers,
   targetMember,
 }: CanDeleteMemberParams) {
   return (
-    currentMember.role === StoreMemberRole.Manager &&
-    targetMember.accountId !== currentMember.accountId &&
+    canManageMembers &&
+    targetMember.accountId !== currentAccountId &&
     targetMember.role !== StoreMemberRole.Manager
   );
 }

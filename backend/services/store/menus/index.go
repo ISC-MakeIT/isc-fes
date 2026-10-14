@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/menus"
 	"github.com/isc-makeit/isc-fes/backend/domains/entities/toppings"
 	"github.com/isc-makeit/isc-fes/backend/services"
@@ -33,15 +32,9 @@ func NewMenuService(menuRepository MenuRepository, imageURLGenerator services.Im
 }
 
 func (s *MenuService) GetMenusByStoreID(c context.Context, storeID uuid.UUID) ([]menus.MenuDisplay, error) {
-	store, err := s.storeRepository.GetStoreByID(c, storeID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, services.ErrNotFound
-	}
+	_, err := services.GetStoreForRead(c, s.storeRepository, storeID)
 	if err != nil {
 		return nil, err
-	}
-	if store.ReviewStatus != entities.StoreReviewStatusApproved {
-		return nil, services.ErrNotFound
 	}
 
 	entityMenus, err := s.menuRepository.GetMenusByStoreID(c, storeID)
@@ -53,15 +46,9 @@ func (s *MenuService) GetMenusByStoreID(c context.Context, storeID uuid.UUID) ([
 }
 
 func (s *MenuService) GetToppingsByStoreIDAndMenuID(c context.Context, storeID uuid.UUID, menuID uuid.UUID) ([]toppings.Topping, error) {
-	store, err := s.storeRepository.GetStoreByID(c, storeID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, services.ErrNotFound
-	}
+	_, err := services.GetStoreForRead(c, s.storeRepository, storeID)
 	if err != nil {
 		return nil, err
-	}
-	if store.ReviewStatus != entities.StoreReviewStatusApproved {
-		return nil, services.ErrNotFound
 	}
 
 	_, err = s.menuRepository.GetMenuByStoreIDAndMenuID(c, storeID, menuID)

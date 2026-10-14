@@ -2,6 +2,10 @@ openapi: 3.0.3
 info:
   title: isc-fes API
   version: 0.1.0
+  description: |
+    admin は所属によらず全店舗で manager と同じ操作権限を持つ。
+    店舗のGETでは未承認店舗も閲覧できる。更新系にはmanagerと同じ入力・状態の制約を適用する。
+    メンバー取得は実際の所属データを返すため、対象が未所属ならadminでも404となる。
 servers:
   - url: http://localhost:8080
     description: ローカル開発環境
@@ -80,7 +84,7 @@ paths:
       summary: カートから注文を確定する
       description: |
         同じGuest・店舗・元カートversionの再送は、現在の販売状況や権限にかかわらず同じ注文を返す。
-        通常のpending/ready注文は全店舗合計で2件まで。当該店舗のStaff/Managerによる注文は件数制限を免除し、集計から除外する。
+        通常のpending/ready注文は全店舗合計で2件まで。当該店舗のStaff/ManagerまたはAdminによる注文は件数制限を免除し、集計から除外する。
         成功時は同じカートの明細を消去してversionを1増やす。明細順序は保証しない。
       security:
         - GuestSession: []
@@ -191,7 +195,7 @@ paths:
       responses:
         "200":
           description: |
-            当該店舗のStaff/Managerの場合、全Guestの注文を注文時の明細付きで古い注文から返す。
+            当該店舗のStaff/ManagerまたはAdminの場合、全Guestの注文を注文時の明細付きで古い注文から返す。
             statusesを省略した場合はpending/ready、指定した場合は指定した状態のいずれかに一致する注文を返す。
             キッチンはstatuses=pending、受け渡しはstatuses=pending&statuses=readyで取得できる。
             店舗の閉店・現在の販売状況にかかわらず取得でき、該当する注文がなければ空の一覧を返す。
@@ -212,7 +216,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: ログイン中のAccountが当該店舗のStaff/Managerではない場合。Adminというだけでは閲覧できない。
+          description: ログイン中のAccountがAdminではなく、当該店舗のStaff/Managerでもない場合。
           content:
             application/json:
               schema:
@@ -284,7 +288,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: ログイン中のAccountが当該店舗のStaff/Managerではない場合。
+          description: ログイン中のAccountがAdminではなく、当該店舗のStaff/Managerでもない場合。
           content:
             application/json:
               schema:
@@ -582,13 +586,13 @@ paths:
         - name: member_only
           in: query
           required: false
-          description: true の場合、ログイン中のアカウントが所属する承認済み・申請中の店舗を取得する
+          description: true の場合、ログイン中のアカウントが所属する承認済み・申請中の店舗を取得する。admin は指定によらず全店舗を取得する
           schema:
             type: boolean
             default: false
       responses:
         "200":
-          description: 店舗一覧。member_only が false の場合は承認済みの店舗と自分が管理者である申請中の店舗
+          description: 店舗一覧。member_only が false の場合は承認済みの店舗と自分がmanagerである申請中の店舗。admin は指定によらず全店舗
           content:
             application/json:
               schema:
@@ -615,7 +619,7 @@ paths:
   /stores/{store_id}:
     get:
       operationId: getApprovedStoreByID
-      summary: 承認済みの店舗を取得する
+      summary: 承認済みの店舗を取得する（admin は未承認も取得可能）
       parameters:
         - name: store_id
           in: path
@@ -923,7 +927,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: 権限不足（店舗のメンバーでない、または店舗マネージャーでない）
+          description: 権限不足（adminではなく、店舗マネージャーでもない）
           content:
             application/json:
               schema:
@@ -985,7 +989,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: 権限不足（店舗のメンバーでない、または店舗マネージャーでない）
+          description: 権限不足（adminではなく、店舗マネージャーでもない）
           content:
             application/json:
               schema:
@@ -1036,7 +1040,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: 権限不足（店舗のメンバーでない、または店舗マネージャーでない）
+          description: 権限不足（adminではなく、店舗マネージャーでもない）
           content:
             application/json:
               schema:
@@ -1183,7 +1187,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: 権限不足（店舗のメンバーでない、または店舗マネージャーでない）
+          description: 権限不足（adminではなく、店舗マネージャーでもない）
           content:
             application/json:
               schema:
@@ -1245,7 +1249,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: 権限不足（店舗のメンバーでない、または店舗マネージャーでない）
+          description: 権限不足（adminではなく、店舗マネージャーでもない）
           content:
             application/json:
               schema:
@@ -1296,7 +1300,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: 権限不足（店舗のメンバーでない、または店舗マネージャーでない）
+          description: 権限不足（adminではなく、店舗マネージャーでもない）
           content:
             application/json:
               schema:
@@ -1364,7 +1368,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: 権限不足（店舗マネージャーでない）
+          description: 権限不足（adminではなく、店舗マネージャーでもない）
           content:
             application/json:
               schema:

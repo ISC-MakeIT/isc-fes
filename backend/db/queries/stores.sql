@@ -27,7 +27,8 @@ WHERE review_status = 'approved'
 -- name: GetVisibleStoresByAccountID :many
 SELECT *
 FROM stores
-WHERE review_status = 'approved'
+WHERE EXISTS (SELECT 1 FROM accounts WHERE accounts.id = $1 AND accounts.role = 'admin')
+   OR review_status = 'approved'
    OR (
        review_status = 'pending'
        AND id IN (
@@ -42,9 +43,9 @@ ORDER BY created_at DESC;
 -- name: GetMemberStoresByAccountID :many
 SELECT stores.*
 FROM stores
-JOIN store_members ON store_members.store_id = stores.id
-WHERE store_members.account_id = $1
-  AND stores.review_status IN ('approved', 'pending')
+WHERE EXISTS (SELECT 1 FROM accounts WHERE accounts.id = $1 AND accounts.role = 'admin')
+   OR (stores.review_status IN ('approved', 'pending')
+       AND EXISTS (SELECT 1 FROM store_members WHERE store_members.store_id = stores.id AND store_members.account_id = $1))
 ORDER BY stores.created_at DESC;
 
 -- name: GetStoreApplications :many

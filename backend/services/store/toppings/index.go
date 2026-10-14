@@ -31,7 +31,7 @@ func (s *ToppingsService) GetToppingsByStoreID(c context.Context, storeID uuid.U
 		return nil, err
 	}
 
-	_, err = s.storeRepository.GetApprovedStoreByID(c, storeID)
+	_, err = services.GetStoreForRead(c, s.storeRepository, storeID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, services.ErrNotFound
@@ -39,7 +39,7 @@ func (s *ToppingsService) GetToppingsByStoreID(c context.Context, storeID uuid.U
 		return nil, err
 	}
 
-	_, err = s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(c, account.ID, storeID)
+	_, err = services.StoreMembershipForAuthorization(c, s.storeMemberRepository, account, storeID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, services.ErrForbidden

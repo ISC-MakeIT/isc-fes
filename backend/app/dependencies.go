@@ -138,8 +138,8 @@ func buildDependencies(
 		accountSession,
 		accountRepository,
 	)
-	storeMemberService := members.NewStoreMemberService(storeMemberRepository)
-	storeInvitationService := invitations.NewStoreInvitationService(storeMemberRepository, storeInvitationRepository)
+	storeMemberService := members.NewStoreMemberService(storeRepository, storeMemberRepository)
+	storeInvitationService := invitations.NewStoreInvitationService(storeRepository, storeMemberRepository, storeInvitationRepository)
 	allergenService := allergens_service.NewAllergenService(allergensRepository)
 	imageProcessor := media.NewImageProcessor()
 	imageService := services.NewImageService(imageProcessor, imageRepository)

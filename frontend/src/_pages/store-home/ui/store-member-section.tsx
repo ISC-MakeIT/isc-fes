@@ -20,7 +20,7 @@ import { XIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/shared/ui/dialog";
 import { DotText } from "@/shared/ui/dot-text";
 import { useState } from "react";
-import { currentAccountQueryOptions } from "@/entities/account";
+import { AccountRole, currentAccountQueryOptions } from "@/entities/account";
 import { trackEvent } from "@/shared/lib/analytics";
 
 const fallbackIcon = "/avatar-fallback.svg";
@@ -38,26 +38,34 @@ export function StoreMembersSection({ storeId }: StoreMembersSectionProps) {
     <div className="border-primary flex flex-col gap-8 px-13 py-8 md:border-l md:px-6">
       <HeadingCard className="self-center">メンバー</HeadingCard>
       {currentAccount && (
-        <StoreMemberList accountId={currentAccount.id} storeId={storeId} />
+        <StoreMemberList
+          accountId={currentAccount.id}
+          storeId={storeId}
+          isAdmin={currentAccount.role === AccountRole.Admin}
+        />
       )}
     </div>
   );
 }
 
 type StoreMemberListProps = {
+  isAdmin: boolean;
   storeId: string;
   accountId: string;
 };
 
-function StoreMemberList({ storeId, accountId }: StoreMemberListProps) {
+function StoreMemberList({
+  storeId,
+  accountId,
+  isAdmin,
+}: StoreMemberListProps) {
   const { data: members } = useSuspenseQuery(storeMemberQueryOptions(storeId));
   const { data: currentMember } = useSuspenseQuery(
     storeMemberByAccountIdQueryOptions(storeId, accountId),
   );
 
-  // SSC側でcurrentMemberが取得できなければ店舗一覧へ遷移させてるので基本的にはここは表示されない
-  // 未所属で店舗一覧への遷移中にのみ表示される想定
-  if (!currentMember) {
+  // 未所属の一般アカウントはサーバー側でもアクセスを拒否する。
+  if (!currentMember && !isAdmin) {
     return <p>この店舗にはアクセスできません。店舗一覧へ移動します。</p>;
   }
 
@@ -69,12 +77,17 @@ function StoreMemberList({ storeId, accountId }: StoreMemberListProps) {
             key={m.accountId}
             storeId={storeId}
             member={m}
-            currentMember={currentMember}
+            canDelete={canDeleteMember({
+              currentAccountId: accountId,
+              canManageMembers:
+                isAdmin || currentMember?.role === StoreMemberRole.Manager,
+              targetMember: m,
+            })}
           />
         ))}
       </div>
 
-      {currentMember.role === StoreMemberRole.Manager && (
+      {(isAdmin || currentMember?.role === StoreMemberRole.Manager) && (
         <StoreInvitationDialog storeId={storeId} />
       )}
     </>
@@ -84,10 +97,10 @@ function StoreMemberList({ storeId, accountId }: StoreMemberListProps) {
 type MemberCardProps = {
   storeId: string;
   member: StoreMember;
-  currentMember: StoreMember;
+  canDelete: boolean;
 };
 
-function MemberCard({ storeId, member, currentMember }: MemberCardProps) {
+function MemberCard({ storeId, member, canDelete }: MemberCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const queryClient = useQueryClient();
@@ -100,11 +113,6 @@ function MemberCard({ storeId, member, currentMember }: MemberCardProps) {
         queryKey: storeMembersKey(storeId),
       });
     },
-  });
-
-  const canDelete = canDeleteMember({
-    currentMember,
-    targetMember: member,
   });
 
   return (

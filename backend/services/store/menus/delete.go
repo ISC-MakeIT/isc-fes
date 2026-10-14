@@ -25,7 +25,7 @@ func (s *MenuService) DeleteMenuByStoreIDAndMenuID(c context.Context, storeID uu
 		return err
 	}
 
-	storeMembership, err := s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(c, account.ID, storeID)
+	storeMembership, err := services.StoreMembershipForAuthorization(c, s.storeMemberRepository, account, storeID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return services.ErrForbidden
 	}

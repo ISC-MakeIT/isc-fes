@@ -177,16 +177,22 @@ func TestUpdateOrderPostgresAuthorization(t *testing.T) {
 	if _, err := r.UpdateOrder(ctx, wrongStore); !errors.Is(err, services.ErrNotFound) {
 		t.Fatalf("wrong store error = %v", err)
 	}
-	// グローバルAdminであっても、店舗への所属がなければ更新できない。
-	execOrderSQL(t, ctx, r.pool, `UPDATE accounts SET role='admin' WHERE id=$1`, input.AccountID)
-	execOrderSQL(t, ctx, r.pool, `DELETE FROM store_members WHERE store_id=$1 AND account_id=$2`, input.StoreID, input.AccountID)
-	if _, err := r.UpdateOrder(ctx, input); !errors.Is(err, services.ErrForbidden) {
-		t.Fatalf("admin nonmember error = %v", err)
-	}
 	row, err := r.queries.LockOrderByIDAndStoreID(ctx, sqlc.LockOrderByIDAndStoreIDParams{OrderID: input.OrderID, StoreID: input.StoreID})
 	if err != nil || row.Version != 1 || row.Status != sqlc.OrderStatusPending {
 		t.Fatalf("denied requests changed order: %+v, %v", row, err)
 	}
+	// Adminは店舗に所属していなくても更新できる。
+	execOrderSQL(t, ctx, r.pool, `UPDATE accounts SET role='admin' WHERE id=$1`, input.AccountID)
+	execOrderSQL(t, ctx, r.pool, `DELETE FROM store_members WHERE store_id=$1 AND account_id=$2`, input.StoreID, input.AccountID)
+	result, err := r.UpdateOrder(ctx, input)
+	if err != nil || !result.Changed || result.Order.Status != domain.OrderStatusReady {
+		t.Fatalf("admin nonmember update = %+v, %v", result, err)
+	}
+	input.Status, input.ExpectedVersion = domain.OrderStatusCancelled, 2
+	if _, err := r.UpdateOrder(ctx, input); !errors.Is(err, orderservice.ErrCancelTooEarly) {
+		t.Fatalf("admin bypassed cancellation rule: %v", err)
+	}
+
 }
 
 func TestUpdateOrderPostgresCommitFailureHasNoChangedResult(t *testing.T) {

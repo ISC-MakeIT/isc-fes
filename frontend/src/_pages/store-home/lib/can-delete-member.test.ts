@@ -3,6 +3,17 @@ import { describe, expect, test } from "vitest";
 import { canDeleteMember } from "./can-delete-member";
 
 describe("canDeleteMember", () => {
+  test("未所属のadminはスタッフを削除できるがmanagerは削除できない", () => {
+    for (const role of [StoreMemberRole.Staff, StoreMemberRole.Manager]) {
+      expect(
+        canDeleteMember({
+          currentAccountId: "admin",
+          canManageMembers: true,
+          targetMember: createStoreMember({ accountId: "other", role }),
+        }),
+      ).toBe(role === StoreMemberRole.Staff);
+    }
+  });
   test("マネージャーは自分以外のメンバーを削除できる", () => {
     const currentMember = createStoreMember({
       accountId: "account-1",
@@ -13,7 +24,11 @@ describe("canDeleteMember", () => {
       role: StoreMemberRole.Staff,
     });
 
-    const result = canDeleteMember({ currentMember, targetMember });
+    const result = canDeleteMember({
+      currentAccountId: currentMember.accountId,
+      canManageMembers: currentMember.role === StoreMemberRole.Manager,
+      targetMember,
+    });
 
     expect(result).toBe(true);
   });
@@ -28,7 +43,11 @@ describe("canDeleteMember", () => {
       role: StoreMemberRole.Staff,
     });
 
-    const result = canDeleteMember({ currentMember, targetMember });
+    const result = canDeleteMember({
+      currentAccountId: currentMember.accountId,
+      canManageMembers: currentMember.role === StoreMemberRole.Manager,
+      targetMember,
+    });
 
     expect(result).toBe(false);
   });
@@ -43,7 +62,11 @@ describe("canDeleteMember", () => {
       role: StoreMemberRole.Manager,
     });
 
-    const result = canDeleteMember({ currentMember, targetMember });
+    const result = canDeleteMember({
+      currentAccountId: currentMember.accountId,
+      canManageMembers: currentMember.role === StoreMemberRole.Manager,
+      targetMember,
+    });
 
     expect(result).toBe(false);
   });
@@ -58,7 +81,11 @@ describe("canDeleteMember", () => {
       role: StoreMemberRole.Manager,
     });
 
-    const result = canDeleteMember({ currentMember, targetMember });
+    const result = canDeleteMember({
+      currentAccountId: currentMember.accountId,
+      canManageMembers: currentMember.role === StoreMemberRole.Manager,
+      targetMember,
+    });
 
     expect(result).toBe(false);
   });

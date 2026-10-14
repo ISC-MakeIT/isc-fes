@@ -23,7 +23,7 @@ func (s *ToppingsService) DeleteTopping(c context.Context, storeID, toppingID uu
 		return err
 	}
 
-	storeMembership, err := s.storeMemberRepository.GetStoreMembershipByAccountIDAndStoreID(c, account.ID, storeID)
+	storeMembership, err := services.StoreMembershipForAuthorization(c, s.storeMemberRepository, account, storeID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return services.ErrForbidden

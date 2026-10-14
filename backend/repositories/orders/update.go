@@ -8,7 +8,6 @@ import (
 
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
 	domainactivity "github.com/isc-makeit/isc-fes/backend/domains/activity"
-	"github.com/isc-makeit/isc-fes/backend/domains/entities"
 	domain "github.com/isc-makeit/isc-fes/backend/domains/entities/orders"
 	"github.com/isc-makeit/isc-fes/backend/repositories/activity"
 	"github.com/isc-makeit/isc-fes/backend/repositories/db2entities"
@@ -26,7 +25,7 @@ func (r *OrderRepository) UpdateOrder(ctx context.Context, input orderservice.Up
 	defer tx.Rollback(ctx)
 	qtx := r.queries.WithTx(tx)
 
-	// Store → Membership → Orderの順でロックする。Guest/Cart/Counterは変更しない。
+	// Store → Account → Membership → Orderの順でロックする。Guest/Cart/Counterは変更しない。
 	// Storeの共有ロックはMembership変更・削除の排他ロックと競合する。
 	// 閉店や販売状況は既存の注文の状態更新を妨げない。
 	if _, err := qtx.LockStoreForShare(ctx, input.StoreID); errors.Is(err, pgx.ErrNoRows) {
@@ -34,18 +33,14 @@ func (r *OrderRepository) UpdateOrder(ctx context.Context, input orderservice.Up
 	} else if err != nil {
 		return orderservice.UpdateResult{}, fmt.Errorf("lock order update store: %w", err)
 	}
-	membership, err := qtx.LockOrderMembership(ctx, sqlc.LockOrderMembershipParams{
-		StoreID: input.StoreID, AccountID: input.AccountID,
-	})
+	membership, err := authorizedMembership(ctx, qtx, input.AccountID, input.StoreID, true)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return orderservice.UpdateResult{}, services.ErrForbidden
 	}
 	if err != nil {
 		return orderservice.UpdateResult{}, fmt.Errorf("lock order update membership: %w", err)
 	}
-	if !domain.CanUpdateStoreOrders(input.StoreID, entities.StoreMembership{
-		StoreID: membership.StoreID, AccountID: membership.AccountID, Role: entities.StoreMemberRole(membership.Role),
-	}) {
+	if !domain.CanUpdateStoreOrders(input.StoreID, membership) {
 		return orderservice.UpdateResult{}, services.ErrForbidden
 	}
 	row, err := qtx.LockOrderByIDAndStoreID(ctx, sqlc.LockOrderByIDAndStoreIDParams{
