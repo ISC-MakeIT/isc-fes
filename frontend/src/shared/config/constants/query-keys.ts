@@ -45,3 +45,5 @@ export const storeListKeys = {
   visible: () => [...storeListKeys.all(), "visible"] as const,
   currentAccount: () => [...storeListKeys.all(), "current-account"] as const,
 };
+
+export const ordersKey = (statuses?: string[]) => ["orders", statuses] as const;

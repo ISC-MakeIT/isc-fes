@@ -44,13 +44,13 @@ export function CartList() {
   );
   const totalAmount = calculateCartTotal(displayedCartItems);
 
-  if (displayedCartItems.length === 0) {
-    return null;
-  }
-
   useEffect(() => {
     void setSearchParams({ isOpenCart: false }, { history: "replace" });
   });
+
+  if (displayedCartItems.length === 0) {
+    return null;
+  }
 
   if (isMobile) {
     return (

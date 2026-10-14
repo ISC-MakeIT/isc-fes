@@ -55,6 +55,7 @@ export {
   storeListKeys,
   storeOrdersKey,
   orderDetailKey,
+  ordersKey,
   checkoutableKey,
 } from "./constants/query-keys";
 
