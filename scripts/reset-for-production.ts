@@ -24,7 +24,10 @@ const TARGET_TABLES = [
   "guests",
 ] as const;
 
-const TEST_STORE_ID = "47076dd0-6a80-430f-b182-783bd534078f";
+const TEST_STORE_IDS = [
+  "47076dd0-6a80-430f-b182-783bd534078f",
+  "443bee08-0acd-4d76-8f72-c9a0dd750084",
+];
 // テスト店舗だけを削除する。子テーブルは店舗のDELETEからON DELETE CASCADEで削除される。
 const TEST_STORE_TABLES = [
   "stores",
@@ -49,7 +52,7 @@ const countQuery = [
     (name) => `SELECT '${name}' AS table_name, count(*)::text AS count FROM public.${name}`,
   ),
   ...TEST_STORE_TABLES.map(
-    (name) => `SELECT '${name} (テスト店舗)' AS table_name, count(*)::text AS count FROM public.${name} WHERE ${name === "stores" ? "id" : "store_id"} = $1::uuid`,
+    (name) => `SELECT '${name} (テスト店舗)' AS table_name, count(*)::text AS count FROM public.${name} WHERE ${name === "stores" ? "id" : "store_id"} = ANY($1::uuid[])`,
   ),
 ].join(" UNION ALL ");
 
@@ -70,15 +73,16 @@ export async function resetForProduction(
       await tx.unsafe(`LOCK TABLE ${lockTableList} IN ACCESS EXCLUSIVE MODE`);
     }
 
-    const before = await tx.unsafe<TableCount[]>(countQuery, [TEST_STORE_ID]);
+    const storeIDs = tx.array(TEST_STORE_IDS, "UUID");
+    const before = await tx.unsafe<TableCount[]>(countQuery, [storeIDs]);
     if (!options.execute) return { before, after: null };
 
     // 全対象を同時に指定して外部キーを満たす。未指定の参照元があればRESTRICTで失敗する。
     // カウンターも空になるため、次の注文のdisplay_numberは店舗ごとに1から始まる。
     await tx.unsafe(`TRUNCATE TABLE ${tableList} RESTRICT`);
     // 注文・カート・カウンターのRESTRICT参照を消した後、テスト店舗とCASCADE対象を削除する。
-    await tx`DELETE FROM public.stores WHERE id = ${TEST_STORE_ID}::uuid`;
-    const after = await tx.unsafe<TableCount[]>(countQuery, [TEST_STORE_ID]);
+    await tx`DELETE FROM public.stores WHERE id = ANY(${storeIDs}::uuid[])`;
+    const after = await tx.unsafe<TableCount[]>(countQuery, [storeIDs]);
     if (after.some((row) => row.count !== "0")) {
       throw new Error("削除対象にデータが残っているため、ロールバックします");
     }
@@ -92,7 +96,7 @@ const usage = `本番開始前の初期化:
 
 通常実行は件数確認のみ。--execute を指定すると、対象テーブルの全データとテスト店舗を削除します。
 対象: 注文・カート・ゲスト・アプリレビュー・注文番号カウンター。
-テスト店舗: ${TEST_STORE_ID}（所属・メニュー・トッピング・関連付け・招待も削除）。
+テスト店舗: ${TEST_STORE_IDS.join(", ")}（所属・メニュー・トッピング・関連付け・招待も削除）。
 POSTGRES_USER / POSTGRES_PASSWORD が指定されていれば接続URLの認証情報を上書きします。
 他店舗のデータとアレルゲン・教室・アカウント・ログインは保持します。
 売り切れ・閉店・混雑度・注文受付の設定とS3の画像は変更しません。
@@ -133,7 +137,7 @@ async function main(): Promise<void> {
   // 認証情報や接続URLのクエリパラメータは表示しない。
   console.log(`接続先: ${databaseUrl.host}${databaseUrl.pathname}`);
   console.log(execute ? "本番開始前の初期化として、対象テーブルの全データとテスト店舗を削除します。" : "件数確認のみ実行します。DBは変更しません。");
-  console.log(`削除対象のテスト店舗: ${TEST_STORE_ID}`);
+  console.log(`削除対象のテスト店舗: ${TEST_STORE_IDS.join(", ")}`);
   const db = new SQL({ url: databaseUrl.toString(), max: 1, connectionTimeout: 10 });
   try {
     const result = await resetForProduction(db, { execute });
