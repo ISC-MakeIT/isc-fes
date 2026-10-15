@@ -1,6 +1,11 @@
 "use client";
 
-import { getApiBaseUrl, ordersKey, websocketOrdersUrl } from "@/shared/config";
+import {
+  getApiBaseUrl,
+  ordersKey,
+  Sentry,
+  websocketOrdersUrl,
+} from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { useQueryClient } from "@tanstack/react-query";
 import useWebSocket from "react-use-websocket";
@@ -21,22 +26,15 @@ export function useOrderEvents(enabled: boolean) {
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
 
   function handleMessage(event: MessageEvent) {
-    if (typeof event.data !== "string") {
-      return;
-    }
-
-    let payload: unknown;
-
     try {
-      payload = JSON.parse(event.data);
-    } catch {
-      return;
-    }
-
-    const result = v.safeParse(orderNotificationSchema, payload);
-
-    if (!result.success) {
-      return;
+      const payload = JSON.parse(event.data);
+      v.parse(orderNotificationSchema, payload);
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: {
+          source: "order-websocket",
+        },
+      });
     }
 
     queryClient.invalidateQueries({
