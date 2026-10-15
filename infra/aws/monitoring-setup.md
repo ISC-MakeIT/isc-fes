@@ -24,7 +24,7 @@ bun install --frozen-lockfile
 bun run infra/deploy/scripts/put-discord-webhook.ts
 ```
 
-非表示の入力欄へURLを貼り付ける。ScriptはAWS AccountとURLの形式を確認してから、標準入力経由で
+非表示の入力欄へURLを貼り付ける。ScriptはAWS AccountとURLの形式を確認してから、AWS SDKで
 `/isc-fes/prod/discord-webhook-url`（SecureString、`alias/aws/ssm`）へ登録する。
 Webhookの差し替えも同じScriptで行い、Lambdaは次の実行から新しいURLを使う。
 
