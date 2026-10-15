@@ -38,6 +38,12 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// databaseMaxConnsは、DB接続プールの最大接続数。
+// pgxの既定値はmax(4, CPU数)で、2 vCPUのEC2では4接続になり、
+// 負荷試験でCPUに余裕があるまま約170 req/sが上限になった。
+// DATABASE_URLのpool_max_connsはgolang-migrateが解釈できずマイグレーションが失敗するため、コードで設定する。
+const databaseMaxConns = 20
+
 // sessionMiddlewareは、HTTPリクエストへセッションを読み書きする境界。
 // AccountとGuestの各Session実装を同じ形で組み込めるようにする。
 type sessionMiddleware interface {
@@ -57,7 +63,13 @@ func buildDependencies(
 	ctx context.Context,
 	cfg config.Config,
 ) (*dependencies, error) {
-	pool, err := pgxpool.New(ctx, cfg.Database.Url)
+	poolConfig, err := pgxpool.ParseConfig(cfg.Database.Url)
+	if err != nil {
+		return nil, fmt.Errorf("parse database config: %w", err)
+	}
+	poolConfig.MaxConns = databaseMaxConns
+
+	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
 		return nil, fmt.Errorf("connect database: %w", err)
 	}
