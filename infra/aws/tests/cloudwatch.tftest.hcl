@@ -21,6 +21,18 @@ mock_provider "aws" {
   alias = "us_east_1"
 }
 
+# 元々InstanceIdだけの系列に drop_original_metrics を付けると、Agentが何も送信しなくなる（2026年10月15日に発生）。
+run "instance_only_metrics_are_sent" {
+  command = plan
+
+  assert {
+    condition = alltrue([
+      for plugin in ["mem", "swap"] : !contains(keys(local.cloudwatch_agent_config.metrics.metrics_collected[plugin]), "drop_original_metrics")
+    ])
+    error_message = "mem・swapにdrop_original_metricsを付けると、メモリのメトリクスが送信されずアラームが鳴り続けます。"
+  }
+}
+
 run "mention_users" {
   command = plan
   variables {
