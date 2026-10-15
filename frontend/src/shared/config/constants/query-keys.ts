@@ -51,5 +51,7 @@ export const ordersKey = (statuses?: string[]) => {
     return ["orders"] as const;
   }
 
-  return ["orders", statuses] as const;
+  const normalizedStatuses = [...new Set(statuses)].sort();
+
+  return ["orders", normalizedStatuses] as const;
 };
