@@ -124,3 +124,8 @@ export function random(seed: number): () => number {
 export function dueArrivals(elapsedMs: number, rate: number): number {
   return Math.floor(elapsedMs * rate / 1000);
 }
+
+// Arrivals scheduled strictly before the end of a phase. One due exactly at the end belongs to no phase.
+export function arrivalsBefore(endMs: number, rate: number): number {
+  return Math.max(0, Math.ceil(endMs * rate / 1000) - 1);
+}
