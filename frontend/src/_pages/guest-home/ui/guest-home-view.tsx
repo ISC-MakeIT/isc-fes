@@ -7,7 +7,7 @@ import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { EventBanners } from "./event-banners";
 import { Temporal } from "temporal-polyfill-lite";
 import HeroImage from "./assets/hero-image.jpg";
-import { ActiveOrderList } from "@/features/sync-guest-orders";
+import { ActiveOrderList } from "./active-order-list";
 
 export async function GuestHomeView() {
   const queryClient = createQueryClient();
