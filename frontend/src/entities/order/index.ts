@@ -11,3 +11,5 @@ export {
 } from "./api/fetch-store-orders";
 
 export { fetchOrders, ordersQueryOptions } from "./api/fetch-orders";
+
+export { useOrderEvents } from "./model/use-order-events";

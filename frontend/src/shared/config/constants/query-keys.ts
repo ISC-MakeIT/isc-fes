@@ -46,4 +46,10 @@ export const storeListKeys = {
   currentAccount: () => [...storeListKeys.all(), "current-account"] as const,
 };
 
-export const ordersKey = (statuses?: string[]) => ["orders", statuses] as const;
+export const ordersKey = (statuses?: string[]) => {
+  if (!statuses || statuses.length === 0) {
+    return ["orders"] as const;
+  }
+
+  return ["orders", statuses] as const;
+};

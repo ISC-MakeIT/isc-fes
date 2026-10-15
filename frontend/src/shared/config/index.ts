@@ -32,6 +32,7 @@ export {
   storeMenuEditorUrl,
   guestCheckoutUrl,
   orderDetailUrl,
+  websocketOrdersUrl,
 } from "./constants/urls";
 
 export {
