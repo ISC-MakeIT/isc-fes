@@ -7,7 +7,7 @@ variable "cloudwatch_enabled" {
 locals {
   cloudwatch_namespace = "ISCFes/EC2"
 
-  # InstanceIdだけに集約し、元のCPU・Device・Interface別メトリクスを送信しない。
+  # InstanceIdだけに集約し、CPU・Device・Interface別の元の系列は送信しない。
   # CPU 5 + Memory 6 + Swap 3 + Disk 5 + Disk I/O 7 + Network 4 = 30系列。
   cloudwatch_measurements = {
     cpu    = ["cpu_usage_user", "cpu_usage_system", "cpu_usage_idle", "cpu_usage_iowait", "cpu_usage_steal"]
@@ -17,6 +17,10 @@ locals {
     diskio = ["diskio_read_bytes", "diskio_write_bytes", "diskio_reads", "diskio_writes", "diskio_read_time", "diskio_write_time", "diskio_io_time"]
     net    = ["net_bytes_sent", "net_bytes_recv", "net_packets_sent", "net_packets_recv"]
   }
+
+  # mem・swapは元々InstanceIdだけの系列で、集約しても同じ系列になる。
+  # Agentは元と同じ集約系列を作らないため、drop_original_metricsを付けると何も送信されなくなる。
+  cloudwatch_plugins_with_extra_dimensions = ["cpu", "disk", "diskio", "net"]
 
   cloudwatch_agent_config = {
     agent = {
@@ -32,10 +36,10 @@ locals {
       aggregation_dimensions = [["InstanceId"]]
       force_flush_interval   = 60
       metrics_collected = {
-        for plugin, measurements in local.cloudwatch_measurements : plugin => merge({
-          measurement           = measurements
-          drop_original_metrics = measurements
-          }, plugin == "cpu" ? { totalcpu = true } : {},
+        for plugin, measurements in local.cloudwatch_measurements : plugin => merge(
+          { measurement = measurements },
+          contains(local.cloudwatch_plugins_with_extra_dimensions, plugin) ? { drop_original_metrics = measurements } : {},
+          plugin == "cpu" ? { totalcpu = true } : {},
           plugin == "disk" ? { resources = ["/"] } : {},
           # 実際のRoot DeviceとDefault RouteのInterfaceをEC2上で解決する。
           plugin == "diskio" || plugin == "net" ? { resources = ["__RESOLVE_ON_INSTANCE__"] } : {}
