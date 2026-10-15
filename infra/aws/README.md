@@ -13,6 +13,8 @@ APIサーバーを動かすAWSリソースを段階的に追加するTerraform�
 - EC2へDocker実行環境を設定するSystems Manager Association
 - EC2へDocker Compose Pluginを設定するSystems Manager Association
 - EC2へRuntime環境変数とCompose定義を配置するSystems Manager Association
+- EC2へCloudWatch Agentを設定するSystems Manager Association、標準アラーム5本、Dashboard1つ
+- CloudWatch AlarmをDiscordへ転送するSNS・Lambda
 - 店舗画像を保存する非公開S3 BucketとEC2からのアクセス権限
 - 非公開S3 Bucketの店舗画像を配信するCloudFront DistributionとOAC
 - `img.fes.iwasaki.ac.jp`用のACM Certificate申請
@@ -57,7 +59,7 @@ AWS管理Policyの`AmazonSSMManagedInstanceCore`は、全Parameterに対する`s
 | Setting       | Value                               |
 | ------------- | ----------------------------------- |
 | AMI           | 最新のAmazon Linux 2023 ARM64       |
-| Instance type | `t4g.micro`（2 vCPU、1 GiB Memory） |
+| Instance type | `t4g.medium`（2 vCPU、4 GiB Memory） |
 | CPU credits   | `standard`                          |
 | Root volume   | 20 GiB gp3、暗号化あり              |
 | Public IP     | Elastic IPを明示的に関連付け        |
@@ -72,6 +74,60 @@ Instance Metadata ServiceはIMDSv2を必須にする。
 
 ContainerはUser Dataでは起動せず、後述の設定AssociationとSSM Run Commandを組み合わせてデプロイする。
 EC2への管理接続にはSession Managerを使用する。
+
+`api_server_instance_type`で`t4g.micro`、`t4g.small`、`t4g.medium`を切り替える。
+Instance Typeの変更はEC2の停止・再起動を伴うが、Root EBSとElastic IPは維持される。
+
+## CloudWatch monitoring
+
+学園祭期間（負荷試験・本番）だけ`cloudwatch_enabled = true`で監視を有効にする。
+適用・疎通確認・期間終了時の手順は[監視設定の適用手順](monitoring-setup.md)を参照する。
+
+### メトリクス
+
+CloudWatch AgentをSSM Associationで導入し、60秒間隔で`ISCFes/EC2`へ送信する。
+EC2のIAM Roleには`ISCFes/EC2`への`cloudwatch:PutMetricData`だけを追加し、アプリケーションのログは収集しない。
+`aggregation_dimensions`と`drop_original_metrics`で`InstanceId`だけの系列にまとめ、CPU Core・Docker Interface単位の系列は送らない。
+
+| 対象 | 系列数 | 収集範囲 |
+| ---- | -----: | -------- |
+| CPU | 5 | 全CoreをまとめたHost全体の使用率 |
+| Memory | 6 | HostのMemory |
+| Swap | 3 | HostのSwap |
+| Disk | 5 | `/`のみ |
+| Disk I/O | 7 | Root EBSのDeviceのみ。Device名はEC2上で解決 |
+| Network | 4 | Default RouteのInterfaceのみ。Dockerとloopbackは対象外 |
+
+AWS標準の`CPUCreditBalance`、`CPUCreditUsage`、`StatusCheckFailed`も併用する。有料のDetailed Monitoringは使わない。
+
+### アラーム
+
+| アラーム | 閾値 | 判定期間 |
+| -------- | ---- | -------- |
+| CPU | 使用率80%以上 | 60秒 × 3回 |
+| Memory | 使用率85%以上 | 60秒 × 3回 |
+| Disk | 使用率85%以上 | 60秒 × 3回 |
+| CPU Credits | 残量144以下 | 300秒 × 1回 |
+| EC2 Status | Status Check失敗 | 60秒 × 2回 |
+
+CPU・Memory・Diskはメトリクスの欠損も異常として扱い、Agentの停止・送信不能を検知する。
+CPU Creditsの閾値は、t4g.mediumが2 vCPU全負荷で1時間に差し引き96消費することから、抑制まで約1.5時間の猶予を残す値にしている。
+閾値は負荷試験の結果で調整する。
+
+### Discord通知
+
+アラームの発生（ALARM）と復旧（OK）を、SNS → Lambda → Discord Incoming Webhookで通知する。
+Lambdaは`lambda/discord_notifier.mjs`の1ファイルで、ビルドせずにZIP化して配置する（Node.js 24 RuntimeのAWS SDK v3を使用）。
+送信に失敗した実行はLambdaの非同期呼び出しの既定動作で2回再試行され、失敗はLambdaのLog Group（7日保持）で確認する。
+
+- Webhook URLは`/isc-fes/prod/discord-webhook-url`のSecureStringに保存し、Terraform State・Lambda環境変数には含めない。
+- `discord_mention_user_ids`に指定したDiscord User IDだけをメンションする。検証はTerraformの変数Validationで行う。
+
+### 費用
+
+通知（SNS・Lambda・KMS・Logs）は1,000件で約2円と小さく、追加の予算枠は設けない。
+主な費用はmediumへの増強とCloudWatchのメトリクス・アラーム・Dashboardで、[費用試算](https://app.notion.com/p/3f5891c6d9498044a1c6dd2970115d85)の予備費500円に含めて管理する。
+期間終了後にmicroへ戻し、監視を無効にすることが費用試算の前提。
 
 ## Docker runtime bootstrap
 
@@ -231,7 +287,7 @@ terraform output -raw backend_repository_url
 terraform output -raw api_server_public_ip
 ```
 
-`terraform apply`前に、意図したリソースだけが追加対象であり、既存リソースの変更・削除がないことを確認する。
+`terraform apply`前に、意図したリソースだけが変更対象であり、EC2・Root EBSの置換や意図しない削除がないことを確認する。
 
 ## Push a Backend image
 

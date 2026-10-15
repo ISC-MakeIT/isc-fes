@@ -9,6 +9,30 @@ permissions:
   contents: read
 
 jobs:
+  infra-notification-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - run: bun install --frozen-lockfile
+      - name: Test Discord notification handler
+        run: |
+          bun run typecheck:lambda
+          bun run test:lambda
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.11.4'
+      - name: Test Terraform monitoring settings
+        run: |
+          terraform -chdir=infra/aws init -backend=false -input=false
+          terraform -chdir=infra/aws fmt -check -recursive
+          terraform -chdir=infra/aws validate
+          terraform -chdir=infra/aws test
+
   infra-backup-test:
     runs-on: ubuntu-latest
     steps:
@@ -145,6 +169,7 @@ jobs:
 
   push-backend-image:
     needs:
+      - infra-notification-test
       - infra-backup-test
       - go-code-quality
       - go-test
