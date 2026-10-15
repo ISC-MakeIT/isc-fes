@@ -5,6 +5,9 @@ import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 const ssm = new SSMClient({ maxAttempts: 2 });
 const region = "ap-northeast-1";
 
+/** @type {Record<string, string>} */
+const stateNames = { ALARM: "異常", OK: "正常", INSUFFICIENT_DATA: "データ不足" };
+
 /** @typedef {(url: string, init: RequestInit) => Promise<Response>} Send */
 
 /**
@@ -25,13 +28,16 @@ export function alarmPayload(message, mentionUserIds = []) {
     // 指定したUser以外（@everyone・Role・本文中のメンション）は通知しない。
     allowed_mentions: { parse: [], users: [...mentionUserIds] },
     embeds: [{
-      title: `${alarm.NewStateValue}: ${alarm.AlarmName}`.slice(0, 256),
+      // Terraformで日本語の説明を設定しているため、アラーム名より説明をタイトルに使う。
+      title: `${alarm.NewStateValue === "ALARM" ? "🚨 発生" : "✅ 復旧"}: ${displayText(alarm.AlarmDescription, alarm.AlarmName, 240)}`.slice(0, 256),
       url: `https://${region}.console.aws.amazon.com/cloudwatch/home?region=${region}#alarmsV2:alarm/${encodeURIComponent(alarm.AlarmName)}`,
       color: alarm.NewStateValue === "ALARM" ? 0xe74c3c : 0x2ecc71,
-      description: displayText(alarm.NewStateReason, "No reason supplied", 1800),
+      // 判定理由はCloudWatchが英語で生成し、形式も保証されないため翻訳せずに載せる。
+      description: `**原因の詳細**\n${displayText(alarm.NewStateReason, "なし", 1800)}`,
       fields: [
-        { name: "Previous state", value: displayText(alarm.OldStateValue, "Unknown", 128), inline: true },
-        { name: "Changed at", value: displayText(alarm.StateChangeTime, "Unknown", 128), inline: true },
+        { name: "アラーム", value: alarm.AlarmName.slice(0, 1024), inline: false },
+        { name: "前の状態", value: stateNames[alarm.OldStateValue] ?? displayText(alarm.OldStateValue, "不明", 128), inline: true },
+        { name: "発生時刻", value: toJst(alarm.StateChangeTime), inline: true },
       ],
     }],
   };
@@ -44,6 +50,16 @@ export function alarmPayload(message, mentionUserIds = []) {
  */
 function displayText(value, fallback, limit) {
   return (typeof value === "string" && value.length > 0 ? value : fallback).slice(0, limit);
+}
+
+/**
+ * CloudWatchの時刻（例: 2026-10-15T07:05:52.100+0000）を日本時間で表示する。
+ * @param {unknown} value
+ */
+function toJst(value) {
+  const date = typeof value === "string" ? new Date(value) : new Date(Number.NaN);
+  // 解釈できない形式なら、元の文字列をそのまま表示する。
+  return Number.isNaN(date.getTime()) ? displayText(value, "不明", 128) : date.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
 }
 
 /**
