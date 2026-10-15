@@ -7,10 +7,14 @@
     "reset-for-production": "bun run ./scripts/reset-for-production.ts",
     "typecheck:scripts": "tsc -p scripts/tsconfig.json",
     "test:backup": "bun test ./infra/deploy/tests",
-    "typecheck:backup": "tsc -p infra/deploy/tsconfig.json"
+    "typecheck:backup": "tsc -p infra/deploy/tsconfig.json",
+    "typecheck:lambda": "tsc -p infra/aws/lambda/tsconfig.json",
+    "test:lambda": "bun test ./infra/aws/lambda/tests"
   },
   "dependencies": {},
   "devDependencies": {
+    "@aws-sdk/client-ssm": "^3.1151.0",
+    "@types/aws-lambda": "^8.10.164",
     "@types/bun": "^1.4.1",
     "typescript": "5.9.3"
   }

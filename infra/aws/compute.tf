@@ -4,7 +4,7 @@ data "aws_ssm_parameter" "amazon_linux_2023_arm64_ami" {
 
 resource "aws_instance" "api_server" {
   ami                    = data.aws_ssm_parameter.amazon_linux_2023_arm64_ami.value
-  instance_type          = "t4g.micro"
+  instance_type          = var.api_server_instance_type
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.api_server.id]
   iam_instance_profile   = aws_iam_instance_profile.api_server.name
@@ -43,6 +43,17 @@ resource "aws_instance" "api_server" {
     aws_iam_role_policy.api_server_ssm_core,
     aws_iam_role_policy.api_server_ecr_pull,
   ]
+}
+
+variable "api_server_instance_type" {
+  description = "APIサーバーのサイズ。本番準備・本番はmedium、監視期間終了後はmicroへ戻す。"
+  type        = string
+  default     = "t4g.medium"
+
+  validation {
+    condition     = contains(["t4g.micro", "t4g.small", "t4g.medium"], var.api_server_instance_type)
+    error_message = "api_server_instance_typeはt4g.micro、t4g.small、t4g.mediumのいずれかにしてください。"
+  }
 }
 
 resource "aws_eip" "api_server" {

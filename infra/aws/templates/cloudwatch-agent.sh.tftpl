@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+%{ if enabled ~}
+dnf install -y amazon-cloudwatch-agent jq
+install -d -o root -g root -m 0755 /opt/isc-fes/monitoring
+config_tmp="$(mktemp /opt/isc-fes/monitoring/.cloudwatch-agent.XXXXXX)"
+trap 'rm -f "$config_tmp"' EXIT
+
+# Root EBSのみを対象にし、PartitionやDockerのDeviceを二重計上しない。
+root_source="$(findmnt -n -o SOURCE /)"
+root_device="$(lsblk -ndo PKNAME "$root_source")"
+if [[ -z "$root_device" ]]; then
+  root_device="$(lsblk -ndo KNAME "$root_source")"
+fi
+test -n "$root_device"
+# Interface名はAMIとInstance Typeに依存するため固定しない。
+network_interface="$(ip -j route get 1.1.1.1 | jq -er '.[0].dev')"
+test -n "$network_interface"
+
+printf '%s' '${config_base64}' | base64 --decode | \
+  jq --arg device "$root_device" --arg interface "$network_interface" \
+    '.metrics.metrics_collected.diskio.resources = [$device] | .metrics.metrics_collected.net.resources = [$interface]' \
+    > "$config_tmp"
+
+install -o root -g root -m 0644 "$config_tmp" /opt/isc-fes/monitoring/cloudwatch-agent.json
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config -m ec2 -c file:/opt/isc-fes/monitoring/cloudwatch-agent.json -s
+systemctl enable amazon-cloudwatch-agent
+systemctl is-active --quiet amazon-cloudwatch-agent
+%{ else ~}
+# Associationは削除せず停止処理へ更新し、既存Hostの送信を確実に止める。
+if systemctl cat amazon-cloudwatch-agent.service >/dev/null 2>&1; then
+  systemctl disable --now amazon-cloudwatch-agent
+  if systemctl is-active --quiet amazon-cloudwatch-agent; then
+    echo 'CloudWatch Agent did not stop.' >&2
+    exit 1
+  fi
+fi
+%{ endif ~}
