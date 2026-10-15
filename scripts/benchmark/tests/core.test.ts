@@ -1,12 +1,12 @@
 import { describe, test, expect } from "bun:test";
 import mixed from "../mixed.example.json";
 import ws from "../ws.example.json";
-import { parseConfig, random, dueArrivals } from "../config";
+import { parseConfig, random, dueArrivals, arrivalsBefore } from "../config";
 import { Histogram, Recorder } from "../stats";
 import { parseCpu, cpuDelta, parseMemory, parseNetwork, networkDelta, parseDisks, diskDelta, parseMachineSamples, parseCredits, creditProjection, summarizeMachine, type MachineSample } from "../metrics";
 import { evaluate, buildReport, compareReports } from "../report";
 import { run, type StageResult, type RunResult } from "../runner";
-import { Api, guestCookie, newGuest, staffCookie, cart, changedOrders, OrderSocket, type Fetcher } from "../client";
+import { Api, guestCookie, newGuest, staffCookie, cart, changedOrders, OrderSocket, type Fetcher, isExpectedChange } from "../client";
 import { workflow } from "../scenario";
 import { main } from "../index";
 import { main as exportCredits } from "../export-credits";
@@ -61,6 +61,10 @@ describe("configuration and schedule", () => {
     expect(dueArrivals(0, 20)).toBe(0);
     expect(dueArrivals(5000, 20)).toBe(100);
     expect(dueArrivals(10000, .5)).toBe(5);
+    // 60秒・0.5/sの30回目は終了時刻ちょうどで開始されないため、取りこぼしとして数えない。
+    expect(arrivalsBefore(60000, .5)).toBe(29);
+    expect(arrivalsBefore(61000, .5)).toBe(30);
+    expect(arrivalsBefore(0, 20)).toBe(0);
     const a = random(123), b = random(123);
     expect(Array.from({ length: 20 }, a)).toEqual(Array.from({ length: 20 }, b));
   });
@@ -253,7 +257,7 @@ describe("HTTP isolation and offline checkout workflow", () => {
     const guest = newGuest(), r = new Recorder("HTTP");
     const api = new Api(config, new AbortController().signal, (async (_url, options) => {
       expect(options!.redirect).toBe("error");
-      return new Response('{"version":1,"canCheckout":false,"items":[]}', { headers: { "Set-Cookie": "isc_fes_guest_session=one; Path=/" } });
+      return new Response('{"version":1,"items":[]}', { headers: { "Set-Cookie": "isc_fes_guest_session=one; Path=/" } });
     }) as Fetcher);
     await api.request(r, "GET cart", "/cart", { guest, decode: cart });
     expect(guest.cookie).toBe("isc_fes_guest_session=one");
@@ -267,17 +271,18 @@ describe("HTTP isolation and offline checkout workflow", () => {
   test("uses live cart/order versions and completes pending -> ready -> completed without any network", async () => {
     const fixture = config.stores[0]!, guest = newGuest(), r = new Recorder("workflow");
     guest.cookie = "isc_fes_guest_session=visitor";
-    const calls: { path: string; method: string; body: Record<string, unknown> | undefined; cookie: string | null }[] = [];
+    const calls: { path: string; search: string; method: string; body: Record<string, unknown> | undefined; cookie: string | null }[] = [];
     const fake = (async (input, options) => {
-      const path = new URL(String(input)).pathname, method = options?.method ?? "GET";
+      const { pathname: path, search } = new URL(String(input)), method = options?.method ?? "GET";
       const body = options?.body ? JSON.parse(String(options.body)) : undefined;
-      calls.push({ path, method, body, cookie: new Headers(options?.headers).get("Cookie") });
+      calls.push({ path, search, method, body, cookie: new Headers(options?.headers).get("Cookie") });
       let response: unknown = { data: [] };
       if (path === `/stores/${fixture.storeId}`) response = { id: fixture.storeId };
       if (path.endsWith("/carts")) {
         const version = body ? Number(body.expectedVersion) + 1 : 7;
-        response = { version, canCheckout: true, items: body?.items?.length === 0 ? [] : [{ id: "item", menuId: fixture.menuId, quantity: 1, toppings: [] }] };
+        response = { version, items: body?.items?.length === 0 ? [] : [{ id: "item", menuId: fixture.menuId, quantity: 1, toppings: [] }] };
       }
+      if (path.endsWith("/carts/checkoutable")) response = { code: null };
       if (path === "/orders" && method === "POST") response = { id: "created", version: 1, status: "pending" };
       if (path === "/orders/created") response = { id: "created", version: 1, status: "pending" };
       if (method === "PATCH") response = { id: "created", version: Number(body.expectedVersion) + 1, status: body.status };
@@ -287,10 +292,26 @@ describe("HTTP isolation and offline checkout workflow", () => {
     const updates = calls.filter(c => c.method === "PUT");
     expect(updates.map(c => c.body?.expectedVersion)).toEqual([7, 8]);
     expect((updates[1]!.body!.items as { id: string }[])[0]!.id).toBe("item");
+    expect(calls.find(c => c.path.endsWith("/carts/checkoutable"))!.search).toBe("?expectedCartVersion=9");
     expect(calls.find(c => c.method === "POST")!.body).toEqual({ storeId: fixture.storeId, expectedCartVersion: 9 });
     expect(calls.filter(c => c.method === "PATCH").map(c => c.body)).toEqual([{ expectedVersion: 1, status: "ready" }, { expectedVersion: 2, status: "completed" }]);
     expect(calls.filter(c => c.method === "PATCH").every(c => c.cookie === "isc_fes_account_session=staff")).toBe(true);
     expect(changedOrders({ type: "orders.changed", data: { changedOrderId: "created", orders: [{ id: "created", version: 2, status: "ready" }] } }).orders[0]!.version).toBe(2);
+  });
+});
+
+describe("orders.changed matching", () => {
+  const ready = { id: "order", version: 2, status: "ready" };
+  test("ready requires the changed order with the expected version and status", () => {
+    expect(isExpectedChange({ changedOrderId: "order", orders: [ready] }, ready)).toBe(true);
+    expect(isExpectedChange({ changedOrderId: "order", orders: [{ ...ready, version: 1, status: "pending" }] }, ready)).toBe(false);
+    expect(isExpectedChange({ changedOrderId: "other", orders: [ready] }, ready)).toBe(false);
+  });
+  test("completed is received when the changed order leaves the active list", () => {
+    const completed = { id: "order", version: 3, status: "completed" };
+    expect(isExpectedChange({ changedOrderId: "order", orders: [] }, completed)).toBe(true);
+    expect(isExpectedChange({ changedOrderId: "order", orders: [ready] }, completed)).toBe(false);
+    expect(isExpectedChange({ changedOrderId: "other", orders: [] }, completed)).toBe(false);
   });
 });
 
@@ -304,7 +325,7 @@ describe("WS recovery between stages without a server", () => {
       const fetcher: Fetcher = async input => {
         const path = new URL(String(input)).pathname;
         if (path === "/health") return Response.json({ status: "ok", commitHash: c.backendCommit });
-        if (path.endsWith("/carts")) return Response.json({ version: 1, canCheckout: false, items: [] }, { headers: { "Set-Cookie": "isc_fes_guest_session=test" } });
+        if (path.endsWith("/carts")) return Response.json({ version: 1, items: [] }, { headers: { "Set-Cookie": "isc_fes_guest_session=test" } });
         return Response.json({ id: c.stores[0]!.storeId });
       };
       const result = await run(c, "test", async () => {}, async saved => {

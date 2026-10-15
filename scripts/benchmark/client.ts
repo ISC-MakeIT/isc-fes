@@ -1,7 +1,7 @@
 import type { Config } from "./config";
 import { Recorder } from "./stats";
 
-export type Cart = { version: number; canCheckout: boolean; items: { id: string; menuId: string; quantity: number; toppings: { toppingId: string }[] }[] };
+export type Cart = { version: number; items: { id: string; menuId: string; quantity: number; toppings: { toppingId: string }[] }[] };
 export type Order = { id: string; version: number; status: string };
 export type Guest = { cookie: string; busy: boolean; sockets: OrderSocket[] };
 export type Fetcher = (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => ReturnType<typeof fetch>;
@@ -22,11 +22,17 @@ export function staffCookie(value: string | undefined): string {
 }
 export function cart(value: unknown): Cart {
   const c = value as Cart | null;
-  if (!c || !Number.isInteger(c.version) || c.version < 1 || typeof c.canCheckout !== "boolean" || !Array.isArray(c.items)) throw new Error("invalid cart response");
+  if (!c || !Number.isInteger(c.version) || c.version < 1 || !Array.isArray(c.items)) throw new Error("invalid cart response");
   for (const item of c.items) {
     if (typeof item.id !== "string" || typeof item.menuId !== "string" || !Number.isInteger(item.quantity) || !Array.isArray(item.toppings) || item.toppings.some(t => typeof t.toppingId !== "string")) throw new Error("invalid cart item");
   }
   return c;
+}
+// codeがnullなら注文可能。注文できない理由はAPIのenumで返る。
+export function checkoutable(value: unknown): { code: string | null } {
+  const v = value as { code?: unknown } | null;
+  if (!v || (v.code !== null && typeof v.code !== "string")) throw new Error("invalid checkoutable response");
+  return { code: v.code };
 }
 export function order(value: unknown): Order {
   const o = value as Order | null;
@@ -42,6 +48,14 @@ export function changedOrders(value: unknown): { changedOrderId: string; orders:
   const v = value as { type?: string; data?: { changedOrderId?: string; orders?: unknown[] } } | null;
   if (v?.type !== "orders.changed" || typeof v.data?.changedOrderId !== "string" || !Array.isArray(v.data.orders)) throw new Error("invalid orders.changed message");
   return { changedOrderId: v.data.changedOrderId, orders: v.data.orders.map(order) };
+}
+
+// WSの注文一覧はpending/readyだけを含む。completed/cancelledになった注文は一覧から外れるため、
+// changedOrderIdが一致し、一覧に残っていないことを到達とみなす。
+export function isExpectedChange(changed: { changedOrderId: string; orders: Order[] }, expected: { id: string; version: number; status: string }): boolean {
+  if (changed.changedOrderId !== expected.id) return false;
+  if (expected.status === "completed" || expected.status === "cancelled") return changed.orders.every(o => o.id !== expected.id);
+  return changed.orders.some(o => o.id === expected.id && o.version === expected.version && o.status === expected.status);
 }
 
 export class Api {
@@ -122,7 +136,7 @@ export class OrderSocket {
             }
             const changed = changedOrders(value);
             for (const waiter of this.waiters) {
-              if (changed.changedOrderId === waiter.id && changed.orders.some(o => o.id === waiter.id && o.version === waiter.version && o.status === waiter.status)) waiter.finish(true, "received");
+              if (isExpectedChange(changed, waiter)) waiter.finish(true, "received");
             }
           } catch {
             active.wsProtocolErrors++;

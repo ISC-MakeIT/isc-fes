@@ -1,4 +1,4 @@
-import { Api, cart, list, order, type Guest, type Order } from "./client";
+import { Api, cart, checkoutable, list, order, type Guest, type Order } from "./client";
 import type { Config, StoreFixture } from "./config";
 import type { Recorder } from "./stats";
 
@@ -43,7 +43,9 @@ export async function workflow(api: Api, c: Config, r: Recorder, guest: Guest, f
     await api.request(r, "PUT cart.remove", `${store}/carts`, { guest, method: "PUT", body: { expectedVersion: current.version, items: [] }, decode: cart });
     return;
   }
-  if (!current.canCheckout) throw new Error("fixture is not checkoutable");
+  // フロントエンドと同じく、注文前にPOST /ordersと同条件の事前チェックを行う。
+  const check = await get("GET cart checkoutable", `${store}/carts/checkoutable?expectedCartVersion=${current.version}`, checkoutable);
+  if (check.code !== null) throw new Error(`fixture is not checkoutable: ${check.code}`);
   let created = await api.request(r, "POST order", "/orders", {
     guest, method: "POST", body: { storeId: fixture.storeId, expectedCartVersion: current.version }, statuses: [201], decode: order,
   });
