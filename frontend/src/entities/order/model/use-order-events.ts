@@ -16,7 +16,7 @@ const orderNotificationSchema = v.object({
 
 const closeCode = {
   normal: 1000,
-  polictViolation: 1008,
+  policyViolation: 1008,
 } as const;
 
 export function useOrderEvents(enabled: boolean) {
@@ -48,7 +48,7 @@ export function useOrderEvents(enabled: boolean) {
       onMessage: handleMessage,
       shouldReconnect: (event) =>
         event.code !== closeCode.normal &&
-        event.code! !== closeCode.polictViolation,
+        event.code !== closeCode.policyViolation,
       reconnectAttempts: 10,
       reconnectInterval: (attempt) =>
         Math.min(1000 * 2 ** attempt, 30_000) + Math.random() * 10000,
