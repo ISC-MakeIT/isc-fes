@@ -49,6 +49,10 @@ export function useOrderEvents(enabled: boolean) {
       shouldReconnect: (event) =>
         event.code !== closeCode.normal &&
         event.code !== closeCode.policyViolation,
+      // NOTE:
+      // - 再接続は最大10回
+      // - 待機時間は接続回数分2乗していく。
+      // - サーバー復旧時の全ユーザー同時再接続を防ぐ為、0〜10秒のランダムな時間も加える
       reconnectAttempts: 10,
       reconnectInterval: (attempt) =>
         Math.min(1000 * 2 ** attempt, 30_000) + Math.random() * 10000,
