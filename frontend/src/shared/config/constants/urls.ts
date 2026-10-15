@@ -3,10 +3,6 @@ import {
   MenuEditorTarget,
   serializeMenuEditor,
 } from "../search-params/menu-editor";
-import {
-  GuestStoreDetailSearchParams,
-  serializeGuestStoreDetail,
-} from "../search-params/cart-sheet";
 
 export const ordersUrl = () => "/orders";
 export const loginUrl = (redirectTo?: string) => {
@@ -56,14 +52,7 @@ export const storeApplicationsUrl = () => "/admin/store-applications";
 
 // ゲスト用のページ
 export const homeUrl = () => "/";
-export const guestStoreDetailUrl = (
-  storeId: string,
-  searchParams?: GuestStoreDetailSearchParams,
-) => {
-  const pathname = `/stores/${storeId}`;
-
-  return serializeGuestStoreDetail(pathname, searchParams ?? null);
-};
+export const guestStoreDetailUrl = (storeId: string) => `/stores/${storeId}`;
 export const eventsUrl = (eventName?: string) =>
   eventName ? `/events#${encodeURIComponent(eventName)}` : "/events";
 export const guestMenuDetailUrl = (storeId: string, menuId: string) =>
