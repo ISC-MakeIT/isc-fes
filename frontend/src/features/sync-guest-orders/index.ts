@@ -1,1 +1,1 @@
-export { GuestOrderSync } from "./ui/guest-order-sync";
+export { ActiveOrderList } from "./ui/active-order-list";

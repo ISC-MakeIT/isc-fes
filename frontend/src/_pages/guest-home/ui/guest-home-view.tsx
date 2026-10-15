@@ -7,6 +7,7 @@ import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { EventBanners } from "./event-banners";
 import { Temporal } from "temporal-polyfill-lite";
 import HeroImage from "./assets/hero-image.jpg";
+import { ActiveOrderList } from "@/features/sync-guest-orders";
 
 export async function GuestHomeView() {
   const queryClient = createQueryClient();
@@ -18,7 +19,9 @@ export async function GuestHomeView() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <div className="grid grid-cols-1 lg:grid-cols-[37.5rem_minmax(0,42.5rem)] lg:justify-center">
+      <div className="relative grid grid-cols-1 lg:grid-cols-[37.5rem_minmax(0,42.5rem)] lg:justify-center">
+        <ActiveOrderList />
+
         <AspectRatioImage
           ratio={HERO_IMAGE_ASPECT}
           src={HeroImage}
