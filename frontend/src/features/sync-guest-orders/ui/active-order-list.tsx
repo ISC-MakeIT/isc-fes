@@ -18,7 +18,7 @@ export function ActiveOrderList() {
   if (!activeOrders) return;
 
   return (
-    <div className="absolute inset-x-0 top-0 z-10 flex flex-col gap-4 px-6 pt-4">
+    <div className="absolute inset-x-0 top-0 z-10 flex flex-col gap-4 px-6 pt-4 lg:max-w-98">
       {activeOrders.map((order) => (
         <ActiveOrderRow key={order.id} order={order} />
       ))}

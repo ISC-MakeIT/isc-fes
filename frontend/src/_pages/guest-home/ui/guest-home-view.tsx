@@ -19,15 +19,16 @@ export async function GuestHomeView() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <div className="relative grid grid-cols-1 lg:grid-cols-[37.5rem_minmax(0,42.5rem)] lg:justify-center">
-        <ActiveOrderList />
-
-        <AspectRatioImage
-          ratio={HERO_IMAGE_ASPECT}
-          src={HeroImage}
-          alt="キービジュアル"
-          className="bg-gray-300 lg:col-start-1 lg:w-140 lg:shrink-0"
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-[37.5rem_minmax(0,42.5rem)] lg:justify-center">
+        <div className="relative">
+          <ActiveOrderList />
+          <AspectRatioImage
+            ratio={HERO_IMAGE_ASPECT}
+            src={HeroImage}
+            alt="キービジュアル"
+            className="bg-gray-300 lg:col-start-1 lg:w-140 lg:shrink-0"
+          />
+        </div>
         <div className="lg:col-span-2 lg:col-start-1">
           <EventBanners initialDateTime={initialDateTime} />
         </div>
