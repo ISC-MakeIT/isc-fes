@@ -1,6 +1,6 @@
 import { hostname, cpus } from "node:os";
 import { Api, cart, list, newGuest, OrderSocket, staffCookie, type Guest, type Fetcher, type SocketFactory } from "./client";
-import { random, dueArrivals, type Config, type Stage, type StoreFixture } from "./config";
+import { random, dueArrivals, arrivalsBefore, type Config, type Stage, type StoreFixture } from "./config";
 import { Recorder, type Measurements } from "./stats";
 import { pause, workflow } from "./scenario";
 
@@ -97,7 +97,7 @@ export async function run(c: Config, sourceFingerprint: string, onProgress: (val
     } finally {
       const durationMs = performance.now() - at;
       // Count the tail of the fixed arrival schedule even if the last timer tick was late.
-      const due = dueArrivals(Math.min(durationMs, durationSeconds * 1000), rate);
+      const due = arrivalsBefore(Math.min(durationMs, durationSeconds * 1000), rate);
       r.scheduled += Math.max(0, due - arrived); r.dropped += Math.max(0, due - arrived);
       r.gauge(performance.now(), socketCount());
       const end = new Date().toISOString();
@@ -178,7 +178,8 @@ export async function run(c: Config, sourceFingerprint: string, onProgress: (val
         const existing = guests[index];
         if (existing && (index >= stage.connections / c.socketsPerGuest || existing.sockets.length === c.socketsPerGuest)) continue;
         while (pending.size >= c.maxInFlight) await Promise.race(pending);
-        const job = createAndConnect(index).catch(() => { rampFailure = new Error("guest bootstrap failed"); }).finally(() => pending.delete(job));
+        // Api のエラーは cookie や本文を含まないため、原因を追えるように理由を残す。
+        const job = createAndConnect(index).catch((error: unknown) => { rampFailure = new Error(`guest bootstrap failed: ${error instanceof Error ? error.message : "unknown error"}`); }).finally(() => pending.delete(job));
         pending.add(job);
         await pause(1000 * c.socketsPerGuest / c.connectPerSecond, abort.signal);
       }

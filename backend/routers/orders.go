@@ -89,6 +89,13 @@ func (s *Server) CreateOrder(c *gin.Context) {
 	if err != nil {
 		messages := CommonErrorMessages{InvalidInput: "カートの内容が不正です"}
 		switch {
+		case errors.Is(err, orderservice.ErrGuestOrderTooEarly):
+			code := "guest_order_too_early"
+			c.JSON(http.StatusForbidden, ErrorResponse{
+				Code:    &code,
+				Message: fmt.Sprintf("初回閲覧から%d分は注文できません。もう少し時間を置いてから注文してください", orderservice.GuestOrderWaitMinutes),
+			})
+			return
 		case errors.Is(err, orderservice.ErrCartVersionConflict):
 			messages.Conflict = "カートが更新されています。再読み込みしてください"
 		case errors.Is(err, orderservice.ErrUnavailableItems):

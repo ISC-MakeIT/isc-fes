@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/isc-makeit/isc-fes/backend/db/sqlc"
@@ -36,7 +37,8 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, input orderservice.Cr
 	qtx := r.queries.WithTx(tx)
 
 	// 全経路で Guest → Store → Account → Membership → Cart → Counter の順序を守る。
-	if _, err := qtx.LockGuest(ctx, input.GuestID); err != nil {
+	guest, err := qtx.LockGuest(ctx, input.GuestID)
+	if err != nil {
 		return orderservice.CreateResult{}, fmt.Errorf("lock order guest: %w", err)
 	}
 	saved, err := qtx.FindOrderForCartVersion(ctx, sqlc.FindOrderForCartVersionParams{
@@ -59,6 +61,13 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, input orderservice.Cr
 	prepared, err := prepareCheckout(ctx, qtx, input, true)
 	if err != nil {
 		return orderservice.CreateResult{}, err
+	}
+	// 件数制限と同じ権限判定で、所属店舗のStaff/Managerと全店舗のAdminを免除する。
+	// 成立済み注文への再送は、上で解決済みのため待機時間を変更した後も成功する。
+	if prepared.exemptAccountID == nil {
+		if err := orderservice.CheckGuestOrderWait(guest.CreatedAt.Time, time.Now()); err != nil {
+			return orderservice.CreateResult{}, err
+		}
 	}
 	store, items, total := prepared.store, prepared.items, prepared.total
 

@@ -1,9 +1,9 @@
 import { createApiClient } from "@/shared/api";
-import { getStatusMessage, isClientError } from "@/shared/config";
+import { getStatusMessage, HTTP_STATUS } from "@/shared/config";
 
 type StoreInvitationAcceptResult =
-  | { storeId: string; errorMessage?: never }
-  | { storeId?: never; errorMessage: string };
+  | { ok: true; storeId: string }
+  | { ok: false; errorMessage: string; status: number };
 
 export async function storeInvitationAccept(
   invitationId: string,
@@ -21,12 +21,14 @@ export async function storeInvitationAccept(
   );
 
   if (error) {
-    if (isClientError(response.status)) {
-      return { errorMessage: getStatusMessage(response.status) };
-    } else {
-      throw new Error(getStatusMessage(response.status));
+    let errorMessage = getStatusMessage(response.status);
+
+    if (response.status === HTTP_STATUS.NOT_FOUND.code) {
+      errorMessage = "招待が存在しないか、使用回数の上限に達しています。";
     }
+
+    return { ok: false, status: response.status, errorMessage };
   }
 
-  return { storeId: data.storeId };
+  return { ok: true, storeId: data.storeId };
 }

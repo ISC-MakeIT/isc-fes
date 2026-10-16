@@ -81,7 +81,7 @@ func orderUpdateFixture(t *testing.T) (context.Context, *OrderRepository, orders
 	execOrderSQL(t, ctx, pool, `INSERT INTO stores (id,name,room,description,image_object_key,review_status,closed_at,order_enabled)
 		VALUES ($1,'current store','test','','test','approved',now(),false)`, input.StoreID)
 	execOrderSQL(t, ctx, pool, `INSERT INTO store_members (store_id,account_id,role) VALUES ($1,$2,'staff')`, input.StoreID, input.AccountID)
-	execOrderSQL(t, ctx, pool, `INSERT INTO guests (id) VALUES ($1)`, guestID)
+	execOrderSQL(t, ctx, pool, `INSERT INTO guests (id,created_at) VALUES ($1,now()-interval '1 day')`, guestID)
 	execOrderSQL(t, ctx, pool, `INSERT INTO carts (id,store_id,guest_id) VALUES ($1,$2,$3)`, cartID, input.StoreID, guestID)
 	execOrderSQL(t, ctx, pool, `INSERT INTO orders (id,store_id,guest_id,total_amount,display_number,origin_cart_id,origin_cart_version,store_name,room_name)
 		VALUES ($1,$2,$3,600,1,$4,1,'snapshot store','snapshot room')`, input.OrderID, input.StoreID, guestID, cartID)
