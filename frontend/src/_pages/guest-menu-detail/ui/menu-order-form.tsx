@@ -76,11 +76,7 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
     },
     onSuccess: (updatedCart) => {
       queryClient.setQueryData(cartKey(storeId), updatedCart);
-      router.push(
-        guestStoreDetailUrl(storeId, {
-          isOpenCart: true,
-        }),
-      );
+      router.push(guestStoreDetailUrl(storeId));
     },
   });
 
