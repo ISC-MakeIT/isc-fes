@@ -76,7 +76,7 @@ export interface paths {
     /**
      * カートから注文を確定する
      * @description 同じGuest・店舗・元カートversionの再送は、現在の販売状況や権限にかかわらず同じ注文を返す。
-     *     新規注文はGuestのcreated_atから待機時間（初期値3分）が経過するまで拒否する。Staff/Manager/Adminも待機対象。
+     *     新規注文はGuestのcreated_atから待機時間（初期値3分）が経過するまで拒否する。当該店舗のStaff/ManagerまたはAdminは待機時間を免除する。
      *     通常のpending/ready注文は全店舗合計で2件まで。当該店舗のStaff/ManagerまたはAdminによる注文は件数制限を免除し、集計から除外する。
      *     成功時は同じカートの明細を消去してversionを1増やす。明細順序は保証しない。
      */

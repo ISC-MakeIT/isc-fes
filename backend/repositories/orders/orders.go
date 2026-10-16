@@ -58,14 +58,16 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, input orderservice.Cr
 		return orderservice.CreateResult{}, err
 	}
 
-	// 成立済み注文への再送は待機時間を変更した後も成功させる。
-	if err := orderservice.CheckGuestOrderWait(guest.CreatedAt.Time, time.Now()); err != nil {
-		return orderservice.CreateResult{}, err
-	}
-
 	prepared, err := prepareCheckout(ctx, qtx, input, true)
 	if err != nil {
 		return orderservice.CreateResult{}, err
+	}
+	// 件数制限と同じ権限判定で、所属店舗のStaff/Managerと全店舗のAdminを免除する。
+	// 成立済み注文への再送は、上で解決済みのため待機時間を変更した後も成功する。
+	if prepared.exemptAccountID == nil {
+		if err := orderservice.CheckGuestOrderWait(guest.CreatedAt.Time, time.Now()); err != nil {
+			return orderservice.CreateResult{}, err
+		}
 	}
 	store, items, total := prepared.store, prepared.items, prepared.total
 

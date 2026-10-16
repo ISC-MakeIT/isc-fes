@@ -34,7 +34,8 @@ type checkoutPreparation struct {
 	exemptAccountID *uuid.UUID
 }
 
-// prepareCheckoutはGETの事前チェックとPOSTの新規注文で同じ条件・順序を適用する。
+// prepareCheckoutはGETの事前チェックとPOSTで店舗・カート・件数制限を同じ順序で検証する。
+// Guestの待機時間はPOST側でのみ判定する。
 // POSTではGuestロックと再送の解決後に呼び、Store → Account → Membership → Cartの順にロックする。
 // GETは同じ読み取りsnapshot内で呼び、ロックも書き込みも行わない。
 func prepareCheckout(ctx context.Context, q *sqlc.Queries, input orderservice.CreateRepositoryInput, lockRows bool) (checkoutPreparation, error) {
