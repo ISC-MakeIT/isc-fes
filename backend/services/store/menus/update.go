@@ -85,9 +85,9 @@ func (s *MenuService) UpdateMenuByStoreIDAndMenuID(c context.Context, storeID uu
 	if err != nil {
 		return menus.MenuDisplay{}, err
 	}
-	if input.ImageObjectKey != nil && *input.ImageObjectKey != menu.ImageObjectKey {
-		s.imageRepository.DeleteObject(c, menu.ImageObjectKey)
-	}
+	// TODO: 画像の所有権と参照関係を管理し、安全に削除できる仕組みを導入する。
+	// 現状は他店舗の画像キーも指定でき、差し替え時にその画像を削除できてしまうため、旧画像は削除しない。
+	// 削除を再開する際は、既存の関連付けも含めて所有権と他から参照されていないことを検証する。
 
 	return entity2display.ToMenuDisplay(c, updatedMenu, s.imageURLGenerator)
 }
