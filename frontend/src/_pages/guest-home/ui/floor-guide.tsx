@@ -153,11 +153,13 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
           </AppLink>
 
           {store.closedAt && (
-            <Image
-              src={StoreClosedIcon}
-              alt={`${store.name}は閉店しています`}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-            />
+            <div className="absolute inset-0 bg-black/10">
+              <Image
+                src={StoreClosedIcon}
+                alt={`${store.name}は閉店しています`}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+              />
+            </div>
           )}
         </div>
       ))}
