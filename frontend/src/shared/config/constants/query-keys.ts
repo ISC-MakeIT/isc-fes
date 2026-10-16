@@ -2,7 +2,11 @@ export const storeDetailKey = (storeId: string) => ["store", storeId];
 export const storeMenusKey = (storeId: string) => ["store", "menus", storeId];
 export const storeOrdersKey = (storeId: string, statuses?: string[]) =>
   ["store", storeId, "orders", statuses] as const;
-export const orderDetailKey = (orderId: string) => ["orders", orderId];
+
+export const orderDetailKeys = {
+  all: () => ["orders", "detail"] as const,
+  detail: (orderId: string) => [...orderDetailKeys.all(), orderId] as const,
+};
 
 export const storeToppingsKey = (storeId: string) => [
   "store",
@@ -46,4 +50,12 @@ export const storeListKeys = {
   currentAccount: () => [...storeListKeys.all(), "current-account"] as const,
 };
 
-export const ordersKey = (statuses?: string[]) => ["orders", statuses] as const;
+export const ordersKey = (statuses?: string[]) => {
+  if (!statuses || statuses.length === 0) {
+    return ["orders"] as const;
+  }
+
+  const normalizedStatuses = [...new Set(statuses)].sort();
+
+  return ["orders", normalizedStatuses] as const;
+};

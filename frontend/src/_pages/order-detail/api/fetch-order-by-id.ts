@@ -1,6 +1,10 @@
 import { Order } from "@/entities/order";
 import { createApiClient } from "@/shared/api";
-import { getStatusMessage, HTTP_STATUS, orderDetailKey } from "@/shared/config";
+import {
+  getStatusMessage,
+  HTTP_STATUS,
+  orderDetailKeys,
+} from "@/shared/config";
 import { v } from "@/shared/lib/valibot";
 import { queryOptions } from "@tanstack/react-query";
 
@@ -31,7 +35,7 @@ export async function fetchOrderById({ orderId }: FetchOrderByIdParams) {
 export function fetchOrderByidQueryOptions(orderId: string) {
   return queryOptions({
     queryFn: () => fetchOrderById({ orderId }),
-    queryKey: orderDetailKey(orderId),
+    queryKey: orderDetailKeys.detail(orderId),
     // チケットのスタンプをwebsocket使って実装しないなら数秒ごとにfetchさせる
     staleTime: Infinity,
   });

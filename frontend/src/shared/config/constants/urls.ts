@@ -71,3 +71,6 @@ export const guestMenuDetailUrl = (storeId: string, menuId: string) =>
 export const guestCheckoutUrl = (storeId: string) =>
   `/stores/${storeId}/checkout`;
 export const orderDetailUrl = (orderId: string) => `${ordersUrl()}/${orderId}`;
+
+// 注文web socket用
+export const websocketOrdersUrl = () => "/ws/orders";

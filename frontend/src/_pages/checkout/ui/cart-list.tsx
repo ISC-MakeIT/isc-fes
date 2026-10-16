@@ -17,7 +17,7 @@ import { createOrder } from "../api/create-order";
 import {
   cartKey,
   guestStoreDetailUrl,
-  orderDetailKey,
+  orderDetailKeys,
   orderDetailUrl,
 } from "@/shared/config";
 import { useRouter } from "next/navigation";
@@ -39,7 +39,7 @@ export function CartList({ storeId }: CartListProps) {
     mutationFn: createOrder,
 
     onSuccess: async (order) => {
-      queryClient.setQueryData(orderDetailKey(order.id), order);
+      queryClient.setQueryData(orderDetailKeys.detail(order.id), order);
 
       await queryClient.invalidateQueries({
         queryKey: cartKey(storeId),

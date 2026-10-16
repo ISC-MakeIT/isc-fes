@@ -32,6 +32,7 @@ export {
   storeMenuEditorUrl,
   guestCheckoutUrl,
   orderDetailUrl,
+  websocketOrdersUrl,
 } from "./constants/urls";
 
 export {
@@ -54,7 +55,7 @@ export {
   cartKey,
   storeListKeys,
   storeOrdersKey,
-  orderDetailKey,
+  orderDetailKeys,
   ordersKey,
   checkoutableKey,
 } from "./constants/query-keys";
