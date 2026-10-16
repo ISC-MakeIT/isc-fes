@@ -37,6 +37,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/guests": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * ゲストセッションを発行する
+     * @description 既存のGuestセッションがあれば再利用し、未発行の場合のみGuestを作成する。既存Guestのcreated_atは変更しない。
+     */
+    post: operations["ensureGuest"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/orders": {
     parameters: {
       query?: never;
@@ -990,6 +1010,33 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["ErrorResponse"];
         };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  ensureGuest: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description ゲストセッションを発行済み */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description サーバーエラー */
       500: {

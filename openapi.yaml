@@ -48,6 +48,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /guests:
+    post:
+      operationId: ensureGuest
+      summary: ゲストセッションを発行する
+      description: 既存のGuestセッションがあれば再利用し、未発行の場合のみGuestを作成する。既存Guestのcreated_atは変更しない。
+      security:
+        - GuestSession: []
+      responses:
+        "204":
+          description: ゲストセッションを発行済み
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /orders:
     get:
       operationId: getOrders
