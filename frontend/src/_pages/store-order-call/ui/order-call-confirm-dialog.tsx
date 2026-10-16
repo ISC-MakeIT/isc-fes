@@ -4,7 +4,7 @@ import { PendingOrderItemRow } from "./pending-order-item-row";
 import { ActionButton } from "@/shared/ui/action-button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateOrder } from "../api/update-order";
-import { orderDetailKey, storeOrdersKey } from "@/shared/config";
+import { orderDetailKeys, storeOrdersKey } from "@/shared/config";
 import { toast } from "@/shared/ui/toast";
 
 type OrderCallConfirmDialogProps = {
@@ -27,7 +27,9 @@ export function OrderCallConfirmDialog({ order }: OrderCallConfirmDialogProps) {
       await Promise.all([
         queryClient.cancelQueries({ queryKey: pendingKey, exact: true }),
         queryClient.invalidateQueries({ queryKey: readyKey, exact: true }),
-        queryClient.invalidateQueries({ queryKey: orderDetailKey(order.id) }),
+        queryClient.invalidateQueries({
+          queryKey: orderDetailKeys.detail(order.id),
+        }),
       ]);
 
       queryClient.setQueryData<Order[]>(pendingKey, (orders) =>

@@ -1,7 +1,7 @@
 import { Order, OrderStatus } from "@/entities/order";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateOrder } from "../api/update-order";
-import { orderDetailKey, storeOrdersKey } from "@/shared/config";
+import { orderDetailKeys, storeOrdersKey } from "@/shared/config";
 import { toast } from "@/shared/ui/toast";
 import { DialogContent, DialogTitle } from "@/shared/ui/dialog";
 import { ReadyOrderItemRow } from "./ready-order-item-row";
@@ -30,7 +30,9 @@ export function OrderPaymentConfirmDialog({
       await Promise.all([
         queryClient.cancelQueries({ queryKey: readyKey, exact: true }),
         queryClient.invalidateQueries({ queryKey: completedKey, exact: true }),
-        queryClient.invalidateQueries({ queryKey: orderDetailKey(order.id) }),
+        queryClient.invalidateQueries({
+          queryKey: orderDetailKeys.detail(order.id),
+        }),
       ]);
 
       queryClient.setQueryData<Order[]>(readyKey, (orders) =>
