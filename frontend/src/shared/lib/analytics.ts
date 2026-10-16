@@ -22,6 +22,7 @@ export type AnalyticsItem = {
 };
 
 export type AnalyticsEventName =
+  | "order_wait_blocked"
   | "select_floor"
   | "select_store"
   | "view_store"

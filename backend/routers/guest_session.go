@@ -3,6 +3,7 @@ package routers
 import (
 	"context"
 	"errors"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -10,6 +11,11 @@ import (
 )
 
 const guestSessionRequiredContextKey = "guest-session-required"
+
+// EnsureGuestではGuestSession middlewareが既存Guestの解決または発行を済ませている。
+func (s *Server) EnsureGuest(c *gin.Context) {
+	c.Status(http.StatusNoContent)
+}
 
 // guestResolverは、Guest必須のリクエストで既存Guestを解決し、
 // 未発行なら新しいGuestとセッションを作成する境界。

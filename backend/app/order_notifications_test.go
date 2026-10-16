@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	domain "github.com/isc-makeit/isc-fes/backend/domains/entities/orders"
 	"github.com/isc-makeit/isc-fes/backend/routers"
+	orderservice "github.com/isc-makeit/isc-fes/backend/services/orders"
 )
 
 func (f *ordersWebSocketFixture) signInAccount(t *testing.T, storeID uuid.UUID) *http.Client {
@@ -155,6 +156,27 @@ func TestNewOrderNotificationsThroughHTTP(t *testing.T) {
 		VALUES ($1,$2,'new order menu','',250,'test')`, menuID, storeID)
 	execSQL(`INSERT INTO carts (id,store_id,guest_id) VALUES ($1,$2,$3)`, cartID, storeID, guestID)
 	execSQL(`INSERT INTO cart_items (cart_id,menu_id,store_id,quantity) VALUES ($1,$2,$3,2)`, cartID, menuID, storeID)
+	// 待機中は専用エラーを返し、カート・注文を変更しない。
+	body := fmt.Sprintf(`{"storeId":%q,"expectedCartVersion":1}`, storeID)
+	blocked, err := client.Post(f.server.URL+"/orders", "application/json", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var waitError routers.ErrorResponse
+	decodeErr := json.NewDecoder(blocked.Body).Decode(&waitError)
+	blocked.Body.Close()
+	wantMessage := fmt.Sprintf("初回閲覧から%d分は注文できません。もう少し時間を置いてから注文してください", orderservice.GuestOrderWaitMinutes)
+	if decodeErr != nil || blocked.StatusCode != http.StatusForbidden || waitError.Code == nil || *waitError.Code != "guest_order_too_early" || waitError.Message != wantMessage {
+		t.Fatalf("wait error = %+v, status = %d, decode = %v", waitError, blocked.StatusCode, decodeErr)
+	}
+	var version, cartItems, orderCount int
+	if err := f.pool.QueryRow(t.Context(), `SELECT version,(SELECT count(*) FROM cart_items WHERE cart_id=$1),(SELECT count(*) FROM orders) FROM carts WHERE id=$1`, cartID).Scan(&version, &cartItems, &orderCount); err != nil {
+		t.Fatal(err)
+	}
+	if version != 1 || cartItems != 1 || orderCount != 0 {
+		t.Fatalf("denied order changed state: version=%d, items=%d, orders=%d", version, cartItems, orderCount)
+	}
+	execSQL(`UPDATE guests SET created_at=now()-($2 * interval '1 minute') WHERE id=$1`, guestID, orderservice.GuestOrderWaitMinutes)
 	create := func(wantStatus int) routers.Order {
 		t.Helper()
 		body := fmt.Sprintf(`{"storeId":%q,"expectedCartVersion":1}`, storeID)
@@ -196,6 +218,8 @@ func TestNewOrderNotificationsThroughHTTP(t *testing.T) {
 			t.Fatalf("new committed order missing from WS snapshot: %s", message)
 		}
 	}
+	// 待機時間の変更後も成立済み注文への再送を拒否しない。
+	execSQL(`UPDATE guests SET created_at=now() WHERE id=$1`, guestID)
 	if replay := create(http.StatusOK); !reflect.DeepEqual(replay, created) {
 		t.Fatalf("replay changed Order: %+v", replay)
 	}

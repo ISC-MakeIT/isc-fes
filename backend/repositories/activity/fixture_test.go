@@ -185,7 +185,7 @@ func (f *fixture) seedCart(t *testing.T) orderservice.CreateRepositoryInput {
 	t.Helper()
 	menuID, guestID, cartID := uuid.New(), uuid.New(), uuid.New()
 	f.exec(t, `INSERT INTO menus (id,store_id,name,description,unit_price,image_object_key) VALUES ($1,$2,'menu','',500,'image')`, menuID, f.storeID)
-	f.exec(t, `INSERT INTO guests (id) VALUES ($1)`, guestID)
+	f.exec(t, `INSERT INTO guests (id,created_at) VALUES ($1,now()-interval '1 day')`, guestID)
 	f.exec(t, `INSERT INTO carts (id,guest_id,store_id) VALUES ($1,$2,$3)`, cartID, guestID, f.storeID)
 	f.exec(t, `INSERT INTO cart_items (cart_id,menu_id,store_id,quantity) VALUES ($1,$2,$3,1)`, cartID, menuID, f.storeID)
 	return orderservice.CreateRepositoryInput{CreateInput: orderservice.CreateInput{StoreID: f.storeID, ExpectedCartVersion: 1}, GuestID: guestID, AccountID: &f.accountID}
