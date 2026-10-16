@@ -76,6 +76,7 @@ export interface paths {
     /**
      * カートから注文を確定する
      * @description 同じGuest・店舗・元カートversionの再送は、現在の販売状況や権限にかかわらず同じ注文を返す。
+     *     新規注文はGuestのcreated_atから待機時間（初期値3分）が経過するまで拒否する。Staff/Manager/Adminも待機対象。
      *     通常のpending/ready注文は全店舗合計で2件まで。当該店舗のStaff/ManagerまたはAdminによる注文は件数制限を免除し、集計から除外する。
      *     成功時は同じカートの明細を消去してversionを1増やす。明細順序は保証しない。
      */
@@ -943,6 +944,8 @@ export interface components {
       createdAt: string;
     };
     ErrorResponse: {
+      /** @description エラーの識別コード。注文待機時間が未経過の場合はguest_order_too_early。 */
+      code?: string;
       message: string;
     };
   };
@@ -1130,6 +1133,15 @@ export interface operations {
       };
       /** @description 空カート・数量・メニュー種類数などの入力が不正 */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Guestの待機時間が未経過（codeはguest_order_too_early）、または店舗が注文受付を停止中 */
+      403: {
         headers: {
           [name: string]: unknown;
         };

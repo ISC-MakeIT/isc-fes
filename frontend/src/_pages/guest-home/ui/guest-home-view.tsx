@@ -7,6 +7,7 @@ import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { EventBanners } from "./event-banners";
 import { Temporal } from "temporal-polyfill-lite";
 import HeroImage from "./assets/hero-image.jpg";
+import { GuestSessionInitializer } from "./guest-session-initializer";
 
 export async function GuestHomeView() {
   const queryClient = createQueryClient();
@@ -18,6 +19,7 @@ export async function GuestHomeView() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
+      <GuestSessionInitializer />
       <div className="grid grid-cols-1 lg:grid-cols-[37.5rem_minmax(0,42.5rem)] lg:justify-center">
         <AspectRatioImage
           ratio={HERO_IMAGE_ASPECT}
