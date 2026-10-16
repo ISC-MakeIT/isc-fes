@@ -1,15 +1,19 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useGuestOrderSync } from "../model/use-guest-order-sync";
-import { Order, ordersQueryOptions, OrderStatus } from "@/entities/order";
+import {
+  Order,
+  ordersQueryOptions,
+  OrderStatus,
+  useOrderEvents,
+} from "@/entities/order";
 import { Card } from "@/shared/ui/card";
 import Link from "next/link";
 import { orderDetailUrl } from "@/shared/config";
 import { cn } from "@/shared/lib/utils";
 
 export function ActiveOrderList() {
-  useGuestOrderSync();
+  useOrderEvents(true);
 
   const { data: activeOrders } = useQuery(
     ordersQueryOptions([OrderStatus.Pending, OrderStatus.Ready]),
