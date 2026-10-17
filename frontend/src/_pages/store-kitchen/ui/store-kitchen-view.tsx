@@ -35,7 +35,7 @@ type OrderCardProps = {
 
 function OrderCard({ order }: OrderCardProps) {
   return (
-    <Card className="border-secondary shadow-primary flex shrink-0 flex-col items-center rounded-md border-4 px-6 pt-4 pb-8 shadow-[4px_4px_0]">
+    <Card className="border-secondary shadow-primary flex max-w-89.5 shrink-0 flex-col items-center rounded-md border-4 px-6 pt-4 pb-8 shadow-[4px_4px_0]">
       <CircleIcon size={16} className="text-secondary fill-secondary" />
       <div className="space-y-6">
         <div className="flex flex-row items-center justify-center gap-2">
@@ -57,22 +57,22 @@ type OrderItemRowProps = {
 function OrderItemRow({ orderItem }: OrderItemRowProps) {
   return (
     <div className="flex flex-row justify-between gap-4 text-2xl font-bold">
-      <div className="">
+      <div>
         <span>{orderItem.menuName}</span>
         <div className="flex flex-col">
           {orderItem.toppings.map((topping) => (
             <div
               key={topping.toppingId}
-              className="flex flex-row items-center gap-2 pt-2 pl-8 text-lg font-semibold"
+              className="flex flex-row items-start gap-2 pt-2 pl-8 text-lg font-semibold"
             >
-              <PlusIcon size={20} />
+              <PlusIcon size={24} className="shrink-0" />
               <p>{topping.toppingName}</p>
             </div>
           ))}
         </div>
       </div>
 
-      <p className="tabular-nums">：{orderItem.quantity}個</p>
+      <p className="shrink-0 tabular-nums">：{orderItem.quantity}個</p>
     </div>
   );
 }
