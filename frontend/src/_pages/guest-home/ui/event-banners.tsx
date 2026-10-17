@@ -45,7 +45,7 @@ export function EventBanners({ initialDateTime }: EventBannersProps) {
           );
 
     if (targetEventIndex >= 0) {
-      bannerRefs.current[ongoingEventIndex]?.scrollIntoView({
+      bannerRefs.current[targetEventIndex]?.scrollIntoView({
         behavior: "auto",
         block: "nearest",
         inline: "center",
