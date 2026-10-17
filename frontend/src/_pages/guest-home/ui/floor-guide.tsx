@@ -115,7 +115,7 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
   return (
     <div className="flex w-full flex-col items-center px-4">
       {storesByFloor.map((store) => (
-        <div className="relative inset-0" key={store.id}>
+        <div className="relative inset-0 w-full lg:max-w-115.5" key={store.id}>
           <AppLink
             disabled={!!store.closedAt}
             href={guestStoreDetailUrl(store.id)}
@@ -126,7 +126,7 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
               })
             }
           >
-            <div className="border-foreground flex w-full flex-row items-center gap-2 border-b border-dashed px-2 py-4 lg:max-w-115.5">
+            <div className="border-foreground flex w-full flex-row items-center gap-2 border-b border-dashed px-2 py-4">
               <PreviewImage
                 ratio={STORE_IMAGE_ASPECT}
                 alt={`${store.name}の店舗画像`}
