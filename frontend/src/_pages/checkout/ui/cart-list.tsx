@@ -74,16 +74,16 @@ export function CartList({ storeId }: CartListProps) {
         </p>
       </div>
 
-      <div className="mt-8 mb-18 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-6">
+      <div className="flex flex-row items-center justify-center gap-6 px-6 pt-8 pb-18">
         <LinkButton
           href={guestStoreDetailUrl(storeId)}
-          className="justify-self-end px-6 py-2"
+          className="shrink-0 justify-self-end px-6 py-2 md:hidden"
         >
           <ChevronLeftIcon className="size-8" />
         </LinkButton>
 
         <ActionButton
-          className="px-14 py-2 text-[1.375rem] font-bold"
+          className="flex-1 py-2 text-[1.375rem] font-bold md:flex-0 md:px-14"
           isDot={false}
           disabled={mutation.isPending}
           onClick={() =>
