@@ -256,6 +256,30 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/stores/ranking": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * 全店舗の総売上額ランキング上位3店舗を取得する
+     * @description 承認済みの全店舗を、全期間のcompleted注文の合計金額の降順で取得する。
+     *     売上0円・閉店済み・モバイルオーダー受付停止中の店舗も対象とする。
+     *     同額の場合は店舗IDの昇順とし、placeは同額でも1からの連番とする。
+     *     承認済み店舗が3店舗未満の場合は存在する店舗のみ返す。
+     *     店舗情報は現在の情報を返し、売上額自体は返さない。認証は不要。
+     */
+    get: operations["getStoreRanking"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/stores/{store_id}": {
     parameters: {
       query?: never;
@@ -639,6 +663,15 @@ export interface components {
       /** @description 閲覧可能な店舗の総数 */
       total: number;
       data: components["schemas"]["Store"][];
+    };
+    GetStoreRankingResponse: {
+      /** @description 返却した店舗数 */
+      total: number;
+      data: components["schemas"]["StoreRankingItem"][];
+    };
+    StoreRankingItem: components["schemas"]["Store"] & {
+      /** @description 総売上額順の順位。同額でも連番とする。 */
+      place: number;
     };
     GetStoreApplicationsResponse: {
       /** @description 店舗申請の総数 */
@@ -1790,6 +1823,35 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getStoreRanking: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 総売上額ランキング上位3店舗 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetStoreRankingResponse"];
         };
       };
       /** @description サーバーエラー */

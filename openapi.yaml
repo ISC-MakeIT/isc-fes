@@ -640,6 +640,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /stores/ranking:
+    get:
+      operationId: getStoreRanking
+      summary: 全店舗の総売上額ランキング上位3店舗を取得する
+      description: |
+        承認済みの全店舗を、全期間のcompleted注文の合計金額の降順で取得する。
+        売上0円・閉店済み・モバイルオーダー受付停止中の店舗も対象とする。
+        同額の場合は店舗IDの昇順とし、placeは同額でも1からの連番とする。
+        承認済み店舗が3店舗未満の場合は存在する店舗のみ返す。
+        店舗情報は現在の情報を返し、売上額自体は返さない。認証は不要。
+      security: []
+      responses:
+        "200":
+          description: 総売上額ランキング上位3店舗
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetStoreRankingResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /stores/{store_id}:
     get:
       operationId: getApprovedStoreByID
@@ -1953,6 +1978,31 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Store"
+    GetStoreRankingResponse:
+      type: object
+      required: [data, total]
+      properties:
+        total:
+          type: integer
+          description: 返却した店舗数
+          minimum: 0
+          maximum: 3
+        data:
+          type: array
+          maxItems: 3
+          items:
+            $ref: "#/components/schemas/StoreRankingItem"
+    StoreRankingItem:
+      allOf:
+        - $ref: "#/components/schemas/Store"
+        - type: object
+          required: [place]
+          properties:
+            place:
+              type: integer
+              minimum: 1
+              maximum: 3
+              description: 総売上額順の順位。同額でも連番とする。
     GetStoreApplicationsResponse:
       type: object
       required:

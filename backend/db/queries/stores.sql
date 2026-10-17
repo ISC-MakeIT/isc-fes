@@ -24,6 +24,19 @@ FROM stores
 WHERE review_status = 'approved'
     AND id = $1;
 
+-- name: GetStoreRanking :many
+SELECT stores.*
+FROM stores
+LEFT JOIN (
+    SELECT store_id, SUM(total_amount) AS total_sales_amount
+    FROM orders
+    WHERE status = 'completed'
+    GROUP BY store_id
+) AS sales ON sales.store_id = stores.id
+WHERE stores.review_status = 'approved'
+ORDER BY COALESCE(sales.total_sales_amount, 0) DESC, stores.id ASC
+LIMIT 3;
+
 -- name: GetVisibleStoresByAccountID :many
 SELECT *
 FROM stores

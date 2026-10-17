@@ -113,6 +113,15 @@ func (r *StoreRepository) GetApprovedStoreByID(ctx context.Context, storeID uuid
 	return r.toStore(dbStore), err
 }
 
+func (r *StoreRepository) GetStoreRanking(ctx context.Context) ([]entities.Store, error) {
+	dbStores, err := r.queries.GetStoreRanking(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return utils.Map(dbStores, r.toStore), nil
+}
+
 func (r *StoreRepository) GetVisibleStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error) {
 	dbStores, err := r.queries.GetVisibleStoresByAccountID(ctx, accountID)
 	if err != nil {

@@ -269,6 +269,53 @@ func (q *Queries) GetStoreByID(ctx context.Context, id uuid.UUID) (Store, error)
 	return i, err
 }
 
+const getStoreRanking = `-- name: GetStoreRanking :many
+SELECT stores.id, stores.name, stores.room, stores.description, stores.image_object_key, stores.review_status, stores.submitted_at, stores.created_at, stores.updated_at, stores.closed_at, stores.congestion_level, stores.order_enabled
+FROM stores
+LEFT JOIN (
+    SELECT store_id, SUM(total_amount) AS total_sales_amount
+    FROM orders
+    WHERE status = 'completed'
+    GROUP BY store_id
+) AS sales ON sales.store_id = stores.id
+WHERE stores.review_status = 'approved'
+ORDER BY COALESCE(sales.total_sales_amount, 0) DESC, stores.id ASC
+LIMIT 3
+`
+
+func (q *Queries) GetStoreRanking(ctx context.Context) ([]Store, error) {
+	rows, err := q.db.Query(ctx, getStoreRanking)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Store{}
+	for rows.Next() {
+		var i Store
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Room,
+			&i.Description,
+			&i.ImageObjectKey,
+			&i.ReviewStatus,
+			&i.SubmittedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ClosedAt,
+			&i.CongestionLevel,
+			&i.OrderEnabled,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getVisibleStoresByAccountID = `-- name: GetVisibleStoresByAccountID :many
 SELECT id, name, room, description, image_object_key, review_status, submitted_at, created_at, updated_at, closed_at, congestion_level, order_enabled
 FROM stores
