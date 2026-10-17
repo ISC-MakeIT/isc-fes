@@ -23,6 +23,24 @@ func (s *Server) GetVisibleStores(c *gin.Context, params GetVisibleStoresParams)
 	})
 }
 
+func (s *Server) GetStoreRanking(c *gin.Context) {
+	stores, err := s.store.GetStoreRanking(c.Request.Context())
+	if err != nil {
+		s.handleCommonServiceErrors(c, err)
+		return
+	}
+
+	data := make([]StoreRankingItem, len(stores))
+	for i, store := range stores {
+		data[i] = toStoreRankingItem(store, i+1)
+	}
+
+	c.JSON(http.StatusOK, GetStoreRankingResponse{
+		Data:  data,
+		Total: len(data),
+	})
+}
+
 func (s *Server) GetApprovedStoreByID(c *gin.Context, storeID uuid.UUID) {
 	store, err := s.store.GetApprovedStoreByID(c.Request.Context(), storeID)
 	if err != nil {
@@ -74,5 +92,22 @@ func toStoreResponse(store entities.StoreOutput) Store {
 		Allergens:       utils.Map(store.Allergens, toAllergen),
 		ClosedAt:        store.ClosedAt,
 		CongestionLevel: StoreCongestionLevel(store.CongestionLevel),
+	}
+}
+
+func toStoreRankingItem(store entities.StoreOutput, place int) StoreRankingItem {
+	response := toStoreResponse(store)
+	return StoreRankingItem{
+		OrderEnabled:    response.OrderEnabled,
+		Id:              response.Id,
+		Name:            response.Name,
+		Room:            response.Room,
+		Description:     response.Description,
+		ImageUrl:        response.ImageUrl,
+		ReviewStatus:    response.ReviewStatus,
+		Allergens:       response.Allergens,
+		ClosedAt:        response.ClosedAt,
+		CongestionLevel: response.CongestionLevel,
+		Place:           place,
 	}
 }

@@ -14,6 +14,7 @@ import (
 type StoreRepository interface {
 	CreateStoreApplication(ctx context.Context, input CreateStoreApplicationInput) (entities.Store, error)
 	GetApprovedStores(ctx context.Context) ([]entities.Store, error)
+	GetStoreRanking(ctx context.Context) ([]entities.Store, error)
 	GetApprovedStoreByID(ctx context.Context, storeID uuid.UUID) (entities.Store, error)
 	GetVisibleStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error)
 	GetMemberStoresByAccountID(ctx context.Context, accountID uuid.UUID) ([]entities.Store, error)
@@ -244,6 +245,20 @@ func (s *StoreService) GetApprovedStores(ctx context.Context) ([]entities.StoreO
 	}
 
 	return stores, nil
+}
+
+// GetStoreRanking は認証や所属によらず、売上額順の上位3店舗を返す。
+func (s *StoreService) GetStoreRanking(ctx context.Context) ([]entities.StoreOutput, error) {
+	stores, err := s.storeRepository.GetStoreRanking(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get store ranking: %w", err)
+	}
+
+	outputs, err := s.toStoreOutputs(ctx, stores)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert store ranking to outputs: %w", err)
+	}
+	return outputs, nil
 }
 
 func (s *StoreService) GetApprovedStoreByID(ctx context.Context, storeID uuid.UUID) (entities.StoreOutput, error) {
