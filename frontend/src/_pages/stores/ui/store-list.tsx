@@ -49,7 +49,7 @@ function StoreCard({ store, isAdmin }: StoreCardProps) {
               <h3 className="line-clamp-3 text-xl md:line-clamp-1">
                 {store.name}
               </h3>
-              <div className="text-muted-foreground line-clamp-2 hidden text-sm md:flex">
+              <div className="text-muted-foreground hidden text-sm md:line-clamp-2">
                 {store.description}
               </div>
             </div>
