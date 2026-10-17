@@ -63,9 +63,9 @@ function OrderItemRow({ orderItem }: OrderItemRowProps) {
           {orderItem.toppings.map((topping) => (
             <div
               key={topping.toppingId}
-              className="flex flex-row items-center gap-2 pt-2 pl-8 text-lg font-semibold"
+              className="flex flex-row items-start gap-2 pt-2 pl-8 text-lg font-semibold"
             >
-              <PlusIcon size={20} className="shrink-0" />
+              <PlusIcon size={24} className="shrink-0" />
               <p>{topping.toppingName}</p>
             </div>
           ))}
