@@ -62,18 +62,18 @@ export const currentScheduledEvents = [
     },
   }),
   createScheduledEvent({
-    name: "Freesia ダンスステージ Day2",
-    bannerSrc: FreesiaBanner,
+    name: "演奏技術探求会",
+    bannerSrc: EntanBanner,
     description:
-      "アイドルが大好きなメンバーで活動しているコピーダンスサークルです！\n可愛く元気いっぱいのパフォーマンスで、皆さんに笑顔と楽しさをお届けします。\nぜひ私たちのステージをご覧ください♡",
-    room: "8Fステージ",
+      "音楽と熱気に含まれる学園祭ライブ！\n個性あふれるバンドが集結し、迫力のサウンドと心踊るステージをお届けします。",
+    room: "608教室",
     date: currentEventDates.day2,
+    // TODO: 時間が決まったら設定する
     startTime: {
-      hour: 11,
-      minute: 30,
+      hour: 0,
     },
     endTime: {
-      hour: 12,
+      hour: 0,
     },
   }),
   createScheduledEvent({
@@ -92,6 +92,21 @@ export const currentScheduledEvents = [
     },
   }),
   createScheduledEvent({
+    name: "Freesia ダンスステージ Day2",
+    bannerSrc: FreesiaBanner,
+    description:
+      "アイドルが大好きなメンバーで活動しているコピーダンスサークルです！\n可愛く元気いっぱいのパフォーマンスで、皆さんに笑顔と楽しさをお届けします。\nぜひ私たちのステージをご覧ください♡",
+    room: "8Fステージ",
+    date: currentEventDates.day2,
+    startTime: {
+      hour: 11,
+      minute: 30,
+    },
+    endTime: {
+      hour: 12,
+    },
+  }),
+  createScheduledEvent({
     name: "男女装コンテスト",
     bannerSrc: DanjosouBanner,
     description:
@@ -103,21 +118,6 @@ export const currentScheduledEvents = [
     },
     endTime: {
       hour: 14,
-    },
-  }),
-  createScheduledEvent({
-    name: "演奏技術探求会",
-    bannerSrc: EntanBanner,
-    description:
-      "音楽と熱気に含まれる学園祭ライブ！\n個性あふれるバンドが集結し、迫力のサウンドと心踊るステージをお届けします。",
-    room: "608教室",
-    date: currentEventDates.day2,
-    // TODO: 時間が決まったら設定する
-    startTime: {
-      hour: 0,
-    },
-    endTime: {
-      hour: 0,
     },
   }),
 ] satisfies ScheduledEvent[];
