@@ -5,7 +5,8 @@ import type { FestivalDates, ScheduledEvent } from "../model/types";
 import KaraokeBanner from "./banner2026/karaoke.jpg";
 import EntanBanner from "./banner2026/entan.png";
 import FreesiaBanner from "./banner2026/freesia.png";
-import IwasakiDown from "./banner2026/iwasaking-down.png";
+import IwasakiDownBanner from "./banner2026/iwasaking-down.png";
+import DanjosouBanner from "./banner2026/danjosou.png";
 
 export const currentEventDates = {
   day1: Temporal.PlainDate.from(
@@ -32,7 +33,7 @@ export const currentEventDates = {
 
 export const currentScheduledEvents = [
   createScheduledEvent({
-    name: "Freesia ダンスステージ",
+    name: "Freesia ダンスステージ Day1",
     bannerSrc: FreesiaBanner,
     description:
       "アイドルが大好きなメンバーで活動しているコピーダンスサークルです！可愛く元気いっぱいのパフォーマンスで、皆さんに笑顔と楽しさをお届けします。ぜひ私たちのステージをご覧ください♡",
@@ -49,7 +50,7 @@ export const currentScheduledEvents = [
   }),
   createScheduledEvent({
     name: "IWASKING DOWN",
-    bannerSrc: IwasakiDown,
+    bannerSrc: IwasakiDownBanner,
     description:
       "力が欲しいか、なら、奪い取れ。勝ち抜き腕相撲、開幕。ルールはシンプル。腕相撲で勝つだけ。最後まで勝ち残れるのは、たった一人だけ",
     room: "7階ホール",
@@ -62,7 +63,7 @@ export const currentScheduledEvents = [
     },
   }),
   createScheduledEvent({
-    name: "Freesia ダンスステージ",
+    name: "Freesia ダンスステージ Day2",
     bannerSrc: FreesiaBanner,
     description:
       "アイドルが大好きなメンバーで活動しているコピーダンスサークルです！可愛く元気いっぱいのパフォーマンスで、皆さんに笑顔と楽しさをお届けします。ぜひ私たちのステージをご覧ください♡",
@@ -93,8 +94,7 @@ export const currentScheduledEvents = [
   }),
   createScheduledEvent({
     name: "男女装コンテスト",
-    // TODO: バナー素材もらったら入れる
-    bannerSrc: undefined,
+    bannerSrc: DanjosouBanner,
     description:
       "皆様大変お待たせしました！三角チョコパイに続き男女装コンテストの時期です！今年の男女装コンテスト昨年とは一風変わった！？かもしれないです！一度足を運んでみてください！！",
     room: "8Fステージ",
