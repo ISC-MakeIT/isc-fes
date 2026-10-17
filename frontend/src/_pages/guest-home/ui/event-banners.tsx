@@ -10,7 +10,7 @@ import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { Temporal } from "temporal-polyfill-lite";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { shouldShowOngoingMask } from "../lib/should-show-ongoing-mask";
+import { getEventStatus } from "../lib/get-event-status";
 import { DotText } from "@/shared/ui/dot-text";
 
 const TIME_UPDATE_INTERVAL_MS = 30_000;
@@ -33,11 +33,18 @@ export function EventBanners({ initialDateTime }: EventBannersProps) {
 
     setCurrentDateTime(now);
 
-    const ongoingEventIndex = currentScheduledEvents.findIndex((event) =>
-      shouldShowOngoingMask(event, now),
+    const ongoingEventIndex = currentScheduledEvents.findIndex(
+      (event) => getEventStatus(event, now) === "ongoing",
     );
 
-    if (ongoingEventIndex >= 0) {
+    const targetEventIndex =
+      ongoingEventIndex >= 0
+        ? ongoingEventIndex
+        : currentScheduledEvents.findIndex(
+            (event) => getEventStatus(event, now) === "startingSoon",
+          );
+
+    if (targetEventIndex >= 0) {
       bannerRefs.current[ongoingEventIndex]?.scrollIntoView({
         behavior: "auto",
         block: "nearest",
@@ -57,8 +64,9 @@ export function EventBanners({ initialDateTime }: EventBannersProps) {
   return (
     <div className="flex flex-row gap-6 overflow-x-auto px-4 py-4">
       {currentScheduledEvents.map((event, index) => {
-        const isOngoing =
-          currentDateTime && shouldShowOngoingMask(event, currentDateTime);
+        const status = getEventStatus(event, currentDateTime);
+        const isStartingSoon = status === "startingSoon";
+        const isOngoing = status === "ongoing";
 
         return (
           <Link
@@ -86,6 +94,12 @@ export function EventBanners({ initialDateTime }: EventBannersProps) {
                   開催中
                 </DotText>
               </>
+            )}
+
+            {isStartingSoon && (
+              <DotText className="bg-secondary text-secondary-foreground absolute right-0 bottom-0 rounded-sm px-2 py-1 text-lg">
+                まもなく
+              </DotText>
             )}
           </Link>
         );
