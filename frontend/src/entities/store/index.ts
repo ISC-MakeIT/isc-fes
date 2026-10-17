@@ -10,6 +10,8 @@ export {
   visibleStoresQueryOptions,
 } from "./api/fetch-visible-stores";
 
+export { updateStore } from "./api/update-store";
+
 export {
   fetchStoreDetail,
   storeDetailQueryOptions,

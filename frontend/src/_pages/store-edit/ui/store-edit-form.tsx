@@ -36,7 +36,7 @@ import {
 } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
-import { updateStore } from "../api/update-store";
+import { updateStore } from "@/entities/store";
 import { buildStoreUpdateInput } from "../lib/build-store-update-input";
 import { StoreEditFormValues } from "../model/types";
 
