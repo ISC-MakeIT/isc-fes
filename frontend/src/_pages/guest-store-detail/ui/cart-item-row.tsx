@@ -3,7 +3,6 @@ import {
   CartItemTopping,
   MAX_CART_ITEM_QUANTITY,
 } from "@/entities/cart";
-import { SoldOutLabel } from "@/entities/menu";
 import { MENU_IMAGE_ASPECT } from "@/shared/config";
 import { formatYen } from "@/shared/lib/formatYen";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
@@ -13,6 +12,7 @@ import { CornerLeftUpIcon, XIcon } from "lucide-react";
 import Image from "next/image";
 import { useCartOperation } from "../model/cart-operation-context";
 import ToppingSoldOut from "./assets/topping-sold-out.svg";
+import { SoldOutLabel } from "@/shared/ui";
 
 type CartItemRowProps = {
   cartItem: CartItem;
