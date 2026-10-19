@@ -82,8 +82,8 @@
   --foreground: var(--black-soft);
   --card: oklch(1 0 0);
   --card-foreground: var(--black-soft);
-  --popover: var(--notice);
-  --popover-foreground: var(--primary-foreground);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--black-soft);
   --primary: #9683dc;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: #50c6db;
