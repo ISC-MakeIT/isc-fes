@@ -7,6 +7,7 @@ import { fetchOrderByidQueryOptions } from "../api/fetch-order-by-id";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Ticket } from "./ticket";
 import { OrderEventsSubscriber } from "@/entities/order";
+import { OrderStatusHeader } from "./order-status-header";
 
 type OrderDetailViewProps = {
   orderId: string;
@@ -19,6 +20,7 @@ export async function OrderDetailView({ orderId }: OrderDetailViewProps) {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <OrderEventsSubscriber />
+      <OrderStatusHeader orderId={orderId} />
       <main className="mx-auto flex max-w-150 flex-col items-center gap-4 p-8 pb-16">
         <HeadingCard className="px-14 py-2 text-[1.375rem]">
           注文完了
