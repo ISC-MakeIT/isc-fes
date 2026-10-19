@@ -9,6 +9,7 @@ import { MinusIcon, PlusIcon } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { trackEvent } from "@/shared/lib/analytics";
 import { storeDetailQueryOptions } from "@/entities/store";
+import { useIsStoreMemberOrAdmin } from "../model/use-is-store-member-or-admin";
 
 type ToppingSelectorType = {
   storeId: string;
@@ -28,6 +29,9 @@ export function ToppingSelector({
   );
   const { data: store } = useSuspenseQuery(storeDetailQueryOptions(storeId));
 
+  const canBypassMobileOrderRestriction = useIsStoreMemberOrAdmin(storeId);
+  const canMobileOrder = canBypassMobileOrderRestriction || store.orderEnabled;
+
   if (toppings.length === 0) return;
 
   return (
@@ -37,7 +41,7 @@ export function ToppingSelector({
       </h2>
       <ToggleGroup
         multiple
-        disabled={!store.orderEnabled}
+        disabled={!canMobileOrder}
         onValueChange={(nextIds) => {
           const changedId =
             nextIds.find((id) => !value.includes(id)) ??

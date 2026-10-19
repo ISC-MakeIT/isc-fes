@@ -65,7 +65,6 @@ export function CartOperationProvider({
       (item) =>
         item.available && item.toppings.every((topping) => topping.available),
     );
-
   function updateDraftCartItems(update: (items: CartItem[]) => CartItem[]) {
     if (isBusy) {
       return;
