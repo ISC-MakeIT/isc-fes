@@ -62,21 +62,6 @@ export const currentScheduledEvents = [
     },
   }),
   createScheduledEvent({
-    name: "演奏技術探求会",
-    bannerSrc: EntanBanner,
-    description:
-      "音楽と熱気に含まれる学園祭ライブ！\n個性あふれるバンドが集結し、迫力のサウンドと心踊るステージをお届けします。",
-    room: "608教室",
-    date: currentEventDates.day2,
-    // TODO: 時間が決まったら設定する
-    startTime: {
-      hour: 0,
-    },
-    endTime: {
-      hour: 0,
-    },
-  }),
-  createScheduledEvent({
     name: "カラオケ大会",
     bannerSrc: KaraokeBanner,
     description: `今年の学園祭で、参加者の歌声が響く！\n〜大狂乱,お祭り騒ぎのカラオケ大会〜が開催決定！\nあなたの声援と共に、学園祭の一番熱いステージを一緒に作り上げましょう！`,
@@ -104,6 +89,20 @@ export const currentScheduledEvents = [
     },
     endTime: {
       hour: 12,
+    },
+  }),
+  createScheduledEvent({
+    name: "演奏技術探求会",
+    bannerSrc: EntanBanner,
+    description:
+      "音楽と熱気に含まれる学園祭ライブ！\n個性あふれるバンドが集結し、迫力のサウンドと心踊るステージをお届けします。",
+    room: "608教室",
+    date: currentEventDates.day2,
+    startTime: {
+      hour: 12,
+    },
+    endTime: {
+      hour: 15,
     },
   }),
   createScheduledEvent({
