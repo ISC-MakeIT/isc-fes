@@ -84,7 +84,10 @@ function EventScheduleItem({ event, isDay1 }: EventScheduleItemProps) {
       <div className="grid grid-cols-[5.4375rem_minmax(0,1fr)]">
         <span aria-hidden className="bg-foreground mx-auto w-0.5" />
         <div className="space-y-4 pt-4">
-          <h2 className="text-xl font-bold">{event.name}</h2>
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold">{event.name}</h2>
+            <p>開催場所：{event.room}</p>
+          </div>
           <AspectRatioImage
             alt={`${event.name}のバナー画像`}
             ratio={EVENT_IMAGE_ASPECT}
@@ -94,7 +97,7 @@ function EventScheduleItem({ event, isDay1 }: EventScheduleItemProps) {
             )}
             src={event.bannerSrc}
           />
-          <p>{event.description}</p>
+          <p className="whitespace-pre-line">{event.description}</p>
         </div>
       </div>
     </li>
