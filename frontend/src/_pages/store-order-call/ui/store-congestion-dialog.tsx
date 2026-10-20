@@ -23,8 +23,14 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { Temporal } from "temporal-polyfill-lite";
+import {
+  readCongestionReminderStartedAt,
+  storeCongestionReminderStartedAt,
+} from "../lib/store-congestion-storage";
 
-const CONGESTION_REMINDER_INTERVAL_MS = 20 * 60 * 1000;
+const CONGESTION_REMINDER_INTERVAL_MS = 30 * 60 * 1000;
+const CONGESTION_CHECK_INTERVAL_MS = 30_000;
 
 const congestionOptions = [
   { value: 3, label: "混雑" },
@@ -49,14 +55,31 @@ export function StoreCongestionDialog({ storeId }: StoreCongestionDialogProps) {
       return;
     }
 
-    const timeoutId = setTimeout(() => {
-      setIsOpen(true);
-    }, CONGESTION_REMINDER_INTERVAL_MS);
+    const storedStartedAt = readCongestionReminderStartedAt(storeId);
+    const initialStartedAt = storedStartedAt ?? Temporal.Now.instant();
+
+    if (storedStartedAt === null) {
+      storeCongestionReminderStartedAt(storeId, initialStartedAt);
+    }
+
+    function checkReminder() {
+      const startedAt =
+        readCongestionReminderStartedAt(storeId) ?? initialStartedAt;
+      const elapsedMs =
+        Temporal.Now.instant().epochMilliseconds - startedAt.epochMilliseconds;
+
+      if (elapsedMs >= CONGESTION_REMINDER_INTERVAL_MS) {
+        setIsOpen(true);
+      }
+    }
+
+    checkReminder();
+    const intervalId = setInterval(checkReminder, CONGESTION_CHECK_INTERVAL_MS);
 
     return () => {
-      clearTimeout(timeoutId);
+      clearInterval(intervalId);
     };
-  }, [isOpen]);
+  }, [isOpen, storeId]);
 
   const mutation = useMutation({
     mutationFn: updateStore,
@@ -72,6 +95,7 @@ export function StoreCongestionDialog({ storeId }: StoreCongestionDialogProps) {
       });
     },
     onSettled: () => {
+      storeCongestionReminderStartedAt(storeId, Temporal.Now.instant());
       setIsOpen(false);
       setSelectedLevel(null);
     },
