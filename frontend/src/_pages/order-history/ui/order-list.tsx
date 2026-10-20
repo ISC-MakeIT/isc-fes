@@ -7,10 +7,10 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
 const orderStatusPriority = {
-  [OrderStatus.Pending]: 0,
-  [OrderStatus.Ready]: 1,
-  [OrderStatus.Completed]: 2,
-  [OrderStatus.Cancelled]: 3,
+  [OrderStatus.Ready]: 0,
+  [OrderStatus.Pending]: 1,
+  [OrderStatus.Cancelled]: 2,
+  [OrderStatus.Completed]: 3,
 };
 
 export function OrderList() {
@@ -37,12 +37,11 @@ type OrderRowProps = {
 
 function OrderRow({ order }: OrderRowProps) {
   const orderClasses = {
-    [OrderStatus.Pending]: "border-primary border",
-    [OrderStatus.Ready]: "bg-notice text-primary-foreground",
-    [OrderStatus.Completed]:
-      "text-order-status-foreground bg-order-closed-background",
+    [OrderStatus.Ready]: "bg-tertiary text-primary-foreground",
+    [OrderStatus.Pending]: "border-tertiary border-2",
     [OrderStatus.Cancelled]:
-      "text-order-status-foreground bg-order-closed-background",
+      "text-primary-foreground bg-order-closed-background opacity-50",
+    [OrderStatus.Completed]: "text-primary-foreground bg-foreground opacity-50",
   } satisfies Record<OrderStatus, string>;
 
   return (

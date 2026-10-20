@@ -76,7 +76,7 @@
   --color-order-ready-header: var(--yellow-strong);
   --color-order-ready-background: var(--yellow-soft);
   --color-order-status-foreground: var(--order-status-foreground);
-  --color-order-closed-background: var(--purple-strong);
+  --color-order-closed-background: var(--pink);
 }
 
 :root {
