@@ -15,6 +15,7 @@ export type ScheduledEvent = {
   name: string;
   bannerSrc: StaticImageData | undefined;
   description: string;
+  room: "8Fステージ" | "707教室" | "7階ホール" | "608教室";
   startAt: Temporal.PlainDateTime;
   endAt: Temporal.PlainDateTime;
 };

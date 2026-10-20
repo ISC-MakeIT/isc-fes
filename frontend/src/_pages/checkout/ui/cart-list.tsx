@@ -94,11 +94,11 @@ export function CartList({ storeId }: CartListProps) {
         </p>
       </div>
 
-      <div className="mt-8 mb-18 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-6 px-6 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+      <div className="flex flex-row items-center justify-center gap-6 px-6 pt-8 pb-18">
         <LinkButton
           href={guestStoreDetailUrl(storeId)}
           aria-label="店舗に戻る"
-          className="justify-self-end px-3 py-2 sm:px-6"
+          className="shrink-0 justify-self-end px-6 py-2 md:hidden"
         >
           <ChevronLeftIcon className="size-8" />
         </LinkButton>
@@ -122,7 +122,7 @@ export function CartList({ storeId }: CartListProps) {
             disabled={mutation.isPending}
             render={
               <ActionButton
-                className="px-4 py-2 text-[1.375rem] font-bold sm:px-14"
+                className="flex-1 py-2 text-[1.375rem] font-bold md:flex-0 md:px-14"
                 isDot={false}
               />
             }

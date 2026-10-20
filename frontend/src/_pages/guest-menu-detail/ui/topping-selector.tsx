@@ -10,6 +10,8 @@ import { Dispatch, SetStateAction } from "react";
 import { trackEvent } from "@/shared/lib/analytics";
 import { storeDetailQueryOptions } from "@/entities/store";
 import { useIsStoreMemberOrAdmin } from "../model/use-is-store-member-or-admin";
+import Image from "next/image";
+import { SoldOutLabel } from "@/shared/ui";
 
 type ToppingSelectorType = {
   storeId: string;
@@ -61,29 +63,43 @@ export function ToppingSelector({
         value={value}
       >
         {toppings.map((topping) => (
-          <ToggleGroupItem
-            key={topping.id}
-            value={topping.id}
-            className={cn(
-              "border-primary flex h-auto w-full flex-row justify-start gap-3 rounded-sm border-2 px-4 py-2",
-              "data-pressed:bg-primary data-pressed:text-primary-foreground",
+          <div key={topping.id} className="relative">
+            <ToggleGroupItem
+              key={topping.id}
+              value={topping.id}
+              className={cn(
+                "border-primary flex h-auto w-full flex-row justify-start gap-3 rounded-sm border-2 px-4 py-2",
+                "data-pressed:bg-primary data-pressed:text-primary-foreground",
+              )}
+              disabled={topping.soldOut}
+            >
+              <span>
+                <PlusIcon
+                  aria-hidden
+                  className="block size-5 group-data-pressed/toggle:hidden"
+                />
+                <MinusIcon
+                  aria-hidden
+                  className="hidden size-5 group-data-pressed/toggle:block"
+                />
+              </span>
+              <div className="min-w-0 space-y-2 text-left text-lg">
+                <p className="truncate">{topping.name}</p>
+                <p>{formatYen(topping.unitPrice)}</p>
+              </div>
+            </ToggleGroupItem>
+
+            {topping.soldOut && (
+              <div className="pointer-events-none absolute inset-0 grid place-items-center">
+                <Image
+                  src={SoldOutLabel}
+                  alt="売り切れ"
+                  draggable={false}
+                  className="w-42"
+                />
+              </div>
             )}
-          >
-            <span>
-              <PlusIcon
-                aria-hidden
-                className="block size-5 group-data-pressed/toggle:hidden"
-              />
-              <MinusIcon
-                aria-hidden
-                className="hidden size-5 group-data-pressed/toggle:block"
-              />
-            </span>
-            <div className="min-w-0 space-y-2 text-left text-lg">
-              <p className="truncate">{topping.name}</p>
-              <p>{formatYen(topping.unitPrice)}</p>
-            </div>
-          </ToggleGroupItem>
+          </div>
         ))}
       </ToggleGroup>
     </div>

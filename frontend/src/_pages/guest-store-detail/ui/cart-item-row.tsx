@@ -3,7 +3,6 @@ import {
   CartItemTopping,
   MAX_CART_ITEM_QUANTITY,
 } from "@/entities/cart";
-import { SoldOutLabel } from "@/entities/menu";
 import { MENU_IMAGE_ASPECT } from "@/shared/config";
 import { formatYen } from "@/shared/lib/formatYen";
 import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
@@ -13,6 +12,8 @@ import { CornerLeftUpIcon, XIcon } from "lucide-react";
 import Image from "next/image";
 import { useCartOperation } from "../model/cart-operation-context";
 import ToppingSoldOut from "./assets/topping-sold-out.svg";
+import { SoldOutLabel } from "@/shared/ui";
+import { calculateCartTotal } from "../lib/calculate-cart-total";
 
 type CartItemRowProps = {
   cartItem: CartItem;
@@ -20,6 +21,8 @@ type CartItemRowProps = {
 export function CartItemRow({ cartItem }: CartItemRowProps) {
   const { increaseItemQuantity, decreaseItemQuantity, isBusy } =
     useCartOperation();
+
+  const itemTotal = calculateCartTotal([cartItem]);
 
   return (
     <li
@@ -43,7 +46,7 @@ export function CartItemRow({ cartItem }: CartItemRowProps) {
       ))}
 
       <div className="flex h-11 flex-row items-center justify-between text-lg font-medium">
-        <p className="w-18">{formatYen(cartItem.unitPrice)}</p>
+        <p className="w-18">{formatYen(itemTotal)}</p>
         <QuantityController
           onDecrease={() => decreaseItemQuantity(cartItem.id)}
           onIncrease={() => increaseItemQuantity(cartItem.id)}
@@ -95,7 +98,10 @@ function CartItemToppingRow({ topping }: CartItemToppingRowProps) {
       <div className="relative flex min-w-0 flex-1 items-center justify-start self-stretch pl-20">
         <div className="flex flex-row items-start justify-start">
           <CornerLeftUpIcon size={15} className="shrink-0 justify-start" />
-          <p className="font-semibold">{topping.name}</p>
+          <div className="flex flex-col gap-2 font-semibold">
+            <p>{topping.name}</p>
+            <p>{formatYen(topping.unitPrice)}</p>
+          </div>
         </div>
 
         {!topping.available && (
