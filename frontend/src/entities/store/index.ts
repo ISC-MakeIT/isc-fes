@@ -3,6 +3,7 @@ export {
   StoreName,
   StoreDescription,
   StoreReviewStatus,
+  StoreCongestionLevel,
 } from "./model/types";
 
 export {

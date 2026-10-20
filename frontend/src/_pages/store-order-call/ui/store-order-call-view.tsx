@@ -3,6 +3,7 @@ import { createQueryClient } from "@/shared/api";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { PendingOrderList } from "./pending-order-list";
 import { ReadyOrderList } from "./ready-order-list";
+import { StoreCongestionDialog } from "./store-congestion-dialog";
 
 type StoreOrderCallViewProps = {
   storeId: string;
@@ -41,6 +42,7 @@ export async function StoreOrderCallView({ storeId }: StoreOrderCallViewProps) {
           </div>
         </section>
       </main>
+      <StoreCongestionDialog key={storeId} storeId={storeId} />
     </HydrationBoundary>
   );
 }
