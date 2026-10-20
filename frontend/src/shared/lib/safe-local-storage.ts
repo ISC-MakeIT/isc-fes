@@ -38,7 +38,7 @@ function reportStorageError(
 ) {
   Sentry.withScope((scope) => {
     scope.setLevel("warning");
-    scope.setTag("feature", "app-questionnaire");
+    scope.setTag("feature", "local-storage");
     scope.setContext("localStorage", {
       operation,
       key,

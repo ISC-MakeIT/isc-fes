@@ -23,12 +23,20 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "@/shared/ui/toast";
 import { LinkButton } from "@/shared/ui/link-button";
+import { Dialog, DialogTrigger } from "@/shared/ui/dialog";
+import { useState } from "react";
+import { OrderConfirmDialog } from "./order-confirm-dialog";
+import {
+  hasConfirmedOrderNotice,
+  storeOrderNoticeConfirmation,
+} from "../lib/order-notice-storage";
 
 type CartListProps = {
   storeId: string;
 };
 
 export function CartList({ storeId }: CartListProps) {
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const queryClient = useQueryClient();
   const { data: cart } = useSuspenseQuery(fetchCartQueryOptions(storeId));
   const summarisedItems = summarizeCartItems(cart.items);
@@ -58,6 +66,18 @@ export function CartList({ storeId }: CartListProps) {
     },
   });
 
+  function submitOrder() {
+    if (mutation.isPending) {
+      return;
+    }
+
+    storeOrderNoticeConfirmation();
+    mutation.mutate({
+      storeId,
+      expectedCartVersion: cart.version,
+    });
+  }
+
   return (
     <div className="flex flex-col justify-center">
       <div className="space-y-[2.31rem] px-6 py-8">
@@ -74,24 +94,46 @@ export function CartList({ storeId }: CartListProps) {
         </p>
       </div>
 
-      <div className="mt-8 mb-18 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-6">
+      <div className="mt-8 mb-18 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-6 px-6 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <LinkButton
           href={guestStoreDetailUrl(storeId)}
-          className="justify-self-end px-6 py-2"
+          aria-label="店舗に戻る"
+          className="justify-self-end px-3 py-2 sm:px-6"
         >
           <ChevronLeftIcon className="size-8" />
         </LinkButton>
 
-        <ActionButton
-          className="px-14 py-2 text-[1.375rem] font-bold"
-          isDot={false}
-          disabled={mutation.isPending}
-          onClick={() =>
-            mutation.mutate({ storeId, expectedCartVersion: cart.version })
-          }
+        <Dialog
+          open={isConfirmOpen}
+          onOpenChange={(open) => {
+            if (mutation.isPending) {
+              return;
+            }
+
+            if (open && hasConfirmedOrderNotice()) {
+              submitOrder();
+              return;
+            }
+
+            setIsConfirmOpen(open);
+          }}
         >
-          注文する
-        </ActionButton>
+          <DialogTrigger
+            disabled={mutation.isPending}
+            render={
+              <ActionButton
+                className="px-4 py-2 text-[1.375rem] font-bold sm:px-14"
+                isDot={false}
+              />
+            }
+          >
+            注文する
+          </DialogTrigger>
+          <OrderConfirmDialog
+            isPending={mutation.isPending}
+            onConfirm={submitOrder}
+          />
+        </Dialog>
       </div>
     </div>
   );

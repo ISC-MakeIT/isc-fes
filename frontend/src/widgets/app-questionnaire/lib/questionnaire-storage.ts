@@ -8,7 +8,7 @@ import {
   getStorageItem,
   removeStorageItem,
   setStorageItem,
-} from "./safe-local-storage";
+} from "@/shared/lib/safe-local-storage";
 import { v } from "@/shared/lib/valibot";
 
 export function readPendingQuestionnaireTrigger(): QuestionnaireTrigger | null {
