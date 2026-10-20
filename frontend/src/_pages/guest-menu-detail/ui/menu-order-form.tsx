@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { createCartItemIdentityKey } from "@/entities/cart";
 import { toast } from "@/shared/ui/toast";
 import { storeDetailQueryOptions } from "@/entities/store";
+import { useIsStoreMemberOrAdmin } from "../model/use-is-store-member-or-admin";
 
 type MenuOrderFormProps = {
   storeId: string;
@@ -39,6 +40,9 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
 
   const { data: cart } = useSuspenseQuery(fetchCartQueryOptions(storeId));
   const { data: store } = useSuspenseQuery(storeDetailQueryOptions(storeId));
+
+  const canBypassMobileOrderRestriction = useIsStoreMemberOrAdmin(storeId);
+  const canMobileOrder = canBypassMobileOrderRestriction || store.orderEnabled;
 
   const groupedItems = summarizeCartItems(cart.items);
 
@@ -122,7 +126,7 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
         value={selectedToppingIds}
       />
 
-      {store.orderEnabled && (
+      {canMobileOrder && (
         <MenuOrderActions
           isAddingToCart={updateCartMutation.isPending}
           storeId={storeId}
