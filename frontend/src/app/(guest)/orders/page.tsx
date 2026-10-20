@@ -1,4 +1,4 @@
-import { ComingSoonView } from "@/_pages/coming-soon";
+import { OrderHistoryView } from "@/_pages/order-history";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -6,5 +6,5 @@ export const metadata: Metadata = {
 };
 
 export default function OrderPage() {
-  return <ComingSoonView />;
+  return <OrderHistoryView />;
 }

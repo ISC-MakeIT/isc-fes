@@ -75,6 +75,8 @@
   --color-order-pending-background: var(--purple-soft);
   --color-order-ready-header: var(--yellow-strong);
   --color-order-ready-background: var(--yellow-soft);
+  --color-order-status-foreground: var(--order-status-foreground);
+  --color-order-closed-background: var(--pink);
 }
 
 :root {
@@ -135,6 +137,8 @@
   --sky-blue: #c0e4ff;
 
   --link: #6d56b5;
+
+  --order-status-foreground: #7a7a7a;
 }
 
 @layer base {
