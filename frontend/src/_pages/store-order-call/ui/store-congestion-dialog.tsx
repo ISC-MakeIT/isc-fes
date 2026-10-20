@@ -7,11 +7,13 @@ import {
 } from "@/entities/store";
 import { storeDetailKey, storeListKeys } from "@/shared/config";
 import { ActionButton } from "@/shared/ui/action-button";
+import { Button } from "@/shared/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
+  DialogTrigger,
 } from "@/shared/ui/dialog";
 import { RadioGroup } from "@/shared/ui/radio-group";
 import { SharpCorneredTriangleIcon } from "@/shared/ui/sharp-cornered-triangle-icon";
@@ -23,11 +25,13 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Temporal } from "temporal-polyfill-lite";
 import {
   readCongestionReminderStartedAt,
   storeCongestionReminderStartedAt,
 } from "../lib/store-congestion-storage";
+import congestionUpdateIcon from "./assets/congestion-update-icon.png";
 
 const CONGESTION_REMINDER_INTERVAL_MS = 30 * 60 * 1000;
 const CONGESTION_CHECK_INTERVAL_MS = 30_000;
@@ -102,7 +106,41 @@ export function StoreCongestionDialog({ storeId }: StoreCongestionDialogProps) {
   });
 
   return (
-    <Dialog open={isOpen} disablePointerDismissal>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (open) {
+          setIsOpen(true);
+        }
+      }}
+      disablePointerDismissal
+    >
+      <DialogTrigger
+        aria-label="混雑状況を更新"
+        render={
+          <Button
+            variant="outline"
+            className="border-primary fixed right-0 bottom-6 z-30 h-14 gap-0 rounded-l-md rounded-r-none p-2"
+          />
+        }
+      >
+        <span
+          aria-hidden="true"
+          className="relative h-8.75 w-4.75 overflow-hidden"
+        >
+          <Image
+            src={congestionUpdateIcon}
+            alt=""
+            className="absolute top-0 -left-2.5 size-8.75 max-w-none"
+            draggable={false}
+          />
+        </span>
+        <span className="bg-primary text-primary-foreground px-2 py-1 text-center text-xs font-semibold">
+          混雑状況
+          <br />
+          更新
+        </span>
+      </DialogTrigger>
       <DialogContent
         showCloseButton={false}
         className="shadow-dialog-primary max-h-[calc(100dvh-2rem)] max-w-[min(33.875rem,calc(100%-2rem))] gap-0 overflow-y-auto p-6 text-center sm:max-w-135.5 sm:p-8"
