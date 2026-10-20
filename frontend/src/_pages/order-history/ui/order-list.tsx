@@ -6,21 +6,8 @@ import { Card } from "@/shared/ui/card";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
-const orderStatusPriority = {
-  [OrderStatus.Ready]: 0,
-  [OrderStatus.Pending]: 1,
-  [OrderStatus.Cancelled]: 2,
-  [OrderStatus.Completed]: 3,
-};
-
 export function OrderList() {
-  const { data: orders } = useSuspenseQuery({
-    ...ordersQueryOptions(),
-    select: (orders) =>
-      [...orders].sort(
-        (a, b) => orderStatusPriority[a.status] - orderStatusPriority[b.status],
-      ),
-  });
+  const { data: orders } = useSuspenseQuery(ordersQueryOptions());
 
   return (
     <section className="flex w-full flex-col gap-4 px-4">
