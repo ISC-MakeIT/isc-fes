@@ -11,7 +11,7 @@ const congestionIcon = {
     icon: congestionLevel1Icon,
   },
   "2": {
-    alt: "混雑状況：やや混雑しています",
+    alt: "混雑状況：普通",
     icon: congestionLevel2Icon,
   },
   "3": {
