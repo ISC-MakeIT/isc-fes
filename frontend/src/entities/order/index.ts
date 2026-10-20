@@ -13,3 +13,5 @@ export {
 export { fetchOrders, ordersQueryOptions } from "./api/fetch-orders";
 
 export { useOrderEvents } from "./model/use-order-events";
+
+export { OrderEventsSubscriber } from "./ui/order-events-subscriber";

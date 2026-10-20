@@ -106,7 +106,6 @@ export function CartList() {
         <span className="text-xl font-medium">{formatYen(totalAmount)}</span>
       </div>
 
-      {/* TODO: チェックアウト処理 */}
       <div className="px-6 pb-6">
         <Button
           type="button"

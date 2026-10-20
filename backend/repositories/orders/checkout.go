@@ -58,10 +58,6 @@ func prepareCheckout(ctx context.Context, q *sqlc.Queries, input orderservice.Cr
 	if result.store.ClosedAt.Valid {
 		return result, orderservice.ErrStoreClosed
 	}
-	if !result.store.OrderEnabled {
-		return result, orderservice.ErrStoreOrderDisabled
-	}
-
 	if input.AccountID != nil {
 		membership, err := authorizedMembership(ctx, q, *input.AccountID, input.StoreID, lockRows)
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
@@ -70,6 +66,10 @@ func prepareCheckout(ctx context.Context, q *sqlc.Queries, input orderservice.Cr
 		if err == nil && domain.CanExemptOrderLimit(input.StoreID, membership) {
 			result.exemptAccountID = input.AccountID
 		}
+	}
+	// 件数制限と同じく、所属店舗のStaff/ManagerとAdminは受付停止中も注文できる。
+	if !result.store.OrderEnabled && result.exemptAccountID == nil {
+		return result, orderservice.ErrStoreOrderDisabled
 	}
 
 	if lockRows {
