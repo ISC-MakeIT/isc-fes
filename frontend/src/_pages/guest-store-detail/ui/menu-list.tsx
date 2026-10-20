@@ -10,7 +10,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { trackEvent } from "@/shared/lib/analytics";
 import { useEffect, useRef } from "react";
 import Image from "next/image";
-import { SoldOutLabel } from "@/entities/menu";
+import { SoldOutLabel } from "@/shared/ui";
 import { AppLink } from "@/shared/ui/app-link";
 
 type MenuListProps = {
