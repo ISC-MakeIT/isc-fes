@@ -45,9 +45,9 @@ function ActiveOrderRow({ order }: ActiveOrderRowProps) {
         )}
       >
         <p className="truncate">{order.storeName}</p>
-        <div className="flex flex-row items-center">
+        <div className="flex shrink-0 flex-row items-center">
           <p className="text-xl font-semibold">：</p>
-          <p className="mx-auto shrink-0 text-center font-semibold">
+          <p className="mx-auto text-center font-semibold">
             {isReady ? "お呼び出し中" : "準備中"}
           </p>
         </div>
