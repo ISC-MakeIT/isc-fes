@@ -40,15 +40,17 @@ function ActiveOrderRow({ order }: ActiveOrderRowProps) {
     <Link href={orderDetailUrl(order.id)}>
       <Card
         className={cn(
-          "border-tertiary grid grid-cols-[minmax(0,1fr)_auto_7.5rem] items-center justify-end gap-5 rounded-sm border-2 px-4 py-2",
+          "border-tertiary grid grid-cols-[minmax(0,1fr)_7.25rem] items-center justify-end rounded-sm border-2 px-4 py-2",
           isReady && "bg-tertiary text-primary-foreground",
         )}
       >
         <p className="truncate">{order.storeName}</p>
-        <p className="text-xl font-semibold">：</p>
-        <p className="shrink-0 text-center text-xl font-semibold">
-          {isReady ? "お呼び出し中" : "準備中"}
-        </p>
+        <div className="flex flex-row items-center">
+          <p className="text-xl font-semibold">：</p>
+          <p className="mx-auto shrink-0 text-center font-semibold">
+            {isReady ? "お呼び出し中" : "準備中"}
+          </p>
+        </div>
       </Card>
     </Link>
   );
