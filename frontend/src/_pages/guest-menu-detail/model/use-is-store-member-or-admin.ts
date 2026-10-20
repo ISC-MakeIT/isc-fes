@@ -1,7 +1,5 @@
 "use client";
 
-import "client-only";
-
 import { AccountRole, currentAccountQueryOptions } from "@/entities/account";
 import { storeMemberByAccountIdQueryOptions } from "@/entities/store-member";
 import { useQuery } from "@tanstack/react-query";
