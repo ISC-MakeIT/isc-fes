@@ -24,7 +24,7 @@ export function MenuOrderActions({
   onAddToCart,
 }: MenuOrderActionsProps) {
   return (
-    <div className="bg-background shadow-bottom-bar fixed inset-x-0 bottom-0 z-50 md:static md:shadow-none">
+    <div className="bg-background shadow-bottom-bar fixed inset-x-0 bottom-0 z-50 pb-6 md:static md:shadow-none">
       <div className="flex w-full flex-row justify-between px-10 py-4">
         <span className="text-xl font-semibold">
           {formatYen(menu.unitPrice)}
