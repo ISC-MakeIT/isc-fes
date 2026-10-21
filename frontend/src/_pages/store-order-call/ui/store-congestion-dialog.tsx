@@ -33,7 +33,7 @@ import {
 } from "../lib/store-congestion-storage";
 import congestionUpdateIcon from "./assets/congestion-update-icon.png";
 
-const CONGESTION_REMINDER_INTERVAL_MS = 30 * 60 * 1000;
+const CONGESTION_REMINDER_INTERVAL_MS = 60 * 60 * 1000;
 const CONGESTION_CHECK_INTERVAL_MS = 30_000;
 
 const congestionOptions = [
