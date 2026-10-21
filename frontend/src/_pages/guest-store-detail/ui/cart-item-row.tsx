@@ -31,14 +31,19 @@ export function CartItemRow({ cartItem }: CartItemRowProps) {
     >
       {!cartItem.available && <CartItemSoldOutOverlay cartItem={cartItem} />}
 
-      <div className="border-foreground flex flex-row gap-6 border-b border-dashed py-2">
+      <div className="border-foreground flex flex-row items-center gap-6 border-b border-dashed py-2">
         <AspectRatioImage
           alt={`${cartItem.name}の画像`}
           src={cartItem.imageUrl}
           ratio={MENU_IMAGE_ASPECT}
           className="w-25 shrink-0 rounded-sm"
         />
-        <p className="line-clamp-3 text-xl font-semibold">{cartItem.name}</p>
+        <div className="flex flex-col gap-2">
+          <p className="line-clamp-3 text-lg font-semibold">{cartItem.name}</p>
+          <p className="text-xl font-semibold">
+            {formatYen(cartItem.unitPrice)}
+          </p>
+        </div>
       </div>
 
       {cartItem.toppings.map((topping) => (
