@@ -52,6 +52,9 @@ export const storeApplicationsUrl = () => "/admin/store-applications";
 
 // ゲスト用のページ
 export const homeUrl = () => "/";
+export const FLOOR_GUIDE_ID = "フロアガイド";
+export const floorGuideUrl = () =>
+  `${homeUrl()}#${encodeURIComponent(FLOOR_GUIDE_ID)}`;
 export const guestStoreDetailUrl = (storeId: string) => `/stores/${storeId}`;
 export const eventsUrl = (eventName?: string) =>
   eventName ? `/events#${encodeURIComponent(eventName)}` : "/events";

@@ -14,7 +14,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { visibleStoresQueryOptions } from "@/entities/store";
 import { selectApprovedStoresByFloor } from "../lib/select-approved-stores-by-floor";
 import { PreviewImage } from "@/shared/ui/preview-image";
-import { STORE_IMAGE_ASPECT } from "@/shared/config";
+import { FLOOR_GUIDE_ID, STORE_IMAGE_ASPECT } from "@/shared/config";
 import { ChevronRightIcon } from "lucide-react";
 import { guestStoreDetailUrl } from "@/shared/config";
 import { trackEvent } from "@/shared/lib/analytics";
@@ -42,7 +42,10 @@ export function FloorGuide() {
   const [selectedFloor, setSelectedFloor] = useQueryState("floor", floorParser);
 
   return (
-    <section className="flex w-full flex-col items-center gap-16 pt-8 pb-16">
+    <section
+      id={FLOOR_GUIDE_ID}
+      className="flex w-full flex-col items-center gap-16 pt-8 pb-16"
+    >
       <HeadingCard className="px-14 py-2">フロアガイド</HeadingCard>
       <div className="flex flex-col items-center gap-6">
         <p className="text-lg">

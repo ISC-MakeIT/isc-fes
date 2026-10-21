@@ -11,6 +11,8 @@ export {
 
 export {
   homeUrl,
+  FLOOR_GUIDE_ID,
+  floorGuideUrl,
   loginUrl,
   googleLoginUrl,
   registerStoreUrl,
