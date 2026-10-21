@@ -8,7 +8,7 @@ import { Temporal } from "temporal-polyfill-lite";
 import { ActiveOrderList } from "./active-order-list";
 import { GuestSessionInitializer } from "./guest-session-initializer";
 import HeroImageMobile from "./assets/hero-image-mobile.jpg";
-import HeroImageDesktop from "./assets/hero-image-desktop.jpg";
+import HeroImageDesktop from "./assets/hero-image-desktop.png";
 import Image from "next/image";
 
 export async function GuestHomeView() {
@@ -34,7 +34,7 @@ export async function GuestHomeView() {
           <Image
             src={HeroImageDesktop}
             alt="キービジュアル"
-            className="hidden w-full bg-gray-300 lg:block"
+            className="hidden h-150 bg-gray-300 lg:block object-cover"
             sizes="100vw"
           />
         </div>
