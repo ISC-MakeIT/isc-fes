@@ -34,7 +34,7 @@ export async function GuestHomeView() {
           <Image
             src={HeroImageDesktop}
             alt="キービジュアル"
-            className="hidden h-150 bg-gray-300 lg:block object-cover"
+            className="hidden h-150 bg-gray-300 object-cover lg:block"
             sizes="100vw"
           />
         </div>
