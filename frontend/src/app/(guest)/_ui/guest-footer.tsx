@@ -23,7 +23,9 @@ export function GuestFooter() {
             </Link>
           </nav>
         </div>
-        <small>&copy;2026学園祭アプリ制作委員会（仮）</small>
+        <small>
+          <DotText>Developed by 梅田・森・藤原</DotText>
+        </small>
       </div>
     </footer>
   );
