@@ -64,6 +64,7 @@ export function MenuCard({ menu }: MenuCardProps) {
         className="w-37.5 rounded-sm"
         src={menu.imageUrl}
         alt={`${menu.name}の画像`}
+        sizes="150px"
       />
       <div className="space-y-2">
         <p className="line-clamp-2 h-[2lh] font-bold">{menu.name}</p>

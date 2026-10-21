@@ -49,6 +49,7 @@ export async function GuestStoreDetailView({
                   src={store.imageUrl}
                   className="lg:w-77 lg:shrink-0"
                   alt="店舗のバナー画像"
+                  sizes="(min-width: 1024px) 308px, 100vw"
                 />
 
                 <div className="flex flex-row items-center justify-between px-6 pt-2 lg:px-0">

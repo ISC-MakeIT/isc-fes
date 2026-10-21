@@ -37,6 +37,7 @@ export function CartItemRow({ cartItem }: CartItemRowProps) {
           src={cartItem.imageUrl}
           ratio={MENU_IMAGE_ASPECT}
           className="w-25 shrink-0 rounded-sm"
+          sizes="100px"
         />
         <div className="flex flex-col gap-2">
           <p className="line-clamp-3 text-lg font-semibold">{cartItem.name}</p>

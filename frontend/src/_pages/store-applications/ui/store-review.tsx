@@ -75,6 +75,7 @@ export function StoreReview() {
                   ratio={STORE_IMAGE_ASPECT}
                   src={selectedStore.imageUrl}
                   alt={`${selectedStore.name}の店舗画像`}
+                  sizes="384px"
                 />
               </dd>
             </div>

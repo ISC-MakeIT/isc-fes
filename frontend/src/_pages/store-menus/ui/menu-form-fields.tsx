@@ -89,6 +89,7 @@ export const MenuFormFields = withForm({
                     imageFile={field.state.value}
                     imagePath={initialImageUrl}
                     alt="登録する商品画像"
+                    sizes="(min-width: 768px) 300px, 150px"
                   />
                 </label>
 

@@ -29,6 +29,7 @@ export async function GuestHomeView() {
             src={HeroImage}
             alt="キービジュアル"
             className="bg-gray-300 lg:col-start-1 lg:w-140 lg:shrink-0"
+            sizes="(min-width: 1024px) 560px, 100vw"
           />
         </div>
         <div className="lg:col-span-2 lg:col-start-1">

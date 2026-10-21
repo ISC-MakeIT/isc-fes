@@ -176,6 +176,7 @@ export function RegisterStoreForm() {
                     alt="店舗の写真"
                     ratio={STORE_IMAGE_ASPECT}
                     className={inputStyle}
+                    sizes="440px"
                   />
                 </label>
 

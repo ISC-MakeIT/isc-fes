@@ -9,6 +9,7 @@ type PreviewImageProps = ComponentProps<typeof AspectRatio> & {
   imageFile?: File | undefined;
   imagePath?: string;
   alt: string;
+  sizes: string;
 };
 
 /**
@@ -23,6 +24,7 @@ export function PreviewImage({
   ratio,
   imageFile,
   imagePath,
+  sizes,
 }: PreviewImageProps) {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const previewUrl = objectUrl ?? imagePath;
@@ -46,6 +48,7 @@ export function PreviewImage({
       ratio={ratio}
       src={previewUrl}
       alt={alt}
+      sizes={sizes}
       className={cn(className)}
     />
   );

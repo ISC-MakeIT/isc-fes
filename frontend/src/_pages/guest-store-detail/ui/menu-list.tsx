@@ -88,6 +88,7 @@ function MenuCard({ menu, storeId }: MenuCardProps) {
             alt={`${menu.name}の画像`}
             src={menu.imageUrl}
             className="max-w-38.5"
+            sizes="150px"
           />
           <div className="text-left">
             <p className="line-clamp-2 h-[2lh] font-bold">{menu.name}</p>

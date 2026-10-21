@@ -96,6 +96,7 @@ function EventScheduleItem({ event, isDay1 }: EventScheduleItemProps) {
               isDay1 ? "shadow-secondary" : "shadow-tertiary",
             )}
             src={event.bannerSrc}
+            sizes="(min-width: 880px) 293px, (min-width: 768px) calc(50vw - 147px), calc(100vw - 167px)"
           />
           <p className="whitespace-pre-line">{event.description}</p>
         </div>

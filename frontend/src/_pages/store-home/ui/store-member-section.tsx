@@ -123,6 +123,7 @@ function MemberCard({ storeId, member, canDelete }: MemberCardProps) {
           ratio={ICON_IMAGE_ASPECT}
           src={member.pictureUrl ?? fallbackIcon}
           alt={`${member.displayName}さんのアイコン画像`}
+          sizes="50px"
         />
         <p className="text-base">{member.displayName}</p>
       </Card>

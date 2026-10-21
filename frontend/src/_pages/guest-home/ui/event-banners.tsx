@@ -82,6 +82,7 @@ export function EventBanners({ initialDateTime }: EventBannersProps) {
               alt={`${event.name}のバナー画像`}
               src={event.bannerSrc}
               className="w-84"
+              sizes="336px"
             />
 
             {isOngoing && (
