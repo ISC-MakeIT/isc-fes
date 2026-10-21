@@ -44,6 +44,7 @@ function StoreCard({ store, isAdmin }: StoreCardProps) {
               src={store.imageUrl}
               alt={`${store.name}の店舗画像`}
               className="w-40 shrink-0"
+              sizes="160px"
             />
             <div className="flex min-w-0 flex-1 flex-col justify-center space-y-2">
               <h3 className="line-clamp-3 text-xl md:line-clamp-1">

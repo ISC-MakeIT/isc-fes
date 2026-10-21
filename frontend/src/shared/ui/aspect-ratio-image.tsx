@@ -6,12 +6,14 @@ import { cn } from "../lib/utils";
 type AspectRatioImageProps = ComponentProps<typeof AspectRatio> & {
   src?: ImageProps["src"] | null;
   alt: string;
+  sizes: NonNullable<ImageProps["sizes"]>;
 };
 
 export function AspectRatioImage({
   ratio,
   src,
   alt,
+  sizes,
   className,
 }: AspectRatioImageProps) {
   return (
@@ -25,6 +27,7 @@ export function AspectRatioImage({
           alt={alt}
           className="object-cover"
           fill
+          sizes={sizes}
           draggable={false}
         />
       )}

@@ -15,6 +15,7 @@ export function MenuInfo({ menu }: MenuInfoProps) {
         ratio={MENU_IMAGE_ASPECT}
         alt={`${menu.name}の画像`}
         className="mx-auto w-full rounded-sm md:max-w-75"
+        sizes="(min-width: 768px) 300px, calc(100vw - 48px)"
       />
       <div className="space-y-8 md:space-y-6">
         <h1 className="text-[1.375rem] font-bold md:text-center">

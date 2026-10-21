@@ -30,6 +30,7 @@ export function StoreInfo({ storeId }: StoreInfoProps) {
         ratio={STORE_IMAGE_ASPECT}
         src={store.imageUrl}
         alt="店舗の画像"
+        sizes="(min-width: 768px) 320px, calc(100vw - 80px)"
       />
 
       <div className="flex flex-col space-y-6 py-4">

@@ -135,6 +135,7 @@ function FloorStoreList({ floor }: FloorStoreListProps) {
                 alt={`${store.name}の店舗画像`}
                 imagePath={store.imageUrl}
                 className="w-28 shrink-0"
+                sizes="112px"
               />
               <div className="flex flex-col gap-2">
                 <div className="flex flex-row justify-start gap-6">

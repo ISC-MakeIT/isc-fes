@@ -184,6 +184,7 @@ export function StoreEditForm({ storeId, initialStore }: StoreEditFormProps) {
                     ratio={STORE_IMAGE_ASPECT}
                     alt="店舗のバナー"
                     className={inputStyle}
+                    sizes="(min-width: 768px) 440px, calc(100vw - 148px)"
                   />
                 </label>
                 {field.state.meta.isTouched && (

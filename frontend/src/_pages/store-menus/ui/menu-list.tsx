@@ -96,6 +96,7 @@ function MenuCard({ menu }: MenuCard) {
         alt={menu.name}
         imagePath={menu.imageUrl}
         className="w-12.5"
+        sizes="50px"
       />
       <span className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-3">
         <span className="truncate text-left">{menu.name}</span>
