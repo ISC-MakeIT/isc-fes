@@ -1,14 +1,15 @@
-import { FESTIVAL_TIME_ZONE, HERO_IMAGE_ASPECT } from "@/shared/config";
+import { FESTIVAL_TIME_ZONE } from "@/shared/config";
 import { FloorGuide } from "./floor-guide";
 import { createQueryClient } from "@/shared/api";
 import { visibleStoresQueryOptions } from "@/entities/store";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { AspectRatioImage } from "@/shared/ui/aspect-ratio-image";
 import { EventBanners } from "./event-banners";
 import { Temporal } from "temporal-polyfill-lite";
-import HeroImage from "./assets/hero-image.jpg";
 import { ActiveOrderList } from "./active-order-list";
 import { GuestSessionInitializer } from "./guest-session-initializer";
+import HeroImageMobile from "./assets/hero-image-mobile.jpg";
+import HeroImageDesktop from "./assets/hero-image-desktop.jpg";
+import Image from "next/image";
 
 export async function GuestHomeView() {
   const queryClient = createQueryClient();
@@ -21,23 +22,26 @@ export async function GuestHomeView() {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <GuestSessionInitializer />
-      <div className="grid grid-cols-1 lg:grid-cols-[37.5rem_minmax(0,42.5rem)] lg:justify-center">
-        <div className="relative">
+      <div className="flex flex-col items-center justify-center">
+        <div className="relative w-full">
           <ActiveOrderList />
-          <AspectRatioImage
-            ratio={HERO_IMAGE_ASPECT}
-            src={HeroImage}
+          <Image
+            src={HeroImageMobile}
             alt="キービジュアル"
-            className="bg-gray-300 lg:col-start-1 lg:w-140 lg:shrink-0"
-            sizes="(min-width: 1024px) 560px, 100vw"
+            className="block w-full bg-gray-300 lg:hidden"
+            sizes="100vw"
+          />
+          <Image
+            src={HeroImageDesktop}
+            alt="キービジュアル"
+            className="hidden w-full bg-gray-300 lg:block"
+            sizes="100vw"
           />
         </div>
-        <div className="lg:col-span-2 lg:col-start-1">
-          <EventBanners initialDateTime={initialDateTime} />
-        </div>
-        <div className="lg:col-start-2 lg:row-start-1">
-          <FloorGuide />
-        </div>
+
+        <EventBanners initialDateTime={initialDateTime} />
+
+        <FloorGuide />
       </div>
     </HydrationBoundary>
   );

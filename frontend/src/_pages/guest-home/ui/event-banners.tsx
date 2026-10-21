@@ -62,7 +62,7 @@ export function EventBanners({ initialDateTime }: EventBannersProps) {
   }, []);
 
   return (
-    <div className="flex flex-row gap-6 overflow-x-auto px-4 py-4">
+    <div className="no-scrollbar flex w-full flex-row gap-6 overflow-x-auto px-4 py-4">
       {currentScheduledEvents.map((event, index) => {
         const status = getEventStatus(event, currentDateTime);
         const isStartingSoon = status === "startingSoon";
@@ -75,7 +75,7 @@ export function EventBanners({ initialDateTime }: EventBannersProps) {
             }}
             key={event.name}
             href={eventsUrl(event.name)}
-            className="relative block w-84"
+            className="relative block w-84 shrink-0"
           >
             <AspectRatioImage
               ratio={EVENT_IMAGE_ASPECT}
