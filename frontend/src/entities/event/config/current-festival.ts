@@ -114,9 +114,10 @@ export const currentScheduledEvents = [
     date: currentEventDates.day2,
     startTime: {
       hour: 13,
+      minute: 30,
     },
     endTime: {
-      hour: 14,
+      hour: 16,
     },
   }),
 ] satisfies ScheduledEvent[];
