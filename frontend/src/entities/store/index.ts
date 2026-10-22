@@ -21,3 +21,6 @@ export {
 export { StoreCongestionBadge } from "./ui/store-congestion-badge";
 
 export { OrderEnabledSwitch } from "./ui/order-enabled-switch";
+
+export { storeRankingQueryOptions } from "./api/fetch-store-ranking";
+export type { StoreRankingItem } from "./api/fetch-store-ranking";

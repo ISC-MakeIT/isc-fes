@@ -46,6 +46,7 @@ export const checkoutableKey = (
 
 export const storeListKeys = {
   all: () => ["stores"] as const,
+  ranking: () => [...storeListKeys.all(), "ranking"] as const,
   visible: () => [...storeListKeys.all(), "visible"] as const,
   currentAccount: () => [...storeListKeys.all(), "current-account"] as const,
 };
