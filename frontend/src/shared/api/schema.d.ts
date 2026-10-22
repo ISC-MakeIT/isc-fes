@@ -116,7 +116,7 @@ export interface paths {
     };
     /**
      * 店舗の注文一覧を取得する
-     * @description 店舗の注文一覧を取得する。
+     * @description 店舗の注文一覧を取得する。Origin の制限はなく、サードパーティのサイトからでもリクエストできる。
      */
     get: operations["getOrdersByStoreID"];
     put?: never;
