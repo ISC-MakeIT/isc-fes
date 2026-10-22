@@ -1,7 +1,12 @@
 "use client";
 
-import { Order, OrderItem, OrderStatus } from "@/entities/order";
-import { storeOrdersQueryOptions } from "@/entities/order";
+import {
+  Order,
+  OrderItem,
+  OrderStatus,
+  storeOrdersQueryOptions,
+  useStoreOrdersFetchErrorToast,
+} from "@/entities/order";
 import { Card } from "@/shared/ui/card";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { CircleIcon, PlusIcon } from "lucide-react";
@@ -11,9 +16,10 @@ type StoreKitchenViewProps = {
 };
 
 export function StoreKitchenView({ storeId }: StoreKitchenViewProps) {
-  const { data: pendingOrders } = useSuspenseQuery(
+  const { data: pendingOrders, isError } = useSuspenseQuery(
     storeOrdersQueryOptions(storeId, [OrderStatus.Pending]),
   );
+  useStoreOrdersFetchErrorToast(isError);
 
   return (
     <div className="flex flex-1 items-start gap-8 overflow-x-auto px-8 pt-10">

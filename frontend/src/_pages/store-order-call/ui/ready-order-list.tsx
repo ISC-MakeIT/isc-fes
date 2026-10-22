@@ -1,6 +1,11 @@
 "use client";
 
-import { Order, OrderStatus, storeOrdersQueryOptions } from "@/entities/order";
+import {
+  Order,
+  OrderStatus,
+  storeOrdersQueryOptions,
+  useStoreOrdersFetchErrorToast,
+} from "@/entities/order";
 import { Card } from "@/shared/ui/card";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { buttonVariants } from "@/shared/ui/button";
@@ -29,9 +34,10 @@ type ReadyOrderListProps = {
 };
 
 export function ReadyOrderList({ storeId }: ReadyOrderListProps) {
-  const { data: readyOrders } = useSuspenseQuery(
+  const { data: readyOrders, isError } = useSuspenseQuery(
     storeOrdersQueryOptions(storeId, [OrderStatus.Ready]),
   );
+  useStoreOrdersFetchErrorToast(isError);
 
   const [accordionValue, accordionOnValueChange] = useLimitedOpenItems(
     readyOrders.map((order) => order.id),

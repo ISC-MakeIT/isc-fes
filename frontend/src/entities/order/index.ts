@@ -13,5 +13,6 @@ export {
 export { fetchOrders, ordersQueryOptions } from "./api/fetch-orders";
 
 export { useOrderEvents } from "./model/use-order-events";
+export { useStoreOrdersFetchErrorToast } from "./model/use-store-orders-fetch-error-toast";
 
 export { OrderEventsSubscriber } from "./ui/order-events-subscriber";

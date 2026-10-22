@@ -1,6 +1,10 @@
 "use client";
 
-import { OrderStatus, storeOrdersQueryOptions } from "@/entities/order";
+import {
+  OrderStatus,
+  storeOrdersQueryOptions,
+  useStoreOrdersFetchErrorToast,
+} from "@/entities/order";
 import { Card } from "@/shared/ui/card";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -13,9 +17,10 @@ type PendingOrdersProps = {
 };
 
 export function PendingOrderList({ storeId }: PendingOrdersProps) {
-  const { data: orders } = useSuspenseQuery(
+  const { data: orders, isError } = useSuspenseQuery(
     storeOrdersQueryOptions(storeId, [OrderStatus.Pending]),
   );
+  useStoreOrdersFetchErrorToast(isError);
 
   const [pageIndex, setPageIndex] = useState(0);
 
