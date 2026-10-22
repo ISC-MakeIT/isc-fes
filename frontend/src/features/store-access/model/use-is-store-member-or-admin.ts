@@ -12,9 +12,5 @@ export function useIsStoreMemberOrAdmin(storeId: string): boolean {
     enabled: !!account && account.role !== AccountRole.Admin,
   });
 
-  if (account && (account.role === AccountRole.Admin || member)) {
-    return true;
-  }
-
-  return false;
+  return !!account && (account.role === AccountRole.Admin || !!member);
 }

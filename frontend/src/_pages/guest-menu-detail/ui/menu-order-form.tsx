@@ -21,9 +21,9 @@ import {
 import { cartKey, guestStoreDetailUrl } from "@/shared/config";
 import { useRouter } from "next/navigation";
 import { createCartItemIdentityKey } from "@/entities/cart";
+import { useIsStoreMemberOrAdmin } from "@/features/store-access";
 import { toast } from "@/shared/ui/toast";
 import { storeDetailQueryOptions } from "@/entities/store";
-import { useIsStoreMemberOrAdmin } from "../model/use-is-store-member-or-admin";
 
 type MenuOrderFormProps = {
   storeId: string;
