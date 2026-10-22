@@ -1,4 +1,4 @@
-import { Temporal } from "temporal-polyfill-lite";
+import { FESTIVAL_DATES } from "@/shared/config";
 
 import { createScheduledEvent } from "../lib/create-scheduled-event";
 import type { FestivalDates, ScheduledEvent } from "../model/types";
@@ -8,28 +8,7 @@ import FreesiaBanner from "./banner2026/freesia.png";
 import IwasakiDownBanner from "./banner2026/iwasaking-down.png";
 import DanjosouBanner from "./banner2026/danjosou.png";
 
-export const currentEventDates = {
-  day1: Temporal.PlainDate.from(
-    {
-      year: 2026,
-      month: 10,
-      day: 24,
-    },
-    {
-      overflow: "reject",
-    },
-  ),
-  day2: Temporal.PlainDate.from(
-    {
-      year: 2026,
-      month: 10,
-      day: 25,
-    },
-    {
-      overflow: "reject",
-    },
-  ),
-} as const satisfies FestivalDates;
+export const currentEventDates = FESTIVAL_DATES satisfies FestivalDates;
 
 export const currentScheduledEvents = [
   createScheduledEvent({
