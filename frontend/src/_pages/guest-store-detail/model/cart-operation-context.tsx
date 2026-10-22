@@ -99,8 +99,17 @@ export function CartOperationProvider({
     mutationFn: (expectedCartVersion: number) =>
       fetchCheckoutable(storeId, expectedCartVersion),
 
-    onSuccess: ({ code }) => {
+    onSuccess: async ({ code }) => {
       if (code) {
+        if (
+          code === "cart_version_conflict" ||
+          code === "cart_items_unavailable"
+        ) {
+          await queryClient.invalidateQueries({
+            queryKey: cartKey(storeId),
+          });
+        }
+
         toast.add({
           type: "error",
           title: "注文できませんでした",
