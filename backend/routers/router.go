@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -44,7 +45,7 @@ func NewRouter(s *Server, corsAllowedOrigins []string) (*gin.Engine, error) {
 		WaitForDelivery: false,
 	}))
 
-	router.Use(cors.New(cors.Config{
+	corsConfig := cors.Config{
 		AllowOrigins: corsAllowedOrigins,
 		AllowMethods: []string{
 			http.MethodGet,
@@ -63,7 +64,27 @@ func NewRouter(s *Server, corsAllowedOrigins []string) (*gin.Engine, error) {
 		},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
-	}))
+	}
+	privateCORS := cors.New(corsConfig)
+	publicCORSConfig := corsConfig
+	publicCORSConfig.AllowOrigins = nil
+	publicCORSConfig.AllowAllOrigins = true
+	publicCORSConfig.AllowCredentials = false
+	publicCORSConfig.AllowMethods = []string{http.MethodGet, http.MethodOptions}
+	publicCORS := cors.New(publicCORSConfig)
+	// プリフライトはGinの登録ルートに一致しないため、FullPathではなくURL.Pathで判定する。
+	publicOrdersPath := regexp.MustCompile(`^/stores/[^/]+/orders/public$`)
+	router.Use(func(c *gin.Context) {
+		method := c.Request.Method
+		if method == http.MethodOptions {
+			method = c.GetHeader("Access-Control-Request-Method")
+		}
+		if method == http.MethodGet && publicOrdersPath.MatchString(c.Request.URL.Path) {
+			publicCORS(c)
+			return
+		}
+		privateCORS(c)
+	})
 
 	handleAuthenticationError := func(c *gin.Context, err error) {
 		s.handleCommonServiceErrors(c, err)
