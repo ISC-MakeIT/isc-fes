@@ -75,14 +75,14 @@ export function EventBanners({ initialDateTime }: EventBannersProps) {
             }}
             key={event.name}
             href={eventsUrl(event.name)}
-            className="relative block w-84 shrink-0"
+            className="relative block w-60 shrink-0"
           >
             <AspectRatioImage
               ratio={EVENT_IMAGE_ASPECT}
               alt={`${event.name}のバナー画像`}
               src={event.bannerSrc}
-              className="w-84"
-              sizes="336px"
+              className="w-60"
+              sizes="240px"
             />
 
             {isOngoing && (
