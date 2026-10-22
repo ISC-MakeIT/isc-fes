@@ -5,13 +5,13 @@ import {
 } from "@/shared/lib/safe-local-storage";
 import { Temporal } from "temporal-polyfill-lite";
 
-const CONGESTION_REMINDER_STARTED_AT_STORAGE_KEY =
-  "isc-fes:congestion-reminder-started-at";
+const CONGESTION_REMINDER_NEXT_SHOW_AT_STORAGE_KEY =
+  "isc-fes:congestion-reminder-next-show-at";
 
-export function readCongestionReminderStartedAt(
+export function readCongestionReminderNextShowAt(
   storeId: string,
 ): Temporal.Instant | null {
-  const key = `${CONGESTION_REMINDER_STARTED_AT_STORAGE_KEY}:${storeId}`;
+  const key = `${CONGESTION_REMINDER_NEXT_SHOW_AT_STORAGE_KEY}:${storeId}`;
   const value = getStorageItem(key);
 
   if (value === null) {
@@ -26,12 +26,12 @@ export function readCongestionReminderStartedAt(
   }
 }
 
-export function storeCongestionReminderStartedAt(
+export function storeCongestionReminderNextShowAt(
   storeId: string,
-  startedAt: Temporal.Instant,
+  nextShowAt: Temporal.Instant,
 ): boolean {
   return setStorageItem(
-    `${CONGESTION_REMINDER_STARTED_AT_STORAGE_KEY}:${storeId}`,
-    startedAt.toString(),
+    `${CONGESTION_REMINDER_NEXT_SHOW_AT_STORAGE_KEY}:${storeId}`,
+    nextShowAt.toString(),
   );
 }

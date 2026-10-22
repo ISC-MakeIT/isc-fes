@@ -5,7 +5,12 @@ import {
   storeDetailQueryOptions,
   updateStore,
 } from "@/entities/store";
-import { storeDetailKey, storeListKeys } from "@/shared/config";
+import {
+  FESTIVAL_TIME_ZONE,
+  storeDetailKey,
+  storeListKeys,
+} from "@/shared/config";
+import { isWithinFestivalPeriod } from "@/shared/lib/festival-period";
 import { ActionButton } from "@/shared/ui/action-button";
 import { Button } from "@/shared/ui/button";
 import {
@@ -28,12 +33,12 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Temporal } from "temporal-polyfill-lite";
 import {
-  readCongestionReminderStartedAt,
-  storeCongestionReminderStartedAt,
+  readCongestionReminderNextShowAt,
+  storeCongestionReminderNextShowAt,
 } from "../lib/store-congestion-storage";
 import congestionUpdateIcon from "./assets/congestion-update-icon.png";
 
-const CONGESTION_REMINDER_INTERVAL_MS = 60 * 60 * 1000;
+const CONGESTION_REMINDER_INTERVAL = { hours: 1 } as const;
 const CONGESTION_CHECK_INTERVAL_MS = 30_000;
 
 const congestionOptions = [
@@ -59,20 +64,27 @@ export function StoreCongestionDialog({ storeId }: StoreCongestionDialogProps) {
       return;
     }
 
-    const storedStartedAt = readCongestionReminderStartedAt(storeId);
-    const initialStartedAt = storedStartedAt ?? Temporal.Now.instant();
-
-    if (storedStartedAt === null) {
-      storeCongestionReminderStartedAt(storeId, initialStartedAt);
-    }
-
     function checkReminder() {
-      const startedAt =
-        readCongestionReminderStartedAt(storeId) ?? initialStartedAt;
-      const elapsedMs =
-        Temporal.Now.instant().epochMilliseconds - startedAt.epochMilliseconds;
+      if (
+        !isWithinFestivalPeriod(
+          Temporal.Now.plainDateTimeISO(FESTIVAL_TIME_ZONE),
+        )
+      ) {
+        return;
+      }
 
-      if (elapsedMs >= CONGESTION_REMINDER_INTERVAL_MS) {
+      const now = Temporal.Now.instant();
+      const nextShowAt = readCongestionReminderNextShowAt(storeId);
+
+      if (nextShowAt === null) {
+        storeCongestionReminderNextShowAt(
+          storeId,
+          now.add(CONGESTION_REMINDER_INTERVAL),
+        );
+        return;
+      }
+
+      if (Temporal.Instant.compare(now, nextShowAt) >= 0) {
         setIsOpen(true);
       }
     }
@@ -99,7 +111,10 @@ export function StoreCongestionDialog({ storeId }: StoreCongestionDialogProps) {
       });
     },
     onSettled: () => {
-      storeCongestionReminderStartedAt(storeId, Temporal.Now.instant());
+      storeCongestionReminderNextShowAt(
+        storeId,
+        Temporal.Now.instant().add(CONGESTION_REMINDER_INTERVAL),
+      );
       setIsOpen(false);
       setSelectedLevel(null);
     },

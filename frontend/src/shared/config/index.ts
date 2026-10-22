@@ -68,3 +68,4 @@ export {
 
 export { Sentry } from "./sentry";
 export { FESTIVAL_TIME_ZONE } from "./constants/time-zone";
+export { FESTIVAL_DATES } from "./constants/festival";
