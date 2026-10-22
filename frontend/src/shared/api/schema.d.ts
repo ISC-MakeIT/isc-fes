@@ -127,6 +127,28 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/stores/{store_id}/orders/public": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * 店舗の公開用注文一覧を取得する
+     * @description 認証なしでpending/readyの注文を明細付きで古い注文から返す。
+     *     通常の店舗注文一覧と同じOrderを返す。statusesによる絞り込みや他の状態の取得には対応しない。
+     *     任意のOriginからCookieなしで取得できる。店舗の閉店・注文受付停止にかかわらず取得できる。
+     */
+    get: operations["getPublicOrdersByStoreID"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/stores/{store_id}/orders/{order_id}": {
     parameters: {
       query?: never;
@@ -1321,6 +1343,55 @@ export interface operations {
       };
       /** @description ログイン中のAccountがAdminではなく、当該店舗のStaff/Managerでもない場合。 */
       403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 店舗が存在しない */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description サーバーエラー */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getPublicOrdersByStoreID: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        store_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description pending/readyの公開用注文一覧。該当する注文がなければ空の一覧を返す。 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GetOrdersResponse"];
+        };
+      };
+      /** @description 店舗IDがUUID形式ではない */
+      400: {
         headers: {
           [name: string]: unknown;
         };

@@ -52,6 +52,15 @@ func (s *Server) GetOrdersByStoreID(c *gin.Context, storeID uuid.UUID, params Ge
 	c.JSON(http.StatusOK, GetOrdersResponse{Data: utils.Map(orders, toOrderResponse), Total: len(orders)})
 }
 
+func (s *Server) GetPublicOrdersByStoreID(c *gin.Context, storeID uuid.UUID) {
+	orders, err := s.orders.GetPublicOrdersByStoreID(c.Request.Context(), storeID)
+	if err != nil {
+		s.handleCommonServiceErrors(c, err, CommonErrorMessages{NotFound: "店舗が見つかりません"})
+		return
+	}
+	c.JSON(http.StatusOK, GetOrdersResponse{Data: utils.Map(orders, toOrderResponse), Total: len(orders)})
+}
+
 func (s *Server) UpdateOrderByStoreIDAndOrderID(c *gin.Context, storeID uuid.UUID, orderID uuid.UUID) {
 	var body UpdateOrderByStoreIDAndOrderIDJSONRequestBody
 	if err := c.ShouldBindJSON(&body); err != nil {

@@ -258,6 +258,49 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /stores/{store_id}/orders/public:
+    get:
+      operationId: getPublicOrdersByStoreID
+      summary: 店舗の公開用注文一覧を取得する
+      description: |
+        認証なしでpending/readyの注文を明細付きで古い注文から返す。
+        通常の店舗注文一覧と同じOrderを返す。statusesによる絞り込みや他の状態の取得には対応しない。
+        任意のOriginからCookieなしで取得できる。店舗の閉店・注文受付停止にかかわらず取得できる。
+      security: []
+      parameters:
+        - name: store_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+      responses:
+        "200":
+          description: pending/readyの公開用注文一覧。該当する注文がなければ空の一覧を返す。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetOrdersResponse"
+        "400":
+          description: 店舗IDがUUID形式ではない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 店舗が存在しない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /stores/{store_id}/orders/{order_id}:
     patch:
       operationId: updateOrderByStoreIDAndOrderID

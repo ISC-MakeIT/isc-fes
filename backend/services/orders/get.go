@@ -71,6 +71,22 @@ func (s *OrderService) GetOrdersByStoreID(ctx context.Context, storeID uuid.UUID
 	return s.repository.GetOrdersByStoreID(ctx, storeID, statuses)
 }
 
+// GetPublicOrdersByStoreID は公開用一覧の対象をpending/readyに固定する。
+func (s *OrderService) GetPublicOrdersByStoreID(ctx context.Context, storeID uuid.UUID) ([]orders.Order, error) {
+	if storeID == uuid.Nil {
+		return nil, services.ErrInvalidInput
+	}
+	if _, err := s.storeRepository.GetStoreByID(ctx, storeID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, services.ErrNotFound
+		}
+		return nil, fmt.Errorf("get public order store: %w", err)
+	}
+	return s.repository.GetOrdersByStoreID(ctx, storeID, []orders.OrderStatus{
+		orders.OrderStatusPending, orders.OrderStatusReady,
+	})
+}
+
 func (s *OrderService) GetOrderByID(ctx context.Context, orderID uuid.UUID) (orders.Order, error) {
 	guestID, found, err := s.guestResolver.ResolveGuest(ctx)
 	if err != nil {
