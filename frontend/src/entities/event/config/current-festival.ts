@@ -18,12 +18,11 @@ export const currentScheduledEvents = [
     room: "8Fステージ",
     date: currentEventDates.day1,
     startTime: {
-      hour: 10,
-      minute: 15,
+      hour: 11,
+      minute: 30,
     },
     endTime: {
-      hour: 10,
-      minute: 45,
+      hour: 12,
     },
   }),
   createScheduledEvent({
