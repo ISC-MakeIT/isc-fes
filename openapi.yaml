@@ -204,7 +204,7 @@ paths:
     get:
       operationId: getOrdersByStoreID
       summary: 店舗の注文一覧を取得する
-      description: 店舗の注文一覧を取得する。
+      description: 店舗の注文一覧を取得する。Origin の制限はなく、サードパーティのサイトからでもリクエストできる。
       security:
         - AccountSession: []
       parameters:

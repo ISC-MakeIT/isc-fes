@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
+	"slices"
 	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -44,8 +46,25 @@ func NewRouter(s *Server, corsAllowedOrigins []string) (*gin.Engine, error) {
 		WaitForDelivery: false,
 	}))
 
+	storeOrdersPath := regexp.MustCompile(`^/stores/[^/]+/orders$`)
 	router.Use(cors.New(cors.Config{
-		AllowOrigins: corsAllowedOrigins,
+		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool {
+			if slices.Contains(corsAllowedOrigins, origin) {
+				return true
+			}
+			if !storeOrdersPath.MatchString(c.Request.URL.Path) {
+				return false
+			}
+
+			switch c.Request.Method {
+			case http.MethodGet:
+				return true
+			case http.MethodOptions:
+				return c.GetHeader("Access-Control-Request-Method") == http.MethodGet
+			default:
+				return false
+			}
+		},
 		AllowMethods: []string{
 			http.MethodGet,
 			http.MethodPost,

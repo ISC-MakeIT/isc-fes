@@ -174,6 +174,58 @@ func TestRouterCORSRejectsUnknownOrigin(t *testing.T) {
 	}
 }
 
+func TestRouterCORSStoreOrders(t *testing.T) {
+	storeOrdersPath := "/stores/" + uuid.NewString() + "/orders"
+	const origin = "https://third-party.example.com"
+	for _, test := range []struct {
+		name            string
+		method          string
+		path            string
+		preflightMethod string
+		status          int
+		allowed         bool
+	}{
+		{"get still requires authentication", http.MethodGet, storeOrdersPath + "?statuses=pending", "", http.StatusUnauthorized, true},
+		{"get preflight", http.MethodOptions, storeOrdersPath, http.MethodGet, http.StatusNoContent, true},
+		{"post preflight", http.MethodOptions, storeOrdersPath, http.MethodPost, http.StatusForbidden, false},
+		{"options without requested method", http.MethodOptions, storeOrdersPath, "", http.StatusForbidden, false},
+		{"post", http.MethodPost, storeOrdersPath, "", http.StatusForbidden, false},
+		{"other endpoint", http.MethodGet, "/health", "", http.StatusForbidden, false},
+		{"order detail", http.MethodGet, storeOrdersPath + "/" + uuid.NewString(), "", http.StatusForbidden, false},
+		{"order update preflight", http.MethodOptions, storeOrdersPath + "/" + uuid.NewString(), http.MethodPatch, http.StatusForbidden, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			accountLoader := &stubCurrentAccountLoader{err: services.ErrUnauthenticated}
+			router, err := NewRouter(&Server{accountService: accountLoader}, []string{"http://localhost:3000"})
+			if err != nil {
+				t.Fatalf("NewRouter() error = %v", err)
+			}
+			request := httptest.NewRequestWithContext(t.Context(), test.method, test.path, nil)
+			request.Header.Set("Origin", origin)
+			if test.preflightMethod != "" {
+				request.Header.Set("Access-Control-Request-Method", test.preflightMethod)
+				request.Header.Set("Access-Control-Request-Headers", "sentry-trace,baggage")
+			}
+			response := httptest.NewRecorder()
+			router.ServeHTTP(response, request)
+
+			if response.Code != test.status {
+				t.Fatalf("status = %d, want %d: %s", response.Code, test.status, response.Body)
+			}
+			wantOrigin := ""
+			if test.allowed {
+				wantOrigin = origin
+				if got := response.Header().Get("Access-Control-Allow-Credentials"); got != "true" {
+					t.Errorf("Access-Control-Allow-Credentials = %q, want true", got)
+				}
+			}
+			if got := response.Header().Get("Access-Control-Allow-Origin"); got != wantOrigin {
+				t.Errorf("Access-Control-Allow-Origin = %q, want %q", got, wantOrigin)
+			}
+		})
+	}
+}
+
 func TestOpenAPIRequestValidatorAcceptsValidRequest(t *testing.T) {
 	accountLoader := &stubCurrentAccountLoader{}
 	validator := mustOpenAPIRequestValidator(t, accountLoader)
