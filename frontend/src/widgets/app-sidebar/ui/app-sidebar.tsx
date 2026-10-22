@@ -51,9 +51,11 @@ export function AppSidebar(props: AppSidebarProps) {
           <GuestHomeNavigation />
         </SidebarMenu>
 
-        <SidebarMenu>
-          <SidebarNavigation navigationItems={navigationItems} />
-        </SidebarMenu>
+        {navigationItems.map((items, index) => (
+          <SidebarMenu key={index}>
+            <SidebarNavigation navigationItems={items} />
+          </SidebarMenu>
+        ))}
 
         <SidebarMenu>
           <SidebarSupportNavigation />
