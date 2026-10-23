@@ -208,7 +208,7 @@ func TestGetStoreRankingPostgres(t *testing.T) {
 		checkRanking(t, ids[0], ids[1], ids[2])
 	})
 
-	addOrder := func(storeID uuid.UUID, status string, amount int64, created time.Time) {
+	addOrder := func(storeID uuid.UUID, status string, amount int64, created, statusAt time.Time) {
 		t.Helper()
 		cartID := uuid.New()
 		execSQL(`INSERT INTO carts (id,store_id,guest_id) VALUES ($1,$2,$3)
@@ -217,34 +217,46 @@ func TestGetStoreRankingPostgres(t *testing.T) {
 		execSQL(`INSERT INTO orders (store_id,guest_id,status,total_amount,display_number,origin_cart_id,origin_cart_version,
 			store_name,room_name,ready_at,completed_at,cancelled_at,created_at,updated_at)
 			SELECT $1,$2,$3::order_status,$4,version,id,version,'old store name','old room',
-			CASE WHEN $3 <> 'pending' THEN $5::timestamptz END,
-			CASE WHEN $3 = 'completed' THEN $5::timestamptz END,
-			CASE WHEN $3 = 'cancelled' THEN $5::timestamptz END,$5,$5
-			FROM carts WHERE store_id=$1 AND guest_id=$2`, storeID, guestID, status, amount, created)
+			CASE WHEN $3 <> 'pending' THEN $6::timestamptz END,
+			CASE WHEN $3 = 'completed' THEN $6::timestamptz END,
+			CASE WHEN $3 = 'cancelled' THEN $6::timestamptz END,$5,$6
+			FROM carts WHERE store_id=$1 AND guest_id=$2`, storeID, guestID, status, amount, created, statusAt)
 	}
 	old := closedAt.AddDate(-1, 0, 0)
 	for range 5 {
-		addOrder(ids[0], "completed", 100, old)
+		addOrder(ids[0], "completed", 100, old, old)
 	}
-	addOrder(ids[1], "completed", 600, closedAt)
-	addOrder(ids[1], "completed", 400, old)
-	addOrder(ids[2], "completed", 1000, old)
-	addOrder(ids[3], "completed", 1000, closedAt)
+	addOrder(ids[1], "completed", 600, closedAt, closedAt)
+	addOrder(ids[1], "completed", 400, old, old)
+	addOrder(ids[2], "completed", 1000, old, old)
+	// 注文が古くても、直近1時間に完了した売上は閉店済み店舗でも含める。
+	addOrder(ids[2], "completed", 800, old, closedAt)
+	addOrder(ids[3], "completed", 1000, closedAt, closedAt)
 	for _, status := range []string{"pending", "ready", "cancelled"} {
-		addOrder(ids[0], status, 1_000_000, closedAt)
+		addOrder(ids[0], status, 1_000_000, closedAt, closedAt)
 	}
 	for _, status := range []string{"pending", "rejected"} {
 		id := uuid.New()
 		execSQL(`INSERT INTO stores (id,name,room,description,image_object_key,review_status)
 			VALUES ($1,'unapproved','ranking room','','test',$2)`, id, status)
-		addOrder(id, "completed", 1_000_000, closedAt)
+		addOrder(id, "completed", 1_000_000, closedAt, closedAt)
 	}
-	t.Run("rank by completed revenue across all time including closed stores", func(t *testing.T) {
-		checkRanking(t, ids[1], ids[2], ids[3])
+	t.Run("rank by recently completed revenue including old orders and closed stores", func(t *testing.T) {
+		checkRanking(t, ids[3], ids[2], ids[1])
 	})
 	execSQL(`DELETE FROM orders`)
-	addOrder(ids[3], "completed", 1000, old)
-	addOrder(ids[0], "cancelled", 1_000_000, closedAt)
+	inside := closedAt.Add(-59 * time.Minute)
+	outside := closedAt.Add(-61 * time.Minute)
+	future := closedAt.Add(time.Hour)
+	addOrder(ids[1], "completed", 500, inside, inside)
+	addOrder(ids[3], "completed", 1000, outside, outside)
+	addOrder(ids[0], "completed", 1_000_000, closedAt, future)
+	t.Run("exclude completions over an hour ago and in the future", func(t *testing.T) {
+		checkRanking(t, ids[1], ids[0], ids[2])
+	})
+	execSQL(`DELETE FROM orders`)
+	addOrder(ids[3], "completed", 1000, closedAt, closedAt)
+	addOrder(ids[0], "cancelled", 1_000_000, closedAt, closedAt)
 	t.Run("zero sales fill remaining places", func(t *testing.T) {
 		checkRanking(t, ids[3], ids[0], ids[1])
 	})

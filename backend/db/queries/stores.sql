@@ -31,6 +31,8 @@ LEFT JOIN (
     SELECT store_id, SUM(total_amount) AS total_sales_amount
     FROM orders
     WHERE status = 'completed'
+        AND completed_at >= statement_timestamp() - INTERVAL '1 hour'
+        AND completed_at < statement_timestamp()
     GROUP BY store_id
 ) AS sales ON sales.store_id = stores.id
 WHERE stores.review_status = 'approved'

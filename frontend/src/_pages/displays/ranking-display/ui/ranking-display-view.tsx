@@ -69,11 +69,12 @@ export function RankingDisplayView({
             <h1
               id="ranking-heading"
               className={cn(
-                "text-primary flex h-30.5 items-center text-[40px] leading-normal",
+                "text-primary flex h-30.5 flex-col items-start justify-center text-[40px] leading-normal",
                 headingFont.className,
               )}
             >
-              売り上げランキング!!
+              <span>売り上げランキング！！</span>
+              <span className="text-2xl">（直近1時間）</span>
             </h1>
             <RankingList />
           </section>

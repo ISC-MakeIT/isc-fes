@@ -247,7 +247,7 @@ func (s *StoreService) GetApprovedStores(ctx context.Context) ([]entities.StoreO
 	return stores, nil
 }
 
-// GetStoreRanking は認証や所属によらず、売上額順の上位3店舗を返す。
+// GetStoreRanking は認証や所属によらず、直近1時間に完了した注文の売上額順の上位3店舗を返す。
 func (s *StoreService) GetStoreRanking(ctx context.Context) ([]entities.StoreOutput, error) {
 	stores, err := s.storeRepository.GetStoreRanking(ctx)
 	if err != nil {

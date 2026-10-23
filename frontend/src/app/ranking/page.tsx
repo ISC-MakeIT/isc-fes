@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { Temporal } from "temporal-polyfill-lite";
 
 export const metadata: Metadata = {
-  title: "売り上げランキング",
+  title: "売り上げランキング！！（直近1時間）",
   robots: { index: false, follow: false },
 };
 
