@@ -1,4 +1,5 @@
 import { OrderEventsSubscriber } from "@/entities/order";
+import { canAccessStore } from "@/features/store-access";
 import { createQueryClient } from "@/shared/api";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
@@ -6,9 +7,9 @@ import { notFound } from "next/navigation";
 import { fetchOrderByidQueryOptions } from "../api/fetch-order-by-id";
 import { OrderNavigation } from "./order-navigation";
 import { OrderStatusHeader } from "./order-status-header";
+import { PickupQuestionnaire } from "./pickup-questionnaire";
 import { Receipt } from "./receipt";
 import { Ticket } from "./ticket";
-import { PickupQuestionnaire } from "./pickup-questionnaire";
 
 type OrderDetailViewProps = {
   orderId: string;
@@ -23,6 +24,8 @@ export async function OrderDetailView({ orderId }: OrderDetailViewProps) {
   if (!order) {
     notFound();
   }
+
+  const canContinueOrdering = await canAccessStore(order.storeId);
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
@@ -46,7 +49,10 @@ export async function OrderDetailView({ orderId }: OrderDetailViewProps) {
           </div>
         </div>
 
-        <OrderNavigation storeId={order.storeId} />
+        <OrderNavigation
+          canContinueOrdering={canContinueOrdering}
+          storeId={order.storeId}
+        />
       </main>
     </HydrationBoundary>
   );
