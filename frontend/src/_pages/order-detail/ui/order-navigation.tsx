@@ -1,15 +1,16 @@
+"use client";
+
+import { useIsStoreMemberOrAdmin } from "@/features/store-access";
 import { guestStoreDetailUrl, homeUrl } from "@/shared/config";
 import { LinkButton } from "@/shared/ui/link-button";
 
 type OrderNavigationProps = {
-  canContinueOrdering: boolean;
   storeId: string;
 };
 
-export function OrderNavigation({
-  canContinueOrdering,
-  storeId,
-}: OrderNavigationProps) {
+export function OrderNavigation({ storeId }: OrderNavigationProps) {
+  const canContinueOrdering = useIsStoreMemberOrAdmin(storeId);
+
   return (
     <div className="flex w-full flex-col items-center gap-2">
       <LinkButton

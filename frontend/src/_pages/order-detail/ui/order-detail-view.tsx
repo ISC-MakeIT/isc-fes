@@ -1,5 +1,4 @@
 import { OrderEventsSubscriber } from "@/entities/order";
-import { canAccessStore } from "@/features/store-access";
 import { createQueryClient } from "@/shared/api";
 import { HeadingCard } from "@/shared/ui/heading-card";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
@@ -25,8 +24,6 @@ export async function OrderDetailView({ orderId }: OrderDetailViewProps) {
     notFound();
   }
 
-  const canContinueOrdering = await canAccessStore(order.storeId);
-
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <OrderEventsSubscriber />
@@ -49,10 +46,7 @@ export async function OrderDetailView({ orderId }: OrderDetailViewProps) {
           </div>
         </div>
 
-        <OrderNavigation
-          canContinueOrdering={canContinueOrdering}
-          storeId={order.storeId}
-        />
+        <OrderNavigation storeId={order.storeId} />
       </main>
     </HydrationBoundary>
   );
