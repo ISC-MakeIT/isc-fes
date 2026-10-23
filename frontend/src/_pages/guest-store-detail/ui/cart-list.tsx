@@ -19,6 +19,7 @@ import { calculateCartTotal } from "../lib/calculate-cart-total";
 import { useIsMobile } from "@/shared/lib/hooks";
 import { guestStoreDetailParsers } from "@/shared/config";
 import { useQueryStates } from "nuqs";
+import { cn } from "@/shared/lib/utils";
 
 export function CartList() {
   const [{ isOpenCart }, setSearchParams] = useQueryStates(
@@ -45,8 +46,12 @@ export function CartList() {
   const totalAmount = calculateCartTotal(displayedCartItems);
 
   useEffect(() => {
+    if (!isOpenCart) {
+      return;
+    }
+
     void setSearchParams({ isOpenCart: false }, { history: "replace" });
-  });
+  }, [isOpenCart, setSearchParams]);
 
   if (displayedCartItems.length === 0) {
     return null;
@@ -55,29 +60,22 @@ export function CartList() {
   if (isMobile) {
     return (
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <div className="bg-background shadow-bottom-bar fixed inset-x-0 bottom-0 z-60 flex w-full flex-row items-center gap-4 px-6">
-          <SheetTrigger className="flex h-20 flex-1 flex-row items-center gap-4">
-            <CartBadge totalQuantity={totalQuantity} />
-            <span className="text-xl font-medium">
-              {formatYen(totalAmount)}
-            </span>
-          </SheetTrigger>
-
-          <Button
-            type="button"
-            variant="secondary"
-            className="h-auto rounded-sm px-6 py-2 text-base font-semibold shadow-none"
-            disabled={isBusy || hasPendingChanges || !canCheckout}
-            onClick={checkout}
-          >
-            注文画面へ ＞
-          </Button>
-        </div>
+        {!isSheetOpen && (
+          <MobileCartBar
+            totalQuantity={totalQuantity}
+            totalAmount={totalAmount}
+            isCheckoutDisabled={
+              isBusy || hasPendingChanges || !canCheckout
+            }
+            onCheckout={checkout}
+            className="fixed inset-x-0 bottom-0 z-60 w-full"
+          />
+        )}
 
         <SheetContent
           side="bottom"
           showCloseButton={false}
-          className="max-h-[calc(100dvh-5rem-3rem)] gap-0 overflow-hidden rounded-t-2xl data-[side=bottom]:bottom-20"
+          className="max-h-[calc(100dvh-3rem)] gap-0 overflow-hidden rounded-t-2xl"
         >
           <SheetHeader className="bg-cart-sheet-header flex h-10 shrink-0 flex-row items-center justify-between py-0">
             <SheetTitle className="text-sm">カート内の商品</SheetTitle>
@@ -93,6 +91,15 @@ export function CartList() {
           </SheetHeader>
 
           <CartContents />
+
+          <MobileCartBar
+            totalQuantity={totalQuantity}
+            totalAmount={totalAmount}
+            isCheckoutDisabled={
+              isBusy || hasPendingChanges || !canCheckout
+            }
+            onCheckout={checkout}
+          />
         </SheetContent>
       </Sheet>
     );
@@ -131,6 +138,46 @@ export function CartList() {
         </Button>
       </div>
     </aside>
+  );
+}
+
+type MobileCartBarProps = {
+  totalQuantity: number;
+  totalAmount: number;
+  isCheckoutDisabled: boolean;
+  onCheckout: () => void;
+  className?: string;
+};
+
+function MobileCartBar({
+  totalQuantity,
+  totalAmount,
+  isCheckoutDisabled,
+  onCheckout,
+  className,
+}: MobileCartBarProps) {
+  return (
+    <div
+      className={cn(
+        "bg-background shadow-bottom-bar flex h-20 shrink-0 flex-row items-center gap-4 px-6",
+        className,
+      )}
+    >
+      <SheetTrigger className="flex h-20 flex-1 flex-row items-center gap-4">
+        <CartBadge totalQuantity={totalQuantity} />
+        <span className="text-xl font-medium">{formatYen(totalAmount)}</span>
+      </SheetTrigger>
+
+      <Button
+        type="button"
+        variant="secondary"
+        className="h-auto rounded-sm px-6 py-2 text-base font-semibold shadow-none"
+        disabled={isCheckoutDisabled}
+        onClick={onCheckout}
+      >
+        注文画面へ ＞
+      </Button>
+    </div>
   );
 }
 
