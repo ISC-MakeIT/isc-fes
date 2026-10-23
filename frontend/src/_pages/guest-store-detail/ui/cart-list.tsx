@@ -10,14 +10,23 @@ import {
 import Image from "next/image";
 import CartIcon from "./assets/cart-icon.svg";
 import { Button } from "@/shared/ui/button";
+import { useEffect, useState } from "react";
 import { Badge } from "@/shared/ui/badge";
 import { formatYen } from "@/shared/lib/formatYen";
 import { CartContents } from "./cart-contents";
 import { useCartOperation } from "../model/cart-operation-context";
 import { calculateCartTotal } from "../lib/calculate-cart-total";
 import { useIsMobile } from "@/shared/lib/hooks";
+import { guestStoreDetailParsers } from "@/shared/config";
+import { useQueryStates } from "nuqs";
 
 export function CartList() {
+  const [{ isOpenCart }, setSearchParams] = useQueryStates(
+    guestStoreDetailParsers,
+  );
+
+  const [isSheetOpen, setIsSheetOpen] = useState(isOpenCart);
+
   const isMobile = useIsMobile();
 
   const {
@@ -35,13 +44,17 @@ export function CartList() {
   );
   const totalAmount = calculateCartTotal(displayedCartItems);
 
+  useEffect(() => {
+    void setSearchParams({ isOpenCart: false }, { history: "replace" });
+  });
+
   if (displayedCartItems.length === 0) {
     return null;
   }
 
   if (isMobile) {
     return (
-      <Sheet>
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <div className="bg-background shadow-bottom-bar fixed inset-x-0 bottom-0 z-60 flex w-full flex-row items-center gap-4 px-6">
           <SheetTrigger className="flex h-20 flex-1 flex-row items-center gap-4">
             <CartBadge totalQuantity={totalQuantity} />
