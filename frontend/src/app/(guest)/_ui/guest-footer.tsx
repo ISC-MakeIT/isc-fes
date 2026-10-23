@@ -23,7 +23,7 @@ export function GuestFooter() {
             </Link>
           </nav>
         </div>
-        <small>
+        <small className="flex justify-center text-center">
           <DotText>Developed by 梅田・森・藤原</DotText>
         </small>
       </div>
