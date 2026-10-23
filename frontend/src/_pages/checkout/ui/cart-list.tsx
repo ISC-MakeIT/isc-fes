@@ -24,7 +24,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "@/shared/ui/toast";
 import { LinkButton } from "@/shared/ui/link-button";
 import { Dialog, DialogTrigger } from "@/shared/ui/dialog";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { trackEvent } from "@/shared/lib/analytics";
 import { OrderConfirmDialog } from "./order-confirm-dialog";
 import {
   hasConfirmedOrderNotice,
@@ -40,6 +41,14 @@ export function CartList({ storeId }: CartListProps) {
   const queryClient = useQueryClient();
   const { data: cart } = useSuspenseQuery(fetchCartQueryOptions(storeId));
   const summarisedItems = summarizeCartItems(cart.items);
+  const trackedStoreId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (cart.items.length === 0 || trackedStoreId.current === cart.storeId)
+      return;
+    trackedStoreId.current = cart.storeId;
+    trackEvent("checkout_started");
+  }, [cart]);
 
   const router = useRouter();
 

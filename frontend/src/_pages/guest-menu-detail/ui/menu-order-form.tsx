@@ -117,6 +117,7 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
 
     updateCartMutation.mutate({
       storeId,
+      previousCart: cart,
       updateCartInput,
     });
   }
