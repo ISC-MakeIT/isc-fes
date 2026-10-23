@@ -8,7 +8,7 @@ import (
 )
 
 // GuestOrderWaitMinutesはゲスト発行から新規注文までの待機時間。エラー文もこの値を使う。
-const GuestOrderWaitMinutes = 3
+const GuestOrderWaitMinutes = 1
 
 var ErrGuestOrderTooEarly = fmt.Errorf("guest order wait has not elapsed: %w", services.ErrForbidden)
 
