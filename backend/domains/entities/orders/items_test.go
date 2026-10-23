@@ -31,6 +31,9 @@ func TestValidateItems(t *testing.T) {
 		{"valid", func(*OrderItem) {}, nil},
 		{"zero quantity", func(i *OrderItem) { i.Quantity = 0 }, ErrInvalidItems},
 		{"negative quantity", func(i *OrderItem) { i.Quantity = -1 }, ErrInvalidItems},
+		{"ten items", func(i *OrderItem) { i.Quantity = 10 }, nil},
+		{"eleven items", func(i *OrderItem) { i.Quantity = 11 }, ErrInvalidItems},
+		{"int32 maximum quantity", func(i *OrderItem) { i.Quantity = math.MaxInt32 }, ErrInvalidItems},
 		{"negative menu price", func(i *OrderItem) { i.UnitPrice = -1 }, ErrInvalidItems},
 		{"other store menu", func(i *OrderItem) { i.StoreID = uuid.New() }, ErrInvalidItems},
 		{"missing menu ID", func(i *OrderItem) { i.MenuID = uuid.Nil }, ErrInvalidItems},
@@ -62,26 +65,42 @@ func TestValidateItems(t *testing.T) {
 	}
 }
 
-func TestMenuLimitCountsDistinctMenus(t *testing.T) {
+func TestItemLimitCountsMenuAndToppingCombinations(t *testing.T) {
 	items := []OrderItem{orderItem(), orderItem(), orderItem()}
 	if err := ValidateItems(testStoreID, items); err != nil {
 		t.Fatalf("three menus: %v", err)
 	}
 	items = append(items, orderItem())
-	if err := ValidateItems(testStoreID, items); !errors.Is(err, ErrTooManyMenus) {
+	if err := ValidateItems(testStoreID, items); !errors.Is(err, ErrTooManyItemTypes) {
 		t.Fatalf("four menus error = %v", err)
 	}
 	for i := range items {
 		items[i].MenuID = items[0].MenuID
 		items[i].Toppings = itemToppings(5)
 	}
-	// 同じmenu IDでもトッピング構成ごとに別明細を許可する。
-	if err := ValidateItems(testStoreID, items); err != nil {
-		t.Fatalf("four lines of one menu: %v", err)
+	// 同じmenu IDでもトッピング構成が異なれば別の種類として数える。
+	if err := ValidateItems(testStoreID, items); !errors.Is(err, ErrTooManyItemTypes) {
+		t.Fatalf("four combinations of one menu: %v", err)
 	}
 	items[1].Toppings = items[0].Toppings
 	if err := ValidateItems(testStoreID, items); err != nil {
 		t.Fatalf("same topping on different items: %v", err)
+	}
+}
+
+func TestItemLimitCombinesQuantitiesAcrossRows(t *testing.T) {
+	item := orderItem()
+	item.Quantity = 6
+	item.Toppings = itemToppings(2)
+	other := item
+	other.Quantity = 4
+	other.Toppings = []OrderItemTopping{item.Toppings[1], item.Toppings[0]}
+	if err := ValidateItems(testStoreID, []OrderItem{item, other}); err != nil {
+		t.Fatalf("combined quantity of ten: %v", err)
+	}
+	other.Quantity = 5
+	if err := ValidateItems(testStoreID, []OrderItem{item, other}); !errors.Is(err, ErrInvalidItems) {
+		t.Fatalf("combined quantity of eleven = %v, want %v", err, ErrInvalidItems)
 	}
 }
 
@@ -94,13 +113,13 @@ func TestCalculateTotalAmount(t *testing.T) {
 	if got, err := CalculateTotalAmount(testStoreID, []OrderItem{item, other}); err != nil || got != 1100 {
 		t.Fatalf("total = %d, error = %v, want 1100", got, err)
 	}
-	item.UnitPrice, item.Quantity, item.Toppings = 0, math.MaxInt32, nil
+	item.UnitPrice, item.Quantity, item.Toppings = 0, 10, nil
 	if got, err := CalculateTotalAmount(testStoreID, []OrderItem{item}); err != nil || got != 0 {
 		t.Fatalf("free order total = %d, error = %v", got, err)
 	}
 	item.UnitPrice = math.MaxInt32
-	if got, err := CalculateTotalAmount(testStoreID, []OrderItem{item}); err != nil || got != int64(math.MaxInt32)*math.MaxInt32 {
-		t.Fatalf("int32 maximum price and quantity total = %d, error = %v", got, err)
+	if got, err := CalculateTotalAmount(testStoreID, []OrderItem{item}); err != nil || got != int64(math.MaxInt32)*10 {
+		t.Fatalf("int32 maximum price with ten items total = %d, error = %v", got, err)
 	}
 	item.Quantity, item.UnitPrice, item.Toppings = 1, math.MaxInt32, itemToppings(5)
 	for i := range item.Toppings {
@@ -108,33 +127,5 @@ func TestCalculateTotalAmount(t *testing.T) {
 	}
 	if got, err := CalculateTotalAmount(testStoreID, []OrderItem{item}); err != nil || got != 6*int64(math.MaxInt32) {
 		t.Fatalf("unit amount over int32 total = %d, error = %v", got, err)
-	}
-}
-
-func TestCalculateTotalAmountOverflow(t *testing.T) {
-	high := orderItem()
-	high.UnitPrice, high.Quantity = math.MaxInt32, math.MaxInt32
-	tail := high
-	tail.Quantity = 4
-	one := orderItem()
-	one.UnitPrice, one.Quantity = 1, 1
-	// 2*M*M + 4*M + 1 == MaxInt64, where M == MaxInt32.
-	items := []OrderItem{high, high, tail, one}
-	if got, err := CalculateTotalAmount(testStoreID, items); err != nil || got != math.MaxInt64 {
-		t.Fatalf("exact MaxInt64 total = %d, error = %v", got, err)
-	}
-	items[3].Quantity = 2
-	if _, err := CalculateTotalAmount(testStoreID, items); !errors.Is(err, ErrAmountOutOfRange) {
-		t.Fatalf("MaxInt64 + 1 error = %v", err)
-	}
-	if _, err := CalculateTotalAmount(testStoreID, []OrderItem{high, high, high}); !errors.Is(err, ErrAmountOutOfRange) {
-		t.Fatalf("sum overflow error = %v", err)
-	}
-	high.Toppings = itemToppings(2)
-	for i := range high.Toppings {
-		high.Toppings[i].UnitPrice = math.MaxInt32
-	}
-	if _, err := CalculateTotalAmount(testStoreID, []OrderItem{high}); !errors.Is(err, ErrAmountOutOfRange) {
-		t.Fatalf("multiplication overflow error = %v", err)
 	}
 }

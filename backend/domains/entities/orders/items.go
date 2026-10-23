@@ -6,14 +6,13 @@ import (
 	"math"
 
 	"github.com/google/uuid"
+	"github.com/isc-makeit/isc-fes/backend/domains/entities/carts"
 )
-
-const MaxMenuTypes = 3
 
 var (
 	ErrEmptyOrder       = errors.New("empty order")
 	ErrInvalidItems     = errors.New("invalid order items")
-	ErrTooManyMenus     = errors.New("too many menu types")
+	ErrTooManyItemTypes = errors.New("too many order item types")
 	ErrAmountOutOfRange = errors.New("order amount out of range")
 )
 
@@ -26,16 +25,13 @@ func ValidateItems(storeID uuid.UUID, items []OrderItem) error {
 	if storeID == uuid.Nil {
 		return fmt.Errorf("store ID is missing: %w", ErrInvalidItems)
 	}
-	menuIDs := make(map[uuid.UUID]struct{})
+	selections := make([]carts.ItemSelection, 0, len(items))
 	for i, item := range items {
 		if item.StoreID != storeID || item.MenuID == uuid.Nil || item.Quantity <= 0 || item.UnitPrice < 0 {
 			return fmt.Errorf("item %d: %w", i, ErrInvalidItems)
 		}
-		menuIDs[item.MenuID] = struct{}{}
-		if len(menuIDs) > MaxMenuTypes {
-			return ErrTooManyMenus
-		}
 		toppingIDs := make(map[uuid.UUID]struct{})
+		selection := carts.ItemSelection{MenuID: item.MenuID, Quantity: item.Quantity}
 		for _, topping := range item.Toppings {
 			if topping.StoreID != storeID || topping.ToppingID == uuid.Nil || topping.UnitPrice < 0 {
 				return fmt.Errorf("item %d topping: %w", i, ErrInvalidItems)
@@ -44,7 +40,15 @@ func ValidateItems(storeID uuid.UUID, items []OrderItem) error {
 				return fmt.Errorf("item %d duplicate topping: %w", i, ErrInvalidItems)
 			}
 			toppingIDs[topping.ToppingID] = struct{}{}
+			selection.ToppingIDs = append(selection.ToppingIDs, topping.ToppingID)
 		}
+		selections = append(selections, selection)
+	}
+	if err := carts.ValidateSelections(selections); err != nil {
+		if errors.Is(err, carts.ErrTooManyItemTypes) {
+			return ErrTooManyItemTypes
+		}
+		return fmt.Errorf("invalid selections (%v): %w", err, ErrInvalidItems)
 	}
 	return nil
 }

@@ -26,6 +26,21 @@ func TestPrepareItemsCheckoutReasons(t *testing.T) {
 		{"deleted topping", func(c *carts.Cart) { c.Items[0].Toppings[0].DeletedAt = &now }, ErrUnavailableItems},
 		{"detached topping", func(c *carts.Cart) { c.Items[0].Toppings[0].LinkedToMenu = false }, ErrUnavailableItems},
 		{"invalid quantity", func(c *carts.Cart) { c.Items[0].Quantity = 0 }, ErrInvalidCart},
+		{"eleven items", func(c *carts.Cart) { c.Items[0].Quantity = 11 }, ErrInvalidCart},
+		{"split quantity exceeds ten", func(c *carts.Cart) {
+			other := c.Items[0]
+			other.Quantity = 9
+			c.Items = append(c.Items, other)
+		}, ErrInvalidCart},
+		{"four combinations of one menu", func(c *carts.Cart) {
+			item := c.Items[0]
+			c.Items = nil
+			for range 4 {
+				variant := item
+				variant.Toppings = []carts.CartItemTopping{{ToppingID: uuid.New(), UnitPrice: 50, LinkedToMenu: true}}
+				c.Items = append(c.Items, variant)
+			}
+		}, ErrInvalidCart},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			cart := carts.Cart{StoreID: storeID, Items: []carts.CartItem{{
