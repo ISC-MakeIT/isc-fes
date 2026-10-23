@@ -286,8 +286,9 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * 全店舗の総売上額ランキング上位3店舗を取得する
-     * @description 承認済みの全店舗を、全期間のcompleted注文の合計金額の降順で取得する。
+     * 全店舗の直近1時間の売上額ランキング上位3店舗を取得する
+     * @description 承認済みの全店舗を、直近1時間に完了したcompleted注文の合計金額の降順で取得する。
+     *     集計対象はSQL実行開始時刻の1時間前以上、SQL実行開始時刻未満のcompleted_atを持つ注文とする。
      *     売上0円・閉店済み・モバイルオーダー受付停止中の店舗も対象とする。
      *     同額の場合は店舗IDの昇順とし、placeは同額でも1からの連番とする。
      *     承認済み店舗が3店舗未満の場合は存在する店舗のみ返す。
@@ -692,7 +693,7 @@ export interface components {
       data: components["schemas"]["StoreRankingItem"][];
     };
     StoreRankingItem: components["schemas"]["Store"] & {
-      /** @description 総売上額順の順位。同額でも連番とする。 */
+      /** @description 直近1時間の売上額順の順位。同額でも連番とする。 */
       place: number;
     };
     GetStoreApplicationsResponse: {
@@ -1916,7 +1917,7 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description 総売上額ランキング上位3店舗 */
+      /** @description 直近1時間の売上額ランキング上位3店舗 */
       200: {
         headers: {
           [name: string]: unknown;
