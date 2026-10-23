@@ -22,6 +22,9 @@ export type AnalyticsItem = {
 };
 
 export type AnalyticsEventName =
+  | "cart_item_added"
+  | "checkout_started"
+  | "order_placed"
   | "order_wait_blocked"
   | "select_floor"
   | "select_store"
@@ -68,6 +71,10 @@ export function analyticsPath(pathname: string): string {
   if (/^\/stores\/[^/]+\/menus\/[^/]+$/.test(pathname)) {
     return "/stores/:storeId/menus/:menuId";
   }
+  if (/^\/stores\/[^/]+\/checkout$/.test(pathname)) {
+    return "/stores/:storeId/checkout";
+  }
+  if (/^\/orders\/[^/]+$/.test(pathname)) return "/orders/:orderId";
   if (/^\/stores\/[^/]+$/.test(pathname)) return "/stores/:storeId";
   if (/^\/member\/stores\/[^/]+$/.test(pathname)) {
     return "/member/stores/:storeId";

@@ -130,6 +130,7 @@ export function CartOperationProvider({
       });
       updateCartMutation.mutate({
         storeId,
+        previousCart: fetchedCart,
         updateCartInput: {
           expectedVersion: fetchedCart.version,
           items: toCartUpdateItems(items),

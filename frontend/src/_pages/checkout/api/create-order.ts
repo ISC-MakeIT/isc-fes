@@ -6,6 +6,8 @@ import { trackEvent } from "@/shared/lib/analytics";
 
 type CreateOrderInput = components["schemas"]["CreateOrderInput"];
 
+const trackedOrderIds = new Set<string>();
+
 export async function createOrder({
   storeId,
   expectedCartVersion,
@@ -30,5 +32,10 @@ export async function createOrder({
     throw new Error(getStatusMessage(response.status));
   }
 
-  return v.parse(Order, data);
+  const order = v.parse(Order, data);
+  if (!trackedOrderIds.has(order.id)) {
+    trackEvent("order_placed");
+    trackedOrderIds.add(order.id);
+  }
+  return order;
 }
