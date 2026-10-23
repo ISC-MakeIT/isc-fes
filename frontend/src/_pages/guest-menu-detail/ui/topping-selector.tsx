@@ -1,5 +1,6 @@
 "use client";
 
+import { useIsStoreMemberOrAdmin } from "@/features/store-access";
 import { menuToppingsQueryOptions } from "@/entities/topping";
 import { formatYen } from "@/shared/lib/formatYen";
 import { cn } from "@/shared/lib/utils";
@@ -9,7 +10,6 @@ import { MinusIcon, PlusIcon } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { trackEvent } from "@/shared/lib/analytics";
 import { storeDetailQueryOptions } from "@/entities/store";
-import { useIsStoreMemberOrAdmin } from "../model/use-is-store-member-or-admin";
 import Image from "next/image";
 import { SoldOutLabel } from "@/shared/ui";
 
