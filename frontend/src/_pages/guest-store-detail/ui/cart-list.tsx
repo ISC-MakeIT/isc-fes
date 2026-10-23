@@ -60,15 +60,21 @@ export function CartList() {
   if (isMobile) {
     return (
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        {!isSheetOpen && (
-          <MobileCartBar
-            totalQuantity={totalQuantity}
-            totalAmount={totalAmount}
-            isCheckoutDisabled={isBusy || hasPendingChanges || !canCheckout}
-            onCheckout={checkout}
-            className="fixed inset-x-0 bottom-0 z-60 w-full"
-          />
-        )}
+        <MobileCartBar
+          isCheckoutDisabled={isBusy || hasPendingChanges || !canCheckout}
+          onCheckout={checkout}
+          className={cn(
+            "fixed inset-x-0 bottom-0 w-full",
+            isSheetOpen ? "z-40" : "z-60",
+          )}
+        >
+          <SheetTrigger className="flex h-20 flex-1 flex-row items-center gap-4">
+            <CartSummary
+              totalQuantity={totalQuantity}
+              totalAmount={totalAmount}
+            />
+          </SheetTrigger>
+        </MobileCartBar>
 
         <SheetContent
           side="bottom"
@@ -91,11 +97,16 @@ export function CartList() {
           <CartContents />
 
           <MobileCartBar
-            totalQuantity={totalQuantity}
-            totalAmount={totalAmount}
             isCheckoutDisabled={isBusy || hasPendingChanges || !canCheckout}
             onCheckout={checkout}
-          />
+          >
+            <div className="flex h-20 flex-1 flex-row items-center gap-4">
+              <CartSummary
+                totalQuantity={totalQuantity}
+                totalAmount={totalAmount}
+              />
+            </div>
+          </MobileCartBar>
         </SheetContent>
       </Sheet>
     );
@@ -138,16 +149,14 @@ export function CartList() {
 }
 
 type MobileCartBarProps = {
-  totalQuantity: number;
-  totalAmount: number;
+  children: React.ReactNode;
   isCheckoutDisabled: boolean;
   onCheckout: () => void;
   className?: string;
 };
 
 function MobileCartBar({
-  totalQuantity,
-  totalAmount,
+  children,
   isCheckoutDisabled,
   onCheckout,
   className,
@@ -159,10 +168,7 @@ function MobileCartBar({
         className,
       )}
     >
-      <SheetTrigger className="flex h-20 flex-1 flex-row items-center gap-4">
-        <CartBadge totalQuantity={totalQuantity} />
-        <span className="text-xl font-medium">{formatYen(totalAmount)}</span>
-      </SheetTrigger>
+      {children}
 
       <Button
         type="button"
@@ -174,6 +180,20 @@ function MobileCartBar({
         注文画面へ ＞
       </Button>
     </div>
+  );
+}
+
+type CartSummaryProps = {
+  totalQuantity: number;
+  totalAmount: number;
+};
+
+function CartSummary({ totalQuantity, totalAmount }: CartSummaryProps) {
+  return (
+    <>
+      <CartBadge totalQuantity={totalQuantity} />
+      <span className="text-xl font-medium">{formatYen(totalAmount)}</span>
+    </>
   );
 }
 
