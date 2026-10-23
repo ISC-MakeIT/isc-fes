@@ -2,7 +2,7 @@
  * 本番開始前の初期化を行うスクリプト。
  * 注文・カート・ゲスト・アプリレビュー・注文番号カウンターの全データを削除する。
  * データの種類にかかわらず、対象テーブルの全レコードを削除する。
- * 指定したテスト店舗と、その所属・商品・関連付け・招待も削除する。
+ * 指定したテスト店舗と、その所属・商品・関連付け・招待・操作ログも削除する。
  * デフォルトは件数確認のみ。--execute を指定した場合だけ削除する。
  * 使用前にバックアップを取得し、バックエンドを停止すること。
  * 接続先は DATABASE_URL で明示する。他店舗・商品・運営アカウントは変更しない。
@@ -28,7 +28,8 @@ const TEST_STORE_IDS = [
   "47076dd0-6a80-430f-b182-783bd534078f",
   "443bee08-0acd-4d76-8f72-c9a0dd750084",
 ];
-// テスト店舗だけを削除する。子テーブルは店舗のDELETEからON DELETE CASCADEで削除される。
+// テスト店舗のデータだけを削除する。activity_logは明示的にDELETEし、
+// その他の子テーブルは店舗のDELETEからON DELETE CASCADEで削除する。
 const TEST_STORE_TABLES = [
   "stores",
   "store_members",
@@ -37,6 +38,7 @@ const TEST_STORE_TABLES = [
   "menu_toppings",
   "store_allergens",
   "store_invitations",
+  "activity_log",
 ] as const;
 
 type TableCount = { table_name: string; count: string };
@@ -80,6 +82,8 @@ export async function resetForProduction(
     // 全対象を同時に指定して外部キーを満たす。未指定の参照元があればRESTRICTで失敗する。
     // カウンターも空になるため、次の注文のdisplay_numberは店舗ごとに1から始まる。
     await tx.unsafe(`TRUNCATE TABLE ${tableList} RESTRICT`);
+    // 操作ログは外部キーを持たないため、テスト店舗の分だけ明示的に削除する。
+    await tx`DELETE FROM public.activity_log WHERE store_id = ANY(${storeIDs}::uuid[])`;
     // 注文・カート・カウンターのRESTRICT参照を消した後、テスト店舗とCASCADE対象を削除する。
     await tx`DELETE FROM public.stores WHERE id = ANY(${storeIDs}::uuid[])`;
     const after = await tx.unsafe<TableCount[]>(countQuery, [storeIDs]);
@@ -96,7 +100,7 @@ const usage = `本番開始前の初期化:
 
 通常実行は件数確認のみ。--execute を指定すると、対象テーブルの全データとテスト店舗を削除します。
 対象: 注文・カート・ゲスト・アプリレビュー・注文番号カウンター。
-テスト店舗: ${TEST_STORE_IDS.join(", ")}（所属・メニュー・トッピング・関連付け・招待も削除）。
+テスト店舗: ${TEST_STORE_IDS.join(", ")}（所属・メニュー・トッピング・関連付け・招待・操作ログも削除）。
 POSTGRES_USER / POSTGRES_PASSWORD が指定されていれば接続URLの認証情報を上書きします。
 他店舗のデータとアレルゲン・教室・アカウント・ログインは保持します。
 売り切れ・閉店・混雑度・注文受付の設定とS3の画像は変更しません。
@@ -137,7 +141,7 @@ async function main(): Promise<void> {
   // 認証情報や接続URLのクエリパラメータは表示しない。
   console.log(`接続先: ${databaseUrl.host}${databaseUrl.pathname}`);
   console.log(execute ? "本番開始前の初期化として、対象テーブルの全データとテスト店舗を削除します。" : "件数確認のみ実行します。DBは変更しません。");
-  console.log(`削除対象のテスト店舗: ${TEST_STORE_IDS.join(", ")}`);
+  console.log(`削除対象のテスト店舗: ${TEST_STORE_IDS.join(", ")}（操作ログも削除）`);
   const db = new SQL({ url: databaseUrl.toString(), max: 1, connectionTimeout: 10 });
   try {
     const result = await resetForProduction(db, { execute });
