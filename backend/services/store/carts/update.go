@@ -4,12 +4,20 @@ import (
 	"context"
 	"errors"
 
+	cartentities "github.com/isc-makeit/isc-fes/backend/domains/entities/carts"
 	"github.com/isc-makeit/isc-fes/backend/services"
 	"github.com/isc-makeit/isc-fes/backend/utils"
 	"github.com/jackc/pgx/v5"
 )
 
 func (s CartService) UpdateCartByStoreID(c context.Context, input UpdateCartInput) (CartOutput, error) {
+	selections := utils.Map(input.Items, func(item UpdateCartItemInput) cartentities.ItemSelection {
+		return cartentities.ItemSelection{MenuID: item.MenuID, Quantity: item.Quantity, ToppingIDs: item.ToppingIds}
+	})
+	if err := cartentities.ValidateSelections(selections); err != nil {
+		return CartOutput{}, services.ErrInvalidInput
+	}
+
 	guestID, err := s.guestResolver.ResolveOrCreateGuest(c)
 	if err != nil {
 		return CartOutput{}, err

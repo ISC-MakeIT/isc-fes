@@ -787,6 +787,7 @@ export interface components {
        * @description カートの更新前のバージョン。カートの更新時に、この値と現在のカートのバージョンが一致しない場合は409 Conflict
        */
       expectedVersion: number;
+      /** @description メニューとトッピングの組み合わせは3種類まで。同じ組み合わせの数量は全明細を合計して10個まで。空配列でカートを空にする。 */
       items: components["schemas"]["UpdateCartItemInput"][];
     };
     UpdateCartItemInput: {
@@ -810,7 +811,7 @@ export interface components {
        *     - cart_version_conflict: カートのversionがexpectedCartVersionと一致しない、またはint32の上限に達している。
        *     - cart_empty: カートが未作成または空。Guestセッションが未発行の場合もカートなしとして扱い、Guestやカートは作成しない。
        *     - cart_items_unavailable: 商品・トッピングが売り切れまたは削除済み、あるいはトッピングのメニューとの関連が解除されている。
-       *     - invalid_cart: 数量・メニュー種類数・金額などが注文の制約を満たさない。メニューは最大3種類。
+       *     - invalid_cart: 数量・商品種類数・金額などが注文の制約を満たさない。メニューとトッピングの組み合わせは最大3種類で、同じ組み合わせは合計10個まで。
        *     - order_limit_reached: 免除対象でないpending/ready注文が全店舗合計で2件以上ある。Accountログイン済みで注文先のStaff/Managerなら免除され、免除注文は件数にも含めない。
        * @enum {string|null}
        */
