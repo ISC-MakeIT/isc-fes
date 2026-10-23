@@ -3,33 +3,32 @@
 import { useIsStoreMemberOrAdmin } from "@/features/store-access";
 import { guestStoreDetailUrl, homeUrl } from "@/shared/config";
 import { LinkButton } from "@/shared/ui/link-button";
-import { ChevronLeftIcon } from "lucide-react";
 
 type OrderNavigationProps = {
   storeId: string;
 };
 
 export function OrderNavigation({ storeId }: OrderNavigationProps) {
-  const isStoreMemberOrAdmin = useIsStoreMemberOrAdmin(storeId);
+  const canContinueOrdering = useIsStoreMemberOrAdmin(storeId);
 
   return (
-    <div className="flex w-full items-center justify-center gap-6">
-      {isStoreMemberOrAdmin && (
-        <LinkButton
-          href={guestStoreDetailUrl(storeId)}
-          aria-label="注文画面に戻る"
-          className="shrink-0 px-6 py-2"
-        >
-          <ChevronLeftIcon className="size-8" />
-        </LinkButton>
-      )}
-
+    <div className="flex w-full flex-col items-center gap-2">
       <LinkButton
         href={homeUrl()}
-        className="flex-1 px-4 py-2 text-[1.375rem] font-bold sm:flex-none sm:px-14"
+        className="w-full px-4 py-2 text-base font-bold sm:w-auto sm:px-14 sm:text-[1.375rem]"
       >
         トップに戻る
       </LinkButton>
+
+      {canContinueOrdering && (
+        <LinkButton
+          href={guestStoreDetailUrl(storeId)}
+          variant="link"
+          className="w-full px-4 py-2 text-xl font-bold underline shadow-none sm:w-auto"
+        >
+          ＜ 続けて注文する
+        </LinkButton>
+      )}
     </div>
   );
 }

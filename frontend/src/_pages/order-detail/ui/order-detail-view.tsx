@@ -6,9 +6,9 @@ import { notFound } from "next/navigation";
 import { fetchOrderByidQueryOptions } from "../api/fetch-order-by-id";
 import { OrderNavigation } from "./order-navigation";
 import { OrderStatusHeader } from "./order-status-header";
+import { PickupQuestionnaire } from "./pickup-questionnaire";
 import { Receipt } from "./receipt";
 import { Ticket } from "./ticket";
-import { PickupQuestionnaire } from "./pickup-questionnaire";
 
 type OrderDetailViewProps = {
   orderId: string;
