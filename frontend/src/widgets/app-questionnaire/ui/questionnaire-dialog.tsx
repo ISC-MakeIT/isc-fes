@@ -1,6 +1,11 @@
 "use client";
 
-import { Dialog, DialogContent, DialogHeader } from "@/shared/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 import {
   AudienceTarget,
   QUESTIONNAIRE_AUDIENCE_BY_TRIGGER,
@@ -37,23 +42,27 @@ export function QuestionnaireDialog({
     <Dialog open disablePointerDismissal>
       <DialogContent
         showCloseButton={false}
-        className="shadow-dialog-primary p-8"
+        className="shadow-dialog-primary max-h-[calc(100dvh-2rem)] overflow-y-auto p-8"
       >
         {audience === AudienceTarget.Guest ? (
-          <DialogHeader className="flex flex-row gap-2">
-            <Image
-              src={AppIcon}
-              alt={"アプリのロゴ"}
-              className="w-12"
-              draggable={false}
-            />
-            <p className="text-sm">学園祭アプリ</p>
-            <p className="text-xl">ふぇすNavi アンケート</p>
+          <DialogHeader className="items-center text-center">
+            <div className="flex items-center gap-2">
+              <Image
+                src={AppIcon}
+                alt={"アプリのロゴ"}
+                className="w-12"
+                draggable={false}
+              />
+              <p className="text-sm">学園祭アプリ</p>
+            </div>
+            <DialogTitle className="text-xl">ふぇすNavi アンケート</DialogTitle>
           </DialogHeader>
         ) : (
           <DialogHeader className="flex flex-col items-center text-lg font-bold">
             <p>店舗スタッフ対象</p>
-            <p>『 ふぇすNavi 』アンケート</p>
+            <DialogTitle className="text-lg font-bold">
+              『 ふぇすNavi 』アンケート
+            </DialogTitle>
           </DialogHeader>
         )}
 

@@ -21,7 +21,7 @@ export function StoreInfo({ storeId }: StoreInfoProps) {
 
   useEffect(() => {
     requestQuestionnaire(QuestionnaireTrigger.StoreHomeOpened);
-  }, []);
+  }, [requestQuestionnaire]);
 
   return (
     <div className="border-b-primary flex flex-col items-center gap-12 border-b px-10 py-4 md:flex-row">

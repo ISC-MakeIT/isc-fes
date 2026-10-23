@@ -104,7 +104,7 @@ export function QuestionnaireForm({
                 className="text-lg font-semibold"
                 htmlFor={field.name}
               >
-                ご意見やご要望があれば、お気軽にお願いします。
+                コメント（任意）
               </FieldLabel>
               <FieldContent>
                 <Textarea

@@ -1,15 +1,20 @@
 "use client";
 
-import { createContext, use, useState } from "react";
+import { createContext, use, useCallback, useState } from "react";
 import { QuestionnaireTrigger } from "../config/questionnaire";
 import { Temporal } from "temporal-polyfill-lite";
+import { shouldOpenQuestionnaire } from "../lib/should-open-questionnaire";
 import {
+  readLastReviewedAt,
+  readPendingQuestionnaireTrigger,
   removePendingQuestionnaireTrigger,
   storeLastReviewSubmittedAt,
+  storePendingQuestionnaireTrigger,
 } from "../lib/questionnaire-storage";
 import { QuestionnaireDialog } from "../ui/questionnaire-dialog";
 
 type QuestionnaireContextValue = {
+  isQuestionnaireOpen: boolean;
   requestQuestionnaire: (trigger: QuestionnaireTrigger) => void;
 };
 
@@ -27,9 +32,32 @@ export function AppQuestionnaireProvider({
   const [activeTrigger, setActiveTrigger] =
     useState<QuestionnaireTrigger | null>(null);
 
-  function requestQuestionnaire(_trigger: QuestionnaireTrigger) {
-    return; // TODO: もう少しレビューの仕様を詰めてから有効化する
-  }
+  const requestQuestionnaire = useCallback((trigger: QuestionnaireTrigger) => {
+    const pendingTrigger = readPendingQuestionnaireTrigger();
+
+    if (pendingTrigger !== null) {
+      setActiveTrigger(pendingTrigger);
+      return;
+    }
+
+    const shouldOpen = shouldOpenQuestionnaire({
+      trigger,
+      lastReviewedAt: readLastReviewedAt(),
+      now: Temporal.Now.instant(),
+      randomValue: Math.random(),
+    });
+
+    if (!shouldOpen) {
+      return;
+    }
+
+    // localStorageが使えない環境ならアンケートを開かない
+    if (!storePendingQuestionnaireTrigger(trigger)) {
+      return;
+    }
+
+    setActiveTrigger(trigger);
+  }, []);
 
   function handleSubmitted() {
     storeLastReviewSubmittedAt(Temporal.Now.instant());
@@ -38,7 +66,12 @@ export function AppQuestionnaireProvider({
   }
 
   return (
-    <QuestionnaireContext value={{ requestQuestionnaire }}>
+    <QuestionnaireContext
+      value={{
+        isQuestionnaireOpen: activeTrigger !== null,
+        requestQuestionnaire,
+      }}
+    >
       {children}
 
       {activeTrigger !== null && (

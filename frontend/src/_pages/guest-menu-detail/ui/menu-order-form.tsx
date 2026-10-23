@@ -1,7 +1,7 @@
 "use client";
 
 import { Menu } from "@/entities/menu";
-import { useState } from "react";
+import { startTransition, useState } from "react";
 import { MenuOrderActions } from "./menu-order-actions";
 import { ToppingSelector } from "./topping-selector";
 import { v } from "@/shared/lib/valibot";
@@ -24,6 +24,10 @@ import { createCartItemIdentityKey } from "@/entities/cart";
 import { useIsStoreMemberOrAdmin } from "@/features/store-access";
 import { toast } from "@/shared/ui/toast";
 import { storeDetailQueryOptions } from "@/entities/store";
+import {
+  QuestionnaireTrigger,
+  useAppQuestionnaire,
+} from "@/widgets/app-questionnaire";
 
 type MenuOrderFormProps = {
   storeId: string;
@@ -32,6 +36,7 @@ type MenuOrderFormProps = {
 
 export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
   const router = useRouter();
+  const { requestQuestionnaire } = useAppQuestionnaire();
 
   const [quantity, setQuantity] = useState(1);
   const [selectedToppingIds, setSelectedToppingIds] = useState<string[]>([]);
@@ -80,11 +85,15 @@ export function MenuOrderForm({ storeId, menu }: MenuOrderFormProps) {
     },
     onSuccess: (updatedCart) => {
       queryClient.setQueryData(cartKey(storeId), updatedCart);
-      router.push(
-        guestStoreDetailUrl(storeId, {
-          isOpenCart: true,
-        }),
-      );
+      // 遷移先のカートとアンケートを同じ画面更新で表示する。
+      startTransition(() => {
+        router.push(
+          guestStoreDetailUrl(storeId, {
+            isOpenCart: true,
+          }),
+        );
+        requestQuestionnaire(QuestionnaireTrigger.CartItemAdded);
+      });
     },
   });
 

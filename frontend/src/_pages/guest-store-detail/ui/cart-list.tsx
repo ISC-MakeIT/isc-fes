@@ -20,6 +20,7 @@ import { useIsMobile } from "@/shared/lib/hooks";
 import { guestStoreDetailParsers } from "@/shared/config";
 import { useQueryStates } from "nuqs";
 import { cn } from "@/shared/lib/utils";
+import { useAppQuestionnaire } from "@/widgets/app-questionnaire";
 
 export function CartList() {
   const [{ isOpenCart }, setSearchParams] = useQueryStates(
@@ -29,6 +30,7 @@ export function CartList() {
   const [isSheetOpen, setIsSheetOpen] = useState(isOpenCart);
 
   const isMobile = useIsMobile();
+  const { isQuestionnaireOpen } = useAppQuestionnaire();
 
   const {
     clearCart,
@@ -54,6 +56,12 @@ export function CartList() {
   }, [isOpenCart, setSearchParams]);
 
   if (displayedCartItems.length === 0) {
+    return null;
+  }
+
+  // モーダル同士の重なりとフォーカスの競合を避ける。
+  // isSheetOpenは保持し、レビュー送信後にカートシートを再表示する。
+  if (isMobile && isQuestionnaireOpen) {
     return null;
   }
 

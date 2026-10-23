@@ -24,13 +24,17 @@ import { useRouter } from "next/navigation";
 import { toast } from "@/shared/ui/toast";
 import { LinkButton } from "@/shared/ui/link-button";
 import { Dialog, DialogTrigger } from "@/shared/ui/dialog";
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import { trackEvent } from "@/shared/lib/analytics";
 import { OrderConfirmDialog } from "./order-confirm-dialog";
 import {
   hasConfirmedOrderNotice,
   storeOrderNoticeConfirmation,
 } from "../lib/order-notice-storage";
+import {
+  QuestionnaireTrigger,
+  useAppQuestionnaire,
+} from "@/widgets/app-questionnaire";
 
 type CartListProps = {
   storeId: string;
@@ -39,6 +43,7 @@ type CartListProps = {
 export function CartList({ storeId }: CartListProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { requestQuestionnaire } = useAppQuestionnaire();
   const { data: cart } = useSuspenseQuery(fetchCartQueryOptions(storeId));
   const summarisedItems = summarizeCartItems(cart.items);
   const trackedStoreId = useRef<string | null>(null);
@@ -63,7 +68,11 @@ export function CartList({ storeId }: CartListProps) {
         refetchType: "none",
       });
 
-      router.replace(orderDetailUrl(order.id));
+      setIsConfirmOpen(false);
+      startTransition(() => {
+        router.replace(orderDetailUrl(order.id));
+        requestQuestionnaire(QuestionnaireTrigger.OrderCompleted);
+      });
     },
 
     onError: (error) => {

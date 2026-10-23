@@ -8,6 +8,7 @@ import { OrderNavigation } from "./order-navigation";
 import { OrderStatusHeader } from "./order-status-header";
 import { Receipt } from "./receipt";
 import { Ticket } from "./ticket";
+import { PickupQuestionnaire } from "./pickup-questionnaire";
 
 type OrderDetailViewProps = {
   orderId: string;
@@ -26,6 +27,7 @@ export async function OrderDetailView({ orderId }: OrderDetailViewProps) {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <OrderEventsSubscriber />
+      <PickupQuestionnaire orderId={orderId} />
       <OrderStatusHeader orderId={orderId} />
       <main className="mx-auto flex max-w-150 flex-col items-center gap-4 p-8 pb-16">
         <HeadingCard className="px-14 py-2 text-[1.375rem]">
