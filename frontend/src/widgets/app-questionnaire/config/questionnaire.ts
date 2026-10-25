@@ -1,3 +1,5 @@
+// TODO: カート追加、注文完了、受け取り完了でレビューを表示する（ゲストのみ）
+
 export enum QuestionnaireTrigger {
   CartItemAdded = "cart_item_added",
   OrderCompleted = "order_completed",
@@ -16,13 +18,10 @@ export enum AudienceTarget {
   StoreMember = "storeMember",
 }
 
-// この確率の根拠
-// 1回の注文で5回トリガーを引くとしたら、0.02 だと、9.6% 程度の確率でアンケートが表示されるためちょうどいい
-// 店舗メンバー側のトリガー確率は、今回諸事情で前日にレビューを有効化するので、ある程度高い数値にしないとレビューが集まらない（メニュー登録がすでに済んでいるからほとんどのトリガーは発生しない）
 export const QUESTIONNAIRE_PROBABILITIES = {
-  [QuestionnaireTrigger.CartItemAdded]: 0.02,
-  [QuestionnaireTrigger.OrderCompleted]: 0.02,
-  [QuestionnaireTrigger.PickupCompleted]: 0.02,
+  [QuestionnaireTrigger.CartItemAdded]: 0.1,
+  [QuestionnaireTrigger.OrderCompleted]: 0.1,
+  [QuestionnaireTrigger.PickupCompleted]: 0.1,
   [QuestionnaireTrigger.StoreHomeOpened]: 0.2,
   [QuestionnaireTrigger.MenuCreated]: 0.2,
   [QuestionnaireTrigger.MenuUpdated]: 0.2,
@@ -46,7 +45,7 @@ export const QUESTIONNAIRE_AUDIENCE_BY_TRIGGER = {
 } satisfies Record<QuestionnaireTrigger, AudienceTarget>;
 
 export const QUESTIONNAIRE_COOLDOWN = {
-  hours: 24,
+  hours: 120, // 5 days
 } as const;
 
 export const LAST_REVIEW_SUBMITTED_AT_STORAGE_KEY =
