@@ -69,6 +69,14 @@ export function toParams(filters: Filters): URLSearchParams {
 export function jstInput(iso: string): string {
   return new Date(Date.parse(iso) + 9 * 3_600_000).toISOString().slice(0, 16);
 }
+export function jstTimestamp(iso: string): string {
+  return new Date(Date.parse(iso) + 9 * 3_600_000)
+    .toISOString()
+    .slice(0, 23)
+    .replace("T", " ")
+    .replace(/:00\.000$/, "")
+    .replace(/\.000$/, "");
+}
 export function inputToISO(value: string): string {
   return `${value}:00+09:00`;
 }

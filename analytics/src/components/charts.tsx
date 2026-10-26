@@ -7,21 +7,17 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   ComposedChart,
   Legend,
   Line,
   LineChart,
-  Pie,
-  PieChart,
-  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import type { AnalyticsData, MetricRow } from "@/lib/types";
-import { integer, minutes, percent, shortDate, statusNames, yen } from "@/lib/format";
+import { integer, minutes, percent, shortDate, yen } from "@/lib/format";
 
 export const colors = [
   "#267b57",
@@ -85,142 +81,6 @@ export const metricOptions: {
 ];
 const tickNumber = (value: number) =>
   value >= 10000 ? `${integer(value / 1000)}k` : integer(value);
-export function TimelineChart({ data }: { data: MetricRow[] }) {
-  return (
-    <div className="chart large-chart">
-      <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={data} margin={{ top: 12, right: 8, left: -16, bottom: 0 }}>
-          <defs>
-            <linearGradient id="orderFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#2b8058" stopOpacity={0.19} />
-              <stop offset="100%" stopColor="#2b8058" stopOpacity={0.01} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid {...grid} />
-          <XAxis {...axis} dataKey="name" minTickGap={42} />
-          <YAxis {...axis} allowDecimals={false} />
-          <YAxis {...axis} yAxisId="sales" orientation="right" tickFormatter={tickNumber} />
-          <Tooltip
-            contentStyle={tooltipStyle}
-            formatter={(v, name) => [
-              name === "売上" ? yen(Number(v)) : `${integer(Number(v))}件`,
-              name,
-            ]}
-          />
-          <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 11, paddingTop: 18 }} />
-          <Bar
-            dataKey="revenue"
-            name="売上"
-            yAxisId="sales"
-            fill="#dce7d5"
-            radius={[3, 3, 0, 0]}
-            maxBarSize={22}
-          />
-          <Area
-            type="monotone"
-            dataKey="orders"
-            name="注文数"
-            stroke="#267b57"
-            fill="url(#orderFill)"
-            strokeWidth={2.4}
-            dot={false}
-            activeDot={{ r: 4 }}
-          />
-        </ComposedChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-export function DurationChart({ data }: { data: MetricRow[] }) {
-  return (
-    <div className="chart">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ left: -22, right: 12, top: 12 }}>
-          <CartesianGrid {...grid} />
-          <XAxis {...axis} dataKey="name" minTickGap={45} />
-          <YAxis {...axis} unit="分" />
-          <Tooltip
-            contentStyle={tooltipStyle}
-            formatter={(v) => minutes(v == null ? null : Number(v))}
-          />
-          <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 11, paddingTop: 15 }} />
-          <Line
-            type="monotone"
-            dataKey="preparationMinutes"
-            name="調理時間"
-            stroke={colors[0]}
-            strokeWidth={2}
-            dot={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="pickupMinutes"
-            name="受取待ち"
-            stroke={colors[1]}
-            strokeWidth={2}
-            dot={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="p90Minutes"
-            name="完了時間 P90"
-            stroke={colors[2]}
-            strokeWidth={1.5}
-            strokeDasharray="4 4"
-            dot={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-export function StatusChart({ data, total }: { data: MetricRow[]; total: number }) {
-  const ordered = ["completed", "ready", "pending", "cancelled"].map((key) => ({
-    key,
-    name: statusNames[key],
-    value: data.find((d) => d.key === key)?.orders ?? 0,
-  }));
-  const palette = ["#267b57", "#98b89e", "#e8b865", "#d49685"];
-  return (
-    <div className="donut-layout">
-      <div className="donut">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={ordered}
-              dataKey="value"
-              innerRadius="70%"
-              outerRadius="90%"
-              paddingAngle={total ? 3 : 0}
-              stroke="none"
-              startAngle={90}
-              endAngle={-270}
-            >
-              {ordered.map((d, i) => (
-                <Cell key={d.key} fill={palette[i]} />
-              ))}
-            </Pie>
-            <Tooltip contentStyle={tooltipStyle} formatter={(v) => `${integer(Number(v))}件`} />
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="donut-center">
-          <strong>{integer(total)}</strong>
-          <span>すべての注文</span>
-        </div>
-      </div>
-      <div className="donut-legend">
-        {ordered.map((d, i) => (
-          <div key={d.key}>
-            <i style={{ background: palette[i] }} />
-            <span>{d.name}</span>
-            <strong>{integer(d.value)}</strong>
-            <small>{total ? percent((d.value / total) * 100) : "—"}</small>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 export function SimpleChart({
   data,
   metric = "orders",
@@ -397,38 +257,5 @@ export function StoreComparison({ data, metric }: { data: AnalyticsData; metric:
         </ResponsiveContainer>
       </div>
     </>
-  );
-}
-export function RateTimeline({ data }: { data: MetricRow[] }) {
-  return (
-    <div className="chart">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ left: -12, right: 15, top: 12 }}>
-          <CartesianGrid {...grid} />
-          <XAxis {...axis} dataKey="name" minTickGap={45} />
-          <YAxis {...axis} domain={[0, 100]} unit="%" />
-          <Tooltip
-            contentStyle={tooltipStyle}
-            formatter={(v) => percent(v == null ? null : Number(v))}
-          />
-          <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 11, paddingTop: 15 }} />
-          <ReferenceLine y={0} stroke="#eee" />
-          <Line
-            dataKey="faceRate"
-            name="対面受付率（推定）"
-            stroke={colors[0]}
-            strokeWidth={2}
-            dot={false}
-          />
-          <Line
-            dataKey="cancellationRate"
-            name="キャンセル率"
-            stroke="#c78976"
-            strokeWidth={2}
-            dot={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
   );
 }

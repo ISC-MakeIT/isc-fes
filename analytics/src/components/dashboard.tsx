@@ -3,68 +3,40 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Activity,
-  ArrowDownRight,
   ArrowRight,
   ArrowUpRight,
   BarChart3,
   CalendarDays,
   ChevronRight,
   CircleHelp,
-  Clock3,
   Database,
+  House,
   Download,
   FlaskConical,
-  LayoutDashboard,
   LoaderCircle,
+  MessageSquare,
   Radio,
   RefreshCw,
-  ShoppingBag,
   SlidersHorizontal,
   Store,
-  TrendingUp,
   Users,
   X,
 } from "lucide-react";
 import type { AnalyticsData, Filters, Metadata, MetricRow } from "@/lib/types";
 import { defaultFilters, inputToISO, jstInput, parseFilters, toParams } from "@/lib/filters";
-import { decimal, integer, minutes, percent, shortDate, statusNames, yen } from "@/lib/format";
+import { decimal, integer, percent, shortDate, statusNames } from "@/lib/format";
 import { downloadCSV } from "@/lib/csv";
 import {
   CongestionChart,
-  DurationChart,
   metricOptions,
-  RateTimeline,
   SimpleChart,
-  StatusChart,
   StoreComparison,
-  TimelineChart,
   type MetricKey,
 } from "./charts";
 import { MetricTable } from "./metric-table";
 
-type View = "overview" | "sales" | "orders" | "congestion" | "explorer";
+type View = "congestion" | "explorer";
 const views = [
-  {
-    key: "overview" as const,
-    label: "概要",
-    title: "学園祭を、数字で振り返る。",
-    subtitle: "注文から受け取りまで。学園祭の動きをひとつの画面に。",
-    icon: LayoutDashboard,
-  },
-  {
-    key: "sales" as const,
-    label: "売上・メニュー",
-    title: "どのお店で、何が売れた？",
-    subtitle: "店舗とメニューを比較して、売上を生んだ動きを探ります。",
-    icon: TrendingUp,
-  },
-  {
-    key: "orders" as const,
-    label: "注文・受付",
-    title: "注文の流れを、ひも解く。",
-    subtitle: "待ち時間やキャンセル、受付方法から運営を振り返ります。",
-    icon: ShoppingBag,
-  },
   {
     key: "congestion" as const,
     label: "混雑度の検証",
@@ -171,7 +143,7 @@ function displayRows(data: AnalyticsData, group: Group): MetricRow[] {
 }
 
 export default function Dashboard() {
-  const [view, setView] = useState<View>("overview");
+  const [view, setView] = useState<View>("congestion");
   const [metadata, setMetadata] = useState<Metadata | null>(null);
   const [draft, setDraft] = useState<Filters | null>(null);
   const [applied, setApplied] = useState<Filters | null>(null);
@@ -186,7 +158,6 @@ export default function Dashboard() {
   const [group, setGroup] = useState<Group>("timeline");
   const [kind, setKind] = useState<"bar" | "line" | "area">("bar");
   const [compare, setCompare] = useState(false);
-  const [salesGroup, setSalesGroup] = useState<"stores" | "menus">("stores");
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -283,12 +254,6 @@ export default function Dashboard() {
       setFilterIssue((e as Error).message);
     }
   };
-  const selectStore = (id: string) => {
-    if (draft) {
-      apply({ ...draft, store: id, menu: "" });
-      setView("sales");
-    }
-  };
   const refresh = async () => {
     if (!metadata) {
       await bootstrap();
@@ -306,14 +271,7 @@ export default function Dashboard() {
   };
   const current = views.find((v) => v.key === view)!;
   const dirty = draft && applied && toParams(draft).toString() !== toParams(applied).toString();
-  const exportGroup: Group =
-    view === "sales"
-      ? salesGroup
-      : view === "orders"
-        ? "stores"
-        : view === "explorer"
-          ? group
-          : "timeline";
+  const exportGroup: Group = group;
   const exportCSV = () => {
     if (!data) return;
     const f = data.filters;
@@ -425,12 +383,14 @@ export default function Dashboard() {
       `isc-fes-${view === "congestion" ? "congestion" : exportGroup}-${jstInput(f.start).slice(0, 10)}.csv`,
     );
   };
-  const summary = data?.summary;
   const known = data?.congestion.filter((r) => r.reported !== null) ?? [];
   const matched = known.filter((r) => r.gap === 0).length;
   const meanGap = known.length
     ? known.reduce((sum, r) => sum + Math.abs(r.gap!), 0) / known.length
     : null;
+  const reportQuery = applied
+    ? `?${new URLSearchParams({ start: applied.start, end: applied.end, interval: applied.interval })}`
+    : "";
 
   return (
     <div className="app-shell">
@@ -453,6 +413,26 @@ export default function Dashboard() {
         </div>
         <p className="nav-label">ANALYZE</p>
         <nav aria-label="分析メニュー">
+          <a className="nav-item" href={`/${reportQuery}`} aria-label="ホーム">
+            <House size={18} />
+            <span>ホーム</span>
+          </a>
+          <a className="nav-item" href={`/overview${reportQuery}`} aria-label="全体分析へ">
+            <BarChart3 size={18} />
+            <span>全体分析へ</span>
+          </a>
+          <a className="nav-item" href={`/stores${reportQuery}`} aria-label="店舗分析へ">
+            <Store size={18} />
+            <span>店舗分析へ</span>
+          </a>
+          <a className="nav-item" href={`/guests${reportQuery}`} aria-label="ゲスト分析へ">
+            <Users size={18} />
+            <span>ゲスト分析へ</span>
+          </a>
+          <a className="nav-item" href={`/reviews${reportQuery}`} aria-label="レビュー分析へ">
+            <MessageSquare size={18} />
+            <span>レビュー分析へ</span>
+          </a>
           {views.map((v) => (
             <button
               aria-label={v.label}
@@ -593,21 +573,23 @@ export default function Dashboard() {
                     ))}
                   </select>
                 </label>
-                <button
-                  type="button"
-                  className={`button filter-toggle ${advanced ? "selected" : ""}`}
-                  onClick={() => setAdvanced(!advanced)}
-                  aria-expanded={advanced}
-                >
-                  <SlidersHorizontal size={15} />
-                  詳細条件
-                </button>
+                {view === "explorer" && (
+                  <button
+                    type="button"
+                    className={`button filter-toggle ${advanced ? "selected" : ""}`}
+                    onClick={() => setAdvanced(!advanced)}
+                    aria-expanded={advanced}
+                  >
+                    <SlidersHorizontal size={15} />
+                    詳細条件
+                  </button>
+                )}
                 <button className="button button-green" type="submit" disabled={loading}>
                   再集計
                   <ArrowRight size={14} />
                 </button>
               </div>
-              {advanced && (
+              {advanced && view === "explorer" && (
                 <div className="filter-advanced">
                   <label>
                     <span>メニュー</span>
@@ -687,7 +669,9 @@ export default function Dashboard() {
                       : dirty
                         ? "条件の変更を反映しています…"
                         : applied
-                          ? `売上：${salesNames[applied.sales]}${applied.menu ? " ／ 選択メニューの明細金額のみ" : ""}`
+                          ? view === "congestion"
+                            ? "店舗・期間・集計単位・推定条件を適用"
+                            : `売上：${salesNames[applied.sales]}${applied.menu ? " ／ 選択メニューの明細金額のみ" : ""}`
                           : ""}
                 </span>
               </div>
@@ -733,197 +717,11 @@ export default function Dashboard() {
             data &&
             !error && (
               <>
-                {view !== "congestion" && (
-                  <div className="stats-grid">
-                    <Stat
-                      label="売上合計"
-                      value={yen(summary!.revenue)}
-                      note={`${integer(summary!.units)}点販売 · ${integer(summary!.salesOrders)}件`}
-                      icon={<TrendingUp size={17} />}
-                      accent
-                    />
-                    <Stat
-                      label="注文数"
-                      value={integer(summary!.orders)}
-                      note={`${integer(summary!.guests)}ゲスト · 完了 ${integer(summary!.completed)}件`}
-                      icon={<ShoppingBag size={17} />}
-                    />
-                    <Stat
-                      label="キャンセル率"
-                      value={percent(summary!.cancellationRate)}
-                      note={`${integer(summary!.cancelled)}件 / ${integer(summary!.orders)}件`}
-                      icon={<ArrowDownRight size={17} />}
-                    />
-                    <Stat
-                      label="平均完了時間"
-                      value={minutes(summary!.averageMinutes)}
-                      note={`中央値 ${minutes(summary!.medianMinutes)} · 完了分のみ`}
-                      icon={<Clock3 size={17} />}
-                    />
-                    <Stat
-                      label="対面受付率¹"
-                      value={percent(summary!.faceRate)}
-                      note={`${integer(summary!.face)}件 · スタッフ代理注文から推定`}
-                      icon={<Users size={17} />}
-                    />
-                  </div>
-                )}
-                {data.summary.orders === 0 && view !== "congestion" && (
+                {data.summary.orders === 0 && view === "explorer" && (
                   <div className="info-banner">
                     <CircleHelp size={17} />
                     この条件に一致する注文はありません。期間や詳細条件を変更してください。率と時間の「—」は対象データなしを表します。
                   </div>
-                )}
-                {view === "overview" && (
-                  <>
-                    <Panel
-                      title="注文と売上の推移"
-                      subtitle={`${intervalNames[data.filters.interval]}の動き · 売上は注文作成時刻に帰属`}
-                      action={
-                        <span className="pill">
-                          <span className="green-dot" />
-                          {intervalNames[data.filters.interval]}
-                        </span>
-                      }
-                    >
-                      <TimelineChart data={data.timeline} />
-                    </Panel>
-                    <div className="two-columns">
-                      <Panel title="注文の内訳" subtitle="現在の注文状態">
-                        <StatusChart data={data.statuses} total={summary!.orders} />
-                      </Panel>
-                      <Panel title="受け取りまでの時間" subtitle="区間内に作成された注文の所要時間">
-                        <DurationChart data={data.timeline} />
-                      </Panel>
-                    </div>
-                    <div className="two-columns ranking-grid">
-                      <Panel
-                        title="店舗別の売上"
-                        subtitle="売上順 · 店舗名から絞り込み"
-                        action={
-                          <button className="text-button" onClick={() => setView("sales")}>
-                            すべて見る
-                            <ArrowRight size={14} />
-                          </button>
-                        }
-                      >
-                        <MetricTable rows={data.stores} compact onSelect={selectStore} />
-                      </Panel>
-                      <Panel title="時間帯ごとの注文" subtitle="期間内の各日を合算 · 日本時間">
-                        <SimpleChart data={data.hours} />
-                      </Panel>
-                    </div>
-                  </>
-                )}
-                {view === "sales" && (
-                  <>
-                    <div className="two-columns">
-                      <Panel title="売上の推移" subtitle="選択した売上対象とメニューで集計">
-                        <SimpleChart data={data.timeline} metric="revenue" kind="area" />
-                      </Panel>
-                      <Panel
-                        title="販売点数の推移"
-                        subtitle={`平均注文単価 ${summary!.averageAmount == null ? "—" : yen(summary!.averageAmount)}`}
-                      >
-                        <SimpleChart data={data.timeline} metric="units" />
-                      </Panel>
-                    </div>
-                    <Panel
-                      title="売上ランキング"
-                      subtitle="メニュー金額には注文時のトッピング代を含みます"
-                      action={
-                        <div className="segmented">
-                          <button
-                            className={salesGroup === "stores" ? "active" : ""}
-                            onClick={() => setSalesGroup("stores")}
-                          >
-                            店舗別
-                          </button>
-                          <button
-                            className={salesGroup === "menus" ? "active" : ""}
-                            onClick={() => setSalesGroup("menus")}
-                          >
-                            メニュー別
-                          </button>
-                        </div>
-                      }
-                    >
-                      <MetricTable
-                        rows={data[salesGroup]}
-                        label={salesGroup === "stores" ? "店舗" : "メニュー / 店舗"}
-                        onSelect={
-                          salesGroup === "stores"
-                            ? selectStore
-                            : (id) => {
-                                if (draft) apply({ ...draft, menu: id });
-                              }
-                        }
-                      />
-                    </Panel>
-                  </>
-                )}
-                {view === "orders" && (
-                  <>
-                    <div className="two-columns">
-                      <Panel
-                        title="キャンセル率・対面受付率"
-                        subtitle="各区間の作成注文数を分母に計算"
-                      >
-                        <RateTimeline data={data.timeline} />
-                      </Panel>
-                      <Panel
-                        title="完了時間の分布"
-                        subtitle={`受取完了 ${integer(summary!.completed)}件 · P90 ${minutes(summary!.p90Minutes)}`}
-                      >
-                        <SimpleChart data={data.durations} />
-                      </Panel>
-                    </div>
-                    <div className="two-columns">
-                      <Panel title="調理・受取待ち時間の推移" subtitle="未到達の時刻は集計対象外">
-                        <DurationChart data={data.timeline} />
-                      </Panel>
-                      <Panel
-                        title="受付方法の内訳"
-                        subtitle="¹ スタッフ／管理者の件数制限免除を対面受付と推定"
-                      >
-                        <div className="channel-cards">
-                          {["mobile", "face"].map((key, i) => {
-                            const row = data.channels.find((r) => r.key === key);
-                            return (
-                              <div key={key}>
-                                <span className={`channel-icon ${i ? "gold" : ""}`}>
-                                  {i ? <Store size={21} /> : <ShoppingBag size={21} />}
-                                </span>
-                                <span>
-                                  {i ? "対面受付（推定）" : "モバイル"}
-                                  <strong>
-                                    {integer(row?.orders ?? 0)}
-                                    <small>件</small>
-                                  </strong>
-                                </span>
-                                <b>
-                                  {summary!.orders
-                                    ? percent(((row?.orders ?? 0) / summary!.orders) * 100)
-                                    : "—"}
-                                </b>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        <div className="inline-note">
-                          平均キャンセル待ち時間：{minutes(summary!.cancellationWaitMinutes)}
-                          <br />
-                          調理完了からキャンセルになるまでの時間です。
-                        </div>
-                      </Panel>
-                    </div>
-                    <Panel
-                      title="店舗ごとの注文・受付"
-                      subtitle="調理・受取待ち・完了時間の平均 / 中央値 / P90を比較。対象件数は各時刻に到達した注文数"
-                    >
-                      <MetricTable rows={data.stores} operations onSelect={selectStore} />
-                    </Panel>
-                  </>
                 )}
                 {view === "congestion" && (
                   <>

@@ -4,6 +4,7 @@ import { loadAnalytics, loadMetadata } from "../src/server/queries";
 import { parseFilters, toParams } from "../src/lib/filters";
 import type { Filters } from "../src/lib/types";
 import { ids, migrate, seed } from "./fixtures";
+import { storeChartPoints, menuChartPoints, notionChartRows } from "../src/lib/chart-data";
 
 const url = process.env.TEST_ANALYTICS_DATABASE_URL;
 const suite = url ? describe : describe.skip;
@@ -71,6 +72,12 @@ suite("PostgreSQL analytics against real migrations", () => {
     expect(storeA.pickupMedianMinutes).toBe(7.5);
     expect(storeA.pickupP90Minutes).toBeCloseTo(9.5);
     expect(data.summary.cancellationWaitMinutes).toBe(15);
+    expect(data.summary.cancellationWaitMedianMinutes).toBe(15);
+    expect(data.summary.cancellationMinutes).toBe(25);
+    expect(data.summary.cancellationMedianMinutes).toBe(25);
+    expect(data.summary.medianAmount).toBe(500);
+    expect(data.menuTimeline.reduce((n, r) => n + r.revenue, 0)).toBe(1700);
+    expect(data.menuTimeline.reduce((n, r) => n + r.units, 0)).toBe(5);
     expect(data.timeline).toHaveLength(4);
     expect(data.timeline.reduce((n, r) => n + r.orders, 0)).toBe(6);
     expect(data.menus.reduce((n, r) => n + r.revenue, 0)).toBe(1700);
@@ -108,6 +115,148 @@ suite("PostgreSQL analytics against real migrations", () => {
     expect(data.summary.preparationSamples).toBe(0);
     expect(data.summary.pickupSamples).toBe(0);
     expect(data.timeline.every((r) => r.orders === 0 && r.averageMinutes === null)).toBe(true);
+  });
+  test("multiple-store filtering composes and keeps zero-order stores in comparisons", async () => {
+    const one = await loadAnalytics(client, { ...filters, storeIds: [ids.b] });
+    expect(one.stores.map((r) => r.key)).toEqual([ids.b]);
+    expect(one.summary.revenue).toBe(500);
+    expect(one.menuTimeline.every((r) => r.menuId === ids.m3)).toBe(true);
+    expect(one.congestion.every((r) => r.storeId === ids.b)).toBe(true);
+    const both = await loadAnalytics(client, { ...filters, storeIds: [ids.a, ids.b] });
+    expect(both.summary.revenue).toBe(1700);
+    const empty = await loadAnalytics(client, { ...filters, channel: "face", storeIds: [ids.b] });
+    expect(empty.stores).toHaveLength(1);
+    expect(empty.stores[0].orders).toBe(0);
+    expect(empty.stores[0].medianAmount).toBeNull();
+  });
+  test("cumulative series recompute rates, averages and medians from orders and carry across empty buckets", async () => {
+    const data = await loadAnalytics(
+      client,
+      { ...filters, accumulation: "cumulative" },
+      { includeCongestion: false },
+    );
+    const interval = await query();
+    const a = data.storeTimeline.filter((r) => r.storeId === ids.a);
+    expect(a.map((r) => r.revenue)).toEqual([900, 900, 1200, 1200]);
+    expect(a.map((r) => r.orders)).toEqual([2, 3, 4, 5]);
+    expect(a.map((r) => r.units)).toEqual([3, 3, 4, 4]);
+    expect(a.map((r) => r.cancellationRate)).toEqual([50, 100 / 3, 25, 20]);
+    expect(a.map((r) => r.faceRate)).toEqual([0, 0, 25, 20]);
+    expect(a.map((r) => r.preparationMinutes)).toEqual([7.5, 20 / 3, 12.5, 12.5]);
+    expect(a.map((r) => r.preparationMedianMinutes)).toEqual([7.5, 5, 7.5, 7.5]);
+    expect(a.map((r) => r.pickupSamples)).toEqual([1, 1, 2, 2]);
+    expect(a.map((r) => r.pickupMedianMinutes)).toEqual([5, 5, 7.5, 7.5]);
+    expect(a.map((r) => r.medianAmount)).toEqual([900, 900, 600, 600]);
+    expect(data.storeTimeline.filter((r) => r.storeId === ids.b).map((r) => r.revenue)).toEqual([
+      500, 500, 500, 500,
+    ]);
+    expect(data.summary).toEqual(interval.summary);
+    expect(data.stores).toEqual(interval.stores);
+    expect(data.menus).toEqual(interval.menus);
+    for (const row of data.stores) {
+      const last = data.storeTimeline.filter((r) => r.storeId === row.key).at(-1)!;
+      for (const key of [
+        "revenue",
+        "units",
+        "orders",
+        "guests",
+        "cancellationRate",
+        "faceRate",
+        "preparationMedianMinutes",
+      ] as const)
+        expect(last[key]).toEqual(row[key]);
+    }
+    for (const row of data.menus) {
+      const last = data.menuTimeline.filter((r) => r.menuId === row.key).at(-1)!;
+      expect(last.revenue).toBe(row.revenue);
+      expect(last.units).toBe(row.units);
+    }
+    const points = storeChartPoints(data, "revenue").filter((p) => p.seriesId.startsWith(ids.a));
+    const rows = notionChartRows(points, "売上推移（累積）", "円", {
+      ...filters,
+      generatedAt: data.generatedAt,
+      conditions: "累積（選択期間の開始から）",
+    });
+    expect(rows.slice(1).map((row) => row[4])).toEqual([900, 900, 1200, 1200]);
+    expect(menuChartPoints(data, "revenue", [ids.m3]).map((p) => p.value)).toEqual([
+      500, 500, 500, 500,
+    ]);
+  });
+  test("cumulative series preserve store/menu/channel/sales and partially intersecting bounds", async () => {
+    const data = await loadAnalytics(client, {
+      ...filters,
+      start: "2026-10-24T10:05:00+09:00",
+      storeIds: [ids.a],
+      menu: ids.m1,
+      channel: "mobile",
+      sales: "all",
+      accumulation: "cumulative",
+    });
+    const a = data.storeTimeline.filter((r) => r.storeId === ids.a);
+    expect(a.map((r) => r.revenue)).toEqual([300, 300, 300, 600]);
+    expect(a.map((r) => r.orders)).toEqual([1, 1, 1, 2]);
+    expect(a.at(-1)?.cancellationRate).toBe(50);
+    expect(data.storeTimeline.every((r) => r.storeId === ids.a)).toBe(true);
+    expect(data.menuTimeline.every((r) => r.menuId === ids.m1)).toBe(true);
+    expect(data.summary.revenue).toBe(600);
+    const empty = await loadAnalytics(client, {
+      ...filters,
+      store: ids.b,
+      channel: "face",
+      accumulation: "cumulative",
+    });
+    expect(storeChartPoints(empty, "revenue").map((p) => p.value)).toEqual([0, 0, 0, 0]);
+    expect(storeChartPoints(empty, "cancellationRate").map((p) => p.value)).toEqual([
+      null,
+      null,
+      null,
+      null,
+    ]);
+    const early = await loadAnalytics(client, {
+      ...filters,
+      start: "2026-10-24T09:00:00+09:00",
+      store: ids.b,
+      accumulation: "cumulative",
+    });
+    expect(storeChartPoints(early, "revenue").map((p) => p.value)).toEqual([
+      0, 0, 500, 500, 500, 500,
+    ]);
+    expect(storeChartPoints(early, "cancellationRate").map((p) => p.value)).toEqual([
+      null,
+      null,
+      0,
+      0,
+      0,
+      0,
+    ]);
+  });
+  test("cumulative guests deduplicate repeat orders across days without a midnight reset", async () => {
+    await client.query("ROLLBACK");
+    await client.query("BEGIN");
+    try {
+      const {
+        rows: [first],
+      } = await client.query(
+        "SELECT guest_id,origin_cart_id FROM orders WHERE created_at='2026-10-24T10:00:00+09:00'",
+      );
+      await client.query(
+        "UPDATE orders SET guest_id=$1,origin_cart_id=$2,origin_cart_version=2,created_at='2026-10-25T10:00:00+09:00',updated_at='2026-10-25T10:00:00+09:00' WHERE created_at='2026-10-24T11:30:00+09:00'",
+        [first.guest_id, first.origin_cart_id],
+      );
+      const data = await loadAnalytics(client, {
+        ...filters,
+        end: "2026-10-26T00:00:00+09:00",
+        interval: "1d",
+        store: ids.a,
+        accumulation: "cumulative",
+      });
+      expect(data.storeTimeline.map((r) => r.guests)).toEqual([5, 5]);
+      expect(data.storeTimeline.map((r) => r.orders)).toEqual([5, 6]);
+      expect(data.storeTimeline.map((r) => r.revenue)).toEqual([1500, 1500]);
+    } finally {
+      await client.query("ROLLBACK");
+      await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
+    }
   });
   test("congestion carries prior history, includes pre-period backlog and ignores cohort filters", async () => {
     const data = await query();
