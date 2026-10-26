@@ -18,3 +18,7 @@
 # 構成図
 
 ![アーキテクチャ](assets/infra-architecture.png)
+
+# ローカル分析アプリ
+
+学園祭の注文・売上・待ち時間・混雑度を振り返る Next.js アプリを `analytics/` に用意しています。ローカル PostgreSQL に読み取り専用で接続します。起動方法と指標の定義は [analytics/README.md](analytics/README.md) を参照してください。

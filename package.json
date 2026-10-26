@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "export:orders": "bun run ./scripts/export-store-orders.ts",
     "benchmark": "bun run ./scripts/benchmark/index.ts",
     "benchmark:metrics": "bun run ./scripts/benchmark/collect-metrics.ts",
     "benchmark:credits": "bun run ./scripts/benchmark/export-credits.ts",
