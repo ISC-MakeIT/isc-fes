@@ -1,4 +1,4 @@
-api_server_instance_type = "t4g.medium"
+api_server_instance_type = "t4g.micro"
 cloudwatch_enabled       = true
 
 # メンションするDiscordユーザーの「Copy User ID」で取得したIDを文字列で追加する。
