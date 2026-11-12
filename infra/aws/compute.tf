@@ -48,7 +48,7 @@ resource "aws_instance" "api_server" {
 variable "api_server_instance_type" {
   description = "APIサーバーのサイズ。本番準備・本番はmedium、監視期間終了後はmicroへ戻す。"
   type        = string
-  default     = "t4g.medium"
+  default     = "t4g.micro"
 
   validation {
     condition     = contains(["t4g.micro", "t4g.small", "t4g.medium"], var.api_server_instance_type)

@@ -59,7 +59,7 @@ AWS管理Policyの`AmazonSSMManagedInstanceCore`は、全Parameterに対する`s
 | Setting       | Value                               |
 | ------------- | ----------------------------------- |
 | AMI           | 最新のAmazon Linux 2023 ARM64       |
-| Instance type | `t4g.medium`（2 vCPU、4 GiB Memory） |
+| Instance type | `t4g.micro`（2 vCPU、1 GiB Memory）  |
 | CPU credits   | `standard`                          |
 | Root volume   | 20 GiB gp3、暗号化あり              |
 | Public IP     | Elastic IPを明示的に関連付け        |
